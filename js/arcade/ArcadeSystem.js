@@ -153,10 +153,6 @@ export class ArcadeSystem {
       button.classList.toggle('is-active', button.getAttribute('data-sim-target') === simulationKey);
     });
 
-    document.querySelectorAll('.hub-card[data-sim]').forEach((card) => {
-      card.classList.toggle('is-active', card.dataset.sim === simulationKey);
-    });
-
     if (simulationKey && SIMULATION_META[simulationKey]) {
       this.ui.title.textContent = SIMULATION_META[simulationKey].title;
       this.ui.subtitle.textContent = SIMULATION_META[simulationKey].subtitle;
