@@ -11,17 +11,18 @@
 
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="gallery-page">
+  <a href="#gallery" class="skip-link">Skip to main content</a>
 
   <div id="liquid-ether-bg"></div>
 
   <header class="glass-nav">
     <div class="container nav-container">
-      <div class="logo">
-        <a href="index.html" style="text-decoration: none; color: inherit; display: flex; align-items: center;"><span id="nav-logo-text">Itsmefeje</span></a>
+      <div class="logo nav-brand">
+        <a href="index.html"><span class="brand-mark"></span><span id="nav-logo-text">Itsmefeje</span></a>
       </div>
 
-      <button class="mobile-toggle" aria-label="Toggle Menu">
+      <button class="mobile-toggle" aria-label="Toggle Menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
 
@@ -30,14 +31,14 @@
         <a href="index.html#learning">Learning</a>
         <a href="index.html#goals">Goals</a>
         <div class="dropdown">
-          <a href="Arcade.html" style="cursor: pointer;">Live Simulations</a>
+          <a href="Arcade.html">Live Simulations</a>
           <div class="dropdown-content">
             <a href="Arcade.html?sim=orbital">Orbital Earth</a>
             <a href="Arcade.html?sim=solar">Solar System Explorer</a>
             <a href="Arcade.html">Arcade Hub</a>
           </div>
         </div>
-        <a href="Gallery.html" style="color: white; font-weight: 600;">Gallery</a>
+        <a href="Gallery.html" class="is-current">Gallery</a>
         <a href="crush.html">Crush ko</a>
         <a href="index.html#contact" class="btn-primary">Contact</a>
       </nav>
@@ -45,7 +46,7 @@
   </header>
 
   <main>
-    <section id="gallery" class="section-padding" style="padding-top: 150px; min-height: 80vh;">
+    <section id="gallery" class="section-padding">
       <div class="container">
         
         <div class="section-header reveal">
@@ -108,7 +109,7 @@
            </div>
         </div>
 
-        <div class="section-header reveal" style="margin-top: 100px;">
+        <div class="section-header reveal gallery-section-spacer">
           <h2>The Hive Minecraft: Bedrock Edition</h2>
           <p><span class="highlight-game">The Hive</span> is a Minecraft server I still actively play today. Spanning from <span class="highlight-date">2021</span> to the present, it holds countless great memories for me across all of its unique minigames.</p>
         </div>

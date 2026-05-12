@@ -24,6 +24,40 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
 <body class="arcade-page">
+  <a href="#arcade-hub-ui" class="skip-link">Skip to main content</a>
+
+  <header class="glass-nav premium-nav arcade-nav">
+    <div class="container nav-container">
+      <div class="logo nav-brand">
+        <a href="index.html">
+          <span class="brand-mark"></span>
+          <span id="nav-logo-text">Itsmefeje</span>
+        </a>
+      </div>
+
+      <button class="mobile-toggle" aria-label="Toggle Menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav class="nav-links">
+        <a href="index.html#about">About</a>
+        <a href="index.html#learning">Learning</a>
+        <a href="index.html#goals">Goals</a>
+        <div class="dropdown">
+          <a href="Arcade.html">Live Simulations</a>
+          <div class="dropdown-content">
+            <a href="Arcade.html?sim=orbital">Orbital Earth</a>
+            <a href="Arcade.html?sim=solar">Solar System Explorer</a>
+            <a href="Arcade.html">Arcade Hub</a>
+          </div>
+        </div>
+        <a href="Gallery.html">Gallery</a>
+        <a href="crush.html">Crush KO</a>
+        <a href="index.html#contact" class="btn-primary">Contact</a>
+      </nav>
+    </div>
+  </header>
+
   <div id="loading-overlay">
     <div class="loading-spinner"></div>
     <div class="loading-text">INITIALIZING ORBITAL SYSTEMS</div>
@@ -114,6 +148,7 @@
     <div id="sim-content-layer"></div>
   </div>
 
+  <script src="main.js"></script>
   <script type="module" src="js/arcade/main.js"></script>
 </body>
 </html>
