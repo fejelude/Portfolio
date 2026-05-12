@@ -772,3 +772,162 @@ body.arcade-page {
     gap: 8px;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Arcade Crystal mission-control upgrade. Uses shared tokens from style.css.
+   -------------------------------------------------------------------------- */
+body.arcade-page {
+  --arcade-bg: var(--page-bg);
+  --arcade-panel: var(--surface-tint);
+  --arcade-panel-strong: rgba(255, 255, 255, 0.12);
+  --arcade-border: var(--glass-border);
+  --arcade-text: var(--text-main);
+  --arcade-muted: var(--text-muted);
+  --arcade-cyan: var(--accent);
+  --arcade-blue: var(--accent);
+  background:
+    radial-gradient(circle at 18% 16%, rgba(var(--accent-rgb), .22), transparent 28vw),
+    radial-gradient(circle at 74% 20%, rgba(167,139,250,.16), transparent 26vw),
+    #020617;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+.arcade-nav { z-index: 80; }
+#sim-canvas {
+  background:
+    radial-gradient(circle at 18% 22%, rgba(var(--accent-rgb), 0.22), transparent 30%),
+    radial-gradient(circle at 78% 18%, rgba(168, 85, 247, 0.16), transparent 26%),
+    radial-gradient(circle at center, #081223 0%, #02050d 56%, #000 100%);
+}
+#sim-canvas::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: .34;
+  background-image: radial-gradient(rgba(255,255,255,.55) 1px, transparent 1px);
+  background-size: 48px 48px;
+  animation: star-drift 24s linear infinite;
+}
+#loading-overlay {
+  gap: clamp(1rem, 3vw, 1.5rem);
+  background: rgba(3, 8, 20, .42);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  transition: opacity .5s var(--spring-medium), transform .55s var(--spring-fast), filter .55s var(--spring-medium);
+}
+#loading-overlay::before {
+  content: "";
+  width: min(32rem, calc(100vw - 2rem));
+  height: 10rem;
+  position: absolute;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-modal);
+  background: linear-gradient(145deg, rgba(255,255,255,.12), rgba(255,255,255,.035)), var(--surface-tint);
+  box-shadow: var(--glass-shadow);
+}
+#loading-overlay::after {
+  content: "";
+  position: absolute;
+  width: min(26rem, calc(100vw - 4rem));
+  height: 2px;
+  transform: translateY(3.1rem);
+  border-radius: 99px;
+  background: linear-gradient(90deg, transparent, rgba(var(--accent-rgb), .9), transparent);
+  animation: scan-sweep 1.8s var(--spring-medium) infinite;
+}
+#loading-overlay.hidden { transform: scale(1.03); filter: blur(10px); }
+.loading-spinner {
+  z-index: 1;
+  border-color: rgba(255,255,255,.12);
+  border-top-color: var(--accent);
+  box-shadow: 0 0 34px rgba(var(--accent-rgb), .25);
+}
+.loading-text { z-index: 1; color: var(--text-main); font-size: clamp(.72rem, 1.8vw, .92rem); text-align: center; }
+#arcade-hub-ui {
+  padding: calc(var(--nav-height) + clamp(1rem, 3vw, 2rem)) clamp(1rem, 3vw, 2rem) clamp(1rem, 3vw, 2rem);
+  background: linear-gradient(180deg, rgba(2, 6, 23, .08), rgba(2, 6, 23, .52));
+  backdrop-filter: blur(calc(var(--glass-blur) * .55));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * .55));
+}
+.hub-shell { width: min(1240px, 100%); }
+.hub-copy, .hub-grid, .hub-card, .metric-pill, .hud-panel, .sim-top-bar, .fab-info {
+  border: 1px solid var(--glass-border) !important;
+  background: linear-gradient(145deg, rgba(255,255,255,.13), rgba(255,255,255,.04)), var(--surface-tint) !important;
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%) brightness(1.1);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%) brightness(1.1);
+  overflow: hidden;
+}
+.hub-copy, .hub-grid { border-radius: var(--radius-modal); }
+.hub-title { font-size: clamp(2.6rem, 6vw, 5.2rem); color: var(--text-main); }
+.hub-subtitle, #sim-subtitle, .panel-description, .card-content p, .data-note { color: var(--text-muted); }
+.hub-card {
+  border-radius: var(--radius-card);
+  animation: arcade-float 5s ease-in-out infinite alternate;
+  transition: transform .32s var(--spring-fast), box-shadow .32s var(--spring-medium), border-color .32s ease, background .32s ease;
+}
+.hub-card:nth-child(2) { animation-delay: -2.3s; }
+.hub-card:hover, .hub-card:focus-visible, .hub-card.is-active {
+  transform: translate3d(0, -.35rem, 0) scale(1.02);
+  border-color: rgba(var(--accent-rgb), .5) !important;
+  box-shadow: var(--glass-shadow-hover), 0 0 0 1px rgba(var(--accent-rgb), .12);
+}
+.hub-card.is-active { background: linear-gradient(145deg, rgba(var(--accent-rgb), .2), rgba(255,255,255,.05)), var(--surface-tint) !important; }
+.card-preview { background: radial-gradient(circle at center, rgba(var(--accent-rgb), .16), rgba(2, 6, 23, .58)); }
+.card-content h3, #sim-title, .panel-title h2, .panel-title h3, .data-value, .data-card strong { color: var(--text-main); }
+.system-online, .status-pill {
+  border-color: rgba(74, 222, 128, .24) !important;
+  box-shadow: 0 0 24px rgba(74, 222, 128, .1);
+}
+.sim-top-bar {
+  top: calc(env(safe-area-inset-top) + clamp(.75rem, 2vw, 1.25rem));
+  left: clamp(.75rem, 2vw, 1.25rem);
+  right: clamp(.75rem, 2vw, 1.25rem);
+  padding: clamp(.85rem, 2vw, 1.15rem) clamp(1rem, 2vw, 1.35rem);
+}
+.sim-actions {
+  padding: .35rem;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 999px;
+  background: rgba(255,255,255,.07);
+}
+.btn-control.is-active {
+  background: rgba(var(--accent-rgb), .22) !important;
+  border-color: rgba(var(--accent-rgb), .54) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 0 28px rgba(var(--accent-rgb), .22) !important;
+}
+.hud-panel {
+  border-radius: var(--radius-card);
+}
+.hud-panel::before, .sim-top-bar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .12;
+  background: repeating-linear-gradient(180deg, transparent 0 10px, rgba(255,255,255,.08) 11px 12px);
+  animation: scan-lines 5s linear infinite;
+}
+.data-card, .timeline-meter {
+  background: rgba(255,255,255,.07);
+  border-color: rgba(255,255,255,.13);
+  backdrop-filter: blur(calc(var(--glass-blur) * .5));
+}
+.timeline-meter > span { background: linear-gradient(90deg, var(--accent), #a78bfa, #14b8a6); }
+.btn-back { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+.hub-footer { justify-content: flex-start; }
+.fab-info { color: var(--accent); }
+
+@media (max-width: 860px) {
+  body.arcade-page { overflow: auto; }
+  #arcade-hub-ui { align-items: start; }
+  .sim-actions { border-radius: var(--radius-card); }
+}
+@media (max-width: 720px) {
+  .hub-copy, .hub-grid, .hud-panel, .sim-top-bar { border-radius: var(--radius-card); }
+  #sim-content-layer, #solar-ui-container, #orbital-ui-container { padding-top: clamp(12rem, 38vh, 17rem); }
+}
+@keyframes star-drift { to { transform: translate3d(-48px, 48px, 0); } }
+@keyframes scan-sweep { 0% { opacity: .15; transform: translateY(3.1rem) scaleX(.25); } 50% { opacity: 1; transform: translateY(3.1rem) scaleX(1); } 100% { opacity: .15; transform: translateY(3.1rem) scaleX(.25); } }
+@keyframes scan-lines { to { transform: translateY(24px); } }
+@keyframes arcade-float { from { transform: translate3d(0,-.12rem,0); } to { transform: translate3d(0,.26rem,0); } }

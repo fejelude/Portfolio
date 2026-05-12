@@ -1,6 +1,10 @@
 window.initGallery = function() {
+  const motionMode = document.documentElement.dataset.motion;
+  const hasGsap = typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined';
+
   // GSAP Entrance Animation
-  gsap.registerPlugin(ScrollTrigger);
+  if (hasGsap && motionMode !== 'off') {
+    gsap.registerPlugin(ScrollTrigger);
 
   // Section Headers Fade & Lift
   gsap.utils.toArray('.section-header.reveal').forEach(header => {
@@ -42,6 +46,8 @@ window.initGallery = function() {
     );
   });
 
+  }
+
   // Lightbox Logic
   const galleryItems = document.querySelectorAll('.gallery-item img');
   const lightbox = document.getElementById('lightbox');
@@ -75,16 +81,24 @@ window.initGallery = function() {
   };
 
   const updateLightboxImage = () => {
-    // Add fade out/in effect for smoother transition
-    gsap.to(lightboxImg, { opacity: 0.5, duration: 0.1, onComplete: () => {
-      const img = galleryItems[currentIndex];
+    const img = galleryItems[currentIndex];
+    const swapImage = () => {
       lightboxImg.src = img.src;
       lightboxImg.alt = img.alt;
       if (lightboxCaption) {
         lightboxCaption.textContent = img.alt;
       }
-      gsap.to(lightboxImg, { opacity: 1, duration: 0.2 });
-    }});
+    };
+
+    if (hasGsap && motionMode !== 'off') {
+      gsap.to(lightboxImg, { opacity: 0.5, duration: 0.1, onComplete: () => {
+        swapImage();
+        gsap.to(lightboxImg, { opacity: 1, duration: 0.2 });
+      }});
+      return;
+    }
+
+    swapImage();
   };
 
   const nextImage = () => {
