@@ -4,6 +4,7 @@ import { EarthRenderer } from './EarthRenderer.js';
 import { CameraDirector } from './CameraDirector.js';
 import { OrbitalEarthSimulation } from './OrbitalEarthSimulation.js';
 import { SolarSystemSimulation } from './SolarSystemSimulation.js';
+import { ThemeManager } from './ThemeManager.js';
 
 const SIMULATION_META = {
   orbital: {
@@ -52,6 +53,7 @@ export class ArcadeSystem {
     this.activeSimKey = null;
     this.activeSim = null;
     this.isTransitioning = false;
+    this.themeManager = new ThemeManager();
 
     this.earthRenderer = new EarthRenderer(this.scene, this.loadingManager);
     this.cameraDirector = new CameraDirector(this.camera, this.renderer.domElement);
@@ -170,6 +172,9 @@ export class ArcadeSystem {
     if (this.globalSunLight) this.globalSunLight.visible = true;
 
     this.setUIState({ showHub: true });
+    const url = new URL(window.location.href);
+    url.searchParams.delete('sim');
+    window.history.replaceState({}, '', url);
     this.cameraDirector.setMode('FREE');
     this.cameraDirector.flyTo(new THREE.Vector3(0, 10, 32), new THREE.Vector3(0, 0, 0));
   }

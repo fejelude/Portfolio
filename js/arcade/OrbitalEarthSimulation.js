@@ -102,7 +102,7 @@ export class OrbitalEarthSimulation {
 
   getTemplate() {
     return `
-      <button id="btn-toggle-orbital-ui" class="fab-info" aria-label="Toggle Information" title="View Details">
+      <button id="btn-toggle-orbital-ui" class="fab-info" type="button" aria-label="Toggle interface" title="Toggle interface">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"></circle>
           <line x1="12" y1="16" x2="12" y2="12"></line>
@@ -112,7 +112,7 @@ export class OrbitalEarthSimulation {
 
       <div id="orbital-ui-container" class="ui-container-visible">
         <section class="hud-panel hud-top-left dismissible-panel">
-          <button class="btn-close-panel" aria-label="Close Panel">×</button>
+          <button class="btn-close-panel" type="button" aria-label="Close panel">&times;</button>
           <div class="panel-title">
             <div>
               <div class="panel-kicker">Orbital Mission Control</div>
@@ -120,7 +120,7 @@ export class OrbitalEarthSimulation {
             </div>
             <div class="status-pill"><span class="pulse-dot"></span><span id="camera-mode-label">ISS Track</span></div>
           </div>
-          <p class="panel-description">A refined Earth presentation with live station telemetry, predictive orbital context, and smoother camera choreography across desktop and mobile.</p>
+          <p class="panel-description">Live Earth illumination, station position, ground reference, and camera state grouped into one calm readout.</p>
           <div class="data-grid">
             <div class="data-card">
               <span class="data-label">UTC Time</span>
@@ -132,7 +132,7 @@ export class OrbitalEarthSimulation {
             </div>
             <div class="data-card">
               <span class="data-label">Ground Location</span>
-              <strong id="user-loc">Scanning…</strong>
+              <strong id="user-loc">Scanning...</strong>
             </div>
             <div class="data-card">
               <span class="data-label">Local Coordinates</span>
@@ -150,7 +150,7 @@ export class OrbitalEarthSimulation {
         </section>
 
         <section class="hud-panel hud-top-right dismissible-panel">
-          <button class="btn-close-panel" aria-label="Close Panel">×</button>
+          <button class="btn-close-panel" type="button" aria-label="Close panel">&times;</button>
           <div class="panel-title">
             <div>
               <div class="panel-kicker">Orbit Readout</div>
@@ -169,24 +169,24 @@ export class OrbitalEarthSimulation {
         </section>
 
         <section class="hud-panel hud-bottom-left dismissible-panel">
-          <button class="btn-close-panel" aria-label="Close Panel">×</button>
+          <button class="btn-close-panel" type="button" aria-label="Close panel">&times;</button>
           <div class="panel-title">
             <div>
               <div class="panel-kicker">Trajectory Layer</div>
               <h3>Live Orbit Visualization</h3>
             </div>
           </div>
-          <p class="data-note">ISS trail history and forward projection are rendered independently for better spatial readability and less visual clutter.</p>
+          <p class="data-note">Trail history, forward projection, and the ground marker stay separated so the orbit remains easy to read.</p>
           <div class="orbit-legend horizontal-scroll-mobile">
             <span class="legend-item"><span class="legend-swatch trail"></span>Live trail</span>
             <span class="legend-item"><span class="legend-swatch prediction"></span>Predicted path</span>
             <span class="legend-item"><span class="legend-swatch user"></span>Ground marker</span>
           </div>
-          <div class="status-bar">Optimized for smaller screens with stacked panels, larger touch targets, and low-clutter telemetry grouping.</div>
+          <div class="status-bar">Forecast horizon and live telemetry update continuously while the camera remains available for manual orbiting.</div>
         </section>
 
         <section class="hud-panel hud-bottom-right dismissible-panel">
-          <button class="btn-close-panel" aria-label="Close Panel">×</button>
+          <button class="btn-close-panel" type="button" aria-label="Close panel">&times;</button>
           <div class="panel-title">
             <div>
               <div class="panel-kicker">Camera Control</div>
@@ -194,14 +194,14 @@ export class OrbitalEarthSimulation {
             </div>
           </div>
           <div class="control-stack">
-            <div class="control-label">Select a tracking mode</div>
+            <div class="control-label">Tracking mode</div>
             <div class="control-group horizontal-scroll-mobile">
-              <button class="btn-control" id="btn-mode-free">Free Orbit</button>
-              <button class="btn-control is-active" id="btn-mode-iss">Track ISS</button>
-              <button class="btn-control" id="btn-mode-user">Locate User</button>
-              <button class="btn-control" id="btn-mode-reset">Reset View</button>
+              <button class="btn-control" id="btn-mode-free" type="button">Free Orbit</button>
+              <button class="btn-control is-active" id="btn-mode-iss" type="button">Track ISS</button>
+              <button class="btn-control" id="btn-mode-user" type="button">Locate User</button>
+              <button class="btn-control" id="btn-mode-reset" type="button">Reset View</button>
             </div>
-            <div class="status-bar">Camera transitions are eased to reduce snapping, focus jitter, and disorienting jumps between targets.</div>
+            <div class="status-bar">Camera moves are eased for steady focus changes between free orbit, ISS tracking, and ground lock.</div>
           </div>
         </section>
       </div>
@@ -227,26 +227,34 @@ export class OrbitalEarthSimulation {
     if (toggleBtn) {
       const handler = () => {
         const container = document.getElementById('orbital-ui-container');
-        if (container) {
-          if (container.classList.contains('ui-container-visible')) {
-            container.classList.replace('ui-container-visible', 'ui-container-hidden');
-          } else {
-            container.classList.replace('ui-container-hidden', 'ui-container-visible');
-            // Restore hidden panels
-            document.querySelectorAll('#orbital-ui-container .dismissible-panel').forEach(p => p.style.display = '');
-          }
+        if (!container) return;
+
+        if (container.classList.contains('ui-container-visible')) {
+          container.classList.replace('ui-container-visible', 'ui-container-hidden');
+          return;
         }
+
+        container.classList.replace('ui-container-hidden', 'ui-container-visible');
+        document.querySelectorAll('#orbital-ui-container .dismissible-panel').forEach((panel) => {
+          panel.style.display = '';
+          requestAnimationFrame(() => panel.classList.remove('is-dismissed'));
+        });
       };
       toggleBtn.addEventListener('click', handler);
       this.boundEvents.push({ element: toggleBtn, event: 'click', handler });
     }
 
     document.querySelectorAll('#orbital-ui-container .btn-close-panel').forEach((closeBtn) => {
-      const handler = (e) => {
-        const panel = e.target.closest('.dismissible-panel');
-        if (panel) {
-          panel.style.display = 'none';
-        }
+      const handler = (event) => {
+        const panel = event.target.closest('.dismissible-panel');
+        if (!panel) return;
+
+        panel.classList.add('is-dismissed');
+        window.setTimeout(() => {
+          if (panel.classList.contains('is-dismissed')) {
+            panel.style.display = 'none';
+          }
+        }, 260);
       };
       closeBtn.addEventListener('click', handler);
       this.boundEvents.push({ element: closeBtn, event: 'click', handler });
@@ -308,7 +316,7 @@ export class OrbitalEarthSimulation {
       const pulse = 1 + Math.sin(performance.now() * 0.008) * 0.18;
       this.issPulse.scale.setScalar(pulse);
       this.hud?.updateISS(issData);
-      this.hud?.setStatus(`Telemetry ${this.issService.getStatus()} · Updated ${new Date(issData.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
+      this.hud?.setStatus(`Telemetry ${this.issService.getStatus()} - Updated ${new Date(issData.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
       this.updateOrbitPath(issData);
 
       if (this.cameraDirector.mode === 'ISS') {

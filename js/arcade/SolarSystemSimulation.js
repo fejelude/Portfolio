@@ -67,12 +67,14 @@ export class SolarSystemSimulation {
   injectUI() {
     const uiLayer = document.getElementById('sim-content-layer');
     if (!uiLayer) return;
-    const buttons = [...this.bodies.map(({ definition }) => definition.name), 'Moon', 'Overview']
-      .map((name) => `<button class="btn-control ${name === 'Overview' ? 'is-active' : ''}" data-target-body="${name}">${name}</button>`)
+
+    const bodyNames = ['Overview', ...this.bodies.map(({ definition }) => definition.name), 'Moon'];
+    const buttons = bodyNames
+      .map((name) => `<button class="btn-control ${name === 'Overview' ? 'is-active' : ''}" type="button" data-target-body="${name}">${name}</button>`)
       .join('');
 
     uiLayer.innerHTML = `
-      <button id="btn-toggle-solar-ui" class="fab-info" aria-label="Toggle Information" title="View Details">
+      <button id="btn-toggle-solar-ui" class="fab-info" type="button" aria-label="Toggle interface" title="Toggle interface">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"></circle>
           <line x1="12" y1="16" x2="12" y2="12"></line>
@@ -82,14 +84,14 @@ export class SolarSystemSimulation {
 
       <div id="solar-ui-container" class="ui-container-visible">
         <section class="hud-panel hud-top-left dismissible-panel">
-          <button class="btn-close-panel" aria-label="Close Panel">×</button>
+          <button class="btn-close-panel" type="button" aria-label="Close panel">&times;</button>
           <div class="panel-title">
             <div>
               <div class="panel-kicker">Expanded Celestial Layer</div>
               <h2>Solar System Explorer</h2>
             </div>
           </div>
-          <p class="panel-description">Earth now scales into a curated heliocentric experience with intentional orbit compression, cleaner focus states, and modular body rendering.</p>
+          <p class="panel-description">A composed heliocentric view with orbit compression, selected-body focus, and a clean navigation layer.</p>
           <div class="panel-facts">
             <div class="data-card"><span class="data-label">Primary Light</span><strong>Local Sun Core</strong></div>
             <div class="data-card"><span class="data-label">Body Count</span><strong>${this.bodies.length + 1}</strong></div>
@@ -99,7 +101,7 @@ export class SolarSystemSimulation {
         </section>
 
         <section class="hud-panel hud-top-right dismissible-panel">
-          <button class="btn-close-panel" aria-label="Close Panel">×</button>
+          <button class="btn-close-panel" type="button" aria-label="Close panel">&times;</button>
           <div class="panel-title">
             <div>
               <div class="panel-kicker">Body Dossier</div>
@@ -110,7 +112,7 @@ export class SolarSystemSimulation {
         </section>
 
         <section class="hud-panel solar-selector dismissible-panel">
-          <button class="btn-close-panel" aria-label="Close Panel">×</button>
+          <button class="btn-close-panel" type="button" aria-label="Close panel">&times;</button>
           <div class="panel-title">
             <div>
               <div class="panel-kicker">Celestial Navigation</div>
@@ -122,9 +124,8 @@ export class SolarSystemSimulation {
       </div>
     `;
 
-    // Initialize UI state based on window width
     if (window.innerWidth <= 768) {
-      document.getElementById('solar-ui-container').classList.replace('ui-container-visible', 'ui-container-hidden');
+      document.getElementById('solar-ui-container')?.classList.replace('ui-container-visible', 'ui-container-hidden');
     }
   }
 
@@ -139,24 +140,34 @@ export class SolarSystemSimulation {
     if (toggleBtn) {
       const handler = () => {
         const container = document.getElementById('solar-ui-container');
+        if (!container) return;
+
         if (container.classList.contains('ui-container-visible')) {
           container.classList.replace('ui-container-visible', 'ui-container-hidden');
-        } else {
-          container.classList.replace('ui-container-hidden', 'ui-container-visible');
-          // Restore hidden panels
-          document.querySelectorAll('#solar-ui-container .dismissible-panel').forEach(p => p.style.display = '');
+          return;
         }
+
+        container.classList.replace('ui-container-hidden', 'ui-container-visible');
+        document.querySelectorAll('#solar-ui-container .dismissible-panel').forEach((panel) => {
+          panel.style.display = '';
+          requestAnimationFrame(() => panel.classList.remove('is-dismissed'));
+        });
       };
       toggleBtn.addEventListener('click', handler);
       this.boundEvents.push({ element: toggleBtn, event: 'click', handler });
     }
 
     document.querySelectorAll('#solar-ui-container .btn-close-panel').forEach((closeBtn) => {
-      const handler = (e) => {
-        const panel = e.target.closest('.dismissible-panel');
-        if (panel) {
-          panel.style.display = 'none';
-        }
+      const handler = (event) => {
+        const panel = event.target.closest('.dismissible-panel');
+        if (!panel) return;
+
+        panel.classList.add('is-dismissed');
+        window.setTimeout(() => {
+          if (panel.classList.contains('is-dismissed')) {
+            panel.style.display = 'none';
+          }
+        }, 260);
       };
       closeBtn.addEventListener('click', handler);
       this.boundEvents.push({ element: closeBtn, event: 'click', handler });
@@ -223,7 +234,6 @@ export class SolarSystemSimulation {
   update(now, delta) {
     if (!this.isMounted) return;
 
-    // We pass system.timeEngine so bodies can compute their real-time heliocentric positions
     this.bodies.forEach((body) => body.renderer.update(now, delta, this.system.timeEngine));
     this.moon.update(now, delta, this.system.timeEngine);
   }
