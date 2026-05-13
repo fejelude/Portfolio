@@ -1,7 +1,7 @@
 const formatSigned = (value, positive, negative) => {
   if (!Number.isFinite(value)) return '--';
   const suffix = value >= 0 ? positive : negative;
-  return `${Math.abs(value).toFixed(2)}° ${suffix}`;
+  return `${Math.abs(value).toFixed(2)}\u00b0 ${suffix}`;
 };
 
 export class HUDLayer {
