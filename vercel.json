@@ -1,6 +1,25 @@
 {
   "cleanUrls": true,
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/admin",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
+  ],
   "rewrites": [
+    { "source": "/admin", "destination": "/api/admin-page" },
+    { "source": "/Admin", "destination": "/api/admin-page" },
+    { "source": "/Admin.html", "destination": "/api/admin-page" },
+    { "source": "/crush", "destination": "/api/admin-page" },
+    { "source": "/crush.html", "destination": "/api/admin-page" },
     { "source": "/arcade", "destination": "/Arcade.html" },
     { "source": "/Arcade", "destination": "/Arcade.html" }
   ]

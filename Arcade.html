@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Live Simulations Arcade | Itsmefeje</title>
+  <title>Arcade | Itsmefeje</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,8 +28,8 @@
     <div class="loading-card" role="status" aria-live="polite">
       <div class="loading-spinner"></div>
       <div>
-        <div class="loading-kicker">Arcade Systems</div>
-        <div class="loading-text">Preparing live simulation</div>
+        <div class="loading-kicker">Arcade</div>
+        <div class="loading-text">Preparing simulation</div>
       </div>
     </div>
   </div>
@@ -41,24 +41,22 @@
       <header class="hub-hero" aria-labelledby="arcade-title">
         <div class="hub-identity">
           <span class="hub-mark" aria-hidden="true"></span>
-          <span class="hub-eyebrow">Interactive Portfolio Arcade</span>
+          <span class="hub-eyebrow">Interactive Portfolio</span>
         </div>
-        <h1 id="arcade-title" class="hub-title">Live Simulations Arcade</h1>
-        <p class="hub-subtitle">
-          A polished mission-control interface for real-time Earth, ISS telemetry, and cinematic solar exploration.
-        </p>
+        <h1 id="arcade-title" class="hub-title">Arcade</h1>
+        <p class="hub-subtitle">Choose a live simulation and keep the extra controls tucked away until you need them.</p>
         <div class="hub-metrics" aria-label="Arcade highlights">
           <div class="metric-pill">
-            <span class="metric-label">Flagship</span>
+            <span class="metric-label">Mode</span>
             <strong>Orbital Earth</strong>
           </div>
           <div class="metric-pill">
-            <span class="metric-label">Expansion</span>
+            <span class="metric-label">Mode</span>
             <strong>Solar System</strong>
           </div>
           <div class="metric-pill system-online">
             <span class="pulse-dot"></span>
-            <strong>Live Ready</strong>
+            <strong>Ready</strong>
           </div>
         </div>
       </header>
@@ -73,12 +71,12 @@
           </div>
           <div class="card-content">
             <div class="card-meta">
-              <span class="card-kicker">Flagship Experience</span>
+              <span class="card-kicker">Live</span>
               <span class="card-status"><span class="pulse-dot"></span>Online</span>
             </div>
             <h2>Orbital Earth</h2>
-            <p>Live ISS tracking, predictive orbit trails, refined Earth lighting, and a calmer control layer built for focus.</p>
-            <button class="btn-launch" type="button">Launch Orbital Earth</button>
+            <p>ISS tracking, Earth lighting, and orbit context in a focused view.</p>
+            <button class="btn-launch" type="button">Launch</button>
           </div>
         </article>
 
@@ -93,69 +91,19 @@
           </div>
           <div class="card-content">
             <div class="card-meta">
-              <span class="card-kicker">Expanded Universe</span>
+              <span class="card-kicker">Explore</span>
               <span class="card-status">Cinematic</span>
             </div>
             <h2>Solar System Explorer</h2>
-            <p>Move from Earth into a composed heliocentric view with clean body selection, orbit context, and focused camera states.</p>
-            <button class="btn-launch" type="button">Launch Solar System</button>
+            <p>Move from Earth into a composed heliocentric view.</p>
+            <button class="btn-launch" type="button">Launch</button>
           </div>
         </article>
       </main>
 
-      <aside class="hub-sidebar" aria-label="Arcade settings">
-        <section class="appearance-panel">
-          <div class="panel-title compact">
-            <div>
-              <div class="panel-kicker">Appearance</div>
-              <h2>Visual Presets</h2>
-            </div>
-          </div>
-          <div class="theme-grid" aria-label="Arcade theme options">
-            <button class="theme-button" type="button" data-theme-option="premium-dark" aria-pressed="true">
-              <span class="theme-swatch premium-dark"></span>
-              <span>Premium Dark</span>
-            </button>
-            <button class="theme-button" type="button" data-theme-option="clean-light" aria-pressed="false">
-              <span class="theme-swatch clean-light"></span>
-              <span>Clean Light</span>
-            </button>
-            <button class="theme-button" type="button" data-theme-option="neon-arcade" aria-pressed="false">
-              <span class="theme-swatch neon-arcade"></span>
-              <span>Neon Arcade</span>
-            </button>
-            <button class="theme-button" type="button" data-theme-option="luxury-gold" aria-pressed="false">
-              <span class="theme-swatch luxury-gold"></span>
-              <span>Luxury Gold</span>
-            </button>
-            <button class="theme-button" type="button" data-theme-option="blue-tech" aria-pressed="false">
-              <span class="theme-swatch blue-tech"></span>
-              <span>Blue Tech</span>
-            </button>
-            <button class="theme-button" type="button" data-theme-option="minimal-glass" aria-pressed="false">
-              <span class="theme-swatch minimal-glass"></span>
-              <span>Minimal Glass</span>
-            </button>
-            <button class="theme-button" type="button" data-theme-option="high-contrast" aria-pressed="false">
-              <span class="theme-swatch high-contrast"></span>
-              <span>High Contrast</span>
-            </button>
-          </div>
-        </section>
-
-        <section class="arcade-status-panel">
-          <div class="panel-kicker">Interface System</div>
-          <div class="status-list">
-            <span>Responsive HUD</span>
-            <span>Theme Tokens</span>
-            <span>Reduced Motion Ready</span>
-          </div>
-        </section>
-      </aside>
-
       <footer class="hub-footer" aria-label="Portfolio navigation">
         <a href="index.html" class="btn-back">Return to Website</a>
-        <a href="crush.html" class="btn-back secondary">Crush KO</a>
+        <a href="/admin" class="btn-back secondary">Admin Panel</a>
       </footer>
     </div>
   </div>
@@ -171,12 +119,42 @@
       </div>
 
       <div class="sim-actions">
-        <div class="segmented-control" aria-label="Simulation mode">
-          <button id="btn-switch-orbital" class="btn-control is-active" data-sim-target="orbital" type="button">Orbital Earth</button>
-          <button id="btn-switch-solar" class="btn-control" data-sim-target="solar" type="button">Solar System</button>
+        <button id="btn-open-controls" class="btn-control" type="button" aria-controls="sim-content-layer" aria-expanded="false">Controls</button>
+        <button id="btn-exit-arcade" class="btn-control ghost" type="button">Hub</button>
+      </div>
+    </div>
+
+    <div id="sim-content-layer" class="control-layer" aria-hidden="true">
+      <button class="control-backdrop" type="button" data-close-controls aria-label="Close controls"></button>
+      <aside class="control-drawer" role="dialog" aria-labelledby="controls-title" tabindex="-1">
+        <div class="drawer-header">
+          <div>
+            <span class="panel-kicker">Arcade</span>
+            <h2 id="controls-title">Controls</h2>
+          </div>
+          <button class="btn-icon" type="button" data-close-controls aria-label="Close controls">&times;</button>
         </div>
-        <label class="theme-select-label">
-          <span>Appearance</span>
+
+        <section class="drawer-section" aria-label="Experience">
+          <div class="panel-title compact">
+            <div>
+              <span class="panel-kicker">Experience</span>
+              <h3>Mode</h3>
+            </div>
+          </div>
+          <div class="segmented-control" aria-label="Simulation mode">
+            <button id="btn-switch-orbital" class="btn-control is-active" data-sim-target="orbital" type="button">Orbital Earth</button>
+            <button id="btn-switch-solar" class="btn-control" data-sim-target="solar" type="button">Solar System</button>
+          </div>
+        </section>
+
+        <section class="drawer-section" aria-label="Appearance">
+          <div class="panel-title compact">
+            <div>
+              <span class="panel-kicker">Appearance</span>
+              <h3>Theme</h3>
+            </div>
+          </div>
           <select class="theme-select" data-theme-select aria-label="Arcade appearance">
             <option value="premium-dark">Premium Dark</option>
             <option value="clean-light">Clean Light</option>
@@ -186,14 +164,14 @@
             <option value="minimal-glass">Minimal Glass</option>
             <option value="high-contrast">High Contrast</option>
           </select>
-        </label>
-        <button id="btn-exit-arcade" class="btn-control ghost" type="button">Hub</button>
-      </div>
-    </div>
+        </section>
 
-    <div id="sim-content-layer"></div>
+        <div id="sim-controls-slot"></div>
+      </aside>
+    </div>
   </div>
 
+  <script src="js/activity-logger.js"></script>
   <script type="module" src="js/arcade/main.js"></script>
 </body>
 </html>

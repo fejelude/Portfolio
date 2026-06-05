@@ -68,7 +68,7 @@ export class OrbitalEarthSimulation {
     if (this.isMounted) return;
     this.isMounted = true;
 
-    const uiLayer = document.getElementById('sim-content-layer');
+    const uiLayer = document.getElementById('sim-controls-slot');
     if (uiLayer) {
       uiLayer.innerHTML = this.getTemplate();
     }
@@ -92,46 +92,30 @@ export class OrbitalEarthSimulation {
     this.cameraDirector.setMode('ISS');
     this.hud.setCameraMode(this.cameraDirector.modeLabel);
 
-    if (window.innerWidth <= 768) {
-      const container = document.getElementById('orbital-ui-container');
-      if (container) {
-        container.classList.replace('ui-container-visible', 'ui-container-hidden');
-      }
-    }
   }
 
   getTemplate() {
     return `
-      <button id="btn-toggle-orbital-ui" class="fab-info" type="button" aria-label="Toggle interface" title="Toggle interface">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="16" x2="12" y2="12"></line>
-          <line x1="12" y1="8" x2="12.01" y2="8"></line>
-        </svg>
-      </button>
-
-      <div id="orbital-ui-container" class="ui-container-visible">
-        <section class="hud-panel hud-top-left dismissible-panel">
-          <button class="btn-close-panel" type="button" aria-label="Close panel">&times;</button>
+      <div id="orbital-ui-container" class="sim-panel-stack">
+        <section class="hud-panel hud-top-left">
           <div class="panel-title">
             <div>
-              <div class="panel-kicker">Orbital Mission Control</div>
+              <div class="panel-kicker">Mission</div>
               <h2>Orbital Earth</h2>
             </div>
             <div class="status-pill"><span class="pulse-dot"></span><span id="camera-mode-label">ISS Track</span></div>
           </div>
-          <p class="panel-description">Live Earth illumination, station position, ground reference, and camera state grouped into one calm readout.</p>
           <div class="data-grid">
             <div class="data-card">
               <span class="data-label">UTC Time</span>
               <strong id="utc-time">--</strong>
             </div>
             <div class="data-card">
-              <span class="data-label">Sun Vector</span>
+              <span class="data-label">Sun</span>
               <strong>${new Date().toUTCString().slice(17, 22)} live</strong>
             </div>
             <div class="data-card">
-              <span class="data-label">Ground Location</span>
+              <span class="data-label">Location</span>
               <strong id="user-loc">Scanning...</strong>
             </div>
             <div class="data-card">
@@ -143,17 +127,16 @@ export class OrbitalEarthSimulation {
               <strong id="user-timezone">UTC</strong>
             </div>
             <div class="data-card">
-              <span class="data-label">Telemetry State</span>
+              <span class="data-label">Telemetry</span>
               <strong id="status-msg">Initializing</strong>
             </div>
           </div>
         </section>
 
-        <section class="hud-panel hud-top-right dismissible-panel">
-          <button class="btn-close-panel" type="button" aria-label="Close panel">&times;</button>
+        <section class="hud-panel hud-top-right">
           <div class="panel-title">
             <div>
-              <div class="panel-kicker">Orbit Readout</div>
+              <div class="panel-kicker">Orbit</div>
               <h3>ISS Telemetry</h3>
             </div>
           </div>
@@ -168,40 +151,34 @@ export class OrbitalEarthSimulation {
           </div>
         </section>
 
-        <section class="hud-panel hud-bottom-left dismissible-panel">
-          <button class="btn-close-panel" type="button" aria-label="Close panel">&times;</button>
+        <section class="hud-panel hud-bottom-left">
           <div class="panel-title">
             <div>
-              <div class="panel-kicker">Trajectory Layer</div>
-              <h3>Live Orbit Visualization</h3>
+              <div class="panel-kicker">Trajectory</div>
+              <h3>Orbit Layers</h3>
             </div>
           </div>
-          <p class="data-note">Trail history, forward projection, and the ground marker stay separated so the orbit remains easy to read.</p>
           <div class="orbit-legend horizontal-scroll-mobile">
             <span class="legend-item"><span class="legend-swatch trail"></span>Live trail</span>
             <span class="legend-item"><span class="legend-swatch prediction"></span>Predicted path</span>
             <span class="legend-item"><span class="legend-swatch user"></span>Ground marker</span>
           </div>
-          <div class="status-bar">Forecast horizon and live telemetry update continuously while the camera remains available for manual orbiting.</div>
         </section>
 
-        <section class="hud-panel hud-bottom-right dismissible-panel">
-          <button class="btn-close-panel" type="button" aria-label="Close panel">&times;</button>
+        <section class="hud-panel hud-bottom-right">
           <div class="panel-title">
             <div>
-              <div class="panel-kicker">Camera Control</div>
-              <h3>Intentional Navigation</h3>
+              <div class="panel-kicker">Camera</div>
+              <h3>Navigation</h3>
             </div>
           </div>
           <div class="control-stack">
-            <div class="control-label">Tracking mode</div>
             <div class="control-group horizontal-scroll-mobile">
               <button class="btn-control" id="btn-mode-free" type="button">Free Orbit</button>
               <button class="btn-control is-active" id="btn-mode-iss" type="button">Track ISS</button>
               <button class="btn-control" id="btn-mode-user" type="button">Locate User</button>
               <button class="btn-control" id="btn-mode-reset" type="button">Reset View</button>
             </div>
-            <div class="status-bar">Camera moves are eased for steady focus changes between free orbit, ISS tracking, and ground lock.</div>
           </div>
         </section>
       </div>
@@ -223,42 +200,6 @@ export class OrbitalEarthSimulation {
       this.cameraDirector.flyTo(new THREE.Vector3(0, 10, 32), new THREE.Vector3(0, 0, 0));
     });
 
-    const toggleBtn = document.getElementById('btn-toggle-orbital-ui');
-    if (toggleBtn) {
-      const handler = () => {
-        const container = document.getElementById('orbital-ui-container');
-        if (!container) return;
-
-        if (container.classList.contains('ui-container-visible')) {
-          container.classList.replace('ui-container-visible', 'ui-container-hidden');
-          return;
-        }
-
-        container.classList.replace('ui-container-hidden', 'ui-container-visible');
-        document.querySelectorAll('#orbital-ui-container .dismissible-panel').forEach((panel) => {
-          panel.style.display = '';
-          requestAnimationFrame(() => panel.classList.remove('is-dismissed'));
-        });
-      };
-      toggleBtn.addEventListener('click', handler);
-      this.boundEvents.push({ element: toggleBtn, event: 'click', handler });
-    }
-
-    document.querySelectorAll('#orbital-ui-container .btn-close-panel').forEach((closeBtn) => {
-      const handler = (event) => {
-        const panel = event.target.closest('.dismissible-panel');
-        if (!panel) return;
-
-        panel.classList.add('is-dismissed');
-        window.setTimeout(() => {
-          if (panel.classList.contains('is-dismissed')) {
-            panel.style.display = 'none';
-          }
-        }, 260);
-      };
-      closeBtn.addEventListener('click', handler);
-      this.boundEvents.push({ element: closeBtn, event: 'click', handler });
-    });
   }
 
   addListener(id, event, handler) {
@@ -291,7 +232,7 @@ export class OrbitalEarthSimulation {
     this.earthGroup.remove(this.trailLine);
     this.earthGroup.remove(this.predictionLine);
 
-    const uiLayer = document.getElementById('sim-content-layer');
+    const uiLayer = document.getElementById('sim-controls-slot');
     if (uiLayer) uiLayer.innerHTML = '';
     this.hud = null;
   }

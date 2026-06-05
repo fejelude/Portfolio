@@ -73,15 +73,21 @@ export class ArcadeSystem {
     this.ui = {
       hub: document.getElementById('arcade-hub-ui'),
       sim: document.getElementById('simulation-ui'),
+      controls: document.getElementById('sim-content-layer'),
+      controlsButton: document.getElementById('btn-open-controls'),
+      controlsDrawer: document.querySelector('.control-drawer'),
+      controlsSlot: document.getElementById('sim-controls-slot'),
       title: document.getElementById('sim-title'),
       subtitle: document.getElementById('sim-subtitle')
     };
 
     this.handleResize = this.handleResize.bind(this);
     this.animate = this.animate.bind(this);
+    this.handleKeydown = this.handleKeydown.bind(this);
 
     this.attachUI();
     window.addEventListener('resize', this.handleResize, { passive: true });
+    window.addEventListener('keydown', this.handleKeydown);
 
     const params = new URLSearchParams(window.location.search);
     const requestedSimulation = params.get('sim');
@@ -142,12 +148,29 @@ export class ArcadeSystem {
     });
 
     document.getElementById('btn-exit-arcade')?.addEventListener('click', () => this.enterHub());
+    this.ui.controlsButton?.addEventListener('click', () => this.toggleControls());
+    this.ui.controls?.addEventListener('click', (event) => {
+      if (event.target.closest('[data-close-controls]')) {
+        this.closeControls();
+      }
+    });
+
     document.querySelectorAll('[data-sim-target]').forEach((button) => {
-      button.addEventListener('click', () => this.launchSimulation(button.getAttribute('data-sim-target')));
+      button.addEventListener('click', () => {
+        this.launchSimulation(button.getAttribute('data-sim-target'));
+        this.closeControls();
+      });
+    });
+
+    document.addEventListener('arcade:theme-change', (event) => {
+      this.logActivity('arcade_theme', {
+        arcadeTheme: event.detail?.theme?.id || event.detail?.theme?.label || 'unknown'
+      });
     });
   }
 
   setUIState({ showHub, simulationKey = null } = {}) {
+    this.closeControls();
     this.ui.hub?.classList.toggle('hidden', !showHub);
     this.ui.sim?.classList.toggle('hidden', showHub);
 
@@ -161,6 +184,39 @@ export class ArcadeSystem {
     }
   }
 
+  handleKeydown(event) {
+    if (event.key === 'Escape') {
+      this.closeControls();
+    }
+  }
+
+  toggleControls() {
+    if (this.ui.sim?.classList.contains('controls-open')) {
+      this.closeControls();
+      return;
+    }
+
+    this.openControls();
+  }
+
+  openControls() {
+    if (!this.activeSim) return;
+
+    this.ui.sim?.classList.add('controls-open');
+    this.ui.controls?.setAttribute('aria-hidden', 'false');
+    this.ui.controlsButton?.setAttribute('aria-expanded', 'true');
+    window.requestAnimationFrame(() => {
+      this.ui.controlsDrawer?.focus({ preventScroll: true });
+    });
+    this.logActivity('arcade_controls_open', { simulation: this.activeSimKey });
+  }
+
+  closeControls() {
+    this.ui.sim?.classList.remove('controls-open');
+    this.ui.controls?.setAttribute('aria-hidden', 'true');
+    this.ui.controlsButton?.setAttribute('aria-expanded', 'false');
+  }
+
   enterHub() {
     if (this.activeSim) {
       this.activeSim.unmount();
@@ -172,6 +228,7 @@ export class ArcadeSystem {
     if (this.globalSunLight) this.globalSunLight.visible = true;
 
     this.setUIState({ showHub: true });
+    this.logActivity('arcade_hub');
     const url = new URL(window.location.href);
     url.searchParams.delete('sim');
     window.history.replaceState({}, '', url);
@@ -194,6 +251,7 @@ export class ArcadeSystem {
     this.activeSim = this.simulations[key];
     this.setUIState({ showHub: false, simulationKey: key });
     this.activeSim.mount();
+    this.logActivity('arcade_launch', { simulation: key });
 
     const url = new URL(window.location.href);
     url.searchParams.set('sim', key);
@@ -209,6 +267,15 @@ export class ArcadeSystem {
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, window.matchMedia('(max-width: 767px)').matches ? 1.5 : 2));
+  }
+
+  logActivity(type, details = {}) {
+    if (typeof window === 'undefined' || !window.PortfolioActivity?.track) return;
+    window.PortfolioActivity.track(type, {
+      section: 'arcade',
+      simulation: this.activeSimKey,
+      ...details
+    });
   }
 
   animate() {

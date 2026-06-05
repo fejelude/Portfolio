@@ -65,7 +65,7 @@ export class SolarSystemSimulation {
   }
 
   injectUI() {
-    const uiLayer = document.getElementById('sim-content-layer');
+    const uiLayer = document.getElementById('sim-controls-slot');
     if (!uiLayer) return;
 
     const bodyNames = ['Overview', ...this.bodies.map(({ definition }) => definition.name), 'Moon'];
@@ -74,59 +74,43 @@ export class SolarSystemSimulation {
       .join('');
 
     uiLayer.innerHTML = `
-      <button id="btn-toggle-solar-ui" class="fab-info" type="button" aria-label="Toggle interface" title="Toggle interface">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="16" x2="12" y2="12"></line>
-          <line x1="12" y1="8" x2="12.01" y2="8"></line>
-        </svg>
-      </button>
-
-      <div id="solar-ui-container" class="ui-container-visible">
-        <section class="hud-panel hud-top-left dismissible-panel">
-          <button class="btn-close-panel" type="button" aria-label="Close panel">&times;</button>
+      <div id="solar-ui-container" class="sim-panel-stack">
+        <section class="hud-panel hud-top-left">
           <div class="panel-title">
             <div>
-              <div class="panel-kicker">Expanded Celestial Layer</div>
+              <div class="panel-kicker">Solar</div>
               <h2>Solar System Explorer</h2>
             </div>
           </div>
-          <p class="panel-description">A composed heliocentric view with orbit compression, selected-body focus, and a clean navigation layer.</p>
           <div class="panel-facts">
-            <div class="data-card"><span class="data-label">Primary Light</span><strong>Local Sun Core</strong></div>
-            <div class="data-card"><span class="data-label">Body Count</span><strong>${this.bodies.length + 1}</strong></div>
+            <div class="data-card"><span class="data-label">Light</span><strong>Sun Core</strong></div>
+            <div class="data-card"><span class="data-label">Bodies</span><strong>${this.bodies.length + 1}</strong></div>
             <div class="data-card"><span class="data-label">Mode</span><strong id="solar-mode-label">Overview</strong></div>
             <div class="data-card"><span class="data-label">Scale</span><strong>Cinematic</strong></div>
           </div>
         </section>
 
-        <section class="hud-panel hud-top-right dismissible-panel">
-          <button class="btn-close-panel" type="button" aria-label="Close panel">&times;</button>
+        <section class="hud-panel hud-top-right">
           <div class="panel-title">
             <div>
-              <div class="panel-kicker">Body Dossier</div>
+              <div class="panel-kicker">Focus</div>
               <h3 id="solar-body-title">Overview</h3>
             </div>
           </div>
-          <p class="panel-description" id="solar-body-summary">Select a celestial body to reframe the camera and move from Earth outward into the larger system.</p>
+          <p class="panel-description" id="solar-body-summary">Select a body to reframe the camera.</p>
         </section>
 
-        <section class="hud-panel solar-selector dismissible-panel">
-          <button class="btn-close-panel" type="button" aria-label="Close panel">&times;</button>
+        <section class="hud-panel solar-selector">
           <div class="panel-title">
             <div>
-              <div class="panel-kicker">Celestial Navigation</div>
-              <h3>Choose a body</h3>
+              <div class="panel-kicker">Bodies</div>
+              <h3>Choose</h3>
             </div>
           </div>
           <div class="selector-grid horizontal-scroll-mobile">${buttons}</div>
         </section>
       </div>
     `;
-
-    if (window.innerWidth <= 768) {
-      document.getElementById('solar-ui-container')?.classList.replace('ui-container-visible', 'ui-container-hidden');
-    }
   }
 
   bindEvents() {
@@ -136,42 +120,6 @@ export class SolarSystemSimulation {
       this.boundEvents.push({ element: button, event: 'click', handler });
     });
 
-    const toggleBtn = document.getElementById('btn-toggle-solar-ui');
-    if (toggleBtn) {
-      const handler = () => {
-        const container = document.getElementById('solar-ui-container');
-        if (!container) return;
-
-        if (container.classList.contains('ui-container-visible')) {
-          container.classList.replace('ui-container-visible', 'ui-container-hidden');
-          return;
-        }
-
-        container.classList.replace('ui-container-hidden', 'ui-container-visible');
-        document.querySelectorAll('#solar-ui-container .dismissible-panel').forEach((panel) => {
-          panel.style.display = '';
-          requestAnimationFrame(() => panel.classList.remove('is-dismissed'));
-        });
-      };
-      toggleBtn.addEventListener('click', handler);
-      this.boundEvents.push({ element: toggleBtn, event: 'click', handler });
-    }
-
-    document.querySelectorAll('#solar-ui-container .btn-close-panel').forEach((closeBtn) => {
-      const handler = (event) => {
-        const panel = event.target.closest('.dismissible-panel');
-        if (!panel) return;
-
-        panel.classList.add('is-dismissed');
-        window.setTimeout(() => {
-          if (panel.classList.contains('is-dismissed')) {
-            panel.style.display = 'none';
-          }
-        }, 260);
-      };
-      closeBtn.addEventListener('click', handler);
-      this.boundEvents.push({ element: closeBtn, event: 'click', handler });
-    });
   }
 
   focusOverview() {
@@ -179,7 +127,7 @@ export class SolarSystemSimulation {
     this.cameraDirector.setMode('FREE');
     this.cameraDirector.flyTo(new THREE.Vector3(0, 110, 330), new THREE.Vector3(0, 0, 0));
     this.syncSelectionState();
-    this.updateInfoPanel('Overview', 'Select a celestial body to inspect orbit spacing, planetary scale, and the Earth-to-solar-system expansion path.');
+    this.updateInfoPanel('Overview', 'Select a body to inspect orbit spacing and scale.');
   }
 
   focusBody(name) {
@@ -227,7 +175,7 @@ export class SolarSystemSimulation {
     if (this.system.globalSunLight) this.system.globalSunLight.visible = true;
     this.cameraDirector.setMode('FREE');
 
-    const uiLayer = document.getElementById('sim-content-layer');
+    const uiLayer = document.getElementById('sim-controls-slot');
     if (uiLayer) uiLayer.innerHTML = '';
   }
 
