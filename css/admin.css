@@ -102,11 +102,39 @@ body.admin-page * {
 }
 
 .admin-auth-card {
-  width: min(500px, 100%);
+  width: min(560px, 100%);
   display: grid;
   gap: 18px;
   padding: clamp(24px, 5vw, 38px);
   animation: adminPanelIn 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.admin-access-card {
+  width: min(940px, 100%);
+  grid-template-columns: minmax(0, 0.9fr) minmax(360px, 430px);
+  align-items: center;
+  gap: clamp(20px, 4vw, 34px);
+  padding: clamp(24px, 4vw, 34px);
+}
+
+.admin-auth-copy,
+.admin-auth-access {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 16px;
+}
+
+.admin-auth-access {
+  align-content: center;
+}
+
+.admin-access-card .admin-muted {
+  max-width: 32rem;
+}
+
+.admin-access-card .admin-microcopy {
+  text-align: center;
 }
 
 .admin-auth-card.has-error {
@@ -186,6 +214,10 @@ body.admin-page * {
   text-shadow: 0 0 24px rgba(103, 232, 249, 0.22);
 }
 
+.admin-access-card h1 {
+  font-size: clamp(2.65rem, 5vw, 4.4rem);
+}
+
 .admin-panel h2 {
   margin-top: 4px;
   font-size: 1.16rem;
@@ -251,6 +283,241 @@ body.admin-page * {
   font-weight: 800;
 }
 
+.admin-pad-label {
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+}
+
+.admin-pad-native {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.admin-pad {
+  position: relative;
+  display: grid;
+  gap: 13px;
+  padding: 14px;
+  border: 1px solid rgba(103, 232, 249, 0.22);
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, rgba(103, 232, 249, 0.09), transparent 32%),
+    linear-gradient(315deg, rgba(244, 114, 182, 0.11), transparent 38%),
+    rgba(2, 6, 23, 0.76);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 20px 56px rgba(0, 0, 0, 0.28);
+}
+
+.admin-pad::before,
+.admin-pad::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.admin-pad::before {
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(120deg, transparent, rgba(103, 232, 249, 0.16), transparent);
+  transform: translateX(-120%);
+  animation: padSweep 4.2s ease-in-out infinite;
+}
+
+.admin-pad::after {
+  inset: 10px;
+  border: 1px solid rgba(103, 232, 249, 0.1);
+  border-radius: 9px;
+  box-shadow: inset 0 0 24px rgba(103, 232, 249, 0.04);
+}
+
+.admin-code-display,
+.pad-status,
+.admin-keypad,
+.pad-submit {
+  position: relative;
+  z-index: 1;
+}
+
+.admin-code-display {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 7px;
+  padding: 9px;
+  border: 1px solid rgba(103, 232, 249, 0.17);
+  border-radius: 10px;
+  background: rgba(2, 6, 23, 0.74);
+}
+
+.code-slot {
+  position: relative;
+  display: grid;
+  min-height: 38px;
+  place-items: center;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent),
+    rgba(15, 23, 42, 0.7);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease,
+    background 160ms ease;
+}
+
+.code-slot::before {
+  content: "";
+  position: absolute;
+  right: 9px;
+  bottom: 7px;
+  left: 9px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(103, 232, 249, 0.16);
+}
+
+.code-slot.is-filled {
+  border-color: rgba(103, 232, 249, 0.55);
+  background:
+    radial-gradient(circle, rgba(103, 232, 249, 0.18), transparent 58%),
+    rgba(6, 18, 33, 0.92);
+  box-shadow: 0 0 22px rgba(103, 232, 249, 0.16);
+  transform: translateY(-1px);
+}
+
+.code-slot.is-filled::after {
+  content: "";
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--admin-cyan);
+  box-shadow:
+    0 0 14px rgba(103, 232, 249, 0.78),
+    0 0 26px rgba(244, 114, 182, 0.2);
+  animation: padDotIn 160ms ease both;
+}
+
+.pad-status {
+  min-height: 18px;
+  margin: 0;
+  color: var(--admin-muted);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.pad-status[data-tone="ready"] {
+  color: var(--admin-green);
+  text-shadow: 0 0 16px rgba(125, 211, 168, 0.28);
+}
+
+.pad-status[data-tone="danger"] {
+  color: #fecdd3;
+  text-shadow: 0 0 16px rgba(251, 113, 133, 0.32);
+}
+
+.admin-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.admin-page .pad-key {
+  position: relative;
+  min-height: 58px;
+  padding: 0;
+  overflow: hidden;
+  border-color: rgba(103, 232, 249, 0.2);
+  color: #e9fbff;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.02)),
+    rgba(7, 18, 33, 0.9);
+  font: 800 1.1rem / 1 "JetBrains Mono", monospace;
+  text-shadow: 0 0 18px rgba(103, 232, 249, 0.2);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.035),
+    0 10px 28px rgba(0, 0, 0, 0.18);
+}
+
+.admin-page .pad-key::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent, rgba(103, 232, 249, 0.18), transparent);
+  transform: translateX(-115%);
+  transition: transform 220ms ease;
+}
+
+.admin-page .pad-key:hover::before,
+.admin-page .pad-key:focus-visible::before {
+  transform: translateX(115%);
+}
+
+.admin-page .pad-key:hover,
+.admin-page .pad-key:focus-visible {
+  border-color: rgba(103, 232, 249, 0.52);
+  background:
+    linear-gradient(180deg, rgba(103, 232, 249, 0.16), rgba(244, 114, 182, 0.06)),
+    rgba(8, 23, 42, 0.95);
+}
+
+.admin-page .pad-key:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.admin-page .pad-action {
+  color: #f5d7e8;
+  border-color: rgba(244, 114, 182, 0.26);
+  background:
+    linear-gradient(180deg, rgba(244, 114, 182, 0.13), rgba(255, 255, 255, 0.02)),
+    rgba(23, 10, 27, 0.9);
+  font-size: 0.82rem;
+}
+
+.admin-page .pad-submit {
+  min-height: 52px;
+  color: #06111b;
+  border-color: rgba(125, 211, 168, 0.52);
+  background: linear-gradient(135deg, var(--admin-cyan), var(--admin-green));
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
+  box-shadow: 0 18px 48px rgba(103, 232, 249, 0.16);
+}
+
+.admin-login-form.is-ready .pad-submit {
+  box-shadow:
+    0 0 0 1px rgba(125, 211, 168, 0.24),
+    0 18px 54px rgba(125, 211, 168, 0.24);
+}
+
+.admin-login-form.is-unlocking .admin-pad,
+.admin-auth-card.is-unlocking {
+  animation: adminUnlockPulse 760ms ease-in-out infinite alternate;
+}
+
+.admin-pad.is-typing .code-slot.is-current {
+  animation: padSlotPulse 220ms ease both;
+}
+
+.admin-pad.is-denied {
+  animation: adminShake 360ms ease both;
+}
+
+.admin-pad.is-maxed {
+  animation: padMaxed 280ms ease both;
+}
+
+.admin-pad.is-cleared .code-slot {
+  transition-duration: 90ms;
+}
+
 .admin-input-shell {
   position: relative;
   padding: 1px;
@@ -293,6 +560,18 @@ body.admin-page * {
   z-index: 1;
   border: 0;
   padding: 0 13px;
+}
+
+.admin-login-form .admin-pad-native {
+  position: absolute;
+  z-index: -1;
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .panel-heading input,
@@ -545,6 +824,17 @@ code {
   }
 }
 
+@media (max-width: 900px) {
+  .admin-access-card {
+    width: min(560px, 100%);
+    grid-template-columns: 1fr;
+  }
+
+  .admin-access-card .admin-orbit {
+    opacity: 0.42;
+  }
+}
+
 @media (max-width: 760px) {
   .admin-auth-shell,
   .admin-shell {
@@ -574,6 +864,23 @@ code {
 @media (max-width: 560px) {
   .summary-grid {
     grid-template-columns: 1fr;
+  }
+
+  .admin-access-card {
+    gap: 16px;
+  }
+
+  .admin-code-display {
+    gap: 5px;
+    padding: 7px;
+  }
+
+  .code-slot {
+    min-height: 32px;
+  }
+
+  .admin-page .pad-key {
+    min-height: 50px;
   }
 
   .summary-card strong {
@@ -647,5 +954,46 @@ code {
   100% {
     opacity: 0;
     transform: scale(0.98);
+  }
+}
+
+@keyframes padSweep {
+  0%, 58% { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
+}
+
+@keyframes padDotIn {
+  from {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes padSlotPulse {
+  0% { transform: translateY(-1px) scale(1); }
+  52% { transform: translateY(-2px) scale(1.04); }
+  100% { transform: translateY(-1px) scale(1); }
+}
+
+@keyframes padMaxed {
+  0%, 100% { filter: none; }
+  45% { filter: drop-shadow(0 0 16px rgba(244, 114, 182, 0.32)); }
+}
+
+@keyframes adminUnlockPulse {
+  from {
+    border-color: rgba(103, 232, 249, 0.3);
+    box-shadow: var(--admin-shadow), inset 0 0 0 1px rgba(255, 255, 255, 0.035);
+  }
+  to {
+    border-color: rgba(125, 211, 168, 0.58);
+    box-shadow:
+      0 28px 90px rgba(0, 0, 0, 0.46),
+      0 0 44px rgba(125, 211, 168, 0.16),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.05);
   }
 }
