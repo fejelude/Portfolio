@@ -53,25 +53,56 @@ function loginPage(url) {
   const alert = message ? `<p class="admin-alert ${message.tone}" role="alert">${message.text}</p>` : '';
   return shell('Admin Access', `
   <main class="admin-auth-shell">
-    <section class="admin-auth-card ${message?.tone === 'danger' ? 'has-error' : ''}">
+    <section class="admin-auth-card admin-access-card ${message?.tone === 'danger' ? 'has-error' : ''}">
       <div class="admin-orbit" aria-hidden="true">
         <span></span><span></span><span></span>
       </div>
-      <a class="admin-back-link" href="/">Main Website</a>
-      <span class="admin-kicker">Restricted Access</span>
-      <h1>Admin Panel</h1>
-      <p class="admin-muted">Enter the private access password to unlock website activity monitoring.</p>
-      ${alert}
-      <form class="admin-login-form" method="post" action="/api/admin-auth">
-        <label for="admin-password">Password</label>
-        <div class="admin-input-shell">
-          <input id="admin-password" name="password" type="password" autocomplete="current-password" inputmode="numeric" required />
-        </div>
-        <button type="submit">Unlock Console</button>
-      </form>
-      <p class="admin-microcopy">Server-side validation. Signed session. Private logs.</p>
+      <div class="admin-auth-copy">
+        <a class="admin-back-link" href="/">Main Website</a>
+        <span class="admin-kicker">Restricted Access</span>
+        <h1>Admin Panel</h1>
+        <p class="admin-muted">Enter the private access password to unlock website activity monitoring.</p>
+        ${alert}
+      </div>
+      <div class="admin-auth-access">
+        <form class="admin-login-form" method="post" action="/api/admin-auth" data-admin-pad-form>
+          <label class="admin-pad-label" id="admin-password-label">Access Code</label>
+          <input id="admin-password" class="admin-pad-native" name="password" type="password" autocomplete="off" inputmode="numeric" aria-labelledby="admin-password-label" tabindex="-1" />
+          <div class="admin-pad" data-code-length="8">
+            <div class="admin-code-display" aria-hidden="true">
+              <span class="code-slot" data-code-slot></span>
+              <span class="code-slot" data-code-slot></span>
+              <span class="code-slot" data-code-slot></span>
+              <span class="code-slot" data-code-slot></span>
+              <span class="code-slot" data-code-slot></span>
+              <span class="code-slot" data-code-slot></span>
+              <span class="code-slot" data-code-slot></span>
+              <span class="code-slot" data-code-slot></span>
+            </div>
+            <p class="pad-status" data-pad-status role="status" aria-live="polite">AWAITING ACCESS CODE</p>
+            <div class="admin-keypad" aria-label="Password keypad">
+              <button class="pad-key" type="button" data-pad-key="1">1</button>
+              <button class="pad-key" type="button" data-pad-key="2">2</button>
+              <button class="pad-key" type="button" data-pad-key="3">3</button>
+              <button class="pad-key" type="button" data-pad-key="4">4</button>
+              <button class="pad-key" type="button" data-pad-key="5">5</button>
+              <button class="pad-key" type="button" data-pad-key="6">6</button>
+              <button class="pad-key" type="button" data-pad-key="7">7</button>
+              <button class="pad-key" type="button" data-pad-key="8">8</button>
+              <button class="pad-key" type="button" data-pad-key="9">9</button>
+              <button class="pad-key pad-action" type="button" data-pad-action="clear">CLR</button>
+              <button class="pad-key" type="button" data-pad-key="0">0</button>
+              <button class="pad-key pad-action" type="button" data-pad-action="backspace">DEL</button>
+            </div>
+            <button class="pad-submit" type="submit" data-pad-submit disabled>Unlock Console</button>
+          </div>
+        </form>
+        <p class="admin-microcopy">Server-side validation. Signed session. Private logs.</p>
+      </div>
     </section>
-  </main>`);
+  </main>`, {
+    extra: '<script src="/js/admin-pad.js"></script>'
+  });
 }
 
 function setupPage() {
@@ -79,9 +110,9 @@ function setupPage() {
   <main class="admin-auth-shell">
     <section class="admin-auth-card">
       <a class="admin-back-link" href="/">Main Website</a>
-      <span class="admin-kicker">Setup Required</span>
+      <span class="admin-kicker">Access Ready</span>
       <h1>Admin Panel</h1>
-      <p class="admin-muted">Set <code>ADMIN_ACCESS_PASSWORD</code> in Vercel to enable the restricted dashboard. Add <code>ADMIN_SESSION_SECRET</code> for an independent session signing key.</p>
+      <p class="admin-muted">The built-in website password pad is active. Optional environment overrides can still be added later for a different password or signing key.</p>
     </section>
   </main>`);
 }
