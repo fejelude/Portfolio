@@ -10,6 +10,7 @@
     total: document.getElementById('stat-total'),
     sessions: document.getElementById('stat-sessions'),
     arcade: document.getElementById('stat-arcade'),
+    security: document.getElementById('stat-security'),
     source: document.getElementById('stat-source'),
     logsBody: document.getElementById('logs-body'),
     logsState: document.getElementById('logs-state'),
@@ -18,6 +19,12 @@
     next: document.getElementById('next-page'),
     pageLabel: document.getElementById('page-label'),
     refresh: document.getElementById('refresh-logs'),
+    date: document.getElementById('filter-date'),
+    device: document.getElementById('filter-device'),
+    browser: document.getElementById('filter-browser'),
+    location: document.getElementById('filter-location'),
+    page: document.getElementById('filter-page'),
+    type: document.getElementById('filter-type'),
     devices: document.getElementById('device-breakdown'),
     locations: document.getElementById('location-breakdown'),
     pages: document.getElementById('page-breakdown')
@@ -59,6 +66,12 @@
     ].filter(Boolean).join(' ').toLowerCase();
   }
 
+  function logDateValue(log) {
+    const date = new Date(log.receivedAt || log.timestamp);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toISOString().slice(0, 10);
+  }
+
   function countMap(logs, selector) {
     return logs.reduce((acc, log) => {
       const key = selector(log) || 'Unknown';
@@ -98,11 +111,49 @@
     });
   }
 
+  function setOptions(select, values) {
+    if (!select) return;
+    const current = select.value;
+    const label = select.options[0]?.textContent || 'All';
+    select.innerHTML = '';
+
+    const empty = document.createElement('option');
+    empty.value = '';
+    empty.textContent = label;
+    select.appendChild(empty);
+
+    values
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b))
+      .forEach((value) => {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      });
+
+    select.value = values.includes(current) ? current : '';
+  }
+
   function applyFilter() {
     const query = els.search?.value.trim().toLowerCase() || '';
-    state.filtered = query
-      ? state.logs.filter((log) => searchableText(log).includes(query))
-      : [...state.logs];
+    const date = els.date?.value || '';
+    const device = els.device?.value || '';
+    const browser = els.browser?.value || '';
+    const location = els.location?.value.trim().toLowerCase() || '';
+    const page = els.page?.value.trim().toLowerCase() || '';
+    const type = els.type?.value.trim().toLowerCase() || '';
+
+    state.filtered = state.logs.filter((log) => {
+      if (query && !searchableText(log).includes(query)) return false;
+      if (date && logDateValue(log) !== date) return false;
+      if (device && log.device !== device) return false;
+      if (browser && log.browser !== browser) return false;
+      if (location && !locationLabel(log).toLowerCase().includes(location)) return false;
+      if (page && !(log.path || '').toLowerCase().includes(page)) return false;
+      if (type && !(log.type || '').toLowerCase().includes(type)) return false;
+      return true;
+    });
     state.page = 1;
     renderTable();
   }
@@ -157,8 +208,11 @@
     setText(els.total, String(data.summary?.total ?? logs.length));
     setText(els.sessions, String(data.summary?.sessions ?? 0));
     setText(els.arcade, String(data.summary?.arcadeEvents ?? 0));
+    setText(els.security, String(data.summary?.securityEvents ?? 0));
     setText(els.source, data.summary?.source === 'upstash' ? 'Redis' : 'Runtime');
 
+    setOptions(els.device, [...new Set(logs.map((log) => log.device).filter(Boolean))]);
+    setOptions(els.browser, [...new Set(logs.map((log) => log.browser).filter(Boolean))]);
     renderBreakdown(els.devices, countMap(logs, (log) => log.device));
     renderBreakdown(els.locations, countMap(logs, locationLabel));
     renderBreakdown(els.pages, countMap(logs, (log) => log.path));
@@ -186,6 +240,10 @@
   }
 
   els.search?.addEventListener('input', applyFilter);
+  [els.date, els.device, els.browser, els.location, els.page, els.type].forEach((control) => {
+    control?.addEventListener('input', applyFilter);
+    control?.addEventListener('change', applyFilter);
+  });
   els.refresh?.addEventListener('click', loadLogs);
   els.prev?.addEventListener('click', () => {
     state.page = Math.max(1, state.page - 1);

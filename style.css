@@ -788,6 +788,61 @@ button.method-card {
   will-change: transform;
 }
 
+.profile-action-cluster {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex: 0 0 auto;
+}
+
+.admin-icon-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: 1px solid rgba(103, 232, 249, 0.32);
+  border-radius: 8px;
+  color: #67e8f9;
+  background:
+    linear-gradient(145deg, rgba(103, 232, 249, 0.12), rgba(244, 114, 182, 0.08)),
+    rgba(255, 255, 255, 0.045);
+  box-shadow: 0 0 26px rgba(103, 232, 249, 0.12);
+  overflow: hidden;
+}
+
+.admin-icon-btn::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(120deg, transparent, rgba(103, 232, 249, 0.45), transparent);
+  opacity: 0;
+  transform: translateX(-70%);
+  transition: opacity 180ms ease, transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-icon-btn svg {
+  position: relative;
+  z-index: 1;
+}
+
+.admin-icon-btn:hover,
+.admin-icon-btn:focus-visible {
+  color: #dffbff;
+  border-color: rgba(103, 232, 249, 0.58);
+  box-shadow: 0 0 32px rgba(103, 232, 249, 0.2);
+}
+
+.admin-icon-btn:hover::before,
+.admin-icon-btn:focus-visible::before {
+  opacity: 1;
+  transform: translateX(70%);
+}
+
 .blur-text { will-change: transform; }
 .social-links { margin-top: 3rem; display: flex; gap: 1rem; }
 

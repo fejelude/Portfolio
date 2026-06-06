@@ -1,35 +1,10 @@
 const ACTIVITY_KEY = 'portfolio:activity';
 const MAX_LOGS = 500;
-
-function getEnvToken() {
-  return process.env.ADMIN_ACCESS_TOKEN || '';
-}
+const { isAuthorized } = require('./admin-session');
 
 function getHeader(request, name) {
   const headers = request.headers || {};
   return headers[name] || headers[name.toLowerCase()] || '';
-}
-
-function parseCookies(cookieHeader = '') {
-  return cookieHeader.split(';').reduce((cookies, pair) => {
-    const index = pair.indexOf('=');
-    if (index === -1) return cookies;
-    const key = pair.slice(0, index).trim();
-    const value = pair.slice(index + 1).trim();
-    if (key) cookies[key] = decodeURIComponent(value);
-    return cookies;
-  }, {});
-}
-
-function isAuthorized(request) {
-  const token = getEnvToken();
-  if (!token) return false;
-
-  const cookies = parseCookies(getHeader(request, 'cookie'));
-  if (cookies.portfolio_admin === token) return true;
-
-  const auth = getHeader(request, 'authorization');
-  return auth === `Bearer ${token}`;
 }
 
 function json(response, status, payload) {
@@ -206,6 +181,7 @@ function summarize(logs, source) {
     total: logs.length,
     sessions: new Set(logs.map((log) => log.sessionId).filter(Boolean)).size,
     arcadeEvents: logs.filter((log) => log.section === 'arcade' || log.type.startsWith('arcade_')).length,
+    securityEvents: logs.filter((log) => log.section === 'security' || log.type.startsWith('admin_')).length,
     pages: by((log) => log.path),
     devices: by((log) => log.device),
     browsers: by((log) => log.browser),
