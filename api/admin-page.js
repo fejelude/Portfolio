@@ -1,35 +1,6 @@
-function getEnvToken() {
-  return process.env.ADMIN_ACCESS_TOKEN || '';
-}
+const { getHeader, isAuthorized, isConfigured } = require('./admin-session');
 
-function getHeader(request, name) {
-  const headers = request.headers || {};
-  return headers[name] || headers[name.toLowerCase()] || '';
-}
-
-function parseCookies(cookieHeader = '') {
-  return cookieHeader.split(';').reduce((cookies, pair) => {
-    const index = pair.indexOf('=');
-    if (index === -1) return cookies;
-    const key = pair.slice(0, index).trim();
-    const value = pair.slice(index + 1).trim();
-    if (key) cookies[key] = decodeURIComponent(value);
-    return cookies;
-  }, {});
-}
-
-function isAuthorized(request) {
-  const token = getEnvToken();
-  if (!token) return false;
-
-  const cookies = parseCookies(getHeader(request, 'cookie'));
-  if (cookies.portfolio_admin === token) return true;
-
-  const auth = getHeader(request, 'authorization');
-  return auth === `Bearer ${token}`;
-}
-
-function shell(title, body, extra = '') {
+function shell(title, body, { extra = '', bodyClass = '' } = {}) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -38,32 +9,67 @@ function shell(title, body, extra = '') {
   <title>${title} | Itsmefeje</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/css/admin.css">
 </head>
-<body class="admin-page">
+<body class="admin-page ${bodyClass}">
+  <div class="admin-grid-bg" aria-hidden="true"></div>
+  <div class="admin-scanline" aria-hidden="true"></div>
   ${body}
   ${extra}
 </body>
 </html>`;
 }
 
-function loginPage(errorMessage = '') {
-  const error = errorMessage ? `<p class="admin-alert" role="alert">${errorMessage}</p>` : '';
-  return shell('Admin Sign In', `
+function authMessage(url) {
+  if (url.searchParams.has('setup')) {
+    return {
+      tone: 'warning',
+      text: 'Server password is not configured yet.'
+    };
+  }
+
+  if (url.searchParams.has('cooldown')) {
+    const seconds = Math.max(1, Number(url.searchParams.get('cooldown')) || 60);
+    return {
+      tone: 'danger',
+      text: `Too many failed attempts. Try again in ${seconds}s.`
+    };
+  }
+
+  if (url.searchParams.has('error')) {
+    return {
+      tone: 'danger',
+      text: 'Access denied. Check the password and try again.'
+    };
+  }
+
+  return null;
+}
+
+function loginPage(url) {
+  const message = authMessage(url);
+  const alert = message ? `<p class="admin-alert ${message.tone}" role="alert">${message.text}</p>` : '';
+  return shell('Admin Access', `
   <main class="admin-auth-shell">
-    <section class="admin-auth-card">
-      <a class="admin-back-link" href="/Arcade.html">Back to Arcade</a>
-      <span class="admin-kicker">Restricted</span>
+    <section class="admin-auth-card ${message?.tone === 'danger' ? 'has-error' : ''}">
+      <div class="admin-orbit" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+      <a class="admin-back-link" href="/">Main Website</a>
+      <span class="admin-kicker">Restricted Access</span>
       <h1>Admin Panel</h1>
-      <p class="admin-muted">Sign in to view private website activity.</p>
-      ${error}
+      <p class="admin-muted">Enter the private access password to unlock website activity monitoring.</p>
+      ${alert}
       <form class="admin-login-form" method="post" action="/api/admin-auth">
-        <label for="admin-token">Access token</label>
-        <input id="admin-token" name="token" type="password" autocomplete="current-password" required />
-        <button type="submit">Continue</button>
+        <label for="admin-password">Password</label>
+        <div class="admin-input-shell">
+          <input id="admin-password" name="password" type="password" autocomplete="current-password" inputmode="numeric" required />
+        </div>
+        <button type="submit">Unlock Console</button>
       </form>
+      <p class="admin-microcopy">Server-side validation. Signed session. Private logs.</p>
     </section>
   </main>`);
 }
@@ -72,21 +78,21 @@ function setupPage() {
   return shell('Admin Setup', `
   <main class="admin-auth-shell">
     <section class="admin-auth-card">
-      <a class="admin-back-link" href="/Arcade.html">Back to Arcade</a>
+      <a class="admin-back-link" href="/">Main Website</a>
       <span class="admin-kicker">Setup Required</span>
       <h1>Admin Panel</h1>
-      <p class="admin-muted">Set <code>ADMIN_ACCESS_TOKEN</code> in Vercel before this route can unlock private logs.</p>
+      <p class="admin-muted">Set <code>ADMIN_ACCESS_PASSWORD</code> in Vercel to enable the restricted dashboard. Add <code>ADMIN_SESSION_SECRET</code> for an independent session signing key.</p>
     </section>
   </main>`);
 }
 
-function dashboardPage() {
+function dashboardPage({ unlocked = false } = {}) {
   return shell('Admin Panel', `
   <main class="admin-shell">
     <header class="admin-header">
       <div>
-        <a class="admin-back-link" href="/Arcade.html">Back to Arcade</a>
-        <span class="admin-kicker">Restricted</span>
+        <a class="admin-back-link" href="/">Main Website</a>
+        <span class="admin-kicker">Secure Console</span>
         <h1>Admin Panel</h1>
       </div>
       <div class="admin-actions">
@@ -100,17 +106,31 @@ function dashboardPage() {
 
     <section class="summary-grid" aria-label="Summary">
       <article class="summary-card"><span>Total Events</span><strong id="stat-total">--</strong></article>
-      <article class="summary-card"><span>Sessions</span><strong id="stat-sessions">--</strong></article>
+      <article class="summary-card"><span>Unique Sessions</span><strong id="stat-sessions">--</strong></article>
       <article class="summary-card"><span>Arcade Activity</span><strong id="stat-arcade">--</strong></article>
+      <article class="summary-card"><span>Security Events</span><strong id="stat-security">--</strong></article>
       <article class="summary-card"><span>Storage</span><strong id="stat-source">--</strong></article>
     </section>
 
     <section class="admin-grid">
-      <article class="admin-panel">
+      <article class="admin-panel activity-panel">
         <div class="panel-heading">
-          <h2>Recent Visitors</h2>
+          <div>
+            <span class="admin-kicker">Live Logger</span>
+            <h2>Recent Activity</h2>
+          </div>
           <input id="log-search" type="search" placeholder="Search logs" />
         </div>
+
+        <div class="filter-grid" aria-label="Activity filters">
+          <label>Date <input id="filter-date" type="date" /></label>
+          <label>Device <select id="filter-device"><option value="">All devices</option></select></label>
+          <label>Browser <select id="filter-browser"><option value="">All browsers</option></select></label>
+          <label>Location <input id="filter-location" type="search" placeholder="City or country" /></label>
+          <label>Page <input id="filter-page" type="search" placeholder="/Arcade.html" /></label>
+          <label>Activity <input id="filter-type" type="search" placeholder="page_view" /></label>
+        </div>
+
         <div id="logs-state" class="state-text">Loading logs...</div>
         <div class="table-wrap">
           <table>
@@ -137,34 +157,36 @@ function dashboardPage() {
 
       <aside class="breakdown-stack">
         <article class="admin-panel">
+          <span class="admin-kicker">Visitors</span>
           <h2>Devices</h2>
           <div id="device-breakdown" class="breakdown-list"></div>
         </article>
         <article class="admin-panel">
+          <span class="admin-kicker">Geo</span>
           <h2>Locations</h2>
           <div id="location-breakdown" class="breakdown-list"></div>
         </article>
         <article class="admin-panel">
+          <span class="admin-kicker">Traffic</span>
           <h2>Pages</h2>
           <div id="page-breakdown" class="breakdown-list"></div>
         </article>
       </aside>
     </section>
-  </main>`, '<script src="/js/admin-dashboard.js"></script>');
+  </main>
+  ${unlocked ? '<div class="unlock-flash" aria-hidden="true"><span>ACCESS GRANTED</span></div>' : ''}`, {
+    extra: '<script src="/js/admin-dashboard.js"></script>',
+    bodyClass: unlocked ? 'admin-unlocked' : ''
+  });
 }
 
 module.exports = async (request, response) => {
   response.setHeader('Cache-Control', 'no-store');
   response.setHeader('Content-Type', 'text/html; charset=utf-8');
 
-  const token = getEnvToken();
-  if (!token) return response.status(503).send(setupPage());
-
   const url = new URL(request.url, `https://${getHeader(request, 'host') || 'localhost'}`);
-  if (!isAuthorized(request)) {
-    const message = url.searchParams.has('error') ? 'Invalid access token.' : '';
-    return response.status(401).send(loginPage(message));
-  }
+  if (!isConfigured()) return response.status(503).send(setupPage());
+  if (!isAuthorized(request)) return response.status(401).send(loginPage(url));
 
-  return response.status(200).send(dashboardPage());
+  return response.status(200).send(dashboardPage({ unlocked: url.searchParams.has('unlocked') }));
 };
