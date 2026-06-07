@@ -3,7 +3,8 @@
     logs: [],
     filtered: [],
     page: 1,
-    perPage: 25
+    perPage: 25,
+    storageWarning: ''
   };
 
   const els = {
@@ -166,14 +167,15 @@
     state.page = Math.min(state.page, totalPages);
 
     if (!state.filtered.length) {
-      setText(els.logsState, state.logs.length ? 'No logs match that search.' : 'No activity logs yet.');
+      const emptyText = state.logs.length ? 'No logs match that search.' : 'No activity logs yet.';
+      setText(els.logsState, state.storageWarning ? `${emptyText} ${state.storageWarning}` : emptyText);
       setText(els.pageLabel, 'Page 1');
       if (els.prev) els.prev.disabled = true;
       if (els.next) els.next.disabled = true;
       return;
     }
 
-    setText(els.logsState, '');
+    setText(els.logsState, state.storageWarning);
     const start = (state.page - 1) * state.perPage;
     const pageLogs = state.filtered.slice(start, start + state.perPage);
 
@@ -202,14 +204,16 @@
 
   function render(data) {
     const logs = Array.isArray(data.logs) ? data.logs : [];
+    const storage = data.storage || data.summary || {};
     state.logs = logs;
     state.filtered = [...logs];
+    state.storageWarning = storage.persistent === false && storage.warning ? storage.warning : '';
 
     setText(els.total, String(data.summary?.total ?? logs.length));
     setText(els.sessions, String(data.summary?.sessions ?? 0));
     setText(els.arcade, String(data.summary?.arcadeEvents ?? 0));
     setText(els.security, String(data.summary?.securityEvents ?? 0));
-    setText(els.source, data.summary?.source === 'upstash' ? 'Redis' : 'Runtime');
+    setText(els.source, storage.persistent ? 'Persistent Redis' : 'Runtime Only');
 
     setOptions(els.device, [...new Set(logs.map((log) => log.device).filter(Boolean))]);
     setOptions(els.browser, [...new Set(logs.map((log) => log.browser).filter(Boolean))]);

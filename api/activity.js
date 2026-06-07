@@ -1,6 +1,5 @@
-const ACTIVITY_KEY = 'portfolio:activity';
-const MAX_LOGS = 500;
 const { isAuthorized } = require('./admin-session');
+const { readLogs, saveLog } = require('./activity-store');
 
 function getHeader(request, name) {
   const headers = request.headers || {};
@@ -74,69 +73,6 @@ function parseUserAgent(userAgent) {
   return { browser, os, device };
 }
 
-function memoryLogs() {
-  if (!globalThis.__portfolioActivityLogs) {
-    globalThis.__portfolioActivityLogs = [];
-  }
-  return globalThis.__portfolioActivityLogs;
-}
-
-function hasUpstash() {
-  return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
-}
-
-async function upstashCommand(command) {
-  const response = await fetch(process.env.UPSTASH_REDIS_REST_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(command)
-  });
-
-  if (!response.ok) {
-    throw new Error(`Upstash request failed with ${response.status}`);
-  }
-
-  return response.json();
-}
-
-async function saveLog(log) {
-  if (hasUpstash()) {
-    await upstashCommand(['LPUSH', ACTIVITY_KEY, JSON.stringify(log)]);
-    await upstashCommand(['LTRIM', ACTIVITY_KEY, 0, MAX_LOGS - 1]);
-    return 'upstash';
-  }
-
-  const logs = memoryLogs();
-  logs.unshift(log);
-  logs.length = Math.min(logs.length, MAX_LOGS);
-  return 'memory';
-}
-
-async function readLogs() {
-  if (hasUpstash()) {
-    const data = await upstashCommand(['LRANGE', ACTIVITY_KEY, 0, MAX_LOGS - 1]);
-    const result = Array.isArray(data.result) ? data.result : [];
-    return {
-      source: 'upstash',
-      logs: result.map((item) => {
-        try {
-          return JSON.parse(item);
-        } catch (error) {
-          return null;
-        }
-      }).filter(Boolean)
-    };
-  }
-
-  return {
-    source: 'memory',
-    logs: memoryLogs()
-  };
-}
-
 function makeLog(request, body) {
   const userAgent = safeText(getHeader(request, 'user-agent') || body.userAgent, 600);
   const parsedAgent = parseUserAgent(userAgent);
@@ -169,7 +105,7 @@ function makeLog(request, body) {
   };
 }
 
-function summarize(logs, source) {
+function summarize(logs, storage) {
   const by = (selector) => logs.reduce((acc, log) => {
     const key = selector(log) || 'Unknown';
     acc[key] = (acc[key] || 0) + 1;
@@ -177,7 +113,10 @@ function summarize(logs, source) {
   }, {});
 
   return {
-    source,
+    source: storage.source,
+    persistent: storage.persistent,
+    limit: storage.limit,
+    warning: storage.warning,
     total: logs.length,
     sessions: new Set(logs.map((log) => log.sessionId).filter(Boolean)).size,
     arcadeEvents: logs.filter((log) => log.section === 'arcade' || log.type.startsWith('arcade_')).length,
@@ -200,8 +139,8 @@ module.exports = async (request, response) => {
     try {
       const body = readBody(request);
       const log = makeLog(request, body);
-      const source = await saveLog(log);
-      return json(response, 201, { ok: true, source });
+      const storage = await saveLog(log);
+      return json(response, 201, { ok: true, storage });
     } catch (error) {
       return json(response, 500, { ok: false, error: 'Unable to record activity.' });
     }
@@ -213,11 +152,18 @@ module.exports = async (request, response) => {
     }
 
     try {
-      const { logs, source } = await readLogs();
+      const storage = await readLogs();
+      const { logs } = storage;
       return json(response, 200, {
         ok: true,
         logs,
-        summary: summarize(logs, source)
+        summary: summarize(logs, storage),
+        storage: {
+          source: storage.source,
+          persistent: storage.persistent,
+          limit: storage.limit,
+          warning: storage.warning
+        }
       });
     } catch (error) {
       return json(response, 500, { ok: false, error: 'Unable to load activity logs.' });

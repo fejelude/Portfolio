@@ -8,8 +8,7 @@ const {
   setAdminCookie,
   verifyPassword
 } = require('./admin-session');
-
-const ACTIVITY_KEY = 'portfolio:activity';
+const { saveLog } = require('./activity-store');
 
 function readBody(request) {
   if (!request.body) return {};
@@ -57,27 +56,6 @@ function parseUserAgent(userAgent) {
   return { browser, os, device };
 }
 
-function hasUpstash() {
-  return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
-}
-
-async function upstashCommand(command) {
-  const response = await fetch(process.env.UPSTASH_REDIS_REST_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(command)
-  });
-
-  if (!response.ok) {
-    throw new Error(`Upstash request failed with ${response.status}`);
-  }
-
-  return response.json();
-}
-
 async function recordSecurityEvent(request, type) {
   const userAgent = safeText(getHeader(request, 'user-agent'), 600);
   const parsedAgent = parseUserAgent(userAgent);
@@ -106,15 +84,11 @@ async function recordSecurityEvent(request, type) {
     details: { simulation: '', arcadeTheme: '' }
   };
 
-  if (hasUpstash()) {
-    await upstashCommand(['LPUSH', ACTIVITY_KEY, JSON.stringify(event)]);
-    await upstashCommand(['LTRIM', ACTIVITY_KEY, 0, 499]);
-    return;
+  try {
+    await saveLog(event);
+  } catch (error) {
+    // Authentication should stay available even if persistent logging has a temporary outage.
   }
-
-  if (!globalThis.__portfolioActivityLogs) globalThis.__portfolioActivityLogs = [];
-  globalThis.__portfolioActivityLogs.unshift(event);
-  globalThis.__portfolioActivityLogs.length = Math.min(globalThis.__portfolioActivityLogs.length, 500);
 }
 
 module.exports = async (request, response) => {
