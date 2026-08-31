@@ -77,7 +77,12 @@ function validateConfigReferences(section, value, metadata) {
     if (!role || role.everyone) throw new Error(`${label} is not a valid role in this server.`);
   };
 
-  if (section === 'welcome') requireChannel(value.channelId, TEXT_CHANNEL_TYPES, 'Welcome channel');
+  if (section === 'welcome') {
+    requireChannel(value.channelId, TEXT_CHANNEL_TYPES, 'Welcome channel');
+    if (value.enabled && !value.channelId) {
+      throw new Error('Enabled welcomes require a welcome channel.');
+    }
+  }
   if (section === 'levels') {
     requireChannel(value.notificationChannelId, TEXT_CHANNEL_TYPES, 'Level-up channel');
     for (const reward of value.roleRewards) requireRole(reward.roleId, 'Level reward role');
@@ -86,12 +91,25 @@ function validateConfigReferences(section, value, metadata) {
     for (const item of value.roles) requireRole(item.roleId, 'Automod role');
     for (const item of value.channels) requireChannel(item.channelId, null, 'Automod channel');
   }
-  if (section === 'autorole') requireRole(value.roleId, 'Auto role');
+  if (section === 'autorole') {
+    requireRole(value.roleId, 'Auto role');
+    if (value.enabled && !value.roleId) {
+      throw new Error('Enabled Auto Role requires a role to assign.');
+    }
+  }
   if (section === 'booster') {
     requireRole(value.roleId, 'Booster role');
     requireChannel(value.channelId, TEXT_CHANNEL_TYPES, 'Booster thank-you channel');
+    if (value.enabled && (!value.roleId || !value.channelId)) {
+      throw new Error('Enabled Booster automation requires both a booster role and thank-you channel.');
+    }
   }
-  if (section === 'modlog') requireChannel(value.channelId, TEXT_CHANNEL_TYPES, 'Log channel');
+  if (section === 'modlog') {
+    requireChannel(value.channelId, TEXT_CHANNEL_TYPES, 'Log channel');
+    if (value.enabled && !value.channelId) {
+      throw new Error('Enabled staff logging requires a log channel.');
+    }
+  }
   if (section === 'tickets') {
     requireChannel(value.panelChannelId, new Set([0]), 'Ticket panel channel');
     requireChannel(value.categoryId, new Set([CATEGORY_TYPE]), 'Ticket category');
