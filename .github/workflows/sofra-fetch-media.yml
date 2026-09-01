@@ -1,4 +1,4 @@
-name: Fetch Sofra media bundle
+name: Vendor Sofra media
 
 on:
   pull_request:
@@ -7,63 +7,64 @@ on:
       - '.github/workflows/sofra-fetch-media.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  fetch-media:
+  vendor-media:
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
+      - name: Check out PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
       - name: Download official Sofra animations
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p sofra-media
-          curl -fL --retry 4 --retry-all-errors --connect-timeout 15 --max-time 120 \
-            'https://static.klipy.com/ii/e7539ef2aad336edaa067c28ee130b3c/fb/9e/U1eJq1Kc6FPykBTGeW.mp4' \
-            -o sofra-media/brand.mp4
-          curl -fL --retry 4 --retry-all-errors --connect-timeout 15 --max-time 120 \
-            'https://static.klipy.com/ii/c3a19a0b747a76e98651f2b9a3cca5ff/e3/b6/XOCMlFyxQ6Vzk.mp4' \
-            -o sofra-media/overview.mp4
-          curl -fL --retry 4 --retry-all-errors --connect-timeout 15 --max-time 120 \
-            'https://static.klipy.com/ii/d7aec6f6f171607374b2065c836f92f4/76/02/JOKTPswg70UuvLmU.mp4' \
-            -o sofra-media/welcome.mp4
-          curl -fL --retry 4 --retry-all-errors --connect-timeout 15 --max-time 120 \
-            'https://static.klipy.com/ii/f87f46a2c5aeaeed4c68910815f73eaf/80/64/bKGnacc5.mp4' \
-            -o sofra-media/tickets.mp4
-          curl -fL --retry 4 --retry-all-errors --connect-timeout 15 --max-time 120 \
-            'https://static.klipy.com/ii/e293a233a303a98e471f78d04e13a1b0/49/01/THCweaO9SXtnh.mp4' \
-            -o sofra-media/levels.mp4
-          curl -fL --retry 4 --retry-all-errors --connect-timeout 15 --max-time 120 \
-            'https://static.klipy.com/ii/e293a233a303a98e471f78d04e13a1b0/ce/c2/8D5ZPqkh66i64Q3fF.mp4' \
-            -o sofra-media/boosters.mp4
-          curl -fL --retry 4 --retry-all-errors --connect-timeout 15 --max-time 120 \
-            'https://static.klipy.com/ii/71b2873e478b9d8d0482ea3ec777ba7f/7f/e5/XTuUicSWZIFin.mp4' \
-            -o sofra-media/moderation.mp4
-          curl -fL --retry 4 --retry-all-errors --connect-timeout 15 --max-time 120 \
-            'https://static.klipy.com/ii/925f17378dd1893b674a723c07535afe/03/1e/tb2QI8A5.mp4' \
-            -o sofra-media/logs.mp4
-          curl -fL --retry 4 --retry-all-errors --connect-timeout 15 --max-time 120 \
-            'https://static.klipy.com/ii/4493325008d34b7bf8cd6813cd5c1619/01/eb/k9oLv1JBJ5sxy9NyxZ8.mp4' \
-            -o sofra-media/autorole.mp4
+          mkdir -p /tmp/sofra-original assets/sofra
+          curl -fL --retry 4 --retry-all-errors --connect-timeout 15 --max-time 120 'https://static.klipy.com/ii/e7539ef2aad336edaa067c28ee130b3c/fb/9e/U1eJq1Kc6FPykBTGeW.mp4' -o /tmp/sofra-original/brand.mp4
+          curl -fL --retry 4 --retry-all-errors --connect-timeout 15 --max-time 120 'https://static.klipy.com/ii/c3a19a0b747a76e98651f2b9a3cca5ff/e3/b6/XOCMlFyxQ6Vzk.mp4' -o /tmp/sofra-original/overview.mp4
+          curl -fL --retry 4 --retry-all-errors --connect-timeout 15 --max-time 120 'https://static.klipy.com/ii/d7aec6f6f171607374b2065c836f92f4/76/02/JOKTPswg70UuvLmU.mp4' -o /tmp/sofra-original/welcome.mp4
+          curl -fL --retry 4 --retry-all-errors --connect-timeout 15 --max-time 120 'https://static.klipy.com/ii/f87f46a2c5aeaeed4c68910815f73eaf/80/64/bKGnacc5.mp4' -o /tmp/sofra-original/tickets.mp4
+          curl -fL --retry 4 --retry-all-errors --connect-timeout 15 --max-time 120 'https://static.klipy.com/ii/e293a233a303a98e471f78d04e13a1b0/49/01/THCweaO9SXtnh.mp4' -o /tmp/sofra-original/levels.mp4
+          curl -fL --retry 4 --retry-all-errors --connect-timeout 15 --max-time 120 'https://static.klipy.com/ii/e293a233a303a98e471f78d04e13a1b0/ce/c2/8D5ZPqkh66i64Q3fF.mp4' -o /tmp/sofra-original/boosters.mp4
+          curl -fL --retry 4 --retry-all-errors --connect-timeout 15 --max-time 120 'https://static.klipy.com/ii/71b2873e478b9d8d0482ea3ec777ba7f/7f/e5/XTuUicSWZIFin.mp4' -o /tmp/sofra-original/moderation.mp4
+          curl -fL --retry 4 --retry-all-errors --connect-timeout 15 --max-time 120 'https://static.klipy.com/ii/925f17378dd1893b674a723c07535afe/03/1e/tb2QI8A5.mp4' -o /tmp/sofra-original/logs.mp4
+          curl -fL --retry 4 --retry-all-errors --connect-timeout 15 --max-time 120 'https://static.klipy.com/ii/4493325008d34b7bf8cd6813cd5c1619/01/eb/k9oLv1JBJ5sxy9NyxZ8.mp4' -o /tmp/sofra-original/autorole.mp4
 
-      - name: Validate downloads
+      - name: Validate and optimize for the panel
         shell: bash
         run: |
           set -euo pipefail
-          for f in sofra-media/*.mp4; do
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+          fi
+          for f in /tmp/sofra-original/*.mp4; do
             test -s "$f"
             bytes=$(wc -c < "$f")
             if [ "$bytes" -lt 1024 ]; then
               echo "Media file is unexpectedly small: $f ($bytes bytes)" >&2
               exit 1
             fi
-            file "$f"
+            name=$(basename "$f")
+            ffmpeg -y -loglevel error -i "$f" -an \
+              -vf 'scale=320:320:force_original_aspect_ratio=increase,crop=320:320,fps=30' \
+              -c:v libx264 -preset slow -crf 27 -pix_fmt yuv420p -profile:v high -level 3.1 \
+              -movflags +faststart "assets/sofra/$name"
+            ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height -of csv=p=0 "assets/sofra/$name"
           done
 
-      - name: Upload media bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: sofra-media-bundle
-          path: sofra-media/*.mp4
-          if-no-files-found: error
-          retention-days: 1
+      - name: Commit self-hosted media and remove bootstrap workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/sofra/*.mp4
+          git rm .github/workflows/sofra-fetch-media.yml
+          git commit -m 'Vendor optimized Sofra panel animations'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
