@@ -71,10 +71,13 @@ function validateConfigReferences(section, value, metadata) {
       throw new Error(`${label} is not a valid channel in this server.`);
     }
   };
-  const requireRole = (id, label) => {
+  const requireRole = (id, label, { assignable = false } = {}) => {
     if (!id) return;
     const role = roleById.get(id);
     if (!role || role.everyone) throw new Error(`${label} is not a valid role in this server.`);
+    if (assignable && role.managed) {
+      throw new Error(`${label} is managed by Discord or an integration and cannot be configured for this Sofra feature.`);
+    }
   };
 
   if (section === 'welcome') {
@@ -85,20 +88,20 @@ function validateConfigReferences(section, value, metadata) {
   }
   if (section === 'levels') {
     requireChannel(value.notificationChannelId, TEXT_CHANNEL_TYPES, 'Level-up channel');
-    for (const reward of value.roleRewards) requireRole(reward.roleId, 'Level reward role');
+    for (const reward of value.roleRewards) requireRole(reward.roleId, 'Level reward role', { assignable: true });
   }
   if (section === 'automod') {
-    for (const item of value.roles) requireRole(item.roleId, 'Automod role');
+    for (const item of value.roles) requireRole(item.roleId, 'Automod role', { assignable: true });
     for (const item of value.channels) requireChannel(item.channelId, null, 'Automod channel');
   }
   if (section === 'autorole') {
-    requireRole(value.roleId, 'Auto role');
+    requireRole(value.roleId, 'Auto role', { assignable: true });
     if (value.enabled && !value.roleId) {
       throw new Error('Enabled Auto Role requires a role to assign.');
     }
   }
   if (section === 'booster') {
-    requireRole(value.roleId, 'Booster role');
+    requireRole(value.roleId, 'Booster role', { assignable: true });
     requireChannel(value.channelId, TEXT_CHANNEL_TYPES, 'Booster thank-you channel');
     if (value.enabled && (!value.roleId || !value.channelId)) {
       throw new Error('Enabled Booster automation requires both a booster role and thank-you channel.');
@@ -116,6 +119,9 @@ function validateConfigReferences(section, value, metadata) {
     for (const roleId of value.staffRoleIds) requireRole(roleId, 'Ticket staff role');
     if (value.enabled && (!value.panelChannelId || !value.categoryId || value.staffRoleIds.length < 1)) {
       throw new Error('Enabled tickets require a panel channel, ticket category, and at least one staff role.');
+    }
+    if (value.enabled && !Object.values(value.types || {}).some(Boolean)) {
+      throw new Error('Enabled tickets require at least one ticket type.');
     }
   }
 }
