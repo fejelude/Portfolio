@@ -37,6 +37,13 @@
         content-visibility: auto;
         contain-intrinsic-size: 760px;
       }
+      /* Lightweight mode skips the ScrollReveal controller, so make the
+         content visible explicitly instead of leaving its CSS at opacity: 0. */
+      .scroll-reveal {
+        opacity: 1 !important;
+        transform: none !important;
+        filter: none !important;
+      }
       .blur-text, .tilted-card, .magnet-btn { will-change: auto !important; }
     `;
     document.head.appendChild(style);
@@ -148,7 +155,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const hasReactBitsTargets = document.querySelector('.tilted-card, .magnet-btn, .blur-text, .scroll-reveal');
     if (hasReactBitsTargets) window.initReactBits(document);
   } else {
-    document.querySelectorAll('.reveal, .scroll-reveal').forEach((el) => el.classList.add('active'));
+    document.querySelectorAll('.reveal').forEach((el) => el.classList.add('active'));
+    document.querySelectorAll('.scroll-reveal').forEach((el) => el.classList.add('is-revealed'));
   }
 
   const revealTargets = document.querySelectorAll('.reveal');
