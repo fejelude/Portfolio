@@ -1,10 +1,9 @@
 'use strict';
 
-const { requireInstalledGuildAccess, requireCsrf, botFetch } = require('./_auth');
+const { requireInstalledGuildAccess, requireCsrf, botFetch, requiredEnv } = require('./_auth');
 const { readGuildConfig, writeSection, sanitizeSection } = require('./_config');
+const { validateConfigReferences } = require('./_guild-validation');
 
-const TEXT_CHANNEL_TYPES = new Set([0, 5]);
-const CATEGORY_TYPE = 4;
 const TICKET_PANEL_BANNER = 'https://cdn.discordapp.com/attachments/1489489015269883954/1542155954894807060/file_00000000c470821189498cb6c7c22668.png?ex=6a903427&is=6a8ee2a7&hm=b81ddd90b880a344e24f9a1ef98df817055cd9876bb28d364de8d734647a6bc3&';
 
 function readBody(request) {
@@ -34,13 +33,31 @@ function roleSummary(role, guildId) {
   };
 }
 
-async function readBotGuild(guildId) {
+async function readBotGuild(guildId, actorId = null) {
   try {
     const guild = await botFetch(`/guilds/${guildId}?with_counts=true`);
     const [channels, roles] = await Promise.all([
       botFetch(`/guilds/${guildId}/channels`),
       botFetch(`/guilds/${guildId}/roles`)
     ]);
+
+    let validation = null;
+    if (actorId) {
+      const botUserId = requiredEnv('DISCORD_CLIENT_ID');
+      const [botMember, actorMember] = await Promise.all([
+        botFetch(`/guilds/${guildId}/members/${botUserId}`),
+        botFetch(`/guilds/${guildId}/members/${actorId}`)
+      ]);
+      validation = {
+        guildId,
+        ownerId: guild.owner_id,
+        channels,
+        roles,
+        botMember,
+        actorMember
+      };
+    }
+
     return {
       installed: true,
       guild: {
@@ -52,78 +69,14 @@ async function readBotGuild(guildId) {
         features: Array.isArray(guild.features) ? guild.features : []
       },
       channels: channels.map(channelSummary).sort((a, b) => a.position - b.position),
-      roles: roles.map((role) => roleSummary(role, guildId)).sort((a, b) => b.position - a.position)
+      roles: roles.map((role) => roleSummary(role, guildId)).sort((a, b) => b.position - a.position),
+      validation
     };
   } catch (error) {
     if (error.status === 404 || error.status === 403) {
-      return { installed: false, guild: null, channels: [], roles: [] };
+      return { installed: false, guild: null, channels: [], roles: [], validation: null };
     }
     throw error;
-  }
-}
-
-function validateConfigReferences(section, value, metadata) {
-  const channelById = new Map(metadata.channels.map((channel) => [channel.id, channel]));
-  const roleById = new Map(metadata.roles.map((role) => [role.id, role]));
-  const requireChannel = (id, allowedTypes, label) => {
-    if (!id) return;
-    const channel = channelById.get(id);
-    if (!channel || (allowedTypes && !allowedTypes.has(channel.type))) {
-      throw new Error(`${label} is not a valid channel in this server.`);
-    }
-  };
-  const requireRole = (id, label, { assignable = false } = {}) => {
-    if (!id) return;
-    const role = roleById.get(id);
-    if (!role || role.everyone) throw new Error(`${label} is not a valid role in this server.`);
-    if (assignable && role.managed) {
-      throw new Error(`${label} is managed by Discord or an integration and cannot be configured for this Sofra feature.`);
-    }
-  };
-
-  if (section === 'welcome') {
-    requireChannel(value.channelId, TEXT_CHANNEL_TYPES, 'Welcome channel');
-    if (value.enabled && !value.channelId) {
-      throw new Error('Enabled welcomes require a welcome channel.');
-    }
-  }
-  if (section === 'levels') {
-    requireChannel(value.notificationChannelId, TEXT_CHANNEL_TYPES, 'Level-up channel');
-    for (const reward of value.roleRewards) requireRole(reward.roleId, 'Level reward role', { assignable: true });
-  }
-  if (section === 'automod') {
-    for (const item of value.roles) requireRole(item.roleId, 'Automod role', { assignable: true });
-    for (const item of value.channels) requireChannel(item.channelId, null, 'Automod channel');
-  }
-  if (section === 'autorole') {
-    requireRole(value.roleId, 'Auto role', { assignable: true });
-    if (value.enabled && !value.roleId) {
-      throw new Error('Enabled Auto Role requires a role to assign.');
-    }
-  }
-  if (section === 'booster') {
-    requireRole(value.roleId, 'Booster role', { assignable: true });
-    requireChannel(value.channelId, TEXT_CHANNEL_TYPES, 'Booster thank-you channel');
-    if (value.enabled && (!value.roleId || !value.channelId)) {
-      throw new Error('Enabled Booster automation requires both a booster role and thank-you channel.');
-    }
-  }
-  if (section === 'modlog') {
-    requireChannel(value.channelId, TEXT_CHANNEL_TYPES, 'Log channel');
-    if (value.enabled && !value.channelId) {
-      throw new Error('Enabled staff logging requires a log channel.');
-    }
-  }
-  if (section === 'tickets') {
-    requireChannel(value.panelChannelId, new Set([0]), 'Ticket panel channel');
-    requireChannel(value.categoryId, new Set([CATEGORY_TYPE]), 'Ticket category');
-    for (const roleId of value.staffRoleIds) requireRole(roleId, 'Ticket staff role');
-    if (value.enabled && (!value.panelChannelId || !value.categoryId || value.staffRoleIds.length < 1)) {
-      throw new Error('Enabled tickets require a panel channel, ticket category, and at least one staff role.');
-    }
-    if (value.enabled && !Object.values(value.types || {}).some(Boolean)) {
-      throw new Error('Enabled tickets require at least one ticket type.');
-    }
   }
 }
 
@@ -208,7 +161,12 @@ module.exports = async (request, response) => {
     // and bot presence. A client-supplied guild ID grants no authorization.
     const access = await requireInstalledGuildAccess(request, response, guildId);
     if (!access) return;
-    const metadata = await readBotGuild(guildId);
+
+    // GET only needs display metadata. PUT additionally resolves the signed-in
+    // member and Sofra herself so channel permissions and role hierarchy can be
+    // validated against the same Discord rules the bot uses at runtime.
+    const actorId = request.method === 'PUT' ? access.session.user.id : null;
+    const metadata = await readBotGuild(guildId, actorId);
     if (!metadata.installed) {
       return response.status(409).json({ ok: false, error: 'Sofra is no longer installed in this server.' });
     }
@@ -234,7 +192,7 @@ module.exports = async (request, response) => {
     }
 
     let next = sanitizeSection(section, body.value, config[section]);
-    validateConfigReferences(section, next, metadata);
+    validateConfigReferences(section, next, config[section], metadata);
     if (section === 'tickets') next = await reconcileTicketPanel(next, config.tickets);
     await writeSection(guildId, section, next);
 
