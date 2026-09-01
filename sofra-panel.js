@@ -22,20 +22,30 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
   const nativeFetch = window.fetch.bind(window);
 
   // The panel's first request determines whether the user is signed in. Retry
-  // short Discord/Vercel hiccups here too, so a temporary 5xx does not look
-  // like a logout to the person opening the dashboard.
+  // short Discord/Vercel hiccups here too, so a temporary outage never looks
+  // like the user's remembered session disappeared.
   window.fetch = async (...args) => {
     const requestUrl = typeof args[0] === 'string' ? args[0] : args[0]?.url || '';
     const isGuildProbe = requestUrl.includes('/api/sofra/guilds');
     const maxAttempts = isGuildProbe ? 3 : 1;
     let response;
+    let lastError;
 
     for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-      response = await nativeFetch(...args);
-      if (!isGuildProbe || ![429, 500, 502, 503, 504].includes(response.status) || attempt === maxAttempts - 1) break;
+      try {
+        response = await nativeFetch(...args);
+        if (!isGuildProbe || ![429, 500, 502, 503, 504].includes(response.status) || attempt === maxAttempts - 1) break;
+      } catch (error) {
+        lastError = error;
+        if (!isGuildProbe || attempt === maxAttempts - 1) {
+          if (isGuildProbe) lastGuildProbeStatus = 503;
+          throw error;
+        }
+      }
       await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
     }
 
+    if (!response && lastError) throw lastError;
     if (isGuildProbe) {
       lastGuildProbeStatus = response.status;
       if (response.ok) localStorage.setItem('sofra:rememberedSession', '1');
@@ -128,7 +138,7 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
     heading.textContent = 'Discord is taking a moment.';
     copy.textContent = 'Your Sofra session was not cleared. The dashboard just could not reach Discord right now, so you can retry without authorizing your account again.';
     button.href = '/sofra';
-    button.lastChild.textContent = ' Retry connection';
+    button.innerHTML = '<span aria-hidden="true">↻</span> Retry connection';
     button.onclick = (event) => {
       event.preventDefault();
       location.reload();
