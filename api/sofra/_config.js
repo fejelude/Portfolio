@@ -15,6 +15,17 @@ const CATEGORIES = Object.freeze({
   spam: 'delete',
   custom: 'delete_warn'
 });
+const MODERATE_AUTOMOD_CATEGORIES = new Set([
+  'profanity',
+  'severe_profanity',
+  'sexual',
+  'sexual_harassment',
+  'insults',
+  'hate',
+  'threats',
+  'scam',
+  'custom'
+]);
 const CATEGORY_ACTIONS = new Set(['ignore', 'log', 'warn', 'delete', 'delete_warn', 'delete_timeout', 'delete_timeout_alert', 'delete_kick', 'delete_ban', 'delete_alert', 'strike']);
 const PANEL_ICON_KEYS = Object.freeze(['brand', 'overview', 'welcome', 'tickets', 'levels', 'boosters', 'moderation', 'logs', 'autorole', 'appearance']);
 
@@ -22,6 +33,7 @@ const DEFAULTS = Object.freeze({
   welcome: Object.freeze({
     enabled: false,
     channelId: null,
+    randomMessages: true,
     messageTemplate: 'Hi {user.mention}! We’re so happy you’re here. Make yourself at home and enjoy {server.name} ♡',
     embedTitle: 'Welcome to {server.name}! 🎀',
     embedDescription: null,
@@ -49,7 +61,7 @@ const DEFAULTS = Object.freeze({
     strikesEnabled: true,
     roles: Object.freeze([]),
     channels: Object.freeze([]),
-    categories: Object.freeze(Object.fromEntries(Object.entries(CATEGORIES).map(([name, action]) => [name, Object.freeze({ enabled: false, action })]))),
+    categories: Object.freeze(Object.fromEntries(Object.entries(CATEGORIES).map(([name, action]) => [name, Object.freeze({ enabled: MODERATE_AUTOMOD_CATEGORIES.has(name), action })]))),
     words: Object.freeze([])
   }),
   autorole: Object.freeze({ enabled: false, roleId: null }),
@@ -123,6 +135,18 @@ function normalizeConfig(raw = {}) {
   for (const [section, defaults] of Object.entries(DEFAULTS)) {
     const value = raw[section] && typeof raw[section] === 'object' ? raw[section] : {};
     out[section] = { ...clone(defaults), ...value };
+    if (section === 'automod') {
+      out.automod.categories = {
+        ...clone(DEFAULTS.automod.categories),
+        ...(value.categories && typeof value.categories === 'object' ? value.categories : {})
+      };
+    }
+    if (section === 'tickets') {
+      out.tickets.types = {
+        ...clone(DEFAULTS.tickets.types),
+        ...(value.types && typeof value.types === 'object' ? value.types : {})
+      };
+    }
     if (section === 'panel') {
       out.panel.icons = { ...clone(DEFAULTS.panel.icons), ...(value.icons && typeof value.icons === 'object' ? value.icons : {}) };
     }
@@ -151,9 +175,13 @@ async function writeSection(guildId, section, value) {
 }
 
 function sanitizeWelcome(input, current) {
+  const randomMessages = typeof input?.randomMessages === 'boolean'
+    ? input.randomMessages
+    : current.randomMessages !== false;
   return {
     enabled: input?.enabled === true,
     channelId: snowflake(input?.channelId),
+    randomMessages,
     messageTemplate: nullableText(input?.messageTemplate, 1800) || current.messageTemplate || DEFAULTS.welcome.messageTemplate,
     embedTitle: nullableText(input?.embedTitle, 256) || DEFAULTS.welcome.embedTitle,
     embedDescription: nullableText(input?.embedDescription, 4000),
@@ -202,7 +230,7 @@ function sanitizeAutomod(input, current) {
     : [];
   const categories = {};
   for (const [name, defaultAction] of Object.entries(CATEGORIES)) {
-    const source = input?.categories?.[name] || current?.categories?.[name] || {};
+    const source = input?.categories?.[name] || current?.categories?.[name] || DEFAULTS.automod.categories[name];
     categories[name] = {
       enabled: source.enabled === true,
       action: CATEGORY_ACTIONS.has(source.action) ? source.action : defaultAction
