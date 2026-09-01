@@ -257,12 +257,86 @@ h1 {
 
 /* SMART BUTTON WRAPPER FOR ALL DEVICES */
 .action-buttons {
-  display: flex; 
-  gap: 1.5rem; 
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
   align-items: center; 
   justify-content: center; 
   margin-top: 1rem;
-  flex-wrap: wrap;
+  width: min(100%, 360px);
+}
+
+.primary-action-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.primary-action-stack .star-border {
+  display: block;
+  width: 100%;
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms ease;
+}
+
+.primary-action-stack .star-border:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(139, 92, 246, 0.12);
+}
+
+.primary-action-stack .star-border-inner {
+  min-height: 50px;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+}
+
+.sofra-hero-cta {
+  background: rgba(244, 167, 194, 0.12);
+  box-shadow: 0 10px 34px rgba(216, 140, 255, 0.13);
+}
+
+.sofra-hero-cta .star-border-glow.star-1 {
+  background: conic-gradient(transparent, rgba(255, 177, 211, 0.95), transparent 32%);
+}
+
+.sofra-hero-cta .star-border-glow.star-2 {
+  background: conic-gradient(transparent, rgba(192, 132, 252, 0.85), transparent 32%);
+}
+
+.sofra-hero-cta .star-border-inner {
+  background: linear-gradient(135deg, rgba(32, 17, 38, 0.98), rgba(13, 10, 28, 0.98));
+  color: #fff1f7;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.sofra-hero-icon {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  color: #ffc3dc;
+  filter: drop-shadow(0 0 8px rgba(244, 167, 194, 0.55));
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sofra-hero-icon svg { width: 100%; height: 100%; }
+
+.sofra-hero-arrow {
+  margin-left: 2px;
+  color: #c9a7ff;
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sofra-hero-cta:hover {
+  box-shadow: 0 14px 38px rgba(231, 148, 255, 0.23) !important;
+}
+
+.sofra-hero-cta:hover .sofra-hero-icon { transform: scale(1.08) rotate(-4deg); }
+.sofra-hero-cta:hover .sofra-hero-arrow { transform: translate(2px, -2px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .primary-action-stack .star-border,
+  .sofra-hero-icon,
+  .sofra-hero-arrow { transition: none; }
 }
 
 .btn-glow {
@@ -604,12 +678,16 @@ button.method-card {
   
   /* Mobile Action Buttons Fix */
   .action-buttons {
-    flex-direction: column;
-    width: 100%;
+    width: min(100%, 340px);
+    gap: 0.9rem;
   }
-  .action-buttons > a {
-    width: 100%;
-    justify-content: center;
+  .primary-action-stack {
+    gap: 0.65rem;
+  }
+  .primary-action-stack .star-border-inner {
+    min-height: 48px;
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
   }
 
   .arcade-card { padding: 24px; }
