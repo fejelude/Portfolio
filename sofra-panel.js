@@ -121,7 +121,10 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
         place-items: center;
         overflow: hidden;
         border-radius: 12px;
-        background: rgba(242,166,202,.07);
+        background-color: rgba(242,166,202,.07);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
         color: var(--pink);
         font-weight: 800;
       }
@@ -359,6 +362,27 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
     return text.replace(/\s*•\s*Add Sofra\s*$/i, '').trim() || null;
   }
 
+  function syncSelectedServerIcon(cards, options, select, guildName) {
+    const mark = document.querySelector('#server-manager-launch .server-manager-mark');
+    if (!mark) return;
+
+    const selectedIndex = options.findIndex((option) => option.value === select.value);
+    const serverIcon = selectedIndex >= 0 ? cards[selectedIndex]?.querySelector('.server-icon') : null;
+    const backgroundImage = serverIcon?.style.backgroundImage || '';
+
+    if (backgroundImage && backgroundImage !== 'none') {
+      if (mark.style.backgroundImage !== backgroundImage) mark.style.backgroundImage = backgroundImage;
+      if (mark.textContent) mark.textContent = '';
+      mark.classList.add('has-server-icon');
+      return;
+    }
+
+    mark.style.backgroundImage = '';
+    mark.classList.remove('has-server-icon');
+    const fallback = (guildName || 'S').trim().slice(0, 1).toUpperCase() || 'S';
+    if (mark.textContent !== fallback) mark.textContent = fallback;
+  }
+
   function customizeServerPickerHeading() {
     const picker = document.getElementById('server-picker');
     if (!picker) return;
@@ -388,7 +412,7 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
       launch.id = 'server-manager-launch';
       launch.className = 'server-manager-launch';
       launch.innerHTML = `
-        <span class="server-manager-mark media-slot" data-icon-key="brand">S</span>
+        <span class="server-manager-mark" aria-hidden="true">S</span>
         <span class="server-manager-copy">
           <strong id="server-manager-name">Choose a server</strong>
           <small id="server-manager-status">Manage or install Sofra</small>
@@ -512,9 +536,11 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
 
     const guildName = selectedGuildName();
     const nextName = guildName || 'Choose a server';
-    const nextStatus = guildName ? 'Current server · switch anytime' : 'Manage or install Sofra';
+    const nextStatus = guildName ? 'Current server' : 'Manage or install Sofra';
     if (name && name.textContent !== nextName) name.textContent = nextName;
     if (status && status.textContent !== nextStatus) status.textContent = nextStatus;
+    if (name) name.title = nextName;
+    if (status) status.title = nextStatus;
     launch.setAttribute('aria-label', guildName ? `Open server manager. Current server: ${guildName}` : 'Open server manager');
 
     const cards = [...document.querySelectorAll('#server-grid .server-card')];
@@ -524,6 +550,7 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
       if (guildId) card.dataset.guildId = guildId;
       card.classList.toggle('current-server', Boolean(guildId && guildId === select.value));
     });
+    syncSelectedServerIcon(cards, options, select, guildName);
 
     // Core loadGuild() switches back to content after a successful server load.
     // Detect that transition so our custom Servers tab never remains visually
