@@ -18,6 +18,32 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
     autorole: 'https://images-ext-1.discordapp.net/external/2UPm33suyGS833nZJVf1cfgQXpUDv6pHRnIPNHXXcys/https/static.klipy.com/ii/4493325008d34b7bf8cd6813cd5c1619/01/eb/k9oLv1JBJ5sxy9NyxZ8.mp4'
   });
 
+  let lastGuildProbeStatus = null;
+  const nativeFetch = window.fetch.bind(window);
+
+  // The panel's first request determines whether the user is signed in. Retry
+  // short Discord/Vercel hiccups here too, so a temporary 5xx does not look
+  // like a logout to the person opening the dashboard.
+  window.fetch = async (...args) => {
+    const requestUrl = typeof args[0] === 'string' ? args[0] : args[0]?.url || '';
+    const isGuildProbe = requestUrl.includes('/api/sofra/guilds');
+    const maxAttempts = isGuildProbe ? 3 : 1;
+    let response;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      response = await nativeFetch(...args);
+      if (!isGuildProbe || ![429, 500, 502, 503, 504].includes(response.status) || attempt === maxAttempts - 1) break;
+      await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
+    }
+
+    if (isGuildProbe) {
+      lastGuildProbeStatus = response.status;
+      if (response.ok) localStorage.setItem('sofra:rememberedSession', '1');
+      if (response.status === 401) localStorage.removeItem('sofra:rememberedSession');
+    }
+    return response;
+  };
+
   function addOfficialMediaStyles() {
     if (document.getElementById('sofra-official-media-styles')) return;
     const style = document.createElement('style');
@@ -35,6 +61,7 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
         pointer-events: none;
       }
       .nav-icon > video, .module-icon > video { border-radius: inherit; }
+      .auth-gate.connection-retry-mode .security-note { border-color: rgba(244,167,194,.18); }
     `;
     document.head.appendChild(style);
   }
@@ -86,6 +113,29 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
     if (title?.classList.contains('nav-group-title')) title.hidden = true;
   }
 
+  function showConnectionRetryState() {
+    if (![429, 500, 502, 503, 504].includes(lastGuildProbeStatus)) return;
+    const gate = document.getElementById('auth-gate');
+    if (!gate || gate.classList.contains('hidden')) return;
+
+    const heading = gate.querySelector('.auth-card h1');
+    const copy = gate.querySelector('.auth-card > p');
+    const button = gate.querySelector('.discord-login');
+    const note = gate.querySelector('.security-note');
+    if (!heading || !copy || !button) return;
+
+    gate.classList.add('connection-retry-mode');
+    heading.textContent = 'Discord is taking a moment.';
+    copy.textContent = 'Your Sofra session was not cleared. The dashboard just could not reach Discord right now, so you can retry without authorizing your account again.';
+    button.href = '/sofra';
+    button.lastChild.textContent = ' Retry connection';
+    button.onclick = (event) => {
+      event.preventDefault();
+      location.reload();
+    };
+    if (note) note.innerHTML = '<span>♡</span> Temporary connection errors never sign you out of Sofra.';
+  }
+
   function applyOfficialMedia() {
     document.querySelectorAll('[data-icon-key]').forEach((element) => {
       renderOfficialMedia(element, element.dataset.iconKey);
@@ -98,6 +148,7 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
     });
 
     hideAppearanceSection();
+    showConnectionRetryState();
   }
 
   let scheduled = false;
@@ -119,6 +170,6 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
   document.addEventListener('DOMContentLoaded', () => {
     applyOfficialMedia();
     const observer = new MutationObserver(scheduleOfficialMedia);
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
   });
 })();
