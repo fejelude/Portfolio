@@ -405,21 +405,20 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
 
   function paintGuildIcon(element, backgroundImage, guildName) {
     if (!element) return;
-    element.replaceChildren();
     element.classList.remove('has-media', 'official-media', 'media-loading');
     delete element.dataset.sofraMediaLoading;
 
     if (backgroundImage && backgroundImage !== 'none') {
+      if (element.childNodes.length) element.replaceChildren();
       if (element.style.backgroundImage !== backgroundImage) element.style.backgroundImage = backgroundImage;
-      element.textContent = '';
       element.classList.add('has-server-icon', 'server-guild-icon');
       return;
     }
 
-    element.style.backgroundImage = '';
+    if (element.style.backgroundImage) element.style.backgroundImage = '';
     element.classList.remove('has-server-icon', 'server-guild-icon');
     const fallback = (guildName || 'S').trim().slice(0, 1).toUpperCase() || 'S';
-    if (element.textContent !== fallback) element.textContent = fallback;
+    if (element.textContent !== fallback || element.childElementCount) element.textContent = fallback;
   }
 
   function syncSelectedServerIcon(cards, options, select, guildName) {
