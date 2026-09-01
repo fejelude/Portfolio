@@ -1,3 +1,96 @@
+function installGalleryImageReliability() {
+  if (!document.getElementById('gallery-reliability-styles')) {
+    const style = document.createElement('style');
+    style.id = 'gallery-reliability-styles';
+    style.textContent = `
+      .gallery-item.image-unavailable {
+        background:
+          radial-gradient(circle at 50% 35%, rgba(99,102,241,.16), transparent 40%),
+          linear-gradient(145deg, rgba(15,23,42,.96), rgba(9,12,24,.98));
+      }
+      .gallery-item.image-unavailable .gallery-img {
+        opacity: 0;
+      }
+      .gallery-item.image-unavailable::after {
+        content: 'Image temporarily unavailable';
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        color: #94a3b8;
+        font-size: .82rem;
+        text-align: center;
+        pointer-events: none;
+      }
+      .gallery-item.image-unavailable .gallery-caption {
+        opacity: 1;
+        transform: translateY(0);
+        z-index: 2;
+      }
+      @media (hover: none), (pointer: coarse) {
+        .gallery-caption {
+          opacity: 1;
+          transform: translateY(0);
+          padding: 30px 14px 14px;
+          font-size: 1rem;
+        }
+        .gallery-item:hover {
+          transform: none;
+        }
+        .gallery-item:hover .gallery-img {
+          transform: none;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  document.querySelectorAll('.gallery-item img').forEach((img) => {
+    const item = img.closest('.gallery-item');
+    const originalSrc = img.getAttribute('src') || '';
+
+    // Several third-party image hosts reject requests carrying another site's
+    // origin as the referrer. Ask the browser for the image without leaking the
+    // portfolio URL, which also prevents the broken-image state seen on mobile.
+    img.referrerPolicy = 'no-referrer';
+    img.setAttribute('referrerpolicy', 'no-referrer');
+    img.decoding = 'async';
+
+    const markLoaded = () => {
+      item?.classList.remove('image-unavailable');
+      img.dataset.galleryRetry = 'done';
+    };
+
+    const markFailed = () => {
+      if (img.dataset.galleryRetry !== '1' && originalSrc) {
+        img.dataset.galleryRetry = '1';
+        // Re-request once after referrerPolicy has definitely been applied.
+        img.removeAttribute('src');
+        requestAnimationFrame(() => {
+          img.src = originalSrc;
+        });
+        return;
+      }
+      item?.classList.add('image-unavailable');
+    };
+
+    img.addEventListener('load', markLoaded);
+    img.addEventListener('error', markFailed);
+
+    // If parsing started the request before this script applied no-referrer,
+    // immediately retry an already-broken image with the corrected policy.
+    if (img.complete && img.naturalWidth === 0 && originalSrc) {
+      markFailed();
+    }
+  });
+}
+
+// Run immediately because Gallery.html loads this script after the gallery
+// markup. This lets lazy images receive the corrected referrer policy before
+// they enter the viewport, instead of waiting for DOMContentLoaded.
+installGalleryImageReliability();
+
 window.initGallery = function() {
   // GSAP Entrance Animation
   gsap.registerPlugin(ScrollTrigger);
@@ -60,6 +153,8 @@ window.initGallery = function() {
   const openLightbox = (index) => {
     currentIndex = index;
     const img = galleryItems[currentIndex];
+    if (!img.naturalWidth) return;
+    lightboxImg.referrerPolicy = 'no-referrer';
     lightboxImg.src = img.src;
     lightboxImg.alt = img.alt;
     if (lightboxCaption) {
@@ -78,6 +173,11 @@ window.initGallery = function() {
     // Add fade out/in effect for smoother transition
     gsap.to(lightboxImg, { opacity: 0.5, duration: 0.1, onComplete: () => {
       const img = galleryItems[currentIndex];
+      if (!img.naturalWidth) {
+        gsap.to(lightboxImg, { opacity: 1, duration: 0.2 });
+        return;
+      }
+      lightboxImg.referrerPolicy = 'no-referrer';
       lightboxImg.src = img.src;
       lightboxImg.alt = img.alt;
       if (lightboxCaption) {
