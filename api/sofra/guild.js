@@ -1,6 +1,6 @@
 'use strict';
 
-const { requireGuildAccess, requireCsrf, botFetch } = require('./_auth');
+const { requireInstalledGuildAccess, requireCsrf, botFetch } = require('./_auth');
 const { readGuildConfig, writeSection, sanitizeSection } = require('./_config');
 
 const TEXT_CHANNEL_TYPES = new Set([0, 5]);
@@ -191,9 +191,14 @@ module.exports = async (request, response) => {
 
   const guildId = String(request.query?.guildId || '');
   try {
-    const access = await requireGuildAccess(request, response, guildId);
+    // Every request re-checks current Discord membership, management permission,
+    // and bot presence. A client-supplied guild ID grants no authorization.
+    const access = await requireInstalledGuildAccess(request, response, guildId);
     if (!access) return;
     const metadata = await readBotGuild(guildId);
+    if (!metadata.installed) {
+      return response.status(409).json({ ok: false, error: 'Sofra is no longer installed in this server.' });
+    }
     const config = await readGuildConfig(guildId);
 
     if (request.method === 'GET') {
@@ -209,10 +214,6 @@ module.exports = async (request, response) => {
     }
 
     if (!requireCsrf(request, response, access.session)) return;
-    if (!metadata.installed) {
-      return response.status(409).json({ ok: false, error: 'Sofra is not installed in this server, so settings cannot be saved yet.' });
-    }
-
     const body = readBody(request);
     const section = String(body.section || '');
     if (!Object.prototype.hasOwnProperty.call(config, section)) {

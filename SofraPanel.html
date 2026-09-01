@@ -81,6 +81,11 @@
         <p>Choose a server from the sidebar to load its live Sofra configuration.</p>
       </div>
 
+      <section id="server-picker" class="server-picker hidden" aria-labelledby="server-picker-title">
+        <div class="picker-heading"><div><div class="eyebrow">YOUR DISCORD SERVERS</div><h2 id="server-picker-title">Choose where to manage Sofra.</h2><p>Only servers you own or have permission to manage are shown. Sofra must be installed before configuration is available.</p></div><button id="refresh-guilds" class="btn ghost">Refresh</button></div>
+        <div id="server-grid" class="server-grid"></div>
+      </section>
+
       <div id="content" class="content hidden">
         <section class="panel-page active" data-page="overview">
           <div class="hero-card card">

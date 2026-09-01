@@ -18,6 +18,7 @@ DISCORD_CLIENT_SECRET=...
 DISCORD_BOT_TOKEN=...
 SOFRA_SESSION_SECRET=...
 SOFRA_PUBLIC_URL=https://your-production-domain.example
+SOFRA_BOT_PERMISSIONS=...
 ```
 
 `SOFRA_SESSION_SECRET` should be a long random value (at least 32 random bytes). It is used to sign the opaque dashboard session cookie.
@@ -25,6 +26,8 @@ SOFRA_PUBLIC_URL=https://your-production-domain.example
 `DISCORD_BOT_TOKEN` is Sofra's bot token. It is used **only by Vercel serverless functions** to read live server roles/channels and to reconcile the ticket panel. It is never sent to browser JavaScript.
 
 `SOFRA_PUBLIC_URL` should be the canonical deployed website origin with no trailing slash. It is optional when Vercel's forwarded host is reliable, but setting it explicitly is recommended for production OAuth.
+
+`SOFRA_BOT_PERMISSIONS` is the Discord permission integer requested by the official **Add Sofra** installation flow. Set it to the minimum permissions required by Sofra's enabled features; it defaults to `0` so deployments never silently request broad access.
 
 ## 2. Configure Discord OAuth
 
@@ -73,6 +76,8 @@ The integration does not delete Sofra's existing local data.
 
 - Discord client secrets, bot tokens, Redis tokens, and session secrets remain server-side.
 - The browser cannot authorize itself by submitting a guild ID or permission value; the API re-checks the signed-in user's Discord guild permissions.
+- Every configuration read and write also checks Sofra's bot-token view of the guild. Configuration is never returned for a guild where Sofra is not installed.
+- The Add Sofra route re-checks management permission before redirecting to Discord's official, guild-locked app installation flow.
 - Configuration writes require both an authenticated session and a session-specific CSRF token.
 - Only server owners, Administrators, or members with **Manage Server** are accepted for configuration access.
 - Ticket panel creation/update is performed by a server-side bot-token request after the selected channel/category/roles are validated against live Discord guild data.

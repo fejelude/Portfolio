@@ -266,6 +266,36 @@ async function requireGuildAccess(request, response, guildId) {
   return { session, guild };
 }
 
+async function isBotInstalled(guildId) {
+  try {
+    await botFetch(`/guilds/${guildId}`);
+    return true;
+  } catch (error) {
+    if (error.status === 403 || error.status === 404) return false;
+    throw error;
+  }
+}
+
+async function requireInstalledGuildAccess(request, response, guildId) {
+  const access = await requireGuildAccess(request, response, guildId);
+  if (!access) return null;
+  if (!await isBotInstalled(guildId)) {
+    response.status(409).json({ ok: false, error: 'Sofra is not installed in this server. Add Sofra before opening its configuration.' });
+    return null;
+  }
+  return access;
+}
+
+function botInstallUrl(guildId) {
+  const authorize = new URL('https://discord.com/oauth2/authorize');
+  authorize.searchParams.set('client_id', requiredEnv('DISCORD_CLIENT_ID'));
+  authorize.searchParams.set('scope', 'bot applications.commands');
+  authorize.searchParams.set('guild_id', guildId);
+  authorize.searchParams.set('disable_guild_select', 'true');
+  authorize.searchParams.set('permissions', String(process.env.SOFRA_BOT_PERMISSIONS || '0'));
+  return authorize.toString();
+}
+
 function requireCsrf(request, response, session) {
   const provided = String(request.headers?.['x-sofra-csrf'] || '');
   if (!provided || !safeEqual(provided, session.csrf || '')) {
@@ -308,9 +338,13 @@ module.exports = {
   loadSession,
   destroySession,
   getUserGuilds,
+  canManageGuild,
   requireSession,
   requireGuildAccess,
+  requireInstalledGuildAccess,
   requireCsrf,
   botFetch,
+  isBotInstalled,
+  botInstallUrl,
   requiredEnv
 };
