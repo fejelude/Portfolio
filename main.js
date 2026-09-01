@@ -3,6 +3,43 @@
 document.addEventListener('DOMContentLoaded', () => {
   const logoText = document.querySelector('#nav-logo-text');
 
+  const sofraNavigation = document.querySelector('.nav-links');
+  if (sofraNavigation && !sofraNavigation.querySelector('.sofra-panel-link')) {
+    const sofraLink = document.createElement('a');
+    sofraLink.href = '/sofra';
+    sofraLink.className = 'sofra-panel-link';
+    sofraLink.innerHTML = '<span aria-hidden="true">♡</span> Sofra Panel';
+    const contactLink = sofraNavigation.querySelector('.btn-primary');
+    sofraNavigation.insertBefore(sofraLink, contactLink || null);
+
+    const style = document.createElement('style');
+    style.textContent = `
+      .nav-links .sofra-panel-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 9px 13px;
+        border-radius: 999px;
+        color: #ffe9f3;
+        border: 1px solid rgba(244, 167, 194, 0.22);
+        background: linear-gradient(135deg, rgba(244, 167, 194, 0.13), rgba(198, 168, 255, 0.09));
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 26px rgba(244,167,194,0.06);
+      }
+      .nav-links .sofra-panel-link span {
+        color: #f8bfd5;
+        font-size: 1rem;
+        filter: drop-shadow(0 0 8px rgba(244,167,194,0.35));
+      }
+      .nav-links .sofra-panel-link:hover {
+        color: #fff;
+        border-color: rgba(255, 203, 225, 0.42);
+        background: linear-gradient(135deg, rgba(244, 167, 194, 0.22), rgba(198, 168, 255, 0.14));
+        box-shadow: 0 10px 30px rgba(244,167,194,0.12);
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   if (logoText && typeof window.ShinyText === 'function') {
     new window.ShinyText(logoText, {
       text: 'Itsmefeje',

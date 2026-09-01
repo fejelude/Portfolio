@@ -4,13 +4,26 @@
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "no-store" }
+        { "key": "Cache-Control", "value": "no-store" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
       ]
     },
     {
       "source": "/admin",
       "headers": [
         { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/sofra",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'" }
       ]
     }
   ],
@@ -21,6 +34,8 @@
     { "source": "/crush", "destination": "/api/admin-page" },
     { "source": "/crush.html", "destination": "/api/admin-page" },
     { "source": "/arcade", "destination": "/Arcade.html" },
-    { "source": "/Arcade", "destination": "/Arcade.html" }
+    { "source": "/Arcade", "destination": "/Arcade.html" },
+    { "source": "/sofra", "destination": "/SofraPanel.html" },
+    { "source": "/SofraPanel", "destination": "/SofraPanel.html" }
   ]
 }
