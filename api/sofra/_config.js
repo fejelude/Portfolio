@@ -16,6 +16,7 @@ const CATEGORIES = Object.freeze({
   custom: 'delete_warn'
 });
 const CATEGORY_ACTIONS = new Set(['ignore', 'log', 'warn', 'delete', 'delete_warn', 'delete_timeout', 'delete_timeout_alert', 'delete_kick', 'delete_ban', 'delete_alert', 'strike']);
+const PANEL_ICON_KEYS = Object.freeze(['brand', 'overview', 'welcome', 'tickets', 'levels', 'boosters', 'moderation', 'logs', 'autorole', 'appearance']);
 
 const DEFAULTS = Object.freeze({
   welcome: Object.freeze({
@@ -61,6 +62,9 @@ const DEFAULTS = Object.freeze({
     categoryId: null,
     staffRoleIds: Object.freeze([]),
     types: Object.freeze({ bug: true, report: true, other: true })
+  }),
+  panel: Object.freeze({
+    icons: Object.freeze(Object.fromEntries(PANEL_ICON_KEYS.map((key) => [key, null])))
   })
 });
 
@@ -119,6 +123,9 @@ function normalizeConfig(raw = {}) {
   for (const [section, defaults] of Object.entries(DEFAULTS)) {
     const value = raw[section] && typeof raw[section] === 'object' ? raw[section] : {};
     out[section] = { ...clone(defaults), ...value };
+    if (section === 'panel') {
+      out.panel.icons = { ...clone(DEFAULTS.panel.icons), ...(value.icons && typeof value.icons === 'object' ? value.icons : {}) };
+    }
   }
   return out;
 }
@@ -248,6 +255,12 @@ function sanitizeTickets(input, current) {
   };
 }
 
+function sanitizePanel(input) {
+  const icons = {};
+  for (const key of PANEL_ICON_KEYS) icons[key] = safeUrl(input?.icons?.[key]);
+  return { icons };
+}
+
 function sanitizeSection(section, input, current) {
   const base = current || clone(DEFAULTS[section]);
   switch (section) {
@@ -258,6 +271,7 @@ function sanitizeSection(section, input, current) {
     case 'booster': return sanitizeBooster(input, base);
     case 'modlog': return sanitizeModLog(input, base);
     case 'tickets': return sanitizeTickets(input, base);
+    case 'panel': return sanitizePanel(input, base);
     default: throw new Error('Unsupported Sofra configuration section.');
   }
 }
@@ -265,6 +279,7 @@ function sanitizeSection(section, input, current) {
 module.exports = {
   DEFAULTS,
   CATEGORIES,
+  PANEL_ICON_KEYS,
   guildKey,
   readGuildConfig,
   writeSection,
