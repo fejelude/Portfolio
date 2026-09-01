@@ -7,15 +7,15 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
 
 (() => {
   const SOFRA_OFFICIAL_MEDIA = Object.freeze({
-    brand: 'https://images-ext-1.discordapp.net/external/iXuJ10mSD28dtzSQj6R7PrgZJSvkEmBx-quRfqgVHgE/https/static.klipy.com/ii/e7539ef2aad336edaa067c28ee130b3c/fb/9e/U1eJq1Kc6FPykBTGeW.mp4',
-    overview: 'https://images-ext-1.discordapp.net/external/HVfTgKuy9F_Nn3g8Hgfqn4l8X73IRqd-W6QGH-l6d9k/https/static.klipy.com/ii/c3a19a0b747a76e98651f2b9a3cca5ff/e3/b6/XOCMlFyxQ6Vzk.mp4',
-    welcome: 'https://images-ext-1.discordapp.net/external/-8pdUvGwhltnBItSQOPVKZ6RAL3kavUNFhwDeRvHjzA/https/static.klipy.com/ii/d7aec6f6f171607374b2065c836f92f4/76/02/JOKTPswg70UuvLmU.mp4',
-    tickets: 'https://images-ext-1.discordapp.net/external/7oD9z5eSjM8rByu9oHxMMuNucr19mjj-DpqPli5yvhY/https/static.klipy.com/ii/f87f46a2c5aeaeed4c68910815f73eaf/80/64/bKGnacc5.mp4',
-    levels: 'https://images-ext-1.discordapp.net/external/CjA0hlNqqtToPWBIEGjEAR1Uv5PdO_qMATCNfHjtprs/https/static.klipy.com/ii/e293a233a303a98e471f78d04e13a1b0/49/01/THCweaO9SXtnh.mp4',
-    boosters: 'https://images-ext-1.discordapp.net/external/clfPvagAK1XqLdRmOjczv3o3xlxrH6_bUZPb8hZMp68/https/static.klipy.com/ii/e293a233a303a98e471f78d04e13a1b0/ce/c2/8D5ZPqkh66i64Q3fF.mp4',
-    moderation: 'https://images-ext-1.discordapp.net/external/wRsV0D555zcyGBIx2fy2R1JrfbVhpvRUfDfmbCGzRT0/https/static.klipy.com/ii/71b2873e478b9d8d0482ea3ec777ba7f/7f/e5/XTuUicSWZIFin.mp4',
-    logs: 'https://images-ext-1.discordapp.net/external/rs94NDf7fgbjzUd9kqIgILw7T_nyWWnxclWyMj0Dz5s/https/static.klipy.com/ii/925f17378dd1893b674a723c07535afe/03/1e/tb2QI8A5.mp4',
-    autorole: 'https://images-ext-1.discordapp.net/external/2UPm33suyGS833nZJVf1cfgQXpUDv6pHRnIPNHXXcys/https/static.klipy.com/ii/4493325008d34b7bf8cd6813cd5c1619/01/eb/k9oLv1JBJ5sxy9NyxZ8.mp4'
+    brand: 'https://static.klipy.com/ii/e7539ef2aad336edaa067c28ee130b3c/fb/9e/U1eJq1Kc6FPykBTGeW.mp4',
+    overview: 'https://static.klipy.com/ii/c3a19a0b747a76e98651f2b9a3cca5ff/e3/b6/XOCMlFyxQ6Vzk.mp4',
+    welcome: 'https://static.klipy.com/ii/d7aec6f6f171607374b2065c836f92f4/76/02/JOKTPswg70UuvLmU.mp4',
+    tickets: 'https://static.klipy.com/ii/f87f46a2c5aeaeed4c68910815f73eaf/80/64/bKGnacc5.mp4',
+    levels: 'https://static.klipy.com/ii/e293a233a303a98e471f78d04e13a1b0/49/01/THCweaO9SXtnh.mp4',
+    boosters: 'https://static.klipy.com/ii/e293a233a303a98e471f78d04e13a1b0/ce/c2/8D5ZPqkh66i64Q3fF.mp4',
+    moderation: 'https://static.klipy.com/ii/71b2873e478b9d8d0482ea3ec777ba7f/7f/e5/XTuUicSWZIFin.mp4',
+    logs: 'https://static.klipy.com/ii/925f17378dd1893b674a723c07535afe/03/1e/tb2QI8A5.mp4',
+    autorole: 'https://static.klipy.com/ii/4493325008d34b7bf8cd6813cd5c1619/01/eb/k9oLv1JBJ5sxy9NyxZ8.mp4'
   });
 
   let lastGuildProbeStatus = null;
