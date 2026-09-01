@@ -1,9 +1,9 @@
 'use strict';
 
-// Keep the dashboard logic isolated in the core file, then layer Sofra's
-// official universal media on top. This lets every server see the same
-// branded visuals while preserving the existing panel behavior.
-document.write('<script src="/sofra-panel-core.js?v=20260901"><\\/script>');
+// Load the existing dashboard logic synchronously, then layer Sofra's
+// official universal branding over it. The core file remains unchanged so
+// the working settings/forms from the previous redesign stay intact.
+document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
 
 (() => {
   const SOFRA_OFFICIAL_MEDIA = Object.freeze({
@@ -40,8 +40,7 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"><\\/script>');
   }
 
   function officialMediaNode(key, url) {
-    const isVideo = /\.mp4(?:$|[?#])/i.test(url);
-    if (isVideo) {
+    if (/\.mp4(?:$|[?#])/i.test(url)) {
       const video = document.createElement('video');
       video.src = url;
       video.autoplay = true;
@@ -92,8 +91,8 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"><\\/script>');
       renderOfficialMedia(element, element.dataset.iconKey);
     });
 
-    // The loading screen and Discord authentication card exist before a
-    // server has been selected, so the official Sofra logo is applied there too.
+    // These two exist before any Discord server config is loaded, so the
+    // official bot logo is visible during boot and on the OAuth sign-in card.
     document.querySelectorAll('.sofra-orb, .auth-mark').forEach((element) => {
       renderOfficialMedia(element, 'brand');
     });
@@ -111,10 +110,14 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"><\\/script>');
     });
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    addOfficialMediaStyles();
-    applyOfficialMedia();
+  // The wrapper is loaded at the end of <body>, so all panel markup already
+  // exists here. Apply immediately so the loading screen never waits for the
+  // Discord API before showing Sofra's real logo.
+  addOfficialMediaStyles();
+  applyOfficialMedia();
 
+  document.addEventListener('DOMContentLoaded', () => {
+    applyOfficialMedia();
     const observer = new MutationObserver(scheduleOfficialMedia);
     observer.observe(document.body, { childList: true, subtree: true });
   });
