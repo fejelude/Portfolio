@@ -85,6 +85,23 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
       }
       .nav-icon > video, .module-icon > video { border-radius: inherit; }
       .auth-gate.connection-retry-mode .security-note { border-color: rgba(244,167,194,.18); }
+      .security-note.sofra-security-note .security-note-heart {
+        display: block;
+        margin-bottom: 3px;
+        font-size: 15px;
+      }
+      .security-note.sofra-security-note strong,
+      .security-note.sofra-security-note small { display: block; }
+      .security-note.sofra-security-note strong {
+        color: #ded6e1;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .security-note.sofra-security-note small {
+        margin-top: 2px;
+        color: #948d9b;
+        font-size: 11px;
+      }
 
       .server-manager-launch {
         width: calc(100% - 16px);
@@ -127,6 +144,11 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
         background-repeat: no-repeat;
         color: var(--pink);
         font-weight: 800;
+      }
+      .hero-logo.server-guild-icon {
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
       }
       .server-manager-copy { min-width: 0; }
       .server-manager-copy strong,
@@ -348,6 +370,25 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
     if (title?.classList.contains('nav-group-title')) title.hidden = true;
   }
 
+  function applyAuthCopy() {
+    const gate = document.getElementById('auth-gate');
+    if (!gate || gate.classList.contains('connection-retry-mode')) return;
+    const heading = gate.querySelector('.auth-card h1');
+    const copy = gate.querySelector('.auth-card > p');
+    const note = gate.querySelector('.security-note');
+
+    if (heading && heading.dataset.sofraCopy !== '1') {
+      heading.innerHTML = 'The Cutest<br>Discord Bot :3';
+      heading.dataset.sofraCopy = '1';
+    }
+    const authCopy = 'Sign in with Discord and pick your server. Sofra will keep everything cute, organized, and easy to manage. ♡';
+    if (copy && copy.textContent !== authCopy) copy.textContent = authCopy;
+    if (note && !note.classList.contains('sofra-security-note')) {
+      note.classList.add('sofra-security-note');
+      note.innerHTML = '<span class="security-note-heart" aria-hidden="true">♡</span><strong>Secure Discord authentication</strong><small>Your credentials stay private.</small>';
+    }
+  }
+
   function closeSidebar() {
     const sidebar = document.getElementById('sidebar');
     const mobileMenu = document.getElementById('mobile-menu');
@@ -362,25 +403,31 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
     return text.replace(/\s*•\s*Add Sofra\s*$/i, '').trim() || null;
   }
 
-  function syncSelectedServerIcon(cards, options, select, guildName) {
-    const mark = document.querySelector('#server-manager-launch .server-manager-mark');
-    if (!mark) return;
-
-    const selectedIndex = options.findIndex((option) => option.value === select.value);
-    const serverIcon = selectedIndex >= 0 ? cards[selectedIndex]?.querySelector('.server-icon') : null;
-    const backgroundImage = serverIcon?.style.backgroundImage || '';
+  function paintGuildIcon(element, backgroundImage, guildName) {
+    if (!element) return;
+    element.replaceChildren();
+    element.classList.remove('has-media', 'official-media', 'media-loading');
+    delete element.dataset.sofraMediaLoading;
 
     if (backgroundImage && backgroundImage !== 'none') {
-      if (mark.style.backgroundImage !== backgroundImage) mark.style.backgroundImage = backgroundImage;
-      if (mark.textContent) mark.textContent = '';
-      mark.classList.add('has-server-icon');
+      if (element.style.backgroundImage !== backgroundImage) element.style.backgroundImage = backgroundImage;
+      element.textContent = '';
+      element.classList.add('has-server-icon', 'server-guild-icon');
       return;
     }
 
-    mark.style.backgroundImage = '';
-    mark.classList.remove('has-server-icon');
+    element.style.backgroundImage = '';
+    element.classList.remove('has-server-icon', 'server-guild-icon');
     const fallback = (guildName || 'S').trim().slice(0, 1).toUpperCase() || 'S';
-    if (mark.textContent !== fallback) mark.textContent = fallback;
+    if (element.textContent !== fallback) element.textContent = fallback;
+  }
+
+  function syncSelectedServerIcon(cards, options, select, guildName) {
+    const selectedIndex = options.findIndex((option) => option.value === select.value);
+    const serverIcon = selectedIndex >= 0 ? cards[selectedIndex]?.querySelector('.server-icon') : null;
+    const backgroundImage = serverIcon?.style.backgroundImage || '';
+    paintGuildIcon(document.querySelector('#server-manager-launch .server-manager-mark'), backgroundImage, guildName);
+    paintGuildIcon(document.querySelector('.hero-card .hero-logo'), backgroundImage, guildName);
   }
 
   function customizeServerPickerHeading() {
@@ -607,11 +654,13 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
 
   function applyOfficialMedia() {
     document.querySelectorAll('[data-icon-key]').forEach((element) => {
+      if (element.classList.contains('hero-logo')) return;
       renderOfficialMedia(element, element.dataset.iconKey);
     });
     document.querySelectorAll('.sofra-orb, .auth-mark').forEach((element) => {
       renderOfficialMedia(element, 'brand');
     });
+    applyAuthCopy();
     hideAppearanceSection();
     showConnectionRetryState();
   }
