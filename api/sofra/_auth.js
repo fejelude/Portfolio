@@ -5,7 +5,8 @@ const redis = require('./_redis');
 
 const SESSION_COOKIE = 'sofra_session';
 const STATE_COOKIE = 'sofra_oauth_state';
-const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
+const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
+const SESSION_TOUCH_SECONDS = 60 * 60 * 6;
 const DISCORD_API = 'https://discord.com/api/v10';
 const ADMINISTRATOR = 1n << 3n;
 const MANAGE_GUILD = 1n << 5n;
@@ -30,10 +31,10 @@ function parseCookies(request) {
   return out;
 }
 
-function appendSetCookie(response, cookie) {
+function appendSetCookie(response, cookieValue) {
   const existing = response.getHeader('Set-Cookie');
   const values = existing ? (Array.isArray(existing) ? existing : [existing]) : [];
-  response.setHeader('Set-Cookie', [...values, cookie]);
+  response.setHeader('Set-Cookie', [...values, cookieValue]);
 }
 
 function cookie(name, value, options = {}) {
@@ -104,25 +105,59 @@ function randomToken(bytes = 32) {
   return crypto.randomBytes(bytes).toString('base64url');
 }
 
+function sleep(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+function shouldRetryDiscordStatus(status) {
+  return status === 429 || status === 500 || status === 502 || status === 503 || status === 504;
+}
+
 async function discordFetch(path, options = {}) {
-  const response = await fetch(`${DISCORD_API}${path}`, {
-    ...options,
-    headers: {
-      Accept: 'application/json',
-      ...(options.headers || {})
-    },
-    signal: AbortSignal.timeout(10000)
-  });
-  const text = await response.text();
-  let body = null;
-  try { body = text ? JSON.parse(text) : null; } catch { body = text; }
-  if (!response.ok) {
-    const error = new Error(`Discord API request failed with HTTP ${response.status}.`);
-    error.status = response.status;
-    error.body = body;
-    throw error;
+  let lastError = null;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const response = await fetch(`${DISCORD_API}${path}`, {
+        ...options,
+        headers: {
+          Accept: 'application/json',
+          ...(options.headers || {})
+        },
+        signal: options.signal || AbortSignal.timeout(12000)
+      });
+      const text = await response.text();
+      let body = null;
+      try { body = text ? JSON.parse(text) : null; } catch { body = text; }
+
+      if (response.ok) return body;
+
+      const error = new Error(`Discord API request failed with HTTP ${response.status}.`);
+      error.status = response.status;
+      error.body = body;
+      lastError = error;
+
+      if (!shouldRetryDiscordStatus(response.status) || attempt === 2) throw error;
+
+      const retryAfterSeconds = Number(body?.retry_after || response.headers.get('retry-after') || 0);
+      const waitMs = retryAfterSeconds > 0
+        ? Math.min(2500, Math.max(250, retryAfterSeconds * 1000))
+        : 250 * (attempt + 1);
+      await sleep(waitMs);
+    } catch (error) {
+      lastError = error;
+      const status = Number(error?.status || 0);
+      const transient = status === 0 || shouldRetryDiscordStatus(status);
+      if (!transient || attempt === 2) {
+        if (!error.status) error.status = 503;
+        throw error;
+      }
+      await sleep(250 * (attempt + 1));
+    }
   }
-  return body;
+
+  if (lastError && !lastError.status) lastError.status = 503;
+  throw lastError || new Error('Discord API request failed.');
 }
 
 async function exchangeCode(request, code) {
@@ -166,6 +201,7 @@ async function saveSession(sessionId, session) {
 
 async function createSession(response, tokens, user) {
   const sessionId = randomToken(36);
+  const now = Date.now();
   const session = {
     user: {
       id: user.id,
@@ -175,9 +211,10 @@ async function createSession(response, tokens, user) {
     },
     accessToken: tokens.access_token,
     refreshToken: tokens.refresh_token,
-    expiresAt: Date.now() + Math.max(60, Number(tokens.expires_in || 3600)) * 1000,
+    expiresAt: now + Math.max(60, Number(tokens.expires_in || 3600)) * 1000,
     csrf: randomToken(24),
-    createdAt: Date.now()
+    createdAt: now,
+    lastSeenAt: now
   };
   await saveSession(sessionId, session);
   setSessionCookie(response, sessionId);
@@ -189,19 +226,36 @@ async function loadSession(request, response) {
   if (!sessionId) return null;
   const raw = await redis.get(`sofra:session:${sessionId}`);
   if (!raw) return null;
+
   let session;
   try { session = JSON.parse(raw); } catch { return null; }
   if (!session?.accessToken || !session?.refreshToken || !session?.user?.id) return null;
 
+  let refreshed = false;
   if (Number(session.expiresAt || 0) <= Date.now() + 90_000) {
     try {
       session = await refreshAccessToken(session);
-      await saveSession(sessionId, session);
+      refreshed = true;
     } catch (error) {
-      if (response) clearSessionCookie(response);
-      await redis.del(`sofra:session:${sessionId}`).catch(() => undefined);
-      return null;
+      const status = Number(error?.status || 0);
+      if (status === 400 || status === 401) {
+        if (response) clearSessionCookie(response);
+        await redis.del(`sofra:session:${sessionId}`).catch(() => undefined);
+        return null;
+      }
+
+      // A Discord outage, timeout, or rate limit should never log the user out.
+      // Preserve the refresh token/session and let the caller return a retryable error.
+      throw error;
     }
+  }
+
+  const now = Date.now();
+  const shouldTouch = refreshed || now - Number(session.lastSeenAt || session.createdAt || 0) >= SESSION_TOUCH_SECONDS * 1000;
+  if (shouldTouch) {
+    session.lastSeenAt = now;
+    await saveSession(sessionId, session);
+    if (response) setSessionCookie(response, sessionId);
   }
 
   return { id: sessionId, ...session };
@@ -227,9 +281,22 @@ function guildIconUrl(guild) {
 }
 
 async function getUserGuilds(session) {
-  const guilds = await discordFetch('/users/@me/guilds', {
+  const fetchGuilds = () => discordFetch('/users/@me/guilds', {
     headers: { Authorization: `Bearer ${session.accessToken}` }
   });
+
+  let guilds;
+  try {
+    guilds = await fetchGuilds();
+  } catch (error) {
+    if (Number(error?.status || 0) !== 401 || !session?.refreshToken || !session?.id) throw error;
+
+    const refreshed = await refreshAccessToken(session);
+    Object.assign(session, refreshed, { lastSeenAt: Date.now() });
+    await saveSession(session.id, session);
+    guilds = await fetchGuilds();
+  }
+
   return guilds.map((guild) => ({
     id: guild.id,
     name: guild.name,
