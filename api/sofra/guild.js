@@ -5,6 +5,7 @@ const { readGuildConfig, writeSection, sanitizeSection } = require('./_config');
 
 const TEXT_CHANNEL_TYPES = new Set([0, 5]);
 const CATEGORY_TYPE = 4;
+const TICKET_PANEL_BANNER = 'https://cdn.discordapp.com/attachments/1489489015269883954/1542155954894807060/file_00000000c470821189498cb6c7c22668.png?ex=6a903427&is=6a8ee2a7&hm=b81ddd90b880a344e24f9a1ef98df817055cd9876bb28d364de8d734647a6bc3&';
 
 function readBody(request) {
   if (!request.body) return {};
@@ -128,20 +129,26 @@ function validateConfigReferences(section, value, metadata) {
 
 function ticketPanelPayload(config) {
   const details = [
-    ['bug', '🪲', 'Bug Reports', 'Report bugs, glitches, broken systems, exploits, or other game issues.', 3],
-    ['report', '⚒️', 'Player Reports', 'Report exploiting, scams, harassment, rule-breaking, or harmful player behavior.', 4],
-    ['other', '💬', 'Others', 'Ask private questions or get help with anything that does not fit the other categories.', 2]
+    ['bug', '🪲', 'Bug Reports', 'Report bugs, glitches, broken systems, exploits, or other game issues. Thorough, valid reports may be eligible for approximately **1,000–100,000 Robux**, depending on severity and importance. Critical bugs and exploits receive higher consideration; rewards are not guaranteed.', 3],
+    ['report', '⚒️', 'Player Reports', 'Report exploiting, bug abuse, scams, harassment, rule-breaking, or other harmful player behavior.', 4],
+    ['other', '💬', 'Others', 'Ask private questions or get help with account/game issues, general support, concerns, or anything that does not fit above.', 2]
   ];
   const active = details.filter(([type]) => config.types?.[type] !== false);
   return {
-    embeds: [{
-      color: 16033730,
-      author: { name: '♡ Sofra Support Center' },
-      title: '🎫 How can we help you?',
-      description: 'Choose the ticket type that best matches your concern. Sofra will create a private channel visible only to you and the staff team.',
-      fields: active.map(([, emoji, label, description]) => ({ name: `${emoji} ${label}`, value: description, inline: false })),
-      footer: { text: 'One open ticket per type, per member • Sofra ♡' }
-    }],
+    embeds: [
+      {
+        color: 16033730,
+        image: { url: TICKET_PANEL_BANNER }
+      },
+      {
+        color: 16033730,
+        author: { name: '♡ Sofra Support Center' },
+        title: '🎫 How can we help you?',
+        description: 'Choose the ticket type that best matches your concern. Sofra will create a private channel visible only to you and the staff team.',
+        fields: active.map(([, emoji, label, description]) => ({ name: `${emoji} ${label}`, value: description, inline: false })),
+        footer: { text: 'One open ticket per type, per member • Sofra ♡' }
+      }
+    ],
     components: active.length ? [{
       type: 1,
       components: active.map(([type, emoji, label, , style]) => ({
