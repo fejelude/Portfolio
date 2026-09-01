@@ -5,43 +5,18 @@
 document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
 
 (() => {
+  // Official animations are self-hosted with the website. The dashboard no
+  // longer depends on Discord's proxy or Klipy being reachable at runtime.
   const SOFRA_OFFICIAL_MEDIA = Object.freeze({
-    brand: [
-      'https://images-ext-1.discordapp.net/external/iXuJ10mSD28dtzSQj6R7PrgZJSvkEmBx-quRfqgVHgE/https/static.klipy.com/ii/e7539ef2aad336edaa067c28ee130b3c/fb/9e/U1eJq1Kc6FPykBTGeW.mp4',
-      'https://static.klipy.com/ii/e7539ef2aad336edaa067c28ee130b3c/fb/9e/U1eJq1Kc6FPykBTGeW.mp4'
-    ],
-    overview: [
-      'https://images-ext-1.discordapp.net/external/HVfTgKuy9F_Nn3g8Hgfqn4l8X73IRqd-W6QGH-l6d9k/https/static.klipy.com/ii/c3a19a0b747a76e98651f2b9a3cca5ff/e3/b6/XOCMlFyxQ6Vzk.mp4',
-      'https://static.klipy.com/ii/c3a19a0b747a76e98651f2b9a3cca5ff/e3/b6/XOCMlFyxQ6Vzk.mp4'
-    ],
-    welcome: [
-      'https://images-ext-1.discordapp.net/external/-8pdUvGwhltnBItSQOPVKZ6RAL3kavUNFhwDeRvHjzA/https/static.klipy.com/ii/d7aec6f6f171607374b2065c836f92f4/76/02/JOKTPswg70UuvLmU.mp4',
-      'https://static.klipy.com/ii/d7aec6f6f171607374b2065c836f92f4/76/02/JOKTPswg70UuvLmU.mp4'
-    ],
-    tickets: [
-      'https://images-ext-1.discordapp.net/external/7oD9z5eSjM8rByu9oHxMMuNucr19mjj-DpqPli5yvhY/https/static.klipy.com/ii/f87f46a2c5aeaeed4c68910815f73eaf/80/64/bKGnacc5.mp4',
-      'https://static.klipy.com/ii/f87f46a2c5aeaeed4c68910815f73eaf/80/64/bKGnacc5.mp4'
-    ],
-    levels: [
-      'https://images-ext-1.discordapp.net/external/CjA0hlNqqtToPWBIEGjEAR1Uv5PdO_qMATCNfHjtprs/https/static.klipy.com/ii/e293a233a303a98e471f78d04e13a1b0/49/01/THCweaO9SXtnh.mp4',
-      'https://static.klipy.com/ii/e293a233a303a98e471f78d04e13a1b0/49/01/THCweaO9SXtnh.mp4'
-    ],
-    boosters: [
-      'https://images-ext-1.discordapp.net/external/clfPvagAK1XqLdRmOjczv3o3xlxrH6_bUZPb8hZMp68/https/static.klipy.com/ii/e293a233a303a98e471f78d04e13a1b0/ce/c2/8D5ZPqkh66i64Q3fF.mp4',
-      'https://static.klipy.com/ii/e293a233a303a98e471f78d04e13a1b0/ce/c2/8D5ZPqkh66i64Q3fF.mp4'
-    ],
-    moderation: [
-      'https://images-ext-1.discordapp.net/external/wRsV0D555zcyGBIx2fy2R1JrfbVhpvRUfDfmbCGzRT0/https/static.klipy.com/ii/71b2873e478b9d8d0482ea3ec777ba7f/7f/e5/XTuUicSWZIFin.mp4',
-      'https://static.klipy.com/ii/71b2873e478b9d8d0482ea3ec777ba7f/7f/e5/XTuUicSWZIFin.mp4'
-    ],
-    logs: [
-      'https://images-ext-1.discordapp.net/external/rs94NDf7fgbjzUd9kqIgILw7T_nyWWnxclWyMj0Dz5s/https/static.klipy.com/ii/925f17378dd1893b674a723c07535afe/03/1e/tb2QI8A5.mp4',
-      'https://static.klipy.com/ii/925f17378dd1893b674a723c07535afe/03/1e/tb2QI8A5.mp4'
-    ],
-    autorole: [
-      'https://images-ext-1.discordapp.net/external/2UPm33suyGS833nZJVf1cfgQXpUDv6pHRnIPNHXXcys/https/static.klipy.com/ii/4493325008d34b7bf8cd6813cd5c1619/01/eb/k9oLv1JBJ5sxy9NyxZ8.mp4',
-      'https://static.klipy.com/ii/4493325008d34b7bf8cd6813cd5c1619/01/eb/k9oLv1JBJ5sxy9NyxZ8.mp4'
-    ]
+    brand: '/assets/sofra/brand.mp4?v=1',
+    overview: '/assets/sofra/overview.mp4?v=1',
+    welcome: '/assets/sofra/welcome.mp4?v=1',
+    tickets: '/assets/sofra/tickets.mp4?v=1',
+    levels: '/assets/sofra/levels.mp4?v=1',
+    boosters: '/assets/sofra/boosters.mp4?v=1',
+    moderation: '/assets/sofra/moderation.mp4?v=1',
+    logs: '/assets/sofra/logs.mp4?v=1',
+    autorole: '/assets/sofra/autorole.mp4?v=1'
   });
 
   const SOFRA_MEDIA_FALLBACK = Object.freeze({
@@ -53,6 +28,9 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
   let scheduled = false;
   const nativeFetch = window.fetch.bind(window);
 
+  // Retry the initial guild/session probe on transient Discord/Vercel errors.
+  // A temporary outage should never look like the user's remembered session
+  // vanished.
   window.fetch = async (...args) => {
     const requestUrl = typeof args[0] === 'string' ? args[0] : args[0]?.url || '';
     const isGuildProbe = requestUrl.includes('/api/sofra/guilds');
@@ -102,9 +80,9 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
       .auth-gate.connection-retry-mode .security-note { border-color: rgba(244,167,194,.18); }
 
       @media (max-width: 760px) {
-        /* backdrop-filter creates a containing block for fixed descendants on
-           mobile browsers. Removing it here keeps Save/Reset at the viewport
-           bottom instead of covering the sticky navigation header. */
+        /* backdrop-filter can create a containing block for fixed descendants
+           on mobile browsers. Removing it here keeps Save/Reset at the actual
+           viewport bottom instead of covering the sticky navigation header. */
         .workspace-header {
           backdrop-filter: none !important;
           -webkit-backdrop-filter: none !important;
@@ -144,7 +122,7 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
     if (!element) return;
     element.replaceChildren();
     element.textContent = SOFRA_MEDIA_FALLBACK[key] || '•';
-    element.classList.remove('official-media', 'media-loading');
+    element.classList.remove('has-media', 'official-media', 'media-loading');
     delete element.dataset.sofraMediaLoading;
   }
 
@@ -163,7 +141,6 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
     video.setAttribute('aria-hidden', 'true');
     video.setAttribute('tabindex', '-1');
     video.dataset.sofraOfficialKey = key;
-    video.dataset.sofraOfficialSrc = url;
     return video;
   }
 
@@ -175,17 +152,16 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
     if (promise?.catch) promise.catch(() => undefined);
   }
 
-  function loadOfficialMedia(element, key, sourceIndex = 0) {
-    const sources = SOFRA_OFFICIAL_MEDIA[key];
-    if (!element || !sources?.[sourceIndex]) {
+  function loadOfficialMedia(element, key) {
+    const url = SOFRA_OFFICIAL_MEDIA[key];
+    if (!element || !url) {
       fallbackMedia(element, key);
       return;
     }
 
-    const url = sources[sourceIndex];
     const video = buildVideo(key, url);
     let settled = false;
-    const timeout = setTimeout(() => fail(), 6500);
+    const timeout = setTimeout(fail, 5000);
 
     function succeed() {
       if (settled) return;
@@ -205,8 +181,7 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
       clearTimeout(timeout);
       video.removeAttribute('src');
       video.load();
-      if (sources[sourceIndex + 1]) loadOfficialMedia(element, key, sourceIndex + 1);
-      else fallbackMedia(element, key);
+      fallbackMedia(element, key);
     }
 
     video.addEventListener('loadeddata', succeed, { once: true });
@@ -224,12 +199,11 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
     }
     if (element.dataset.sofraMediaLoading === key) return;
 
-    // Keep a visible symbol while the animated asset is loading so a failed or
-    // throttled media request never leaves an empty square in the interface.
+    // Always keep a visible symbol while the local animation is loading.
     if (!element.textContent.trim() && !child) element.textContent = SOFRA_MEDIA_FALLBACK[key] || '•';
     element.dataset.sofraMediaLoading = key;
     element.classList.add('media-loading');
-    loadOfficialMedia(element, key, 0);
+    loadOfficialMedia(element, key);
   }
 
   function hideAppearanceSection() {
@@ -307,6 +281,7 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) resumeOfficialMedia();
   });
+
   ['pointerdown', 'touchstart', 'keydown'].forEach((eventName) => {
     document.addEventListener(eventName, resumeOfficialMedia, { passive: true });
   });
