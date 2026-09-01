@@ -35,7 +35,6 @@
     { "source": "/crush.html", "destination": "/api/admin-page" },
     { "source": "/arcade", "destination": "/Arcade.html" },
     { "source": "/Arcade", "destination": "/Arcade.html" },
-    { "source": "/sofra", "destination": "/SofraPanel.html" },
-    { "source": "/SofraPanel", "destination": "/SofraPanel.html" }
+    { "source": "/sofra", "destination": "/SofraPanel" }
   ]
 }
