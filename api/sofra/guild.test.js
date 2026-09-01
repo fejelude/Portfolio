@@ -3,9 +3,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-// This lightweight source-level guard catches accidental drift between the
-// dashboard's ticket panel copy and Sofra's canonical Discord panel while the
-// API module remains coupled to Vercel request/Discord helpers.
+// These lightweight source-level guards catch accidental drift in the API
+// wiring while the pure Discord permission logic is covered separately.
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -17,6 +16,9 @@ test('ticket panel keeps Sofra banner and canonical support copy', () => {
   assert.match(source, /One open ticket per type, per member • Sofra ♡/);
 });
 
-test('enabled tickets require at least one ticket type', () => {
-  assert.match(source, /Enabled tickets require at least one ticket type/);
+test('guild writes resolve actor and bot members before validating settings', () => {
+  assert.match(source, /request\.method === 'PUT' \? access\.session\.user\.id : null/);
+  assert.match(source, /members\/\$\{botUserId\}/);
+  assert.match(source, /members\/\$\{actorId\}/);
+  assert.match(source, /validateConfigReferences\(section, next, config\[section\], metadata\)/);
 });
