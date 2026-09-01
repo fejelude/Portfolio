@@ -1,0 +1,37 @@
+name: Sofra Panel CI
+
+on:
+  pull_request:
+    paths:
+      - 'SofraPanel.html'
+      - 'sofra-panel*.js'
+      - 'sofra-panel*.css'
+      - 'api/sofra/**'
+      - '.github/workflows/sofra-panel-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'SofraPanel.html'
+      - 'sofra-panel*.js'
+      - 'sofra-panel*.css'
+      - 'api/sofra/**'
+      - '.github/workflows/sofra-panel-ci.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Syntax check
+        run: |
+          node --check sofra-panel.js
+          node --check sofra-panel-core.js
+          node --check api/sofra/_config.js
+          node --check api/sofra/_discord-permissions.js
+          node --check api/sofra/_guild-validation.js
+          node --check api/sofra/guild.js
+      - name: Regression tests
+        run: node --test api/sofra/_config.test.js api/sofra/_discord-permissions.test.js api/sofra/_guild-validation.test.js api/sofra/guild.test.js

@@ -361,6 +361,9 @@ function channelItems(predicate=()=>true) {
 function roleItems() {
   return (state.metadata?.roles || []).filter((role) => !role.everyone).map((role) => ({ id:role.id, label:`@ ${role.name}${role.managed ? ' • managed' : ''}` }));
 }
+function assignableRoleItems() {
+  return (state.metadata?.roles || []).filter((role) => !role.everyone && !role.managed).map((role) => ({ id:role.id, label:`@ ${role.name}` }));
+}
 
 function renderOverview() {
   const meta = state.metadata;
@@ -396,14 +399,22 @@ function renderOverview() {
 
 function renderWelcome() {
   const c = state.config.welcome;
+  const randomMessages = c.randomMessages !== false;
   $('welcome-enabled').checked = c.enabled;
   setOptions($('welcome-channel'), channelItems((x) => TEXT_TYPES.has(x.type)), c.channelId);
+  $('welcome-random-messages').checked = randomMessages;
   $('welcome-message').value = c.messageTemplate || '';
-  $('welcome-title').value = c.embedTitle || '';
+  $('welcome-message').disabled = randomMessages;
   $('welcome-description').value = c.embedDescription || '';
+  $('welcome-description').disabled = randomMessages;
+  $('welcome-title').value = c.embedTitle || '';
   $('welcome-color').value = /^#[0-9a-f]{6}$/i.test(c.color || '') ? c.color : '#f2a6ca';
   $('welcome-image').value = c.imageUrl || '';
   $('welcome-thumbnail').value = c.thumbnailMode || 'member';
+  const help = $('welcome-message-help');
+  if (help) help.textContent = randomMessages
+    ? 'Random mode is active. Sofra chooses from her built-in welcome pool; your custom message is kept here for later.'
+    : 'Supports {user.mention}, {user.name}, {server.name}, {server.member_count}, {user.avatar}, {server.icon}';
   renderWelcomePreview();
 }
 function renderWelcomePreview() {
@@ -416,8 +427,11 @@ function renderWelcomePreview() {
     .replaceAll('{user.name}', 'newmember')
     .replaceAll('{user.avatar}', '')
     .replaceAll('{server.icon}', '');
+  const randomMessages = $('welcome-random-messages')?.checked !== false;
   const title = replace($('welcome-title').value || 'Welcome to {server.name}! 🎀');
-  const body = replace($('welcome-description').value || $('welcome-message').value || 'Welcome ♡');
+  const body = randomMessages
+    ? '♡ Sofra will choose a different cute welcome from her built-in message pool for this member.'
+    : replace($('welcome-description').value || $('welcome-message').value || 'Welcome ♡');
   const color = $('welcome-color').value || '#f2a6ca';
   const image = normalizeMediaUrl($('welcome-image').value);
   $('welcome-preview').style.borderLeftColor = color;
@@ -451,8 +465,9 @@ function renderAutomod() {
   }
   const byKind = (kind) => (c.roles || []).filter((x) => x.kind === kind).map((x) => x.roleId);
   const byMode = (mode) => (c.channels || []).filter((x) => x.mode === mode).map((x) => x.channelId);
-  const roles = roleItems();
+  const roles = assignableRoleItems();
   const channels = channelItems();
+  setOptions($('automod-manager-roles'), roles, byKind('manager'));
   setOptions($('automod-bypass'), roles, byKind('bypass'));
   setOptions($('automod-link-roles'), roles, byKind('link'));
   setOptions($('automod-invite-roles'), roles, byKind('invite'));
@@ -498,7 +513,7 @@ function addRoleRewardRow(reward={roleId:'',requiredLevel:1}) {
   row.className = 'reward-row';
   row.innerHTML = `<label>Reward role<select class="reward-role"></select></label><label>Level<input class="reward-level" type="number" min="1" max="1000" value="${Number(reward.requiredLevel || 1)}"></label><button class="remove-reward" title="Remove reward">×</button>`;
   root.appendChild(row);
-  setOptions(row.querySelector('.reward-role'), roleItems(), reward.roleId, 'Choose role');
+  setOptions(row.querySelector('.reward-role'), assignableRoleItems(), reward.roleId, 'Choose role');
   row.querySelectorAll('select,input').forEach((el) => el.addEventListener('change', () => markDirty('levels')));
   row.querySelector('.remove-reward').onclick = () => { row.remove(); markDirty('levels'); };
 }
@@ -506,7 +521,7 @@ function addRoleRewardRow(reward={roleId:'',requiredLevel:1}) {
 function renderBooster() {
   const c = state.config.booster;
   $('booster-enabled').checked = c.enabled;
-  setOptions($('booster-role'), roleItems(), c.roleId);
+  setOptions($('booster-role'), assignableRoleItems(), c.roleId);
   setOptions($('booster-channel'), channelItems((x) => TEXT_TYPES.has(x.type)), c.channelId);
 }
 function renderModlog() {
@@ -517,7 +532,7 @@ function renderModlog() {
 function renderAutoRole() {
   const c = state.config.autorole;
   $('autorole-enabled').checked = c.enabled;
-  setOptions($('autorole-role'), roleItems(), c.roleId);
+  setOptions($('autorole-role'), assignableRoleItems(), c.roleId);
 }
 function renderPanelAppearance() {
   const icons = state.config.panel?.icons || {};
@@ -533,6 +548,7 @@ function collect(section) {
     return {
       enabled:$('welcome-enabled').checked,
       channelId:$('welcome-channel').value || null,
+      randomMessages:$('welcome-random-messages').checked,
       messageTemplate:$('welcome-message').value,
       embedTitle:$('welcome-title').value,
       embedDescription:$('welcome-description').value || null,
@@ -556,9 +572,8 @@ function collect(section) {
     };
   }
   if (section === 'automod') {
-    const preservedManagers = (state.config.automod.roles || []).filter((x) => x.kind === 'manager');
     const roles = [
-      ...preservedManagers,
+      ...selectedValues($('automod-manager-roles')).map((roleId) => ({roleId,kind:'manager'})),
       ...selectedValues($('automod-bypass')).map((roleId) => ({roleId,kind:'bypass'})),
       ...selectedValues($('automod-link-roles')).map((roleId) => ({roleId,kind:'link'})),
       ...selectedValues($('automod-invite-roles')).map((roleId) => ({roleId,kind:'invite'}))
@@ -652,6 +667,10 @@ async function saveCurrent() {
     toast(section === 'panel' ? 'Panel appearance saved across this server.' : 'Changes saved. Sofra will pick them up automatically.');
     if (section === 'tickets') renderTickets();
     if (section === 'welcome') renderWelcome();
+    if (section === 'automod') renderAutomod();
+    if (section === 'levels') renderLevels();
+    if (section === 'booster') renderBooster();
+    if (section === 'autorole') renderAutoRole();
     if (section === 'panel') {
       renderPanelAppearance();
       applyPanelMedia();
@@ -732,8 +751,8 @@ function bindStaticEvents() {
   });
 
   const sectionByControl = {
-    welcome:['welcome-enabled','welcome-channel','welcome-message','welcome-title','welcome-description','welcome-color','welcome-image','welcome-thumbnail'],
-    automod:['automod-enabled','automod-mild','automod-links','automod-invites','automod-strikes','automod-warning-cooldown','automod-threshold','automod-timeout','automod-bypass','automod-link-roles','automod-invite-roles','automod-exempt','automod-relaxed'],
+    welcome:['welcome-enabled','welcome-channel','welcome-random-messages','welcome-message','welcome-title','welcome-description','welcome-color','welcome-image','welcome-thumbnail'],
+    automod:['automod-enabled','automod-mild','automod-links','automod-invites','automod-strikes','automod-warning-cooldown','automod-threshold','automod-timeout','automod-manager-roles','automod-bypass','automod-link-roles','automod-invite-roles','automod-exempt','automod-relaxed'],
     tickets:['tickets-enabled','tickets-panel-channel','tickets-category','tickets-staff','ticket-type-bug','ticket-type-report','ticket-type-other'],
     levels:['levels-enabled','levels-xp-min','levels-xp-max','levels-cooldown','levels-channel'],
     booster:['booster-enabled','booster-role','booster-channel'],
@@ -747,6 +766,17 @@ function bindStaticEvents() {
       ['change','input'].forEach((eventName) => el?.addEventListener(eventName, () => markDirty(section)));
     }
   }
+
+  $('welcome-random-messages')?.addEventListener('change', () => {
+    const randomMessages = $('welcome-random-messages').checked;
+    $('welcome-message').disabled = randomMessages;
+    $('welcome-description').disabled = randomMessages;
+    const help = $('welcome-message-help');
+    if (help) help.textContent = randomMessages
+      ? 'Random mode is active. Sofra chooses from her built-in welcome pool; your custom message is kept here for later.'
+      : 'Supports {user.mention}, {user.name}, {server.name}, {server.member_count}, {user.avatar}, {server.icon}';
+    renderWelcomePreview();
+  });
 
   document.querySelectorAll('[data-category-enabled],[data-category-action]').forEach((el) => el.addEventListener('change', () => markDirty('automod')));
   ['welcome-message','welcome-title','welcome-description','welcome-color','welcome-image','welcome-thumbnail'].forEach((id) => $(id)?.addEventListener('input', renderWelcomePreview));
