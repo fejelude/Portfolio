@@ -78,10 +78,12 @@ async function initialize() {
   try {
     const data = await api('/api/sofra/guilds');
     state.user = data.user; state.csrf = data.csrf; state.guilds = data.guilds || [];
-    renderUser(); renderGuildOptions(); showApp();
+    renderUser(); renderGuildOptions(); renderServerPicker(); showApp();
     const remembered = localStorage.getItem('sofra:lastGuild');
-    const initial = state.guilds.some((guild) => guild.id === remembered) ? remembered : null;
+    const installed = state.guilds.filter((guild) => guild.botInstalled);
+    const initial = state.guilds.some((guild) => guild.id === remembered && guild.botInstalled) ? remembered : (installed.length === 1 ? installed[0].id : null);
     if (initial) { $('guild-select').value = initial; await loadGuild(initial); }
+    else renderEmpty();
     const auth = new URLSearchParams(location.search).get('auth');
     if (auth === 'success') toast('Signed in with Discord. Welcome to Sofra Panel ♡');
     if (auth === 'failed' || auth === 'invalid_state') toast('Discord sign-in did not complete. Please try again.', 'error');
@@ -101,12 +103,53 @@ function renderGuildOptions() {
   const select = $('guild-select');
   select.innerHTML = '<option value="">Choose a server</option>';
   for (const guild of state.guilds) {
-    const option = document.createElement('option'); option.value = guild.id; option.textContent = guild.name; select.appendChild(option);
+    const option = document.createElement('option'); option.value = guild.id; option.textContent = `${guild.name}${guild.botInstalled ? '' : ' • Add Sofra'}`; select.appendChild(option);
   }
+}
+
+function renderServerPicker() {
+  const grid = $('server-grid'); grid.innerHTML = '';
+  if (!state.guilds.length) {
+    grid.innerHTML = '<div class="server-empty card">No servers were found where you currently have Manage Server, Administrator, or owner access.</div>';
+  }
+  for (const guild of state.guilds) {
+    const card = document.createElement('article'); card.className = 'server-card card';
+    const iconStyle = guild.iconUrl ? ` style="background-image:url('${escapeHtml(guild.iconUrl)}')"` : '';
+    card.innerHTML = `<div class="server-icon"${iconStyle}>${escapeHtml(guild.name.slice(0, 1).toUpperCase())}</div><div class="server-details"><h3>${escapeHtml(guild.name)}</h3><span class="install-state ${guild.botInstalled ? 'installed' : ''}">${guild.botInstalled ? 'Sofra installed' : 'Sofra not installed'}</span></div>${guild.botInstalled ? '<button class="btn pink server-action">Manage</button>' : `<a class="btn ghost server-action" href="/api/sofra/install?guildId=${encodeURIComponent(guild.id)}" target="_blank" rel="noopener">Add Sofra</a>`}`;
+    if (guild.botInstalled) card.querySelector('.server-action').onclick = () => { $('guild-select').value = guild.id; loadGuild(guild.id); };
+    else card.querySelector('.server-action').addEventListener('click', () => startInstallCheck(guild.id));
+    grid.appendChild(card);
+  }
+}
+
+async function refreshGuilds(quiet=false) {
+  try {
+    const data = await api('/api/sofra/guilds');
+    state.user = data.user; state.csrf = data.csrf; state.guilds = data.guilds || [];
+    renderGuildOptions(); renderServerPicker();
+    if (!quiet) toast('Server installation status refreshed.');
+    return state.guilds;
+  } catch (error) { if (!quiet) toast(error.message, 'error'); return []; }
+}
+
+function startInstallCheck(guildId) {
+  let checks = 0;
+  const timer = setInterval(async () => {
+    checks += 1;
+    const guilds = await refreshGuilds(true);
+    const guild = guilds.find((item) => item.id === guildId);
+    if (guild?.botInstalled) {
+      clearInterval(timer); toast(`Sofra is now installed in ${guild.name}.`); $('guild-select').value = guildId; await loadGuild(guildId);
+    } else if (checks >= 20) clearInterval(timer);
+  }, 3000);
 }
 
 async function loadGuild(guildId) {
   if (!guildId) { state.guildId=null; state.metadata=null; state.config=null; state.saved=null; state.dirty.clear(); renderEmpty(); return; }
+  const selected = state.guilds.find((guild) => guild.id === guildId);
+  if (!selected?.botInstalled) {
+    $('guild-select').value = state.guildId || ''; renderEmpty(); toast('Add Sofra to this server before opening its configuration.', 'error'); return;
+  }
   state.loading = true; $('content').classList.add('hidden'); $('empty-state').classList.remove('hidden');
   $('empty-state').querySelector('h2').textContent = 'Loading server…';
   $('empty-state').querySelector('p').textContent = 'Fetching live channels, roles, and Sofra settings.';
@@ -121,13 +164,12 @@ async function loadGuild(guildId) {
 
 function renderEmpty() {
   $('content').classList.add('hidden'); $('empty-state').classList.remove('hidden');
-  $('empty-state').querySelector('h2').textContent='Select a Discord server';
-  $('empty-state').querySelector('p').textContent='Choose a server from the sidebar to load its live Sofra configuration.';
+  $('server-picker').classList.remove('hidden'); $('empty-state').classList.add('hidden');
   updateHeaderActions();
 }
 
 function renderAll() {
-  $('empty-state').classList.add('hidden'); $('content').classList.remove('hidden');
+  $('empty-state').classList.add('hidden'); $('server-picker').classList.add('hidden'); $('content').classList.remove('hidden');
   renderOverview(); renderWelcome(); renderAutomod(); renderTickets(); renderLevels(); renderBooster(); renderModlog(); renderAutoRole(); updateHeaderActions();
 }
 
@@ -247,6 +289,8 @@ function bindStaticEvents() {
   $('save-button').addEventListener('click',saveCurrent); $('reset-button').addEventListener('click',resetCurrent);
   $('add-role-reward').addEventListener('click',()=>{addRoleRewardRow();markDirty('levels');});
   $('guild-select').addEventListener('change',async(event)=>{ const next=event.target.value; if(state.dirty.size){const ok=await confirmAction('Switch servers?','You have unsaved changes. Switching servers will discard them.');if(!ok){event.target.value=state.guildId||'';return;}} await loadGuild(next); });
+  $('refresh-guilds').addEventListener('click',()=>refreshGuilds());
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden && state.guilds.some((guild)=>!guild.botInstalled))refreshGuilds(true);});
   const sectionByControl={
     welcome:['welcome-enabled','welcome-channel','welcome-message','welcome-title','welcome-description','welcome-color','welcome-image','welcome-thumbnail'],
     automod:['automod-enabled','automod-mild','automod-links','automod-invites','automod-strikes','automod-warning-cooldown','automod-threshold','automod-timeout','automod-bypass','automod-link-roles','automod-invite-roles','automod-exempt','automod-relaxed'],
