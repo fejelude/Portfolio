@@ -136,16 +136,17 @@
 
         <section class="panel-page" data-page="welcome" data-section="welcome">
           <div class="section-heading">
-            <div><span class="eyebrow">WELCOME SYSTEM</span><h2>First impressions, handled.</h2><p>Pick the destination, write the greeting, then preview it before saving.</p></div>
+            <div><span class="eyebrow">WELCOME SYSTEM</span><h2>First impressions, handled.</h2><p>Pick the destination, choose Sofra’s random greetings or your own message, then preview it before saving.</p></div>
             <label class="switch-row"><span>Enabled</span><input type="checkbox" id="welcome-enabled"><i></i></label>
           </div>
           <div class="two-column welcome-layout">
             <div class="card form-card">
               <div class="form-section-title">Message settings</div>
               <label>Welcome channel<select id="welcome-channel"></select></label>
-              <label>Message template<textarea id="welcome-message" rows="4" maxlength="1800"></textarea><small>Supports {user.mention}, {user.name}, {server.name}, {server.member_count}, {user.avatar}, {server.icon}</small></label>
+              <label class="feature-toggle"><div><strong>Send random welcome messages</strong><small>Use Sofra’s built-in pool of 50–75 cute greetings and pick a different one for each welcome.</small></div><input id="welcome-random-messages" type="checkbox"></label>
+              <label id="welcome-message-field">Custom message template<textarea id="welcome-message" rows="4" maxlength="1800"></textarea><small id="welcome-message-help">Used when random welcome messages are turned off. Supports {user.mention}, {user.name}, {server.name}, {server.member_count}, {user.avatar}, {server.icon}</small></label>
               <label>Embed title<input id="welcome-title" maxlength="256" /></label>
-              <label>Embed description<textarea id="welcome-description" rows="3" maxlength="4000" placeholder="Leave blank to use the message template"></textarea></label>
+              <label>Embed description<textarea id="welcome-description" rows="3" maxlength="4000" placeholder="Leave blank to use the selected welcome message"></textarea></label>
               <div class="split-fields">
                 <label>Accent color<input id="welcome-color" type="color" value="#f2a6ca" /></label>
                 <label>Thumbnail<select id="welcome-thumbnail"><option value="member">New member avatar</option><option value="none">None</option></select></label>
@@ -186,7 +187,7 @@
           <div class="two-column">
             <div class="card form-card">
               <div class="form-section-title">Role permissions</div>
-              <label>Search roles<input class="option-search" data-target="automod-bypass" placeholder="Search roles…"></label>
+              <label>Moderation manager roles<select id="automod-manager-roles" multiple size="5"></select><small>Members with these roles can manage Sofra’s Automod through Discord commands.</small></label>
               <label>Bypass roles<select id="automod-bypass" multiple size="6"></select></label>
               <label>Allowed link roles<select id="automod-link-roles" multiple size="5"></select></label>
               <label>Allowed invite roles<select id="automod-invite-roles" multiple size="5"></select></label>
@@ -198,6 +199,7 @@
               <label>Relaxed channels<select id="automod-relaxed" multiple size="5"></select></label>
             </div>
           </div>
+          <div class="info-box">Sofra’s private custom blacklist/whitelist rules are preserved when you save here. Advanced rule editing and private message testing remain available through the existing <strong>/automod</strong> Discord commands.</div>
         </section>
 
         <section class="panel-page" data-page="tickets" data-section="tickets">
@@ -278,7 +280,7 @@
           <div class="card form-card narrow-form">
             <div class="form-section-title">Default member role</div>
             <label>Role to assign<select id="autorole-role"></select></label>
-            <div class="info-box">Make sure Sofra’s bot role is above the selected role in Discord’s role hierarchy.</div>
+            <div class="info-box">Discord-managed roles are excluded. Make sure Sofra’s bot role is above the selected role in Discord’s role hierarchy.</div>
           </div>
         </section>
 
