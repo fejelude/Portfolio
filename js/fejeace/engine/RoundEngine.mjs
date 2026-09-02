@@ -5,6 +5,7 @@ import { evaluateWays } from "./WaysEvaluator.mjs";
 import { calculateWins, roundMoney, totalWinAmount } from "./WinCalculator.mjs";
 import { processCascade } from "./CascadeEngine.mjs";
 import { evaluateScatters } from "./ScatterEngine.mjs";
+import { maxWinScenario, rngLevelProfile } from "../config/RNGLevelConfig.mjs";
 
 let roundSequence = 0;
 
@@ -31,11 +32,29 @@ export class RoundEngine {
     this.debug = debug;
   }
 
-  generate({ bet, balance, mode = "base", forcedGrid = null, refillQueues = [] } = {}) {
+  generate({ bet, balance, mode = "base", forcedGrid = null, refillQueues = [], rngLevel = 0 } = {}) {
     if (!GameConfig.betLevels.includes(bet)) throw new Error("The selected bet is not configured.");
     if (!Number.isFinite(balance) || balance < 0) throw new Error("A valid balance is required.");
     const cost = mode === "base" ? bet : 0;
     if (balance < cost) throw new Error("INSUFFICIENT_BALANCE");
+
+    const profile = rngLevelProfile(rngLevel);
+    if (forcedGrid) return this.generateCandidate({ bet, balance, mode, forcedGrid, refillQueues, rngLevel: profile.level });
+    if (profile.forceMaxWin) {
+      return this.generateCandidate({ bet, balance, mode, ...maxWinScenario(), rngLevel: profile.level });
+    }
+    let best = null;
+    for (let attempt = 0; attempt < profile.candidates; attempt += 1) {
+      const candidate = this.generateCandidate({ bet, balance, mode, rngLevel: profile.level });
+      const score = candidate.totalWin * 1_000 + candidate.cascades.length * 10 + candidate.scatter.count;
+      const bestScore = best ? best.totalWin * 1_000 + best.cascades.length * 10 + best.scatter.count : -1;
+      if (score > bestScore) best = candidate;
+    }
+    return best;
+  }
+
+  generateCandidate({ bet, balance, mode, forcedGrid = null, refillQueues = [], rngLevel = 0 }) {
+    const cost = mode === "base" ? bet : 0;
 
     const spinId = `FA-${Date.now().toString(36).toUpperCase()}-${(++roundSequence).toString(36).toUpperCase()}`;
     const generator = new ReelGenerator({ rng: this.rng, idPrefix: spinId, refillQueues });
@@ -86,6 +105,7 @@ export class RoundEngine {
       totalWin,
       uncappedWin,
       maxWinReached: uncappedWin >= maxWin,
+      rngLevel,
       finalBalance: roundMoney(balance - cost + totalWin)
     });
 

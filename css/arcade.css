@@ -54,7 +54,7 @@ body.game-open {
   overscroll-behavior: none;
   /* Prevent Safari's dynamic toolbar from moving the locked game underneath it. */
   position: fixed;
-  inset: var(--feje-viewport-top, 0) 0 auto;
+  inset: 0 0 auto;
   width: 100%;
 }
 
@@ -2089,12 +2089,14 @@ body.reduced-effects .fx-layer {
 }
 
 .feature-overlay[data-tier="mega"] { background: radial-gradient(circle, rgba(167,65,255,.48), rgba(9,1,16,.91) 68%); }
-.feature-overlay[data-tier="epic"],
 .feature-overlay[data-tier="super"],
-.feature-overlay[data-tier="ultimate"] { background: radial-gradient(circle, rgba(255,178,44,.38), rgba(255,36,172,.27) 31%, rgba(8,1,15,.94) 70%); }
-.feature-overlay[data-tier="super"] strong,
-.feature-overlay[data-tier="ultimate"] strong { animation: ultimate-title 520ms cubic-bezier(.15,.9,.2,1.35), neon-beat 520ms ease-in-out 520ms infinite alternate; }
-.feature-overlay[data-tier="ultimate"] { animation: chroma-flash 420ms steps(2) infinite; }
+.feature-overlay[data-tier="insane"],
+.feature-overlay[data-tier="max"] { background: radial-gradient(circle, rgba(255,178,44,.38), rgba(255,36,172,.27) 31%, rgba(8,1,15,.94) 70%); }
+.feature-overlay[data-tier="insane"] strong,
+.feature-overlay[data-tier="max"] strong { animation: ultimate-title 520ms cubic-bezier(.15,.9,.2,1.35), neon-beat 520ms ease-in-out 520ms infinite alternate; }
+.feature-overlay[data-tier="max"] { animation: chroma-flash 280ms steps(2) infinite; }
+.cabinet[data-win-tier="insane"], .cabinet[data-win-tier="max"] { animation: high-cascade-shake 100ms linear infinite; }
+.rng-setting { border-color: rgba(255, 211, 90, .32); background: rgba(255, 211, 90, .06); }
 
 @keyframes marquee-light { to { opacity: .25; transform: scale(.6); } }
 @keyframes speed-lines { to { transform: translateY(34%); } }

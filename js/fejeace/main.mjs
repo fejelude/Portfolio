@@ -14,6 +14,7 @@ import { ModalController } from "./ui/ModalController.mjs";
 import { ResponsiveController } from "./ui/ResponsiveController.mjs";
 import { SAFE_GRID } from "./dev/ScenarioFactory.mjs";
 import { TestControls, developmentControlsAllowed } from "./dev/TestControls.mjs";
+import { RNGLevelConfig } from "./config/RNGLevelConfig.mjs";
 
 class FejeAceApp {
   constructor(root = document) {
@@ -33,6 +34,7 @@ class FejeAceApp {
     this.engine = new RoundEngine({ debug: developmentControlsAllowed() });
     this.pendingScenario = null;
     this.bonusQuantity = 1;
+    this.rngLevel = 0;
   }
 
   get bet() {
@@ -96,6 +98,17 @@ class FejeAceApp {
     });
     this.root.querySelector("[data-setting-effects]").addEventListener("change", (event) => {
       this.animation.setReducedEffects(event.target.value === "reduced");
+    });
+    const rngSetting = this.root.querySelector("[data-setting-rng]");
+    rngSetting.innerHTML = RNGLevelConfig.map(({ level, label }) =>
+      `<option value="${level}">Level ${level} — ${label}</option>`).join("");
+    rngSetting.addEventListener("change", () => {
+      this.rngLevel = Math.min(10, Math.max(0, Number(rngSetting.value) || 0));
+      const profile = RNGLevelConfig[this.rngLevel];
+      this.root.querySelector("[data-rng-description]").textContent = this.rngLevel === 0
+        ? "Normal, unmodified game RNG"
+        : this.rngLevel === 10 ? "Forces a calculated 10,000× Max Win" : `${profile.candidates} outcomes sampled; the strongest plays`;
+      this.hud.setMessage(`RNG testing level ${this.rngLevel}: ${profile.label}.`, this.rngLevel ? "win" : "neutral");
     });
     window.addEventListener("keydown", (event) => {
       if (event.code !== "Space" || event.repeat || this.game.hidden) return;
@@ -219,7 +232,8 @@ class FejeAceApp {
       balance: this.balance.value,
       mode,
       forcedGrid: scenario?.forcedGrid || null,
-      refillQueues: scenario?.refillQueues || []
+      refillQueues: scenario?.refillQueues || [],
+      rngLevel: scenario ? 0 : this.rngLevel
     });
     this.roundState.begin(result);
     this.hud.update({ balance: this.balance.value - result.cost, win: 0, multiplier: cascadeMultiplier(mode, 0) });

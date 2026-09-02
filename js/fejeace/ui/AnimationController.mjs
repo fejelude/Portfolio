@@ -174,22 +174,28 @@ export class AnimationController {
 
   async showWinPresentation(totalWin, bet) {
     const tier = getWinTier(totalWin, bet);
-    if (tier.id === "win" || totalWin <= 0) return;
-    const labels = { big: "BIG WIN", mega: "MEGA WIN", epic: "EPIC WIN", super: "SUPER WIN", ultimate: "ULTIMATE WIN" };
+    if (totalWin <= 0) return;
+    const durations = { win: 620, big: 1400, super: 2100, mega: 2800, insane: 3600, max: 5000 };
+    if (tier.id === "win") {
+      await this.hud.animateWin(totalWin, this.reduceEffects ? 100 : durations.win);
+      return;
+    }
+    const labels = { big: "BIG WIN", super: "SUPER WIN", mega: "MEGA WIN", insane: "INSANE WIN", max: "MAX WIN" };
     this.featureTitle.textContent = labels[tier.id];
     this.featureValue.textContent = formatPeso(0);
     const multiple = totalWin / bet;
     this.featureMultiple.textContent = `${multiple.toLocaleString("en-US", { maximumFractionDigits: 2 })}× BET`;
-    this.featureArt.hidden = !["epic", "super", "ultimate"].includes(tier.id);
+    this.featureArt.hidden = !["mega", "insane", "max"].includes(tier.id);
     this.featureOverlay.dataset.tier = tier.id;
     this.featureOverlay.hidden = false;
     this.featureOverlay.classList.add("is-visible");
     this.stage.dataset.winTier = tier.id;
     this.buildCoinShower(tier.id);
-    this.sound.play(["super", "ultimate"].includes(tier.id) ? "epicWin" : `${tier.id}Win`);
+    this.sound.play(["insane", "max"].includes(tier.id) ? "epicWin" : tier.id === "super" ? "megaWin" : `${tier.id}Win`);
 
     const started = performance.now();
-    const duration = this.reduceEffects ? 120 : GameConfig.timings.countUp;
+    const duration = this.reduceEffects ? 120 : durations[tier.id];
+    const hudCount = this.hud.animateWin(totalWin, duration);
     await new Promise((resolve) => {
       const tick = (now) => {
         const progress = Math.min(1, (now - started) / duration);
@@ -200,7 +206,8 @@ export class AnimationController {
       };
       requestAnimationFrame(tick);
     });
-    await this.wait({ big: 420, mega: 620, epic: 800, super: 1050, ultimate: 1300 }[tier.id]);
+    await hudCount;
+    await this.wait({ big: 420, super: 650, mega: 850, insane: 1200, max: 1800 }[tier.id]);
     this.featureOverlay.classList.remove("is-visible");
     await this.wait(180);
     this.featureOverlay.hidden = true;
@@ -211,7 +218,7 @@ export class AnimationController {
 
   buildCoinShower(tier) {
     if (this.reduceEffects) return;
-    const amount = { big: 18, mega: 28, epic: 42, super: 58, ultimate: 72 }[tier] || 18;
+    const amount = { big: 18, super: 30, mega: 44, insane: 64, max: 96 }[tier] || 18;
     const fragment = document.createDocumentFragment();
     for (let index = 0; index < amount; index += 1) {
       const coin = document.createElement("i");
