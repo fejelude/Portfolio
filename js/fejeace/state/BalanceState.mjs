@@ -10,6 +10,13 @@ export class BalanceState {
     return this.value >= bet;
   }
 
+  debit(amount) {
+    const cost = roundMoney(amount);
+    if (!(cost > 0) || !this.canAfford(cost)) throw new Error("INSUFFICIENT_BALANCE");
+    this.value = roundMoney(this.value - cost);
+    return this.value;
+  }
+
   applyRound(result) {
     if (roundMoney(result.balanceBefore) !== this.value) {
       throw new Error("Balance changed while the round was being processed.");

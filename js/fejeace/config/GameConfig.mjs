@@ -9,6 +9,8 @@ export const GameConfig = Object.freeze({
   freeSpinMultipliers: Object.freeze([2, 4, 6, 10]),
   freeSpinsAwarded: 10,
   freeSpinsRetriggered: 5,
+  bonusBuyCostMultiple: 40.5,
+  bonusBuyMaxQuantity: 99,
   maxWinMultiple: 10_000,
   maxCascades: 50,
   scatterPayouts: Object.freeze({ 3: 2, 4: 10, 5: 50 }),
@@ -39,6 +41,11 @@ export function cascadeMultiplier(mode, cascadeIndex) {
     ? GameConfig.freeSpinMultipliers
     : GameConfig.baseMultipliers;
   return progression[Math.min(cascadeIndex, progression.length - 1)];
+}
+
+export function bonusBuyCost(bet, quantity = 1) {
+  const count = Math.min(GameConfig.bonusBuyMaxQuantity, Math.max(1, Math.trunc(Number(quantity) || 1)));
+  return Math.round(Number(bet) * GameConfig.bonusBuyCostMultiple * count * 100) / 100;
 }
 
 export function formatPeso(value) {

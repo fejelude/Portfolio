@@ -111,6 +111,9 @@
               <span>SPIN</span><small>Space</small>
             </button>
             <button class="bet-button" type="button" data-bet-up aria-label="Increase bet">+</button>
+            <button class="buy-bonus-button" type="button" data-buy-bonus>
+              <span>BUY BONUS</span><small>10 Free Spins from <b>40.5× bet</b></small>
+            </button>
           </div>
 
           <div class="cabinet-footer">
@@ -153,29 +156,57 @@
 
   <dialog class="game-dialog" id="settings-dialog">
     <form method="dialog" class="dialog-panel">
-      <div class="dialog-head"><div><span class="eyebrow">FejeAce</span><h2>Settings</h2></div><button type="button" data-close-dialog aria-label="Close settings">×</button></div>
-      <label class="setting-row"><span><strong>Game sound</strong><small>Music cues and effects</small></span><input type="checkbox" data-setting-sound checked></label>
-      <label class="setting-row"><span><strong>Effects level</strong><small>Reduce particles and motion if needed</small></span><select data-setting-effects><option value="full">Full effects</option><option value="reduced">Reduced effects</option></select></label>
+      <div class="dialog-head settings-head"><div><span class="eyebrow">Make it yours</span><h2>Game Settings</h2><p>Tweak the table without interrupting your session.</p></div><button type="button" data-close-dialog aria-label="Close settings">×</button></div>
+      <div class="settings-grid">
+        <label class="setting-row"><span class="setting-icon" aria-hidden="true">♪</span><span><strong>Game sound</strong><small>Reels, wins, and feature sounds</small></span><input class="switch" type="checkbox" data-setting-sound checked></label>
+        <label class="setting-row"><span class="setting-icon" aria-hidden="true">✦</span><span><strong>Animation style</strong><small>Turn down movement and particles</small></span><select data-setting-effects><option value="full">Full energy</option><option value="reduced">Chill mode</option></select></label>
+      </div>
       <p class="dialog-note">Your fictional balance is deliberately not saved. Refreshing always starts a new ₱10,000 demo session.</p>
     </form>
+  </dialog>
+
+  <dialog class="game-dialog bonus-dialog" id="bonus-dialog">
+    <div class="dialog-panel">
+      <div class="dialog-head"><div><span class="eyebrow">Skip straight to the good part</span><h2>Buy Free Spins</h2></div><button type="button" data-close-dialog aria-label="Close Bonus Buy">×</button></div>
+      <div class="bonus-hero"><span>Each bonus gives you</span><strong>10 FREE SPINS</strong><small>Your bet is locked for every purchased spin.</small></div>
+      <div class="bonus-quote">
+        <div><span>Bet</span><strong data-bonus-bet>₱100.00</strong></div>
+        <div><span>Price each</span><strong data-bonus-unit-price>₱4,050.00</strong><small>40.5× bet</small></div>
+      </div>
+      <label class="quantity-label" for="bonus-quantity">How many bonuses?</label>
+      <div class="quantity-stepper">
+        <button type="button" data-bonus-minus aria-label="Buy one fewer bonus">−</button>
+        <input id="bonus-quantity" data-bonus-quantity type="number" inputmode="numeric" min="1" max="99" value="1" aria-describedby="bonus-range">
+        <button type="button" data-bonus-plus aria-label="Buy one more bonus">+</button>
+      </div>
+      <small id="bonus-range" class="range-note">Choose 1–99 · <b data-bonus-spins>10</b> Free Spins total</small>
+      <div class="bonus-total"><span>Total price</span><strong data-bonus-total>₱4,050.00</strong></div>
+      <button class="confirm-bonus" type="button" data-confirm-bonus><span>BUY &amp; PLAY</span><small>Pay ₱4,050.00</small></button>
+      <p class="dialog-note">This only uses your fictional session balance. No real purchase or real money is involved.</p>
+    </div>
   </dialog>
 
   <dialog class="game-dialog rules-dialog" id="rules-dialog">
     <div class="dialog-panel">
       <div class="dialog-head"><div><span class="eyebrow">1,024 Ways</span><h2>Rules & Paytable</h2></div><button type="button" data-close-dialog aria-label="Close rules">×</button></div>
       <section>
-        <h3>How wins work</h3>
-        <p>Matching symbols must begin on Reel 1 and continue through at least three consecutive reels. Every matching position multiplies the number of winning ways. Jokers substitute for normal symbols, never Scatters.</p>
+        <h3>🎴 Getting a win</h3>
+        <p>Basically, wins start from the first reel. Get the same symbol across 3 or more reels and you win. The more copies you land on each reel, the more ways that win counts — all the way up to <strong>1,024 ways</strong>. Jokers can stand in for normal symbols, but not Scatters.</p>
         <p class="formula">Bet × symbol payout × winning ways × cascade multiplier</p>
-        <p>Each spin is capped at a maximum award of 10,000× its bet.</p>
+        <p>That is the exact math used for every win. One spin can pay up to <strong>10,000× your bet</strong>, and that is the hard limit.</p>
       </section>
       <section>
-        <h3>Cascades and Golden symbols</h3>
-        <p>Winning symbols disappear and only empty positions refill. A winning Golden symbol becomes a sticky Joker for the next evaluation instead of disappearing.</p>
+        <h3>💥 Wins keep cascading</h3>
+        <p>When you win, those symbols pop away and new ones drop into the empty spots. If the new cards make another win, the multiplier climbs. Base-game cascades go <strong>×1 → ×2 → ×3 → ×5</strong> (and stay at ×5 after that).</p>
       </section>
       <section>
-        <h3>Free Spins</h3>
-        <p>Three or more Scatters award 10 Free Spins. Three or more during the feature award +5, with no retrigger limit. Free Spin cascade multipliers are ×2, ×4, ×6, then ×10.</p>
+        <h3>✨ Golden cards &amp; Jokers</h3>
+        <p>Golden Ace, King, Queen, and Jack cards mainly show up on reels 2–4. If a Golden card is part of a win, it does not disappear — it turns into a sticky Joker for the next cascade instead.</p>
+      </section>
+      <section>
+        <h3>🎁 Free Spins</h3>
+        <p>Land 3 or more Scatters and you get <strong>10 Free Spins</strong>. Land 3+ again while they are running and another <strong>5 spins</strong> are added. You can keep retriggering them. Free Spin cascades are juicier too: <strong>×2 → ×4 → ×6 → ×10</strong>.</p>
+        <p>You can also use <strong>Buy Bonus</strong>. One bonus costs <strong>40.5× your current bet</strong> and gives 10 Free Spins. Buy more than one if you want; your chosen bet stays locked until those spins finish.</p>
       </section>
       <section>
         <h3>Symbol payouts</h3>
