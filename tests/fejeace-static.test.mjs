@@ -76,3 +76,14 @@ test("the arcade includes iOS Safari viewport, dialog, storage, and CSS compatib
   assert.match(responsive, /orientationchange/);
   assert.doesNotMatch(rng, /\.at\(/);
 });
+
+test("settings expose functional RNG levels and tiered MAX WIN presentation", async () => {
+  const [html, main, animation, config] = await Promise.all([
+    "Arcade.html", "js/fejeace/main.mjs", "js/fejeace/ui/AnimationController.mjs",
+    "js/fejeace/config/RNGLevelConfig.mjs"
+  ].map((name) => readFile(path.join(root, name), "utf8")));
+  assert.match(html, /data-setting-rng/);
+  assert.match(main, /rngLevel: scenario \? 0 : this\.rngLevel/);
+  assert.match(config, /FORCE MAX WIN/);
+  assert.match(animation, /MAX WIN/);
+});

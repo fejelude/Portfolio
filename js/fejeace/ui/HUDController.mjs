@@ -42,4 +42,22 @@ export class HUDController {
     this.message.textContent = text;
     this.message.dataset.tone = tone;
   }
+
+  animateWin(value, duration = 700) {
+    const target = Math.max(0, Number(value) || 0);
+    if (!target || duration <= 0) {
+      this.update({ win: target });
+      return Promise.resolve();
+    }
+    const started = performance.now();
+    return new Promise((resolve) => {
+      const tick = (now) => {
+        const progress = Math.min(1, (now - started) / duration);
+        this.update({ win: target * (1 - Math.pow(1 - progress, 3)) });
+        if (progress < 1) requestAnimationFrame(tick);
+        else { this.update({ win: target }); resolve(); }
+      };
+      requestAnimationFrame(tick);
+    });
+  }
 }

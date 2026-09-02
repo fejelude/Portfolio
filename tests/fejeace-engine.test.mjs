@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { GameConfig, bonusBuyCost, cascadeMultiplier } from "../js/fejeace/config/GameConfig.mjs";
 import { ReelConfig } from "../js/fejeace/config/ReelConfig.mjs";
 import { SequenceRNG, weightedPick } from "../js/fejeace/engine/RNG.mjs";
+import { SeededRNG } from "../js/fejeace/engine/RNG.mjs";
 import { ReelGenerator } from "../js/fejeace/engine/ReelGenerator.mjs";
 import { evaluateWays } from "../js/fejeace/engine/WaysEvaluator.mjs";
 import { calculateWins } from "../js/fejeace/engine/WinCalculator.mjs";
@@ -105,6 +106,34 @@ test("Bonus Buy costs 40.5x the selected bet for each quantity", () => {
   assert.equal(bonusBuyCost(100, 1), 4_050);
   assert.equal(bonusBuyCost(100, 3), 12_150);
   assert.equal(bonusBuyCost(100, 500), 400_950, "quantity is safely capped at 99");
+});
+
+test("bet configuration reaches ₱10,000 and all high-limit arithmetic stays exact", () => {
+  assert.equal(Math.max(...GameConfig.betLevels), 10_000);
+  assert.equal(bonusBuyCost(10_000), 405_000);
+  assert.equal(bonusBuyCost(10_000, 99), 40_095_000);
+});
+
+test("RNG candidate levels are monotonically more favorable for the same random stream", () => {
+  const totals = [0, 2, 5, 9].map((rngLevel) => new RoundEngine({ rng: new SeededRNG(20260902) }).generate({
+    bet: 100,
+    balance: 10_000,
+    rngLevel
+  }).totalWin);
+  assert.deepEqual(totals, [...totals].sort((left, right) => left - right));
+});
+
+test("RNG Level 10 reaches the cap through calculated winning cascades", () => {
+  const result = new RoundEngine({ rng: new SequenceRNG([0.42]) }).generate({
+    bet: 10_000,
+    balance: 10_000,
+    rngLevel: 10
+  });
+  assert.equal(result.totalWin, 100_000_000);
+  assert.equal(result.maxWinReached, true);
+  assert.ok(result.uncappedWin >= result.totalWin);
+  assert.ok(result.cascades.length >= 4);
+  assert.equal(result.rngLevel, 10);
 });
 
 test("Bonus Buy debit is atomic and never allows a negative balance", () => {

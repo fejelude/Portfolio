@@ -3,7 +3,7 @@ export const GameConfig = Object.freeze({
   rows: 4,
   ways: 1024,
   startingBalance: 10_000,
-  betLevels: Object.freeze([10, 20, 50, 100, 200, 500, 1_000]),
+  betLevels: Object.freeze([10, 20, 50, 100, 200, 500, 1_000, 2_000, 5_000, 10_000]),
   defaultBetIndex: 3,
   baseMultipliers: Object.freeze([1, 2, 3, 5]),
   freeSpinMultipliers: Object.freeze([2, 4, 6, 10]),
@@ -14,13 +14,13 @@ export const GameConfig = Object.freeze({
   maxWinMultiple: 10_000,
   maxCascades: 50,
   scatterPayouts: Object.freeze({ 3: 2, 4: 10, 5: 50 }),
-  bigWinThresholds: Object.freeze([
+  winTiers: Object.freeze([
     Object.freeze({ id: "win", minBetMultiple: 0 }),
     Object.freeze({ id: "big", minBetMultiple: 5 }),
-    Object.freeze({ id: "mega", minBetMultiple: 15 }),
-    Object.freeze({ id: "epic", minBetMultiple: 30 }),
-    Object.freeze({ id: "super", minBetMultiple: 75 }),
-    Object.freeze({ id: "ultimate", minBetMultiple: 150 })
+    Object.freeze({ id: "super", minBetMultiple: 25 }),
+    Object.freeze({ id: "mega", minBetMultiple: 100 }),
+    Object.freeze({ id: "insane", minBetMultiple: 500 }),
+    Object.freeze({ id: "max", minBetMultiple: 10_000 })
   ]),
   timings: Object.freeze({
     reelSpin: 640,
@@ -59,7 +59,7 @@ export function formatPeso(value) {
 
 export function getWinTier(totalWin, bet) {
   const multiple = bet > 0 ? totalWin / bet : 0;
-  return [...GameConfig.bigWinThresholds]
+  return [...GameConfig.winTiers]
     .reverse()
-    .find((tier) => multiple >= tier.minBetMultiple) || GameConfig.bigWinThresholds[0];
+    .find((tier) => multiple >= tier.minBetMultiple) || GameConfig.winTiers[0];
 }
