@@ -68,7 +68,9 @@ export class RoundEngine {
 
     const scatter = evaluateScatters(currentGrid, { mode, bet });
     const cascadeWin = roundMoney(cascades.reduce((total, cascade) => total + cascade.winAmount, 0));
-    const totalWin = roundMoney(cascadeWin + scatter.payout);
+    const uncappedWin = roundMoney(cascadeWin + scatter.payout);
+    const maxWin = roundMoney(bet * GameConfig.maxWinMultiple);
+    const totalWin = Math.min(uncappedWin, maxWin);
     const result = Object.freeze({
       spinId,
       mode,
@@ -82,6 +84,8 @@ export class RoundEngine {
       freeSpinsTriggered: scatter.triggered && mode === "base",
       freeSpinsRetriggered: scatter.triggered && mode === "free",
       totalWin,
+      uncappedWin,
+      maxWinReached: uncappedWin >= maxWin,
       finalBalance: roundMoney(balance - cost + totalWin)
     });
 

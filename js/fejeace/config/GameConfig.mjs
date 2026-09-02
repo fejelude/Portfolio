@@ -9,13 +9,16 @@ export const GameConfig = Object.freeze({
   freeSpinMultipliers: Object.freeze([2, 4, 6, 10]),
   freeSpinsAwarded: 10,
   freeSpinsRetriggered: 5,
+  maxWinMultiple: 10_000,
   maxCascades: 50,
   scatterPayouts: Object.freeze({ 3: 2, 4: 10, 5: 50 }),
   bigWinThresholds: Object.freeze([
     Object.freeze({ id: "win", minBetMultiple: 0 }),
     Object.freeze({ id: "big", minBetMultiple: 5 }),
     Object.freeze({ id: "mega", minBetMultiple: 15 }),
-    Object.freeze({ id: "epic", minBetMultiple: 30 })
+    Object.freeze({ id: "epic", minBetMultiple: 30 }),
+    Object.freeze({ id: "super", minBetMultiple: 75 }),
+    Object.freeze({ id: "ultimate", minBetMultiple: 150 })
   ]),
   timings: Object.freeze({
     reelSpin: 640,
@@ -27,7 +30,7 @@ export const GameConfig = Object.freeze({
     refill: 360,
     freeSpinIntro: 1_050,
     retrigger: 820,
-    countUp: 1_250
+    countUp: 1_650
   })
 });
 

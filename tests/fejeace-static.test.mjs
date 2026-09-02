@@ -23,10 +23,11 @@ test("every configured FejeAce image and sound exists and is non-empty", async (
   }));
 });
 
-test("the games surface contains FejeAce and no retired space experience entry points", async () => {
+test("the games surface contains the Game Arcade and no retired space experience entry points", async () => {
   const files = await Promise.all(["Arcade.html", "index.html", "Gallery.html", "main.js"].map((name) => readFile(path.join(root, name), "utf8")));
   const combined = files.join("\n");
-  assert.match(combined, /Play My Games/);
+  assert.match(combined, /Game Arcade/);
+  assert.match(combined, /Max win 10,000×/i);
   assert.match(combined, /FejeAce/);
   assert.doesNotMatch(combined, /Orbital Earth|Solar System Explorer|sim=orbital|sim=solar|ISS tracking/);
 });
@@ -45,4 +46,22 @@ test("the round-state label cannot select and overwrite the document body", asyn
   assert.match(html, /<span data-game-state-label>READY<\/span>/);
   assert.match(hud, /querySelector\("\[data-game-state-label\]"\)/);
   assert.doesNotMatch(hud, /querySelector\("\[data-game-state\]"\)/);
+});
+
+test("the arcade includes iOS Safari viewport, dialog, storage, and CSS compatibility safeguards", async () => {
+  const [css, audio, modal, responsive, rng] = await Promise.all([
+    "css/arcade.css",
+    "js/fejeace/audio/SoundController.mjs",
+    "js/fejeace/ui/ModalController.mjs",
+    "js/fejeace/ui/ResponsiveController.mjs",
+    "js/fejeace/engine/RNG.mjs"
+  ].map((name) => readFile(path.join(root, name), "utf8")));
+
+  assert.match(css, /-webkit-mask-composite:\s*xor/);
+  assert.match(css, /dialog-fallback-open/);
+  assert.match(audio, /getStorage\(\)/);
+  assert.match(audio, /sound\.play\(\)/);
+  assert.match(modal, /typeof dialog\.showModal/);
+  assert.match(responsive, /orientationchange/);
+  assert.doesNotMatch(rng, /\.at\(/);
 });
