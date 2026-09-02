@@ -1,176 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Arcade | Itsmefeje</title>
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#160624">
+  <meta name="description" content="Play FejeAce, a fictional-currency cascade slot game by Fejelude Laxamana.">
+  <title>Play My Games | FejeAce</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/arcade.css">
-
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-    }
-  }
-  </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
-<body class="arcade-page" data-arcade-theme="premium-dark">
-  <div id="loading-overlay">
-    <div class="loading-card" role="status" aria-live="polite">
-      <div class="loading-spinner"></div>
-      <div>
-        <div class="loading-kicker">Arcade</div>
-        <div class="loading-text">Preparing simulation</div>
-      </div>
-    </div>
+<body class="fejeace-page" data-game-state="IDLE">
+  <div class="royal-backdrop" aria-hidden="true">
+    <i></i><i></i><i></i><i></i><i></i><i></i>
   </div>
 
-  <div id="sim-canvas" aria-hidden="true"></div>
+  <div class="game-loading" data-loading>
+    <div class="loading-crown" aria-hidden="true">♛</div>
+    <strong>FejeAce</strong>
+    <span data-loading-message>Preparing the table…</span>
+  </div>
 
-  <div id="arcade-hub-ui">
-    <div class="hub-shell">
-      <header class="hub-hero" aria-labelledby="arcade-title">
-        <div class="hub-identity">
-          <span class="hub-mark" aria-hidden="true"></span>
-          <span class="hub-eyebrow">Interactive Portfolio</span>
+  <main>
+    <section class="games-hub" data-games-hub aria-labelledby="games-title">
+      <nav class="hub-nav" aria-label="Games navigation">
+        <a href="index.html" class="text-button">← Return to Website</a>
+        <span class="hub-brand">Itsmefeje Games</span>
+      </nav>
+
+      <div class="hub-copy">
+        <span class="eyebrow">My game cabinet</span>
+        <h1 id="games-title">Play My Games</h1>
+        <p>One original game for now. More experiments can join the cabinet later.</p>
+      </div>
+
+      <article class="fejeace-card">
+        <div class="card-glow" aria-hidden="true"></div>
+        <div class="card-art">
+          <img data-logo-source src="assets/fejeace/logo.webp" alt="FejeAce">
         </div>
-        <h1 id="arcade-title" class="hub-title">Arcade</h1>
-        <p class="hub-subtitle">Choose a live simulation and keep the extra controls tucked away until you need them.</p>
-        <div class="hub-metrics" aria-label="Arcade highlights">
-          <div class="metric-pill">
-            <span class="metric-label">Mode</span>
-            <strong>Orbital Earth</strong>
+        <div class="card-body">
+          <div class="game-tags" aria-label="Game details">
+            <span>5 × 4 reels</span>
+            <span>1,024 ways</span>
+            <span>Demo</span>
           </div>
-          <div class="metric-pill">
-            <span class="metric-label">Mode</span>
-            <strong>Solar System</strong>
-          </div>
-          <div class="metric-pill system-online">
-            <span class="pulse-dot"></span>
-            <strong>Ready</strong>
-          </div>
+          <h2>FejeAce</h2>
+          <p>Cascade wins, Golden symbols that become Jokers, and retriggerable Free Spins.</p>
+          <button class="launch-button" type="button" data-launch-fejeace>
+            <span>Play FejeAce</span><b aria-hidden="true">▶</b>
+          </button>
+        </div>
+      </article>
+
+      <p class="play-money-note"><strong>Play-money demo.</strong> No deposits, purchases, withdrawals, prizes, or cash value.</p>
+    </section>
+
+    <section class="fejeace-game" data-fejeace-game hidden aria-label="FejeAce game">
+      <header class="game-topbar">
+        <button class="topbar-button" type="button" data-exit-game>← Games</button>
+        <div class="game-identity">
+          <img data-logo-source src="assets/fejeace/logo.webp" alt="">
+          <div><strong>FejeAce</strong><span>Play-money demo</span></div>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-button" type="button" data-toggle-sound aria-label="Mute sound"><span>Sound on</span> ♪</button>
+          <button class="icon-button" type="button" data-open-dialog="settings-dialog">Settings</button>
+          <button class="icon-button" type="button" data-open-dialog="rules-dialog">Rules</button>
         </div>
       </header>
 
-      <main class="hub-stage" aria-label="Arcade experiences">
-        <article class="hub-card featured" data-sim="orbital" tabindex="0" role="button" aria-label="Launch Orbital Earth simulation">
-          <div class="card-preview orbital-preview" aria-hidden="true">
-            <div class="preview-orbit preview-orbit-outer"></div>
-            <div class="preview-orbit preview-orbit-inner"></div>
-            <div class="preview-core preview-earth"></div>
-            <div class="preview-satellite"></div>
+      <div class="game-layout">
+        <section class="cabinet" data-game-stage aria-label="FejeAce reels">
+          <div class="cabinet-light" aria-hidden="true"></div>
+          <div class="game-logo-lockup">
+            <img data-logo-source src="assets/fejeace/logo.webp" alt="FejeAce logo">
+            <div class="round-state"><i></i><span data-game-state>IDLE</span></div>
           </div>
-          <div class="card-content">
-            <div class="card-meta">
-              <span class="card-kicker">Live</span>
-              <span class="card-status"><span class="pulse-dot"></span>Online</span>
+
+          <div class="feje-hud" aria-label="Game information">
+            <div class="hud-item"><span>Balance</span><strong data-hud-balance>₱10,000.00</strong></div>
+            <div class="hud-item"><span>Bet</span><strong data-hud-bet>₱100.00</strong></div>
+            <div class="hud-item"><span>Win</span><strong data-hud-win>₱0.00</strong></div>
+          </div>
+
+          <div class="free-spin-banner" data-free-banner hidden>
+            <span>Free Spins</span>
+            <strong><b data-free-remaining>0</b> remaining</strong>
+            <em>Total <b data-free-total>₱0.00</b></em>
+          </div>
+
+          <div class="reel-frame">
+            <div class="frame-crown" aria-hidden="true">♛</div>
+            <div class="multiplier-orb" aria-label="Current cascade multiplier">
+              <small>Multiplier</small><strong data-hud-multiplier>×1</strong>
             </div>
-            <h2>Orbital Earth</h2>
-            <p>ISS tracking, Earth lighting, and orbit context in a focused view.</p>
-            <button class="btn-launch" type="button">Launch</button>
+            <div class="reel-grid" data-reel-grid role="img" aria-label="Five reels and four rows of FejeAce symbols"></div>
+            <div class="reel-glass" aria-hidden="true"></div>
           </div>
-        </article>
 
-        <article class="hub-card" data-sim="solar" tabindex="0" role="button" aria-label="Launch Solar System simulation">
-          <div class="card-preview solar-preview" aria-hidden="true">
-            <div class="preview-core preview-sun"></div>
-            <div class="preview-orbit solar-orbit-1"></div>
-            <div class="preview-orbit solar-orbit-2"></div>
-            <div class="planet-dot mercury"></div>
-            <div class="planet-dot venus"></div>
-            <div class="planet-dot mars"></div>
+          <p class="game-message" data-game-message aria-live="polite">Choose your bet and spin.</p>
+
+          <div class="game-controls">
+            <button class="bet-button" type="button" data-bet-down aria-label="Decrease bet">−</button>
+            <div class="bet-readout"><span>Bet</span><strong data-hud-bet>₱100.00</strong></div>
+            <button class="spin-button" type="button" data-spin aria-label="Spin the FejeAce reels">
+              <span>SPIN</span><small>Space</small>
+            </button>
+            <button class="bet-button" type="button" data-bet-up aria-label="Increase bet">+</button>
           </div>
-          <div class="card-content">
-            <div class="card-meta">
-              <span class="card-kicker">Explore</span>
-              <span class="card-status">Cinematic</span>
-            </div>
-            <h2>Solar System Explorer</h2>
-            <p>Move from Earth into a composed heliocentric view.</p>
-            <button class="btn-launch" type="button">Launch</button>
+
+          <div class="cabinet-footer">
+            <span>1,024 Ways</span><i></i><span>Golden → Joker</span><i></i><span>Session balance</span>
           </div>
-        </article>
-      </main>
-
-      <footer class="hub-footer" aria-label="Portfolio navigation">
-        <a href="index.html" class="btn-back">Return to Website</a>
-      </footer>
-    </div>
-  </div>
-
-  <div id="simulation-ui" class="hidden">
-    <div class="sim-top-bar">
-      <div class="sim-overview">
-        <span class="sim-label">Active Experience</span>
-        <div>
-          <div id="sim-title">ORBITAL EARTH</div>
-          <p id="sim-subtitle">Premium telemetry, live orbital context, and cinematic control.</p>
-        </div>
-      </div>
-
-      <div class="sim-actions">
-        <button id="btn-open-controls" class="btn-control" type="button" aria-controls="sim-content-layer" aria-expanded="false">Controls</button>
-        <button id="btn-exit-arcade" class="btn-control ghost" type="button">Hub</button>
-      </div>
-    </div>
-
-    <div id="sim-content-layer" class="control-layer" aria-hidden="true">
-      <button class="control-backdrop" type="button" data-close-controls aria-label="Close controls"></button>
-      <aside class="control-drawer" role="dialog" aria-labelledby="controls-title" tabindex="-1">
-        <div class="drawer-header">
-          <div>
-            <span class="panel-kicker">Arcade</span>
-            <h2 id="controls-title">Controls</h2>
-          </div>
-          <button class="btn-icon" type="button" data-close-controls aria-label="Close controls">&times;</button>
-        </div>
-
-        <section class="drawer-section" aria-label="Experience">
-          <div class="panel-title compact">
-            <div>
-              <span class="panel-kicker">Experience</span>
-              <h3>Mode</h3>
-            </div>
-          </div>
-          <div class="segmented-control" aria-label="Simulation mode">
-            <button id="btn-switch-orbital" class="btn-control is-active" data-sim-target="orbital" type="button">Orbital Earth</button>
-            <button id="btn-switch-solar" class="btn-control" data-sim-target="solar" type="button">Solar System</button>
-          </div>
+          <div class="fx-layer" data-fx-layer aria-hidden="true"></div>
         </section>
 
-        <section class="drawer-section" aria-label="Appearance">
-          <div class="panel-title compact">
-            <div>
-              <span class="panel-kicker">Appearance</span>
-              <h3>Theme</h3>
-            </div>
+        <aside class="game-side-panel">
+          <div class="side-card feature-card">
+            <span class="eyebrow">Feature rules</span>
+            <h2>Chase the crown.</h2>
+            <ul>
+              <li><b>3+ Scatters</b><span>10 Free Spins</span></li>
+              <li><b>Golden winner</b><span>Transforms into Joker</span></li>
+              <li><b>Base cascades</b><span>×1 · ×2 · ×3 · ×5</span></li>
+              <li><b>Free cascades</b><span>×2 · ×4 · ×6 · ×10</span></li>
+            </ul>
           </div>
-          <select class="theme-select" data-theme-select aria-label="Arcade appearance">
-            <option value="premium-dark">Premium Dark</option>
-            <option value="clean-light">Clean Light</option>
-            <option value="neon-arcade">Neon Arcade</option>
-            <option value="luxury-gold">Luxury Gold</option>
-            <option value="blue-tech">Blue Tech</option>
-            <option value="minimal-glass">Minimal Glass</option>
-            <option value="high-contrast">High Contrast</option>
-          </select>
-        </section>
+          <div class="side-card demo-card">
+            <strong>Fictional balance only</strong>
+            <p>Refreshing this page restores ₱10,000. Nothing can be bought, deposited, withdrawn, redeemed, or exchanged.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
 
-        <div id="sim-controls-slot"></div>
-      </aside>
-    </div>
+  <div class="feature-overlay" data-feature-overlay hidden aria-live="assertive">
+    <div class="feature-rays" aria-hidden="true"></div>
+    <img data-feature-art src="assets/fejeace/big-joker.webp" alt="" hidden>
+    <strong data-feature-title>BIG WIN</strong>
+    <span data-feature-value>₱0.00</span>
+    <i>✦</i><i>♥</i><i>✦</i><i>♦</i>
   </div>
+
+  <dialog class="game-dialog" id="settings-dialog">
+    <form method="dialog" class="dialog-panel">
+      <div class="dialog-head"><div><span class="eyebrow">FejeAce</span><h2>Settings</h2></div><button type="button" data-close-dialog aria-label="Close settings">×</button></div>
+      <label class="setting-row"><span><strong>Game sound</strong><small>Music cues and effects</small></span><input type="checkbox" data-setting-sound checked></label>
+      <label class="setting-row"><span><strong>Effects level</strong><small>Reduce particles and motion if needed</small></span><select data-setting-effects><option value="full">Full effects</option><option value="reduced">Reduced effects</option></select></label>
+      <p class="dialog-note">Your fictional balance is deliberately not saved. Refreshing always starts a new ₱10,000 demo session.</p>
+    </form>
+  </dialog>
+
+  <dialog class="game-dialog rules-dialog" id="rules-dialog">
+    <div class="dialog-panel">
+      <div class="dialog-head"><div><span class="eyebrow">1,024 Ways</span><h2>Rules & Paytable</h2></div><button type="button" data-close-dialog aria-label="Close rules">×</button></div>
+      <section>
+        <h3>How wins work</h3>
+        <p>Matching symbols must begin on Reel 1 and continue through at least three consecutive reels. Every matching position multiplies the number of winning ways. Jokers substitute for normal symbols, never Scatters.</p>
+        <p class="formula">Bet × symbol payout × winning ways × cascade multiplier</p>
+      </section>
+      <section>
+        <h3>Cascades and Golden symbols</h3>
+        <p>Winning symbols disappear and only empty positions refill. A winning Golden symbol becomes a sticky Joker for the next evaluation instead of disappearing.</p>
+      </section>
+      <section>
+        <h3>Free Spins</h3>
+        <p>Three or more Scatters award 10 Free Spins. Three or more during the feature award +5, with no retrigger limit. Free Spin cascade multipliers are ×2, ×4, ×6, then ×10.</p>
+      </section>
+      <section>
+        <h3>Symbol payouts</h3>
+        <div class="paytable" data-paytable></div>
+      </section>
+      <p class="dialog-note"><strong>No real-money gambling:</strong> all peso amounts are fictional, session-only display values with no cash value.</p>
+    </div>
+  </dialog>
+
+  <aside class="dev-controls" data-dev-controls hidden aria-label="FejeAce development controls"></aside>
 
   <script src="js/activity-logger.js"></script>
-  <script type="module" src="js/arcade/main.js"></script>
+  <script type="module" src="js/fejeace/main.mjs"></script>
 </body>
 </html>
