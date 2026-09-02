@@ -37,6 +37,25 @@ export class SoundController {
     });
   }
 
+  resetPlayback(sound) {
+    if (!sound) return;
+    try { sound.pause(); } catch { /* Audio is optional and must not block a spin. */ }
+    try { sound.currentTime = 0; } catch { /* iOS can reject seeks before metadata loads. */ }
+  }
+
+  startPlayback(sound, onFailure = () => {}) {
+    try {
+      const promise = sound.play();
+      if (promise?.catch) promise.catch(onFailure);
+      return promise;
+    } catch {
+      // Some iOS WebKit versions throw synchronously instead of returning a
+      // rejected play promise. Treat sound as optional so gameplay continues.
+      onFailure();
+      return null;
+    }
+  }
+
   unlock() {
     if (this.unlocked) return;
     this.unlocked = true;
@@ -45,17 +64,16 @@ export class SoundController {
     this.audio.forEach((sound) => {
       const previousVolume = sound.volume;
       sound.volume = 0;
-      const promise = sound.play();
+      const restoreVolume = () => { sound.volume = previousVolume; };
+      const promise = this.startPlayback(sound, restoreVolume);
       if (promise?.then) {
         promise.then(() => {
-          sound.pause();
-          sound.currentTime = 0;
-          sound.volume = previousVolume;
-        }).catch(() => { sound.volume = previousVolume; });
+          this.resetPlayback(sound);
+          restoreVolume();
+        }, restoreVolume);
       } else {
-        sound.pause();
-        sound.currentTime = 0;
-        sound.volume = previousVolume;
+        this.resetPlayback(sound);
+        restoreVolume();
       }
     });
   }
@@ -77,24 +95,23 @@ export class SoundController {
     if (!source) return;
     const sound = source.paused ? source : source.cloneNode();
     sound.volume = volume ?? DEFAULT_VOLUMES[name] ?? 0.5;
-    if (restart) sound.currentTime = 0;
+    if (restart) {
+      try { sound.currentTime = 0; } catch { /* iOS may not have loaded metadata yet. */ }
+    }
     this.activeSounds.add(sound);
     sound.addEventListener("ended", () => this.activeSounds.delete(sound), { once: true });
-    const promise = sound.play();
-    promise?.catch(() => this.activeSounds.delete(sound));
+    this.startPlayback(sound, () => this.activeSounds.delete(sound));
   }
 
   stop(name) {
     const sound = this.audio.get(name);
     if (!sound) return;
-    sound.pause();
-    sound.currentTime = 0;
+    this.resetPlayback(sound);
   }
 
   stopAll() {
     new Set([...this.audio.values(), ...this.activeSounds]).forEach((sound) => {
-      sound.pause();
-      sound.currentTime = 0;
+      this.resetPlayback(sound);
     });
     this.activeSounds.clear();
   }
