@@ -99,6 +99,17 @@ test("base and Free Spin cascade multipliers follow the configured progressions"
   assert.deepEqual([0, 1, 2, 3, 4, 8].map((index) => cascadeMultiplier("free", index)), [2, 4, 6, 10, 10, 10]);
 });
 
+test("the published maximum win is 10,000x and every generated result exposes its cap", () => {
+  assert.equal(GameConfig.maxWinMultiple, 10_000);
+  const result = new RoundEngine({ rng: new SequenceRNG([0.42]) }).generate({
+    bet: 100,
+    balance: 10_000,
+    forcedGrid: SAFE_GRID
+  });
+  assert.equal(result.totalWin <= result.bet * 10_000, true);
+  assert.equal(typeof result.maxWinReached, "boolean");
+});
+
 test("forced 4+ cascade scenario produces a complete predetermined timeline", () => {
   const scenario = createScenario("many-cascades");
   const result = new RoundEngine({ rng: new SequenceRNG([0.42]) }).generate({

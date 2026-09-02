@@ -14,6 +14,8 @@ export class AnimationController {
     this.featureArt = root.querySelector("[data-feature-art]");
     this.featureTitle = root.querySelector("[data-feature-title]");
     this.featureValue = root.querySelector("[data-feature-value]");
+    this.featureMultiple = root.querySelector("[data-feature-multiple]");
+    this.coinShower = root.querySelector("[data-coin-shower]");
     this.reduceEffects = matchMedia("(prefers-reduced-motion: reduce)").matches;
   }
 
@@ -37,8 +39,12 @@ export class AnimationController {
     const lastHasScatter = result.initialGrid[4].some((cell) => cell.family === "scatter");
     const anticipation = scatterBeforeLast >= 2 && lastHasScatter;
 
+    this.stage.classList.add("reels-in-motion");
     for (let reel = 0; reel < 5; reel += 1) {
-      this.renderer.cellsForReel(reel).forEach((cell) => cell.classList.add("is-spinning"));
+      this.renderer.cellsForReel(reel).forEach((cell, row) => {
+        cell.style.setProperty("--reel-delay", `${reel * 38 + row * 18}ms`);
+        cell.classList.add("is-spinning");
+      });
     }
     await this.wait(GameConfig.timings.reelSpin);
 
@@ -54,7 +60,7 @@ export class AnimationController {
       await this.wait(GameConfig.timings.reelStagger);
     }
     this.sound.stop("spin");
-    this.stage.classList.remove("is-anticipating");
+    this.stage.classList.remove("is-anticipating", "reels-in-motion");
 
     const initialScatters = [];
     result.initialGrid.forEach((reel, reelIndex) => reel.forEach((cell, rowIndex) => {
@@ -72,6 +78,7 @@ export class AnimationController {
     this.hud.setMessage(`${cascade.wins.reduce((total, win) => total + win.ways, 0)} ways · ${formatPeso(cascade.winAmount)}`, "win");
     this.hud.update({ win: runningWin, multiplier: cascade.multiplier });
     this.sound.play("win");
+    this.stage.dataset.cascadeLevel = String(Math.min(4, cascade.index + 1));
     this.burst(keys, "win");
     await this.wait(GameConfig.timings.winHold);
 
@@ -98,6 +105,7 @@ export class AnimationController {
     this.sound.play("symbolLand");
     this.sound.play("multiplier");
     await this.wait(GameConfig.timings.refill);
+    delete this.stage.dataset.cascadeLevel;
   }
 
   async playScatterResult(scatter) {
@@ -132,6 +140,7 @@ export class AnimationController {
   async showFeature({ title, value, sound = "freeSpins", art = false, duration = GameConfig.timings.freeSpinIntro }) {
     this.featureTitle.textContent = title;
     this.featureValue.textContent = value;
+    this.featureMultiple.textContent = "FEATURE UNLOCKED";
     this.featureArt.hidden = !art;
     this.featureOverlay.hidden = false;
     this.featureOverlay.classList.remove("is-visible");
@@ -147,14 +156,18 @@ export class AnimationController {
   async showWinPresentation(totalWin, bet) {
     const tier = getWinTier(totalWin, bet);
     if (tier.id === "win" || totalWin <= 0) return;
-    const labels = { big: "BIG WIN", mega: "MEGA WIN", epic: "EPIC WIN" };
+    const labels = { big: "BIG WIN", mega: "MEGA WIN", epic: "EPIC WIN", super: "SUPER WIN", ultimate: "ULTIMATE WIN" };
     this.featureTitle.textContent = labels[tier.id];
     this.featureValue.textContent = formatPeso(0);
-    this.featureArt.hidden = tier.id !== "epic";
+    const multiple = totalWin / bet;
+    this.featureMultiple.textContent = `${multiple.toLocaleString("en-US", { maximumFractionDigits: 2 })}× BET`;
+    this.featureArt.hidden = !["epic", "super", "ultimate"].includes(tier.id);
     this.featureOverlay.dataset.tier = tier.id;
     this.featureOverlay.hidden = false;
     this.featureOverlay.classList.add("is-visible");
-    this.sound.play(`${tier.id}Win`);
+    this.stage.dataset.winTier = tier.id;
+    this.buildCoinShower(tier.id);
+    this.sound.play(["super", "ultimate"].includes(tier.id) ? "epicWin" : `${tier.id}Win`);
 
     const started = performance.now();
     const duration = this.reduceEffects ? 120 : GameConfig.timings.countUp;
@@ -168,10 +181,27 @@ export class AnimationController {
       };
       requestAnimationFrame(tick);
     });
-    await this.wait(420);
+    await this.wait({ big: 420, mega: 620, epic: 800, super: 1050, ultimate: 1300 }[tier.id]);
     this.featureOverlay.classList.remove("is-visible");
     await this.wait(180);
     this.featureOverlay.hidden = true;
+    this.coinShower.replaceChildren();
+    delete this.stage.dataset.winTier;
     delete this.featureOverlay.dataset.tier;
+  }
+
+  buildCoinShower(tier) {
+    if (this.reduceEffects) return;
+    const amount = { big: 18, mega: 28, epic: 42, super: 58, ultimate: 72 }[tier] || 18;
+    const fragment = document.createDocumentFragment();
+    for (let index = 0; index < amount; index += 1) {
+      const coin = document.createElement("i");
+      coin.style.setProperty("--x", `${(index * 47) % 100}vw`);
+      coin.style.setProperty("--drift", `${((index * 29) % 180) - 90}px`);
+      coin.style.setProperty("--delay", `${(index % 12) * -0.13}s`);
+      coin.style.setProperty("--fall", `${1.15 + (index % 7) * 0.13}s`);
+      fragment.appendChild(coin);
+    }
+    this.coinShower.replaceChildren(fragment);
   }
 }

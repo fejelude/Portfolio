@@ -56,5 +56,5 @@ export function weightedPick(weightMap, rng) {
     cursor -= Number(weight);
     if (cursor < 0) return value;
   }
-  return entries.at(-1)[0];
+  return entries[entries.length - 1][0];
 }

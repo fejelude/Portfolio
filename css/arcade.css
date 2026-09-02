@@ -19,7 +19,7 @@
   --shadow: 0 28px 90px rgba(2, 0, 8, 0.62);
   --display: "Space Grotesk", sans-serif;
   --body: "Inter", sans-serif;
-  --feje-viewport-height: 100dvh;
+  --feje-viewport-height: 100vh;
 }
 
 * {
@@ -98,6 +98,7 @@ textarea:focus-visible {
     linear-gradient(30deg, transparent 46%, rgba(255,255,255,.14) 48%, transparent 50%),
     linear-gradient(-30deg, transparent 46%, rgba(255,255,255,.1) 48%, transparent 50%);
   background-size: 56px 92px;
+  -webkit-mask-image: linear-gradient(to bottom, black, transparent 76%);
   mask-image: linear-gradient(to bottom, black, transparent 76%);
 }
 
@@ -172,6 +173,7 @@ textarea:focus-visible {
 
 .games-hub {
   width: min(1160px, calc(100% - 36px));
+  min-height: 100vh;
   min-height: 100dvh;
   margin: 0 auto;
   display: grid;
@@ -266,6 +268,7 @@ textarea:focus-visible {
   opacity: 0.28;
   background-image: radial-gradient(circle, rgba(255,255,255,.65) 1px, transparent 1.5px);
   background-size: 31px 31px;
+  -webkit-mask-image: linear-gradient(90deg, black, transparent 72%);
   mask-image: linear-gradient(90deg, black, transparent 72%);
 }
 
@@ -400,6 +403,7 @@ textarea:focus-visible {
   border: 1px solid var(--line);
   border-radius: 20px;
   background: rgba(13, 3, 22, 0.74);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   box-shadow: 0 12px 36px rgba(0,0,0,.24);
 }
@@ -506,6 +510,7 @@ textarea:focus-visible {
     linear-gradient(45deg, transparent 47%, rgba(255,255,255,.16) 49%, transparent 51%),
     linear-gradient(-45deg, transparent 47%, rgba(255,255,255,.1) 49%, transparent 51%);
   background-size: 48px 48px;
+  -webkit-mask-image: linear-gradient(to bottom, black, transparent 64%);
   mask-image: linear-gradient(to bottom, black, transparent 64%);
 }
 
@@ -513,7 +518,9 @@ textarea:focus-visible {
   border: 2px solid transparent;
   border-radius: inherit;
   background: linear-gradient(110deg, rgba(255,211,90,.7), transparent 28%, rgba(255,78,184,.6) 62%, transparent) border-box;
+  -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
   mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: 0.5;
 }
@@ -1051,6 +1058,7 @@ body[data-game-state^="FREE"] .multiplier-orb strong {
   border-radius: 24px;
   background: var(--panel);
   box-shadow: 0 18px 50px rgba(0,0,0,.24);
+  -webkit-backdrop-filter: blur(18px);
   backdrop-filter: blur(18px);
 }
 
@@ -1147,6 +1155,7 @@ body[data-game-state^="FREE"] .multiplier-orb strong {
   overflow: hidden;
   padding: 20px;
   background: radial-gradient(circle, rgba(255, 78, 184, 0.34), rgba(11, 2, 17, 0.86) 62%);
+  -webkit-backdrop-filter: blur(9px);
   backdrop-filter: blur(9px);
   opacity: 0;
   transform: scale(1.07);
@@ -1197,6 +1206,7 @@ body[data-game-state^="FREE"] .multiplier-orb strong {
   border-radius: 50%;
   opacity: 0.38;
   background: repeating-conic-gradient(from 0deg, rgba(255,255,255,.35) 0 4deg, transparent 4deg 15deg);
+  -webkit-mask-image: radial-gradient(circle, transparent 0 15%, black 23%, transparent 71%);
   mask-image: radial-gradient(circle, transparent 0 15%, black 23%, transparent 71%);
   animation: rays-spin 12s linear infinite;
 }
@@ -1221,7 +1231,7 @@ body[data-game-state^="FREE"] .multiplier-orb strong {
 
 .game-dialog {
   width: min(620px, calc(100% - 28px));
-  max-height: min(780px, calc(100dvh - 28px));
+  max-height: min(780px, calc(var(--feje-viewport-height) - 28px));
   padding: 0;
   overflow: hidden;
   border: 1px solid rgba(255, 211, 90, 0.38);
@@ -1233,11 +1243,12 @@ body[data-game-state^="FREE"] .multiplier-orb strong {
 
 .game-dialog::backdrop {
   background: rgba(7, 1, 12, 0.78);
+  -webkit-backdrop-filter: blur(9px);
   backdrop-filter: blur(9px);
 }
 
 .dialog-panel {
-  max-height: min(780px, calc(100dvh - 28px));
+  max-height: min(780px, calc(var(--feje-viewport-height) - 28px));
   overflow: auto;
   margin: 0;
   padding: 24px;
@@ -1899,4 +1910,184 @@ body.reduced-effects .cell-shine,
 body.reduced-effects .feature-rays,
 body.reduced-effects .fx-layer {
   display: none;
+}
+
+/* 2026 arcade polish: richer cabinet depth, reel motion and tiered celebrations. */
+.max-win-tag {
+  border-color: rgba(255, 211, 90, .65) !important;
+  color: #fff2a6 !important;
+  background: linear-gradient(120deg, rgba(255, 211, 90, .16), rgba(255, 78, 184, .12)) !important;
+  box-shadow: 0 0 18px rgba(255, 211, 90, .1);
+}
+
+.reel-lights {
+  position: absolute;
+  inset: 4px;
+  z-index: 7;
+  display: flex;
+  justify-content: space-around;
+  pointer-events: none;
+}
+
+.reel-lights i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fff7c6;
+  box-shadow: 0 0 6px #fff, 0 0 13px var(--gold);
+  animation: marquee-light 1.15s ease-in-out infinite alternate;
+}
+
+.reel-lights i:nth-child(even) { align-self: flex-end; animation-delay: -.55s; }
+.reel-lights i:nth-child(3n) { animation-delay: -.85s; }
+
+.reel-cell::before {
+  content: "";
+  position: absolute;
+  inset: -50% 0;
+  z-index: 3;
+  opacity: 0;
+  background: repeating-linear-gradient(0deg, transparent 0 14px, rgba(255,255,255,.16) 15px, transparent 17px);
+  pointer-events: none;
+}
+
+.reel-cell.is-spinning {
+  border-color: rgba(255, 155, 221, .3);
+  background: linear-gradient(180deg, rgba(121, 36, 147, .72), rgba(31, 5, 50, .9));
+  animation: reel-cell-rush 170ms linear infinite;
+  animation-delay: var(--reel-delay, 0ms);
+}
+
+.reel-cell.is-spinning::before {
+  opacity: .7;
+  animation: speed-lines 240ms linear infinite;
+}
+
+.cabinet.reels-in-motion .reel-frame {
+  box-shadow: inset 0 0 0 3px rgba(255,255,255,.22), inset 0 0 42px rgba(255,78,184,.38), 0 18px 46px rgba(0,0,0,.55), 0 0 42px rgba(255,211,90,.23);
+}
+
+.cabinet[data-cascade-level="2"] .reel-frame,
+.cabinet[data-cascade-level="3"] .reel-frame,
+.cabinet[data-cascade-level="4"] .reel-frame { animation: cascade-energy 420ms ease-in-out infinite alternate; }
+.cabinet[data-cascade-level="4"] { animation: high-cascade-shake 180ms linear infinite; }
+
+.feature-overlay small {
+  position: relative;
+  z-index: 4;
+  margin-top: 10px;
+  padding: 7px 14px;
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 999px;
+  color: #fff4bd;
+  background: rgba(15, 3, 25, .48);
+  font: 900 clamp(.68rem, 2vw, .9rem) var(--display);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  box-shadow: 0 0 24px rgba(255,78,184,.3);
+}
+
+.feature-rings,
+.coin-shower { position: absolute; inset: 0; pointer-events: none; }
+.feature-rings { display: grid; place-items: center; }
+.feature-rings i {
+  position: absolute;
+  width: min(68vw, 650px);
+  aspect-ratio: 1;
+  border: 2px solid rgba(255, 226, 116, .3);
+  border-radius: 50%;
+  box-shadow: inset 0 0 40px rgba(255,78,184,.2), 0 0 40px rgba(255,211,90,.14);
+  animation: victory-ring 1.3s ease-out infinite;
+}
+.feature-rings i:nth-child(2) { animation-delay: -.43s; }
+.feature-rings i:nth-child(3) { animation-delay: -.86s; }
+
+.coin-shower { z-index: 2; overflow: hidden; }
+.coin-shower i {
+  position: absolute;
+  top: -12vh;
+  left: var(--x);
+  width: 13px;
+  height: 18px;
+  border: 2px solid #fff0a1;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #dc8610, #fff08c 45%, #e19312);
+  box-shadow: 0 0 11px rgba(255,211,90,.72);
+  animation: coin-rain var(--fall) linear infinite;
+  animation-delay: var(--delay);
+}
+
+.feature-overlay[data-tier="mega"] { background: radial-gradient(circle, rgba(167,65,255,.48), rgba(9,1,16,.91) 68%); }
+.feature-overlay[data-tier="epic"],
+.feature-overlay[data-tier="super"],
+.feature-overlay[data-tier="ultimate"] { background: radial-gradient(circle, rgba(255,178,44,.38), rgba(255,36,172,.27) 31%, rgba(8,1,15,.94) 70%); }
+.feature-overlay[data-tier="super"] strong,
+.feature-overlay[data-tier="ultimate"] strong { animation: ultimate-title 520ms cubic-bezier(.15,.9,.2,1.35), neon-beat 520ms ease-in-out 520ms infinite alternate; }
+.feature-overlay[data-tier="ultimate"] { animation: chroma-flash 420ms steps(2) infinite; }
+
+@keyframes marquee-light { to { opacity: .25; transform: scale(.6); } }
+@keyframes speed-lines { to { transform: translateY(34%); } }
+@keyframes reel-cell-rush { 50% { filter: brightness(1.26) saturate(1.3); transform: scaleY(1.025); } }
+@keyframes cascade-energy { to { filter: brightness(1.18); box-shadow: inset 0 0 0 3px rgba(255,255,255,.25), 0 0 54px rgba(255,78,184,.5), 0 0 30px var(--gold); } }
+@keyframes high-cascade-shake { 25% { transform: translate(-1px, 1px); } 75% { transform: translate(1px, -1px); } }
+@keyframes victory-ring { from { transform: scale(.28); opacity: .85; } to { transform: scale(1.3); opacity: 0; } }
+@keyframes coin-rain { to { transform: translate(var(--drift), 125vh) rotateY(720deg) rotateZ(340deg); } }
+@keyframes ultimate-title { 0% { transform: scale(.15) rotate(-7deg); opacity: 0; } 72% { transform: scale(1.13) rotate(2deg); } 100% { transform: scale(1); opacity: 1; } }
+@keyframes neon-beat { to { filter: drop-shadow(0 8px 0 #5e1768) drop-shadow(0 0 42px #ffd44f) brightness(1.28); transform: scale(1.035); } }
+@keyframes chroma-flash { 50% { background-color: rgba(255,78,184,.09); } }
+
+@media (min-width: 961px) and (min-height: 760px) {
+  .game-layout { align-items: center; }
+  .cabinet { padding-block: 16px 18px; gap: 12px; }
+  .side-card { transition: transform 220ms ease, border-color 220ms ease; }
+  .side-card:hover { transform: translateY(-3px); border-color: rgba(255,211,90,.3); }
+}
+
+@media (max-width: 430px) {
+  .hub-nav { left: 14px; right: 14px; }
+  .hub-brand { font-size: .61rem; letter-spacing: .1em; }
+  .games-hub { width: calc(100% - 16px); }
+  .card-body { padding-inline: 18px; }
+  .game-controls { grid-template-columns: 42px minmax(64px, 1fr) 90px 42px; }
+  .bet-button { width: 42px; }
+  .feature-overlay strong { font-size: clamp(2.7rem, 17vw, 5rem); }
+}
+
+body.reduced-effects .reel-lights,
+body.reduced-effects .feature-rings,
+body.reduced-effects .coin-shower { display: none; }
+
+/* Native <dialog> arrived late in older iOS Safari; keep settings usable there. */
+.game-dialog.dialog-fallback-open {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  height: var(--feje-viewport-height);
+  margin: 0;
+  padding: 14px;
+  place-items: center;
+  border: 0;
+  border-radius: 0;
+  background: rgba(7, 1, 12, .88);
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
+}
+
+.game-dialog.dialog-fallback-open[open] { display: grid; }
+.game-dialog.dialog-fallback-open .dialog-panel {
+  width: min(800px, 100%);
+  border: 1px solid rgba(255, 211, 90, .38);
+  border-radius: 24px;
+  background: var(--panel-strong);
+  box-shadow: var(--shadow);
+  -webkit-overflow-scrolling: touch;
+}
+
+body.dialog-open { overflow: hidden; }
+
+@supports (height: 100dvh) {
+  :root { --feje-viewport-height: 100dvh; }
 }
