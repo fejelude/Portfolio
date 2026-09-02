@@ -36,3 +36,13 @@ test("production Arcade page loads only the new modular FejeAce entry point", as
   assert.match(html, /js\/fejeace\/main\.mjs/);
   assert.doesNotMatch(html, /three(?:\.module)?\.js|js\/arcade|arcade-games\.js/);
 });
+
+test("the round-state label cannot select and overwrite the document body", async () => {
+  const html = await readFile(path.join(root, "Arcade.html"), "utf8");
+  const hud = await readFile(path.join(root, "js/fejeace/ui/HUDController.mjs"), "utf8");
+
+  assert.match(html, /<body[^>]+data-game-state="IDLE"/);
+  assert.match(html, /<span data-game-state-label>READY<\/span>/);
+  assert.match(hud, /querySelector\("\[data-game-state-label\]"\)/);
+  assert.doesNotMatch(hud, /querySelector\("\[data-game-state\]"\)/);
+});

@@ -9,7 +9,7 @@ export class HUDController {
     this.freeRemaining = root.querySelector("[data-free-remaining]");
     this.freeTotal = root.querySelector("[data-free-total]");
     this.freeBanner = root.querySelector("[data-free-banner]");
-    this.state = root.querySelector("[data-game-state]");
+    this.state = root.querySelector("[data-game-state-label]");
     this.message = root.querySelector("[data-game-message]");
     this.spinButton = root.querySelector("[data-spin]");
   }
@@ -31,7 +31,7 @@ export class HUDController {
   }
 
   setState(state) {
-    this.state.textContent = state.replaceAll("_", " ");
+    this.state.textContent = state === "IDLE" ? "READY" : state.replaceAll("_", " ");
     const locked = state !== "IDLE" && state !== "FREE_SPIN_ACTIVE";
     this.spinButton.disabled = locked;
     this.spinButton.setAttribute("aria-busy", String(locked));
