@@ -80,14 +80,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Replace the multi-link Live Simulations dropdown with one clear Arcade
-    // destination. The Arcade hub already exposes the individual simulations.
+    // Keep older cached markup compatible with the single FejeAce game hub.
     const simulationDropdown = nav.querySelector(':scope > .dropdown');
     if (simulationDropdown) {
       const arcadeLink = document.createElement('a');
       arcadeLink.href = 'Arcade.html';
       arcadeLink.className = 'nav-arcade-link';
-      arcadeLink.textContent = 'Arcade';
+      arcadeLink.textContent = 'Play My Games';
       simulationDropdown.replaceWith(arcadeLink);
     }
 
