@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { GameConfig, cascadeMultiplier } from "../js/fejeace/config/GameConfig.mjs";
+import { GameConfig, bonusBuyCost, cascadeMultiplier } from "../js/fejeace/config/GameConfig.mjs";
 import { ReelConfig } from "../js/fejeace/config/ReelConfig.mjs";
 import { SequenceRNG, weightedPick } from "../js/fejeace/engine/RNG.mjs";
 import { ReelGenerator } from "../js/fejeace/engine/ReelGenerator.mjs";
@@ -11,6 +11,7 @@ import { processCascade } from "../js/fejeace/engine/CascadeEngine.mjs";
 import { evaluateScatters } from "../js/fejeace/engine/ScatterEngine.mjs";
 import { RoundEngine } from "../js/fejeace/engine/RoundEngine.mjs";
 import { GameState, GameStates } from "../js/fejeace/state/GameState.mjs";
+import { BalanceState } from "../js/fejeace/state/BalanceState.mjs";
 import { createScenario, SAFE_GRID } from "../js/fejeace/dev/ScenarioFactory.mjs";
 
 const tokensToGrid = (tokens, prefix = "test") => tokens.map((reel, reelIndex) => reel.map((token, rowIndex) => {
@@ -97,6 +98,20 @@ test("a winning Golden symbol becomes a sticky Wild in the same location", () =>
 test("base and Free Spin cascade multipliers follow the configured progressions", () => {
   assert.deepEqual([0, 1, 2, 3, 4, 8].map((index) => cascadeMultiplier("base", index)), [1, 2, 3, 5, 5, 5]);
   assert.deepEqual([0, 1, 2, 3, 4, 8].map((index) => cascadeMultiplier("free", index)), [2, 4, 6, 10, 10, 10]);
+});
+
+test("Bonus Buy costs 40.5x the selected bet for each quantity", () => {
+  assert.equal(bonusBuyCost(10, 1), 405);
+  assert.equal(bonusBuyCost(100, 1), 4_050);
+  assert.equal(bonusBuyCost(100, 3), 12_150);
+  assert.equal(bonusBuyCost(100, 500), 400_950, "quantity is safely capped at 99");
+});
+
+test("Bonus Buy debit is atomic and never allows a negative balance", () => {
+  const balance = new BalanceState(10_000);
+  assert.equal(balance.debit(bonusBuyCost(100, 2)), 1_900);
+  assert.throws(() => balance.debit(bonusBuyCost(100, 1)), /INSUFFICIENT_BALANCE/);
+  assert.equal(balance.value, 1_900);
 });
 
 test("the published maximum win is 10,000x and every generated result exposes its cap", () => {

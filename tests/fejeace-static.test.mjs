@@ -38,6 +38,17 @@ test("production Arcade page loads only the new modular FejeAce entry point", as
   assert.doesNotMatch(html, /three(?:\.module)?\.js|js\/arcade|arcade-games\.js/);
 });
 
+test("Bonus Buy UI publishes its price, quantity, and locked-bet promise", async () => {
+  const [html, main] = await Promise.all([
+    readFile(path.join(root, "Arcade.html"), "utf8"),
+    readFile(path.join(root, "js/fejeace/main.mjs"), "utf8")
+  ]);
+  assert.match(html, /data-buy-bonus/);
+  assert.match(html, /40\.5× bet/);
+  assert.match(html, /min="1" max="99"/);
+  assert.match(main, /mode === "free" \? this\.freeSpins\.bet : this\.bet/);
+});
+
 test("the round-state label cannot select and overwrite the document body", async () => {
   const html = await readFile(path.join(root, "Arcade.html"), "utf8");
   const hud = await readFile(path.join(root, "js/fejeace/ui/HUDController.mjs"), "utf8");

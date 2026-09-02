@@ -11,6 +11,7 @@ export class ModalController {
       button.addEventListener("click", () => this.close(button.closest("dialog")));
     });
     this.root.querySelectorAll("dialog").forEach((dialog) => {
+      dialog.addEventListener("close", () => this.afterClose(dialog));
       dialog.addEventListener("click", (event) => {
         if (event.target === dialog) this.close(dialog);
       });
@@ -19,7 +20,10 @@ export class ModalController {
 
   open(dialog) {
     if (!dialog) return;
-    if (typeof dialog.showModal === "function") dialog.showModal();
+    if (typeof dialog.showModal === "function") {
+      if (!dialog.open) dialog.showModal();
+      document.body.classList.add("dialog-open");
+    }
     else {
       dialog.setAttribute("open", "");
       dialog.classList.add("dialog-fallback-open");
@@ -29,9 +33,16 @@ export class ModalController {
 
   close(dialog) {
     if (!dialog) return;
-    if (typeof dialog.close === "function") dialog.close();
+    if (typeof dialog.close === "function" && dialog.open) dialog.close();
     else dialog.removeAttribute("open");
     dialog.classList.remove("dialog-fallback-open");
-    if (!this.root.querySelector("dialog.dialog-fallback-open")) document.body.classList.remove("dialog-open");
+    this.afterClose(dialog);
+  }
+
+  afterClose(dialog) {
+    dialog?.classList.remove("dialog-fallback-open");
+    if (![...this.root.querySelectorAll("dialog")].some((item) => item.open)) {
+      document.body.classList.remove("dialog-open");
+    }
   }
 }

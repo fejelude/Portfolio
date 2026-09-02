@@ -1,4 +1,4 @@
-import { GameConfig, cascadeMultiplier, formatPeso } from "./config/GameConfig.mjs";
+import { GameConfig, bonusBuyCost, cascadeMultiplier, formatPeso } from "./config/GameConfig.mjs";
 import { AssetConfig, preloadImages, symbolAsset } from "./config/AssetConfig.mjs";
 import { SymbolConfig, RegularSymbolIds } from "./config/SymbolConfig.mjs";
 import { RoundEngine } from "./engine/RoundEngine.mjs";
@@ -32,6 +32,7 @@ class FejeAceApp {
     this.animation = new AnimationController({ renderer: this.renderer, sound: this.sound, hud: this.hud, root });
     this.engine = new RoundEngine({ debug: developmentControlsAllowed() });
     this.pendingScenario = null;
+    this.bonusQuantity = 1;
   }
 
   get bet() {
@@ -40,7 +41,8 @@ class FejeAceApp {
 
   async mount() {
     this.sound.preload();
-    new ModalController(this.root).mount();
+    this.modals = new ModalController(this.root);
+    this.modals.mount();
     new ResponsiveController().start();
     this.renderPaytable();
     this.renderIdleGrid();
@@ -70,6 +72,12 @@ class FejeAceApp {
     });
     this.root.querySelector("[data-exit-game]").addEventListener("click", () => this.exitGame());
     this.root.querySelector("[data-spin]").addEventListener("click", () => this.runPaidSpin());
+    this.root.querySelector("[data-buy-bonus]").addEventListener("click", () => this.openBonusBuy());
+    const bonusQuantity = this.root.querySelector("[data-bonus-quantity]");
+    bonusQuantity.addEventListener("input", () => this.updateBonusQuote(bonusQuantity.value));
+    this.root.querySelector("[data-bonus-minus]").addEventListener("click", () => this.updateBonusQuote(this.bonusQuantity - 1));
+    this.root.querySelector("[data-bonus-plus]").addEventListener("click", () => this.updateBonusQuote(this.bonusQuantity + 1));
+    this.root.querySelector("[data-confirm-bonus]").addEventListener("click", () => this.purchaseBonus());
     this.root.querySelector("[data-bet-down]").addEventListener("click", () => this.changeBet(-1));
     this.root.querySelector("[data-bet-up]").addEventListener("click", () => this.changeBet(1));
     this.root.querySelectorAll("[data-toggle-sound]").forEach((button) => {
@@ -109,7 +117,7 @@ class FejeAceApp {
     this.game.hidden = false;
     document.body.classList.add("game-open");
     if (updateHistory) history.pushState({ game: "fejeace" }, "", "?game=fejeace");
-    requestAnimationFrame(() => this.root.querySelector("[data-spin]").focus({ preventScroll: true }));
+    requestAnimationFrame(() => this.focusWithoutScroll(this.root.querySelector("[data-spin]")));
   }
 
   exitGame(updateHistory = true) {
@@ -122,7 +130,7 @@ class FejeAceApp {
     this.hub.hidden = false;
     document.body.classList.remove("game-open");
     if (updateHistory) history.pushState({}, "", location.pathname);
-    this.root.querySelector("[data-launch-fejeace]")?.focus({ preventScroll: true });
+    this.focusWithoutScroll(this.root.querySelector("[data-launch-fejeace]"));
   }
 
   changeBet(direction) {
@@ -130,6 +138,56 @@ class FejeAceApp {
     this.betIndex = Math.min(GameConfig.betLevels.length - 1, Math.max(0, this.betIndex + direction));
     this.hud.update({ bet: this.bet });
     this.sound.play("betChange");
+  }
+
+  focusWithoutScroll(element) {
+    if (!element) return;
+    try { element.focus({ preventScroll: true }); } catch { element.focus(); }
+  }
+
+  bonusCost(quantity = this.bonusQuantity) {
+    return bonusBuyCost(this.bet, quantity);
+  }
+
+  openBonusBuy() {
+    if (this.gameState.current !== GameStates.IDLE) return;
+    this.sound.unlock();
+    this.sound.play("click");
+    this.updateBonusQuote(1);
+    this.modals.open(this.root.getElementById("bonus-dialog"));
+  }
+
+  updateBonusQuote(value) {
+    const quantity = Math.min(GameConfig.bonusBuyMaxQuantity, Math.max(1, Math.trunc(Number(value) || 1)));
+    this.bonusQuantity = quantity;
+    this.root.querySelector("[data-bonus-quantity]").value = String(quantity);
+    this.root.querySelector("[data-bonus-bet]").textContent = formatPeso(this.bet);
+    this.root.querySelector("[data-bonus-unit-price]").textContent = formatPeso(this.bet * GameConfig.bonusBuyCostMultiple);
+    this.root.querySelector("[data-bonus-total]").textContent = formatPeso(this.bonusCost());
+    this.root.querySelector("[data-bonus-spins]").textContent = String(quantity * GameConfig.freeSpinsAwarded);
+    const confirm = this.root.querySelector("[data-confirm-bonus]");
+    confirm.disabled = !this.balance.canAfford(this.bonusCost());
+    confirm.querySelector("small").textContent = confirm.disabled ? "Not enough demo balance" : `Pay ${formatPeso(this.bonusCost())}`;
+  }
+
+  async purchaseBonus() {
+    if (this.gameState.current !== GameStates.IDLE) return;
+    const purchasedBet = this.bet;
+    const spins = this.bonusQuantity * GameConfig.freeSpinsAwarded;
+    try {
+      this.balance.debit(this.bonusCost());
+      this.hud.update({ balance: this.balance.value, bet: purchasedBet, win: 0 });
+      this.modals.close(this.root.getElementById("bonus-dialog"));
+      await this.startFreeSpins(purchasedBet, null, spins, true);
+    } catch (error) {
+      if (error.message === "INSUFFICIENT_BALANCE") {
+        this.sound.play("error");
+        this.updateBonusQuote(this.bonusQuantity);
+        this.showMessage("You do not have enough demo balance for that Bonus Buy.", "error");
+        return;
+      }
+      this.handleRoundError(error);
+    }
   }
 
   async runPaidSpin() {
@@ -155,8 +213,9 @@ class FejeAceApp {
   async executeRound(mode, scenario = null) {
     this.gameState.transition(GameStates.SPIN_REQUESTED, { mode });
     this.gameState.transition(GameStates.GENERATING, { mode });
+    const roundBet = mode === "free" ? this.freeSpins.bet : this.bet;
     const result = this.engine.generate({
-      bet: this.bet,
+      bet: roundBet,
       balance: this.balance.value,
       mode,
       forcedGrid: scenario?.forcedGrid || null,
@@ -195,11 +254,17 @@ class FejeAceApp {
     return result;
   }
 
-  async startFreeSpins(bet, forcedScenario = null, spins = GameConfig.freeSpinsAwarded) {
+  async startFreeSpins(bet, forcedScenario = null, spins = GameConfig.freeSpinsAwarded, purchased = false) {
     this.gameState.transition(GameStates.FREE_SPIN_INTRO);
     this.freeSpins.begin(bet, spins);
     this.hud.updateFreeSpins(this.freeSpins.snapshot());
-    await this.animation.showFeature({ title: "FREE SPINS", value: `${spins} SPINS · MULTIPLIERS START AT ×2`, art: true });
+    await this.animation.showFeature({
+      title: purchased ? "BONUS BOUGHT!" : "FREE SPINS",
+      value: `${spins} SPINS · BET LOCKED AT ${formatPeso(bet)}`,
+      multiple: "FREE MULTIPLIERS ×2 → ×4 → ×6 → ×10",
+      art: true,
+      duration: purchased ? 1_650 : GameConfig.timings.freeSpinIntro
+    });
     this.gameState.transition(GameStates.FREE_SPIN_ACTIVE);
     await this.runFreeSpinSequence(forcedScenario);
   }

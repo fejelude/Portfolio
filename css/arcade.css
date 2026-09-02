@@ -52,6 +52,10 @@ body.game-open {
   height: var(--feje-viewport-height);
   overflow: hidden;
   overscroll-behavior: none;
+  /* Prevent Safari's dynamic toolbar from moving the locked game underneath it. */
+  position: fixed;
+  inset: var(--feje-viewport-top, 0) 0 auto;
+  width: 100%;
 }
 
 button,
@@ -935,6 +939,26 @@ body[data-game-state^="FREE"] .multiplier-orb strong {
   gap: 8px;
 }
 
+.buy-bonus-button {
+  grid-column: 1 / -1;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 1px solid rgba(255, 158, 214, .62);
+  border-radius: 15px;
+  color: #fff;
+  background: linear-gradient(110deg, rgba(255, 78, 184, .28), rgba(155, 92, 255, .24));
+  box-shadow: inset 0 1px rgba(255,255,255,.13), 0 8px 20px rgba(255,78,184,.1);
+  cursor: pointer;
+}
+
+.buy-bonus-button span { font: 900 .82rem var(--display); letter-spacing: .08em; }
+.buy-bonus-button small { color: var(--muted); font-size: .67rem; }
+.buy-bonus-button b { color: var(--gold); }
+.buy-bonus-button:hover { border-color: var(--gold); filter: brightness(1.12); }
+
 .bet-button {
   width: 48px;
   height: 48px;
@@ -1252,6 +1276,7 @@ body[data-game-state^="FREE"] .multiplier-orb strong {
   overflow: auto;
   margin: 0;
   padding: 24px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .dialog-head {
@@ -1284,14 +1309,32 @@ body[data-game-state^="FREE"] .multiplier-orb strong {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  padding: 13px 0;
-  border-bottom: 1px solid var(--line);
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  background: linear-gradient(135deg, rgba(255,255,255,.07), rgba(255,78,184,.035));
 }
 
 .setting-row > span {
   display: grid;
   gap: 4px;
 }
+
+.settings-head p { margin: 8px 0 0; color: var(--muted); font-size: .8rem; }
+.settings-grid { display: grid; gap: 10px; }
+.setting-row .setting-icon {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  color: var(--gold);
+  background: rgba(255,211,90,.09);
+  font-size: 1.1rem;
+}
+.setting-row > span:nth-child(2) { flex: 1; }
+.setting-row input.switch { width: 42px; height: 24px; accent-color: var(--pink); }
 
 .setting-row strong {
   font-size: 0.92rem;
@@ -1332,8 +1375,11 @@ body[data-game-state^="FREE"] .multiplier-orb strong {
 }
 
 .rules-dialog section {
-  padding: 16px 0;
-  border-top: 1px solid var(--line);
+  margin-top: 10px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255,255,255,.035);
 }
 
 .rules-dialog h3 {
@@ -1347,6 +1393,31 @@ body[data-game-state^="FREE"] .multiplier-orb strong {
   font-size: 0.88rem;
   line-height: 1.65;
 }
+
+.rules-dialog p strong { color: #fff1a1; }
+
+.bonus-dialog { width: min(540px, calc(100% - 24px)); }
+.bonus-hero { display: grid; justify-items: center; gap: 5px; padding: 18px; border: 1px solid rgba(255,211,90,.4); border-radius: 18px; background: radial-gradient(circle at top, rgba(255,211,90,.18), rgba(255,78,184,.08)); text-align: center; }
+.bonus-hero span, .bonus-hero small, .range-note { color: var(--muted); }
+.bonus-hero strong { color: var(--gold); font: 900 1.55rem var(--display); }
+.bonus-quote { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin: 12px 0; }
+.bonus-quote > div { display: grid; gap: 4px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.04); }
+.bonus-quote span, .bonus-quote small, .quantity-label { color: var(--muted); font-size: .7rem; }
+.bonus-quote strong { font: 800 1rem var(--display); }
+.quantity-label { display: block; margin: 16px 0 7px; font-weight: 800; text-transform: uppercase; letter-spacing: .09em; }
+.quantity-stepper { display: grid; grid-template-columns: 52px 1fr 52px; gap: 8px; }
+.quantity-stepper button, .quantity-stepper input { min-height: 50px; border: 1px solid var(--line); border-radius: 14px; color: #fff; background: #251035; text-align: center; font-weight: 900; }
+.quantity-stepper button { color: var(--gold); font-size: 1.35rem; cursor: pointer; }
+.quantity-stepper input { width: 100%; font-size: 1.1rem; -moz-appearance: textfield; }
+.quantity-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.range-note { display: block; margin-top: 7px; text-align: center; }
+.bonus-total { display: flex; align-items: center; justify-content: space-between; margin: 16px 0 10px; padding: 14px; border-radius: 15px; background: rgba(255,211,90,.09); }
+.bonus-total span { color: var(--muted); font-size: .8rem; }
+.bonus-total strong { color: var(--gold); font: 900 1.35rem var(--display); }
+.confirm-bonus { width: 100%; min-height: 58px; display: grid; place-content: center; border: 1px solid #fff1a1; border-radius: 17px; color: #351300; background: linear-gradient(#ffe982, #f5a91e); cursor: pointer; }
+.confirm-bonus span { font: 900 .95rem var(--display); }
+.confirm-bonus small { font-size: .67rem; }
+.confirm-bonus:disabled { opacity: .48; cursor: not-allowed; filter: grayscale(.4); }
 
 .rules-dialog .formula {
   margin-top: 12px;

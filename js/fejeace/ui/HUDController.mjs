@@ -31,7 +31,8 @@ export class HUDController {
   }
 
   setState(state) {
-    this.state.textContent = state === "IDLE" ? "READY" : state.replaceAll("_", " ");
+    // replaceAll is missing in older iOS Safari versions still used by some players.
+    this.state.textContent = state === "IDLE" ? "READY" : state.replace(/_/g, " ");
     const locked = state !== "IDLE" && state !== "FREE_SPIN_ACTIVE";
     this.spinButton.disabled = locked;
     this.spinButton.setAttribute("aria-busy", String(locked));

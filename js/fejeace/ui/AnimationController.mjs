@@ -1,5 +1,6 @@
 import { GameConfig, formatPeso, getWinTier } from "../config/GameConfig.mjs";
 import { winningCellKeys } from "../engine/WaysEvaluator.mjs";
+import { RegularSymbolIds } from "../config/SymbolConfig.mjs";
 
 const uniqueKeys = (wins) => [...new Set(winningCellKeys(wins))];
 
@@ -31,7 +32,6 @@ export class AnimationController {
 
   async playInitialReveal(result) {
     this.renderer.clearEffects();
-    this.renderer.renderGrid(result.initialGrid);
     this.sound.play("spin");
     const scatterBeforeLast = result.initialGrid.slice(0, 4)
       .flat()
@@ -40,13 +40,31 @@ export class AnimationController {
     const anticipation = scatterBeforeLast >= 2 && lastHasScatter;
 
     this.stage.classList.add("reels-in-motion");
+    // Keep the predetermined result out of the DOM until each reel stops. The
+    // shuffle is presentation-only and never feeds back into game RNG or payout.
+    const shuffledGrid = result.initialGrid.map((reel, reelIndex) => reel.map((cell, row) => ({
+      uid: `shuffle:${reelIndex}:${row}`,
+      family: RegularSymbolIds[(reelIndex * 3 + row * 2) % RegularSymbolIds.length],
+      variant: "normal",
+      sticky: false
+    })));
+    this.renderer.renderGrid(shuffledGrid);
     for (let reel = 0; reel < 5; reel += 1) {
       this.renderer.cellsForReel(reel).forEach((cell, row) => {
         cell.style.setProperty("--reel-delay", `${reel * 38 + row * 18}ms`);
         cell.classList.add("is-spinning");
       });
     }
-    await this.wait(GameConfig.timings.reelSpin);
+    const shuffleStarted = performance.now();
+    const shuffleDuration = this.reduceEffects ? 100 : GameConfig.timings.reelSpin;
+    while (performance.now() - shuffleStarted < shuffleDuration) {
+      shuffledGrid.forEach((column, reelIndex) => column.forEach((cell, row) => {
+        const next = (RegularSymbolIds.indexOf(cell.family) + 1 + reelIndex + row) % RegularSymbolIds.length;
+        cell.family = RegularSymbolIds[next];
+        this.renderer.setCell(reelIndex, row, cell);
+      }));
+      await this.wait(58);
+    }
 
     for (let reel = 0; reel < 5; reel += 1) {
       if (reel === 4 && anticipation) {
@@ -55,6 +73,7 @@ export class AnimationController {
         this.sound.play("anticipation");
         await this.wait(GameConfig.timings.anticipationExtra);
       }
+      result.initialGrid[reel].forEach((cell, row) => this.renderer.setCell(reel, row, cell));
       this.renderer.cellsForReel(reel).forEach((cell) => cell.classList.remove("is-spinning", "is-anticipating"));
       this.sound.play("reelStop");
       await this.wait(GameConfig.timings.reelStagger);
@@ -137,10 +156,10 @@ export class AnimationController {
     });
   }
 
-  async showFeature({ title, value, sound = "freeSpins", art = false, duration = GameConfig.timings.freeSpinIntro }) {
+  async showFeature({ title, value, multiple = "FEATURE UNLOCKED", sound = "freeSpins", art = false, duration = GameConfig.timings.freeSpinIntro }) {
     this.featureTitle.textContent = title;
     this.featureValue.textContent = value;
-    this.featureMultiple.textContent = "FEATURE UNLOCKED";
+    this.featureMultiple.textContent = multiple;
     this.featureArt.hidden = !art;
     this.featureOverlay.hidden = false;
     this.featureOverlay.classList.remove("is-visible");
