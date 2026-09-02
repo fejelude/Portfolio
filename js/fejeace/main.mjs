@@ -292,7 +292,6 @@ class FejeAceApp {
       scenario = null;
       this.freeSpins.recordWin(result.totalWin);
       this.hud.updateFreeSpins(this.freeSpins.snapshot());
-      await this.animation.showWinPresentation(result.totalWin, result.bet);
 
       this.gameState.transition(GameStates.FREE_SPIN_ACTIVE);
       if (result.freeSpinsRetriggered) {
@@ -313,6 +312,7 @@ class FejeAceApp {
     this.gameState.transition(GameStates.FREE_SPIN_COMPLETE);
     const completed = this.freeSpins.complete();
     await this.animation.showFeature({ title: "FREE SPINS COMPLETE", value: formatPeso(completed.totalWin), art: true, duration: 1_000 });
+    await this.animation.showWinPresentation(completed.totalWin, completed.bet);
     this.hud.updateFreeSpins(this.freeSpins.snapshot());
     this.gameState.transition(GameStates.IDLE);
   }

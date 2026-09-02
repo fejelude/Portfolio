@@ -87,3 +87,17 @@ test("settings expose functional RNG levels and tiered MAX WIN presentation", as
   assert.match(config, /FORCE MAX WIN/);
   assert.match(animation, /MAX WIN/);
 });
+
+test("Free Spins stack round wins and present the win tier only after the feature completes", async () => {
+  const main = await readFile(path.join(root, "js/fejeace/main.mjs"), "utf8");
+  const sequence = main.slice(
+    main.indexOf("async runFreeSpinSequence"),
+    main.indexOf("async runDevelopmentScenario")
+  );
+  const loop = sequence.slice(sequence.indexOf("while ("), sequence.indexOf("FREE_SPIN_COMPLETE"));
+  const completion = sequence.slice(sequence.indexOf("FREE_SPIN_COMPLETE"));
+
+  assert.match(loop, /this\.freeSpins\.recordWin\(result\.totalWin\)/);
+  assert.doesNotMatch(loop, /showWinPresentation/);
+  assert.match(completion, /this\.freeSpins\.complete\(\)[\s\S]*showWinPresentation\(completed\.totalWin, completed\.bet\)/);
+});
