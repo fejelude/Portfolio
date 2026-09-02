@@ -101,3 +101,35 @@ test("Free Spins stack round wins and present the win tier only after the featur
   assert.doesNotMatch(loop, /showWinPresentation/);
   assert.match(completion, /this\.freeSpins\.complete\(\)[\s\S]*showWinPresentation\(completed\.totalWin, completed\.bet\)/);
 });
+
+test("synchronous iOS media failures never interrupt gameplay audio calls", async () => {
+  const originalWindow = globalThis.window;
+  const originalAudio = globalThis.Audio;
+
+  class ThrowingAudio {
+    constructor() {
+      this.paused = true;
+      this.volume = 1;
+    }
+    set currentTime(_value) { throw new Error("MEDIA_NOT_READY"); }
+    play() { throw new Error("PLAYBACK_NOT_ALLOWED"); }
+    pause() { throw new Error("MEDIA_NOT_READY"); }
+    addEventListener() {}
+    cloneNode() { return new ThrowingAudio(); }
+  }
+
+  globalThis.window = { sessionStorage: null };
+  globalThis.Audio = ThrowingAudio;
+  try {
+    const { SoundController } = await import("../js/fejeace/audio/SoundController.mjs");
+    const sound = new SoundController();
+    sound.preload();
+    assert.doesNotThrow(() => sound.unlock());
+    assert.doesNotThrow(() => sound.play("spin"));
+    assert.doesNotThrow(() => sound.stop("spin"));
+    assert.doesNotThrow(() => sound.stopAll());
+  } finally {
+    globalThis.window = originalWindow;
+    globalThis.Audio = originalAudio;
+  }
+});
