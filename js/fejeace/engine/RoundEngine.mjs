@@ -5,7 +5,7 @@ import { evaluateWays } from "./WaysEvaluator.mjs";
 import { calculateWins, roundMoney, totalWinAmount } from "./WinCalculator.mjs";
 import { processCascade } from "./CascadeEngine.mjs";
 import { evaluateScatters } from "./ScatterEngine.mjs";
-import { boostedScenario, maxWinScenario, rngLevelProfile } from "../config/RNGLevelConfig.mjs";
+import { maxWinScenario, rngLevelProfile } from "../config/RNGLevelConfig.mjs";
 
 let roundSequence = 0;
 
@@ -41,10 +41,8 @@ export class RoundEngine {
     const profile = rngLevelProfile(rngLevel);
     if (forcedGrid) return this.generateCandidate({ bet, balance, mode, forcedGrid, refillQueues, rngLevel: profile.level });
     if (profile.forceMaxWin) {
-      return this.generateCandidate({ bet, balance, mode, ...maxWinScenario(this.rng), rngLevel: profile.level });
+      return this.generateCandidate({ bet, balance, mode, ...maxWinScenario(), rngLevel: profile.level });
     }
-    const luckyThread = boostedScenario(profile, this.rng);
-    if (luckyThread) return this.generateCandidate({ bet, balance, mode, ...luckyThread, rngLevel: profile.level });
     let best = null;
     for (let attempt = 0; attempt < profile.candidates; attempt += 1) {
       const candidate = this.generateCandidate({ bet, balance, mode, rngLevel: profile.level });
@@ -55,7 +53,7 @@ export class RoundEngine {
     return best;
   }
 
-  generateCandidate({ bet, balance, mode, forcedGrid = null, refillQueues = [], rngLevel = 0, scenarioVariant = null }) {
+  generateCandidate({ bet, balance, mode, forcedGrid = null, refillQueues = [], rngLevel = 0 }) {
     const cost = mode === "base" ? bet : 0;
 
     const spinId = `FA-${Date.now().toString(36).toUpperCase()}-${(++roundSequence).toString(36).toUpperCase()}`;
@@ -108,7 +106,6 @@ export class RoundEngine {
       uncappedWin,
       maxWinReached: uncappedWin >= maxWin,
       rngLevel,
-      scenarioVariant,
       finalBalance: roundMoney(balance - cost + totalWin)
     });
 
