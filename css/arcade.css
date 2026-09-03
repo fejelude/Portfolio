@@ -908,6 +908,20 @@ body[data-game-state^="FREE"] .multiplier-orb strong {
   animation: cabinet-impact 250ms ease-out;
 }
 
+/* Cascade energy grows with the actual accumulated bet multiple. */
+.cabinet[data-win-intensity="2"] { filter: saturate(1.08) brightness(1.03); }
+.cabinet[data-win-intensity="3"] { filter: saturate(1.18) brightness(1.06); }
+.cabinet[data-win-intensity="4"] { filter: saturate(1.32) brightness(1.1); animation: high-cascade-shake 180ms linear infinite; }
+.cabinet[data-win-intensity="5"] { filter: saturate(1.48) brightness(1.16); animation: high-cascade-shake 105ms linear infinite; }
+.cabinet.max-win-impact { animation: max-win-impact 260ms cubic-bezier(.1,.8,.2,1); }
+
+@keyframes max-win-impact {
+  0% { transform: scale(1); filter: brightness(1); }
+  22% { transform: scale(1.035); filter: brightness(2.2) saturate(1.8); }
+  55% { transform: scale(.985) translateY(5px); filter: brightness(1.45); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
 .cabinet.golden-impact {
   animation: golden-screen 470ms ease-out;
 }

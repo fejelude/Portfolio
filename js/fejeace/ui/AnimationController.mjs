@@ -91,20 +91,25 @@ export class AnimationController {
     }
   }
 
-  async playCascade(cascade, runningWin, onPhase = () => {}) {
+  async playCascade(cascade, runningWin, bet, onPhase = () => {}) {
+    const winMultiple = bet > 0 ? runningWin / bet : 0;
+    const intensity = winMultiple >= 5000 ? 5 : winMultiple >= 1000 ? 4 : winMultiple >= 250 ? 3 : winMultiple >= 50 ? 2 : 1;
     const keys = uniqueKeys(cascade.wins);
     this.renderer.markWinning(keys);
     this.hud.setMessage(`${cascade.wins.reduce((total, win) => total + win.ways, 0)} ways · ${formatPeso(cascade.winAmount)}`, "win");
     this.hud.update({ win: runningWin, multiplier: cascade.multiplier });
     this.sound.play("win");
     this.stage.dataset.cascadeLevel = String(Math.min(4, cascade.index + 1));
-    this.burst(keys, "win");
-    await this.wait(GameConfig.timings.winHold);
+    this.stage.dataset.winIntensity = String(intensity);
+    this.burst(keys, "win", intensity);
+    if (intensity >= 3) this.sound.play("multiplier");
+    await this.wait(GameConfig.timings.winHold + intensity * 45);
 
     onPhase("eliminating");
     this.renderer.markEliminating(cascade.removedCells);
     this.stage.classList.add("cascade-impact");
     this.sound.play("cascade");
+    if (intensity >= 4) this.sound.play("bigWin");
     await this.wait(GameConfig.timings.eliminate);
     this.stage.classList.remove("cascade-impact");
 
@@ -113,7 +118,7 @@ export class AnimationController {
       this.renderer.applyGoldenTransforms(cascade.goldenTransforms, cascade.gridAfterElimination);
       this.sound.play("golden");
       this.sound.play("wildTransform");
-      this.burst(cascade.goldenTransforms.map(({ key }) => key), "golden");
+      this.burst(cascade.goldenTransforms.map(({ key }) => key), "golden", Math.min(5, intensity + 1));
       this.stage.classList.add("golden-impact");
       await this.wait(GameConfig.timings.goldenTransform);
       this.stage.classList.remove("golden-impact");
@@ -125,6 +130,7 @@ export class AnimationController {
     this.sound.play("multiplier");
     await this.wait(GameConfig.timings.refill);
     delete this.stage.dataset.cascadeLevel;
+    delete this.stage.dataset.winIntensity;
   }
 
   async playScatterResult(scatter) {
@@ -135,10 +141,11 @@ export class AnimationController {
     await this.wait(260);
   }
 
-  burst(keys, type) {
+  burst(keys, type, intensity = 1) {
     if (this.reduceEffects) return;
-    const maxPerCell = matchMedia("(max-width: 700px)").matches ? 5 : 9;
-    keys.slice(0, 12).forEach((key) => {
+    const mobile = matchMedia("(max-width: 700px)").matches;
+    const maxPerCell = (mobile ? 3 : 5) + Math.min(5, intensity) * (mobile ? 1 : 2);
+    keys.slice(0, 8 + intensity * 3).forEach((key) => {
       const cell = this.renderer.cells.get(key);
       if (!cell) return;
       const stageRect = this.stage.getBoundingClientRect();
@@ -181,6 +188,16 @@ export class AnimationController {
       return;
     }
     const labels = { big: "BIG WIN", super: "SUPER WIN", mega: "MEGA WIN", insane: "INSANE WIN", max: "MAX WIN" };
+    if (tier.id === "max") {
+      this.stage.dataset.winTier = "max-pending";
+      this.hud.setMessage("MAX WIN LOCKED", "win");
+      this.sound.play("anticipation");
+      await this.wait(720);
+      this.stage.classList.add("max-win-impact");
+      this.sound.play("cascade");
+      await this.wait(260);
+      this.stage.classList.remove("max-win-impact");
+    }
     this.featureTitle.textContent = labels[tier.id];
     this.featureValue.textContent = formatPeso(0);
     const multiple = totalWin / bet;

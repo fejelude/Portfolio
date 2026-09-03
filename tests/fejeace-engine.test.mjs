@@ -132,8 +132,32 @@ test("RNG Level 10 reaches the cap through calculated winning cascades", () => {
   assert.equal(result.totalWin, 100_000_000);
   assert.equal(result.maxWinReached, true);
   assert.ok(result.uncappedWin >= result.totalWin);
-  assert.ok(result.cascades.length >= 4);
+  assert.ok(result.cascades.length >= 8);
+  assert.ok(new Set(result.initialGrid.flat().map((cell) => cell.family)).size > 1, "the opening board is not a symbol wall");
+  assert.ok(result.cascades.some((cascade) => cascade.goldenTransforms.length), "the journey includes Golden-to-Joker play");
   assert.equal(result.rngLevel, 10);
+});
+
+test("MAX WIN journeys vary by seed while preserving the payout cap", () => {
+  const variants = [91, 92, 93].map((seed) => new RoundEngine({ rng: new SeededRNG(seed) }).generate({
+    bet: 100,
+    balance: 10_000,
+    rngLevel: 10
+  }));
+  assert.ok(variants.every((result) => result.totalWin === 1_000_000));
+  assert.ok(new Set(variants.map((result) => result.scenarioVariant)).size > 1);
+  assert.ok(new Set(variants.map((result) => result.cascades.map((cascade) => cascade.winAmount).join(","))).size > 1);
+});
+
+test("high RNG profiles produce materially longer and stronger lucky threads", () => {
+  const results = [3, 6, 9].map((level) => new RoundEngine({ rng: new SequenceRNG([0.01, 0.82, 0.37, 0.64]) }).generate({
+    bet: 100,
+    balance: 10_000,
+    rngLevel: level
+  }));
+  assert.ok(results[1].cascades.length > results[0].cascades.length);
+  assert.ok(results[2].cascades.length >= results[1].cascades.length);
+  assert.ok(results[2].totalWin > results[0].totalWin * 10);
 });
 
 test("Bonus Buy debit is atomic and never allows a negative balance", () => {
