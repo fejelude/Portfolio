@@ -246,7 +246,7 @@ class FejeAceApp {
     for (const cascade of result.cascades) {
       this.gameState.transition(GameStates.WIN, { cascade: cascade.index });
       runningWin = Math.min(result.bet * GameConfig.maxWinMultiple, Math.round((runningWin + cascade.winAmount) * 100) / 100);
-      await this.animation.playCascade(cascade, runningWin, result.bet, (phase) => {
+      await this.animation.playCascade(cascade, runningWin, (phase) => {
         if (phase === "eliminating") this.gameState.transition(GameStates.ELIMINATING);
         if (phase === "golden") this.gameState.transition(GameStates.GOLDEN_TRANSFORM);
         if (phase === "refilling") {
