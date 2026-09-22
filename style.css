@@ -1201,9 +1201,146 @@ button.method-card {
   background: rgba(74, 222, 128, 0.1);
 }
 
-.sofra-project-card { padding: clamp(26px,5vw,60px); border-color: #efb5cc40; background: linear-gradient(125deg,#2c2135,#181923); }
-.sofra-project-card .project-kicker { display: block; color: #efb5cc; letter-spacing: 2px; font-size: 11px; margin-bottom: 22px; }
-.sofra-project-card h2 { font-size: clamp(28px,4vw,44px); letter-spacing: -1px; line-height: 1.15; }
-.sofra-project-card p { color: #c5bccd; line-height: 1.85; max-width: 650px; margin: 22px 0; }
-.sofra-project-card .action-buttons { align-items: center; flex-wrap: wrap; gap: 24px; }
-.sofra-dashboard-link { color: #efb5cc; font-size: 13px; }
+/* Sofra featured project — soft kawaii glow */
+.sofra-project-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: clamp(26px,5vw,60px);
+  border-color: rgba(255, 190, 218, 0.34);
+  background:
+    radial-gradient(440px circle at 12% 2%, rgba(255, 182, 213, 0.16), transparent 62%),
+    radial-gradient(520px circle at 92% 108%, rgba(196, 181, 253, 0.14), transparent 64%),
+    linear-gradient(125deg, #2c2135, #181923);
+  box-shadow:
+    0 18px 60px rgba(7, 4, 18, 0.46),
+    0 0 28px rgba(239, 181, 204, 0.12),
+    0 0 70px rgba(167, 139, 250, 0.08);
+  transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 260ms ease,
+              box-shadow 260ms ease;
+  animation: sofra-card-breathe 5.5s ease-in-out infinite;
+}
+
+.sofra-project-card::before {
+  content: "";
+  position: absolute;
+  width: clamp(180px, 32vw, 360px);
+  aspect-ratio: 1;
+  top: -38%;
+  right: -8%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 203, 225, 0.26), rgba(214, 184, 255, 0.08) 44%, transparent 72%);
+  filter: blur(8px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sofra-project-card::after {
+  content: "✦  ♡  ✧";
+  position: absolute;
+  top: clamp(18px, 3vw, 30px);
+  right: clamp(20px, 4vw, 38px);
+  color: rgba(255, 210, 229, 0.72);
+  font-size: clamp(14px, 2vw, 20px);
+  letter-spacing: 0.42em;
+  text-shadow:
+    0 0 10px rgba(255, 182, 213, 0.62),
+    0 0 24px rgba(196, 181, 253, 0.44);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.sofra-project-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.sofra-project-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 199, 222, 0.56);
+  box-shadow:
+    0 24px 72px rgba(7, 4, 18, 0.54),
+    0 0 36px rgba(239, 181, 204, 0.21),
+    0 0 92px rgba(167, 139, 250, 0.14);
+}
+
+.sofra-project-card .project-kicker {
+  display: block;
+  color: #f5bfd4;
+  letter-spacing: 2px;
+  font-size: 11px;
+  margin-bottom: 22px;
+  text-shadow: 0 0 16px rgba(239, 181, 204, 0.28);
+}
+
+.sofra-project-card h2 {
+  font-size: clamp(28px,4vw,44px);
+  letter-spacing: -1px;
+  line-height: 1.15;
+}
+
+.sofra-project-card p {
+  color: #cfc4d5;
+  line-height: 1.85;
+  max-width: 650px;
+  margin: 22px 0;
+}
+
+.sofra-project-card .action-buttons {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.sofra-project-card .btn-primary {
+  color: #2a1d29;
+  background: linear-gradient(135deg, #ffd7e7 0%, #f2b9d1 48%, #dac8ff 100%);
+  border-color: rgba(255, 255, 255, 0.48);
+  box-shadow:
+    0 10px 30px rgba(239, 181, 204, 0.18),
+    0 0 24px rgba(216, 196, 255, 0.12);
+}
+
+.sofra-project-card .btn-primary:hover,
+.sofra-project-card .btn-primary:focus-visible {
+  color: #241922;
+  box-shadow:
+    0 14px 34px rgba(239, 181, 204, 0.28),
+    0 0 32px rgba(216, 196, 255, 0.2);
+}
+
+.sofra-dashboard-link {
+  color: #f3b9d0;
+  font-size: 13px;
+  text-underline-offset: 4px;
+  transition: color 180ms ease, text-shadow 180ms ease;
+}
+
+.sofra-dashboard-link:hover,
+.sofra-dashboard-link:focus-visible {
+  color: #ffd8e8;
+  text-shadow: 0 0 14px rgba(239, 181, 204, 0.4);
+}
+
+@keyframes sofra-card-breathe {
+  0%, 100% {
+    box-shadow:
+      0 18px 60px rgba(7, 4, 18, 0.46),
+      0 0 28px rgba(239, 181, 204, 0.12),
+      0 0 70px rgba(167, 139, 250, 0.08);
+  }
+  50% {
+    box-shadow:
+      0 20px 64px rgba(7, 4, 18, 0.5),
+      0 0 38px rgba(239, 181, 204, 0.19),
+      0 0 82px rgba(167, 139, 250, 0.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sofra-project-card {
+    animation: none;
+    transition: none;
+  }
+}
