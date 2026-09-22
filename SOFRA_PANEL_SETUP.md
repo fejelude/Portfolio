@@ -1,5 +1,10 @@
 # Sofra Panel deployment setup
 
+The public Sofra page is `/sofra/about`. The dashboard and OAuth redirect
+destination remain `/sofra`; no existing dashboard URLs need to change.
+Deploy the matching bot release to use AutoMod safety controls and bot sync
+acknowledgements. See `SOFRA_RENOVATION.md` for verification and known limits.
+
 Sofra Panel connects the Vercel portfolio and the Wispbyte-hosted Sofra bot through one shared Upstash Redis configuration store.
 
 ## 1. Create the shared Redis database

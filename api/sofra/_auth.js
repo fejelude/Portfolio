@@ -115,6 +115,9 @@ function shouldRetryDiscordStatus(status) {
 
 async function discordFetch(path, options = {}) {
   let lastError = null;
+  // A timed-out POST may already have succeeded. Replaying it can duplicate
+  // ticket panels or consume an OAuth code twice.
+  const retrySafe = ['GET', 'HEAD'].includes(String(options.method || 'GET').toUpperCase());
 
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
@@ -137,18 +140,19 @@ async function discordFetch(path, options = {}) {
       error.body = body;
       lastError = error;
 
-      if (!shouldRetryDiscordStatus(response.status) || attempt === 2) throw error;
+      if (!retrySafe || !shouldRetryDiscordStatus(response.status) || attempt === 2) throw error;
 
       const retryAfterSeconds = Number(body?.retry_after || response.headers.get('retry-after') || 0);
+      if (retryAfterSeconds > 2.5) { error.retryAfter = retryAfterSeconds; throw error; }
       const waitMs = retryAfterSeconds > 0
-        ? Math.min(2500, Math.max(250, retryAfterSeconds * 1000))
+        ? Math.max(250, retryAfterSeconds * 1000)
         : 250 * (attempt + 1);
       await sleep(waitMs);
     } catch (error) {
       lastError = error;
       const status = Number(error?.status || 0);
       const transient = status === 0 || shouldRetryDiscordStatus(status);
-      if (!transient || attempt === 2) {
+      if (!retrySafe || error.retryAfter || !transient || attempt === 2) {
         if (!error.status) error.status = 503;
         throw error;
       }

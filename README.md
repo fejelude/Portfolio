@@ -1,6 +1,13 @@
 # itsmefeje-portfolio
 Roblox Developer Portfolio
 
+## Sofra
+
+The public introduction is at `/sofra/about`; the authenticated control panel
+remains at `/sofra`. See [SOFRA_RENOVATION.md](SOFRA_RENOVATION.md) for the
+architecture review, coordinated bot changes, tests and remaining release gates.
+Deployment variables and OAuth setup are in [SOFRA_PANEL_SETUP.md](SOFRA_PANEL_SETUP.md).
+
 ## FejeAce
 
 The website game area now contains FejeAce, a session-only play-money cascade game. Its engine, configuration, interface, audio, and development fixtures are separated under `js/fejeace/`; artwork and CC0 audio are centralized under `assets/fejeace/`.

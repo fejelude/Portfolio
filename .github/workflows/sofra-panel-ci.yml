@@ -4,6 +4,10 @@ on:
   pull_request:
     paths:
       - 'SofraPanel.html'
+      - 'Sofra.html'
+      - 'sofra-product.*'
+      - 'tests/**'
+      - 'verification/sofra-smoke.cjs'
       - 'sofra-panel*.js'
       - 'sofra-panel*.css'
       - 'api/sofra/**'
@@ -12,14 +16,22 @@ on:
     branches: [main]
     paths:
       - 'SofraPanel.html'
+      - 'Sofra.html'
+      - 'sofra-product.*'
+      - 'tests/**'
+      - 'verification/sofra-smoke.cjs'
       - 'sofra-panel*.js'
       - 'sofra-panel*.css'
       - 'api/sofra/**'
       - '.github/workflows/sofra-panel-ci.yml'
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -33,5 +45,12 @@ jobs:
           node --check api/sofra/_discord-permissions.js
           node --check api/sofra/_guild-validation.js
           node --check api/sofra/guild.js
+          node --check sofra-product.js
+          node --check api/sofra/_runtime.js
       - name: Regression tests
-        run: node --test api/sofra/_config.test.js api/sofra/_discord-permissions.test.js api/sofra/_guild-validation.test.js api/sofra/guild.test.js
+        run: node --test api/sofra/*.test.js tests/*.test.js tests/*.test.mjs
+      - name: Browser smoke test with fixture data
+        run: |
+          npm install --no-save --package-lock=false playwright@1.62.1
+          npx playwright install --with-deps chromium
+          node verification/sofra-smoke.cjs

@@ -1200,3 +1200,10 @@ button.method-card {
   transform: scale(1.05);
   background: rgba(74, 222, 128, 0.1);
 }
+
+.sofra-project-card { padding: clamp(26px,5vw,60px); border-color: #efb5cc40; background: linear-gradient(125deg,#2c2135,#181923); }
+.sofra-project-card .project-kicker { display: block; color: #efb5cc; letter-spacing: 2px; font-size: 11px; margin-bottom: 22px; }
+.sofra-project-card h2 { font-size: clamp(28px,4vw,44px); letter-spacing: -1px; line-height: 1.15; }
+.sofra-project-card p { color: #c5bccd; line-height: 1.85; max-width: 650px; margin: 22px 0; }
+.sofra-project-card .action-buttons { align-items: center; flex-wrap: wrap; gap: 24px; }
+.sofra-dashboard-link { color: #efb5cc; font-size: 13px; }
