@@ -10,9 +10,9 @@ const path = require('node:path');
 
 const source = fs.readFileSync(path.join(__dirname, 'guild.js'), 'utf8');
 
-test('ticket panel keeps Sofra banner and canonical support copy', () => {
-  assert.match(source, /TICKET_PANEL_BANNER/);
-  assert.match(source, /1,000–100,000 Robux/);
+test('ticket panel uses server-neutral support copy without expiring banners', () => {
+  assert.doesNotMatch(source, /TICKET_PANEL_BANNER|Robux|Player Reports/);
+  assert.match(source, /Never share passwords or tokens/);
   assert.match(source, /One open ticket per type, per member • Sofra ♡/);
 });
 

@@ -52,6 +52,10 @@ const DEFAULTS = Object.freeze({
   }),
   automod: Object.freeze({
     enabled: false,
+    dryRun: false,
+    spamEnabled: false,
+    messageLimit: 7,
+    mentionLimit: 6,
     mildAction: 'allow',
     linksEnabled: false,
     invitesEnabled: true,
@@ -239,6 +243,10 @@ function sanitizeAutomod(input, current) {
   return {
     enabled: input?.enabled === true,
     mildAction: ['allow', 'warn', 'delete'].includes(input?.mildAction) ? input.mildAction : 'allow',
+    dryRun: input?.dryRun === true,
+    spamEnabled: input?.spamEnabled === true,
+    messageLimit: boundedInteger(input?.messageLimit, 3, 20, 7),
+    mentionLimit: boundedInteger(input?.mentionLimit, 3, 20, 6),
     linksEnabled: input?.linksEnabled === true,
     invitesEnabled: input?.invitesEnabled !== false,
     warningCooldownSeconds: boundedInteger(input?.warningCooldownSeconds, 5, 600, 30),

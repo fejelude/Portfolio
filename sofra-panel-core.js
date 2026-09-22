@@ -42,7 +42,7 @@ const PAGE_SECTIONS = {
   appearance:'panel'
 };
 const TEXT_TYPES = new Set([0,5]);
-const state = { user:null, csrf:null, guilds:[], guildId:null, metadata:null, config:null, saved:null, activePage:'overview', dirty:new Set(), loading:false };
+const state = { user:null, csrf:null, guilds:[], guildId:null, metadata:null, config:null, saved:null, activePage:'overview', dirty:new Set(), loading:false, saving:false, loadVersion:0 };
 const $ = (id) => document.getElementById(id);
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const selectedValues = (select) => [...select.selectedOptions].map((option) => option.value).filter(Boolean);
@@ -64,12 +64,24 @@ function confirmAction(title, message) {
     $('confirm-title').textContent = title;
     $('confirm-message').textContent = message;
     $('confirm-modal').classList.remove('hidden');
+    const previousFocus = document.activeElement;
+    $('confirm-cancel').focus();
+    const keyboard = (event) => {
+      if (event.key === 'Escape') finish(false);
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        (document.activeElement === $('confirm-cancel') ? $('confirm-accept') : $('confirm-cancel')).focus();
+      }
+    };
     const finish = (value) => {
+      document.removeEventListener('keydown', keyboard);
       $('confirm-modal').classList.add('hidden');
       $('confirm-accept').onclick = null;
       $('confirm-cancel').onclick = null;
       resolve(value);
+      previousFocus?.focus();
     };
+    document.addEventListener('keydown', keyboard);
     $('confirm-accept').onclick = () => finish(true);
     $('confirm-cancel').onclick = () => finish(false);
   });
@@ -272,6 +284,8 @@ function startInstallCheck(guildId) {
 }
 
 async function loadGuild(guildId) {
+  if (state.saving) return;
+  const loadVersion = ++state.loadVersion;
   if (!guildId) {
     state.guildId = null;
     state.metadata = null;
@@ -295,6 +309,7 @@ async function loadGuild(guildId) {
   $('empty-state').querySelector('p').textContent = 'Fetching live channels, roles, and Sofra settings.';
   try {
     const data = await api(`/api/sofra/guild?guildId=${encodeURIComponent(guildId)}`);
+    if (loadVersion !== state.loadVersion) return;
     state.guildId = guildId;
     state.metadata = data;
     state.config = data.config;
@@ -304,10 +319,11 @@ async function loadGuild(guildId) {
     renderAll();
     if (!data.botInstalled) toast('Sofra is not installed in this server yet. Settings are read-only until the bot is added.', 'error');
   } catch (error) {
+    if (loadVersion !== state.loadVersion) return;
     toast(error.message, 'error');
     renderEmpty();
   } finally {
-    state.loading = false;
+    if (loadVersion === state.loadVersion) state.loading = false;
   }
 }
 
@@ -369,8 +385,26 @@ function renderOverview() {
   const meta = state.metadata;
   const cfg = state.config;
   $('overview-guild-name').textContent = meta.botGuild?.name || meta.guild?.name || 'Discord server';
-  $('bot-status-dot').className = meta.botInstalled ? 'online' : 'offline';
-  $('bot-status-text').textContent = meta.botInstalled ? 'Sofra connected' : 'Sofra not installed';
+  const recentSync = meta.runtime?.state === 'recently-synced';
+  $('bot-status-dot').className = recentSync ? 'online' : 'offline';
+  $('bot-status-text').textContent = recentSync ? 'Bot recently synced' : 'Installed · live status unknown';
+  const pending = Object.values(meta.runtime?.sections || {}).filter((value) => value !== 'applied').length;
+  $('sync-summary').textContent = recentSync
+    ? `Last sync: ${new Date(meta.runtime.lastSyncedAt).toLocaleTimeString()}. ${pending ? `${pending} module(s) awaiting application.` : 'Saved module settings applied.'}`
+    : 'No recent bot acknowledgement. Settings can be saved, but application is not yet confirmed. Check /health or contact the bot operator.';
+  $('setup-checklist').replaceChildren();
+  for (const [label, page, ready] of [
+    ['Welcome channel', 'welcome', cfg.welcome.enabled && cfg.welcome.channelId],
+    ['Private staff logs', 'logs', cfg.modlog.enabled && cfg.modlog.channelId],
+    ['AutoMod reviewed', 'moderation', cfg.automod.enabled],
+    ['Member roles', 'autorole', cfg.autorole.enabled && cfg.autorole.roleId],
+  ]) {
+    const button = document.createElement('button');
+    button.type = 'button'; button.className = `setup-step ${ready ? 'ready' : ''}`;
+    button.textContent = `${ready ? '✓' : '○'} ${label} →`;
+    button.addEventListener('click', () => navigate(page));
+    $('setup-checklist').appendChild(button);
+  }
   $('stat-members').textContent = meta.botGuild?.memberCount?.toLocaleString?.() || '—';
   $('stat-channels').textContent = String(meta.channels?.length || 0);
   $('stat-roles').textContent = String(meta.roles?.length || 0);
@@ -388,9 +422,10 @@ function renderOverview() {
   const grid = $('module-grid');
   grid.innerHTML = '';
   for (const [name,page,on] of modules) {
-    const card = document.createElement('article');
+    const card = document.createElement('button');
+    card.type = 'button';
     card.className = 'module-card card';
-    card.innerHTML = `<div class="module-card-head"><div class="module-title"><span class="module-icon media-slot" data-icon-key="${page}">${DEFAULT_ICONS[page]}</span><h3>${escapeHtml(name)}</h3></div><span class="module-state ${on ? 'on' : ''}">${on ? 'Enabled' : 'Disabled'}</span></div><p>${on ? 'Configured and currently active.' : 'Open this module to configure it.'}</p>`;
+    card.innerHTML = `<div class="module-card-head"><div class="module-title"><span class="module-icon media-slot" data-icon-key="${page}">${DEFAULT_ICONS[page]}</span><h3>${escapeHtml(name)}</h3></div><span class="module-state ${on ? 'on' : ''}">${on ? 'Enabled' : 'Disabled'}</span></div><p>${on ? 'Enabled in saved settings. Open to review configuration.' : 'Open this module to configure it.'}</p>`;
     card.onclick = () => navigate(page);
     grid.appendChild(card);
   }
@@ -449,6 +484,10 @@ function buildCategoryCards() {
 }
 
 function renderAutomod() {
+  $('automod-dry-run').checked = state.config.automod.dryRun === true;
+  $('automod-spam').checked = state.config.automod.spamEnabled === true;
+  $('automod-message-limit').value = state.config.automod.messageLimit ?? 7;
+  $('automod-mention-limit').value = state.config.automod.mentionLimit ?? 6;
   const c = state.config.automod;
   $('automod-enabled').checked = c.enabled;
   $('automod-mild').value = c.mildAction;
@@ -598,6 +637,10 @@ function collect(section) {
       escalationThreshold:Number($('automod-threshold').value),
       timeoutMinutes:Number($('automod-timeout').value),
       strikesEnabled:$('automod-strikes').checked,
+      dryRun:$('automod-dry-run').checked,
+      spamEnabled:$('automod-spam').checked,
+      messageLimit:Number($('automod-message-limit').value),
+      mentionLimit:Number($('automod-mention-limit').value),
       roles,
       channels,
       categories,
@@ -641,11 +684,12 @@ function updateHeaderActions() {
   $('reset-button').classList.toggle('hidden', !canSave);
   $('unsaved-pill').classList.toggle('hidden', !dirty);
   $('header-actions').classList.toggle('active', canSave);
-  $('save-button').disabled = !dirty || !state.metadata?.botInstalled;
+  $('save-button').disabled = state.saving || state.loading || !dirty || !state.metadata?.botInstalled;
   $('reset-button').disabled = !dirty;
 }
 
 async function saveCurrent() {
+  if (state.saving || state.loading) return;
   const section = PAGE_SECTIONS[state.activePage];
   if (!section || !state.dirty.has(section)) return;
   let value = collect(section);
@@ -653,10 +697,15 @@ async function saveCurrent() {
     const ok = await confirmAction('Disable the ticket system?', 'Sofra will remove the current ticket panel. Existing ticket channels are not deleted.');
     if (!ok) return;
   }
+  const guildId = state.guildId;
+  state.saving = true;
+  const controls = [...document.querySelectorAll(`[data-section="${section}"] input, [data-section="${section}"] select, [data-section="${section}"] textarea, [data-section="${section}"] button`)];
+  const disabled = controls.map((control) => control.disabled);
+  controls.forEach((control) => { control.disabled = true; });
   $('save-button').disabled = true;
   $('save-button').textContent = 'Saving…';
   try {
-    const result = await api(`/api/sofra/guild?guildId=${encodeURIComponent(state.guildId)}`, {
+    const result = await api(`/api/sofra/guild?guildId=${encodeURIComponent(guildId)}`, {
       method:'PUT',
       headers:{'x-sofra-csrf':state.csrf},
       body:JSON.stringify({section,value})
@@ -664,6 +713,9 @@ async function saveCurrent() {
     state.config[section] = clone(result.value);
     state.saved[section] = clone(result.value);
     state.dirty.delete(section);
+    if (section !== 'panel') {
+      state.metadata.runtime = { ...state.metadata.runtime, sections: { ...state.metadata.runtime?.sections, [section]: 'pending' } };
+    }
     toast(section === 'panel' ? 'Panel appearance saved across this server.' : 'Changes saved. Sofra will pick them up automatically.');
     if (section === 'tickets') renderTickets();
     if (section === 'welcome') renderWelcome();
@@ -679,12 +731,15 @@ async function saveCurrent() {
   } catch (error) {
     toast(error.message, 'error');
   } finally {
+    state.saving = false;
+    controls.forEach((control, index) => { control.disabled = disabled[index]; });
     $('save-button').textContent = 'Save changes';
     updateHeaderActions();
   }
 }
 
 function resetCurrent() {
+  if (state.saving) return;
   const section = PAGE_SECTIONS[state.activePage];
   if (!section || !state.dirty.has(section)) return;
   state.config[section] = clone(state.saved[section]);
@@ -722,10 +777,14 @@ function navigate(page) {
   $('page-title').textContent = PAGE_TITLES[page];
   closeSidebar();
   updateHeaderActions();
-  window.scrollTo({top:0,behavior:'smooth'});
+  window.scrollTo({top:0,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
 }
 
 function bindStaticEvents() {
+  $('refresh-settings').addEventListener('click', async () => {
+    if (state.dirty.size || state.saving) return toast('Save or reset your changes before refreshing.', 'error');
+    if (state.guildId) await loadGuild(state.guildId);
+  });
   document.querySelectorAll('.nav-item').forEach((button) => button.addEventListener('click', () => navigate(button.dataset.panel)));
   $('mobile-menu').addEventListener('click', toggleSidebar);
   $('sidebar-scrim').addEventListener('click', closeSidebar);
@@ -752,7 +811,7 @@ function bindStaticEvents() {
 
   const sectionByControl = {
     welcome:['welcome-enabled','welcome-channel','welcome-random-messages','welcome-message','welcome-title','welcome-description','welcome-color','welcome-image','welcome-thumbnail'],
-    automod:['automod-enabled','automod-mild','automod-links','automod-invites','automod-strikes','automod-warning-cooldown','automod-threshold','automod-timeout','automod-manager-roles','automod-bypass','automod-link-roles','automod-invite-roles','automod-exempt','automod-relaxed'],
+    automod:['automod-dry-run','automod-spam','automod-message-limit','automod-mention-limit','automod-enabled','automod-mild','automod-links','automod-invites','automod-strikes','automod-warning-cooldown','automod-threshold','automod-timeout','automod-manager-roles','automod-bypass','automod-link-roles','automod-invite-roles','automod-exempt','automod-relaxed'],
     tickets:['tickets-enabled','tickets-panel-channel','tickets-category','tickets-staff','ticket-type-bug','ticket-type-report','ticket-type-other'],
     levels:['levels-enabled','levels-xp-min','levels-xp-max','levels-cooldown','levels-channel'],
     booster:['booster-enabled','booster-role','booster-channel'],

@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="sofra-panel.css" />
 </head>
 <body>
+  <a href="#content" class="skip-link">Skip to settings</a>
   <div class="ambient ambient-a"></div>
   <div class="ambient ambient-b"></div>
 
@@ -129,6 +130,14 @@
             <article class="stat-card card"><span>Modules</span><strong id="stat-modules">—</strong><small>Enabled Sofra systems</small></article>
           </div>
 
+          <section class="card setup-card" aria-labelledby="setup-title">
+            <div><span class="eyebrow">A GOOD PLACE TO START</span><h2 id="setup-title">Your server, ready for Sofra.</h2><p>Start with welcome messages and private staff logs. Enable other modules when you need them.</p></div>
+            <div id="setup-checklist" class="setup-checklist"></div>
+            <p id="sync-summary" role="status">Checking configuration sync…</p>
+            <button id="refresh-settings" class="btn ghost" type="button">Refresh settings & sync status</button>
+            <a class="guide-link" href="/sofra/about#guide">Read the getting-started guide ↗</a>
+          </section>
+
           <div class="section-heading compact-heading">
             <div><span class="eyebrow">PLUGINS</span><h2>Manage modules</h2><p>Open a module to configure only what matters for that feature.</p></div>
           </div>
@@ -170,6 +179,10 @@
           <div class="card form-card">
             <div class="form-section-title">Core protection</div>
             <div class="settings-grid three">
+              <label class="checkbox-card"><input id="automod-dry-run" type="checkbox"><span>Log-only mode · no punishments</span></label>
+              <label class="checkbox-card"><input id="automod-spam" type="checkbox"><span>Anti-spam protection</span></label>
+              <label>Messages per 10 seconds<input id="automod-message-limit" type="number" min="3" max="20" /></label>
+              <label>Mentions per message<input id="automod-mention-limit" type="number" min="3" max="20" /></label>
               <label>Low-severity action<select id="automod-mild"><option value="allow">Allow</option><option value="warn">Warn</option><option value="delete">Delete</option></select></label>
               <label>Warning cooldown<input id="automod-warning-cooldown" type="number" min="5" max="600" /></label>
               <label>Escalation strikes<input id="automod-threshold" type="number" min="2" max="20" /></label>
@@ -219,7 +232,7 @@
             <div class="card form-card">
               <div class="form-section-title">Ticket types</div>
               <label class="feature-toggle"><div><strong>Bug Reports</strong><small>Bugs, glitches, exploits, and technical issues.</small></div><input id="ticket-type-bug" type="checkbox"></label>
-              <label class="feature-toggle"><div><strong>Player Reports</strong><small>Rule-breaking, harassment, scams, and abuse.</small></div><input id="ticket-type-report" type="checkbox"></label>
+              <label class="feature-toggle"><div><strong>Member Reports</strong><small>Rule-breaking, harassment, scams, and abuse.</small></div><input id="ticket-type-report" type="checkbox"></label>
               <label class="feature-toggle"><div><strong>Others</strong><small>General private questions and support.</small></div><input id="ticket-type-other" type="checkbox"></label>
               <div class="info-box">Changing the panel channel or ticket types automatically reconciles the live Discord panel when you save.</div>
             </div>
@@ -311,7 +324,7 @@
   </div>
 
   <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
-  <div id="confirm-modal" class="modal hidden">
+  <div id="confirm-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-message">
     <div class="modal-card">
       <div class="modal-icon">!</div>
       <h2 id="confirm-title">Confirm change</h2>
@@ -323,6 +336,7 @@
     </div>
   </div>
 
-  <script src="sofra-panel.js"></script>
+  <script src="sofra-panel-core.js" defer></script>
+  <script src="sofra-panel.js" defer></script>
 </body>
 </html>

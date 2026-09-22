@@ -3,8 +3,7 @@
 const { requireInstalledGuildAccess, requireCsrf, botFetch, requiredEnv } = require('./_auth');
 const { readGuildConfig, writeSection, sanitizeSection } = require('./_config');
 const { validateConfigReferences } = require('./_guild-validation');
-
-const TICKET_PANEL_BANNER = 'https://cdn.discordapp.com/attachments/1489489015269883954/1542155954894807060/file_00000000c470821189498cb6c7c22668.png?ex=6a903427&is=6a8ee2a7&hm=b81ddd90b880a344e24f9a1ef98df817055cd9876bb28d364de8d734647a6bc3&';
+const { readRuntime } = require('./_runtime');
 
 function readBody(request) {
   if (!request.body) return {};
@@ -82,17 +81,14 @@ async function readBotGuild(guildId, actorId = null) {
 
 function ticketPanelPayload(config) {
   const details = [
-    ['bug', '🪲', 'Bug Reports', 'Report bugs, glitches, broken systems, exploits, or other game issues. Thorough, valid reports may be eligible for approximately **1,000–100,000 Robux**, depending on severity and importance. Critical bugs and exploits receive higher consideration; rewards are not guaranteed.', 3],
-    ['report', '⚒️', 'Player Reports', 'Report exploiting, bug abuse, scams, harassment, rule-breaking, or other harmful player behavior.', 4],
-    ['other', '💬', 'Others', 'Ask private questions or get help with account/game issues, general support, concerns, or anything that does not fit above.', 2]
+    ['bug', '🪲', 'Bug Reports', 'Report a bug or broken feature. Include steps to reproduce it, what you expected, and any relevant screenshots. Never share passwords or tokens.', 3],
+    ['report', '⚒️', 'Member Reports', "Report harassment, scams, or rule-breaking privately to this server's staff. Include message links and relevant evidence.", 4],
+    ['other', '💬', 'Others', "Ask this server's staff a question or get help with anything that does not fit the other categories.", 2]
   ];
   const active = details.filter(([type]) => config.types?.[type] !== false);
   return {
+    allowed_mentions: { parse: [] },
     embeds: [
-      {
-        color: 16033730,
-        image: { url: TICKET_PANEL_BANNER }
-      },
       {
         color: 16033730,
         author: { name: '♡ Sofra Support Center' },
@@ -117,7 +113,8 @@ function ticketPanelPayload(config) {
 
 async function deleteTicketPanel(config) {
   if (!config?.panelChannelId || !config?.panelMessageId) return;
-  await botFetch(`/channels/${config.panelChannelId}/messages/${config.panelMessageId}`, { method: 'DELETE' }).catch(() => undefined);
+  try { await botFetch(`/channels/${config.panelChannelId}/messages/${config.panelMessageId}`, { method: 'DELETE' }); }
+  catch (error) { if (error.status !== 404) throw error; }
 }
 
 async function reconcileTicketPanel(next, current) {
@@ -140,11 +137,17 @@ async function reconcileTicketPanel(next, current) {
     }
   }
 
-  if (current?.panelMessageId) await deleteTicketPanel(current);
   const created = await botFetch(`/channels/${next.panelChannelId}/messages`, {
     method: 'POST',
     body: JSON.stringify(payload)
   });
+  if (current?.panelMessageId) {
+    try { await deleteTicketPanel(current); }
+    catch (error) {
+      await deleteTicketPanel({ panelChannelId: next.panelChannelId, panelMessageId: created.id }).catch(() => undefined);
+      throw error;
+    }
+  }
   return { ...next, panelMessageId: created.id };
 }
 
@@ -180,7 +183,8 @@ module.exports = async (request, response) => {
         botGuild: metadata.guild,
         channels: metadata.channels,
         roles: metadata.roles,
-        config
+        config,
+        runtime: await readRuntime(guildId)
       });
     }
 
@@ -200,7 +204,7 @@ module.exports = async (request, response) => {
   } catch (error) {
     const status = Number(error.status || 0);
     const safeStatus = status >= 400 && status < 600 ? status : 500;
-    const message = safeStatus === 500 ? (error.message || 'Sofra Panel could not save this setting.') : (error.message || 'Discord rejected this request.');
+    const message = safeStatus >= 500 ? 'Sofra Panel could not complete this request. Please try again shortly.' : (error.message || 'Discord rejected this request.');
     return response.status(safeStatus).json({ ok: false, error: message });
   }
 };

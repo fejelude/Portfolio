@@ -28,6 +28,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/sofra/about", "destination": "/Sofra" },
     { "source": "/admin", "destination": "/api/admin-page" },
     { "source": "/Admin", "destination": "/api/admin-page" },
     { "source": "/Admin.html", "destination": "/api/admin-page" },

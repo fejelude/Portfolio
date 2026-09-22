@@ -1091,3 +1091,16 @@ button, a { -webkit-tap-highlight-color: transparent; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+.skip-link { position: fixed; top: -100px; left: 16px; z-index: 9999; padding: 12px 18px; background: #f4a7c2; color: #211b27; border-radius: 8px; }
+.skip-link:focus { top: 12px; }
+:focus-visible { outline: 3px solid #f4a7c2; outline-offset: 4px; }
+.setup-card { margin: 22px 0 32px; padding: 28px; background: linear-gradient(120deg, #302335, #211f2c); }
+.setup-card h2 { margin: 10px 0; font-size: 24px; }
+.setup-card p { color: #c0b4c6; line-height: 1.65; font-size: 13px; }
+.setup-checklist { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin: 20px 0; }
+.setup-step { padding: 14px 16px; border: 1px solid #ffffff20; border-radius: 10px; background: #ffffff05; color: #eee5f1; font: inherit; text-align: left; cursor: pointer; }
+.setup-step.ready { color: #bfe4ca; }
+.guide-link { display: inline-block; font-size: 12px; color: #f4b8d0; margin: 12px; }
+button.module-card { width: 100%; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+@media(max-width:600px) { .setup-card { padding: 20px; } .setup-checklist { grid-template-columns: 1fr; } .guide-link { margin-left: 0; } }

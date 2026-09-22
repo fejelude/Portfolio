@@ -1,8 +1,6 @@
 'use strict';
 
-// Load the existing dashboard logic synchronously, then layer Sofra's
-// official universal branding, server hub, and mobile reliability fixes over it.
-document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
+// Branding and the server hub load after the dashboard core using ordered defer scripts.
 
 (() => {
   // Official animations are self-hosted with the website. The dashboard no
@@ -285,7 +283,7 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
   function buildVideo(key, url) {
     const video = document.createElement('video');
     video.src = url;
-    video.autoplay = true;
+    video.autoplay = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     video.loop = true;
     video.muted = true;
     video.defaultMuted = true;
@@ -302,11 +300,18 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
 
   function playOfficialVideo(video) {
     if (!video || video.tagName !== 'VIDEO') return;
+    if (document.hidden || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { video.pause(); return; }
     video.muted = true;
     video.defaultMuted = true;
     const promise = video.play();
     if (promise?.catch) promise.catch(() => undefined);
   }
+
+  function updateVideoMotion() {
+    document.querySelectorAll('video[data-sofra-official-key]').forEach(playOfficialVideo);
+  }
+  document.addEventListener('visibilitychange', updateVideoMotion);
+  window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', updateVideoMotion);
 
   function loadOfficialMedia(element, key) {
     const url = SOFRA_OFFICIAL_MEDIA[key];
@@ -378,7 +383,7 @@ document.write('<script src="/sofra-panel-core.js?v=20260901"></' + 'script>');
     const note = gate.querySelector('.security-note');
 
     if (heading && heading.dataset.sofraCopy !== '1') {
-      heading.innerHTML = 'The Cutest<br>Discord Bot :3';
+      heading.innerHTML = 'A softer space.<br>A stronger community.';
       heading.dataset.sofraCopy = '1';
     }
     const authCopy = 'Sign in with Discord and pick your server. Sofra will keep everything cute, organized, and easy to manage. ♡';
