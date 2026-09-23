@@ -116,6 +116,26 @@ function finishBoot() {
   setTimeout(() => $('boot-screen')?.remove(), 380);
 }
 
+function consumeAuthResult() {
+  const url = new URL(location.href);
+  const auth = url.searchParams.get('auth');
+  if (!auth) return false;
+
+  if (auth === 'success') {
+    toast('Signed in with Discord. Welcome to Sofra Panel ♡');
+  } else if (auth === 'denied') {
+    toast('Discord authorization was canceled. Nothing was changed.', 'error');
+  } else if (auth === 'invalid_state') {
+    toast('Discord sign-in expired or returned on a different site address. Start sign-in again from this page.', 'error');
+  } else {
+    toast('Discord sign-in failed. Check the configured callback URL and try again.', 'error');
+  }
+
+  url.searchParams.delete('auth');
+  history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+  return true;
+}
+
 function normalizeMediaUrl(raw) {
   const value = String(raw || '').trim();
   if (!value) return null;
@@ -197,13 +217,15 @@ async function initialize() {
     } else {
       renderEmpty();
     }
-    const auth = new URLSearchParams(location.search).get('auth');
-    if (auth === 'success') toast('Signed in with Discord. Welcome to Sofra Panel ♡');
-    if (auth === 'failed' || auth === 'invalid_state') toast('Discord sign-in did not complete. Please try again.', 'error');
-    if (auth) history.replaceState({}, '', location.pathname);
+    consumeAuthResult();
   } catch (error) {
-    if (error.status === 401) showAuth();
-    else { showAuth(); toast(error.message, 'error'); }
+    if (error.status === 401) {
+      showAuth();
+      consumeAuthResult();
+    } else {
+      showAuth();
+      if (!consumeAuthResult()) toast(error.message, 'error');
+    }
   } finally {
     finishBoot();
   }
