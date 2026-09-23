@@ -62,16 +62,28 @@ function installGalleryImageReliability() {
       img.dataset.galleryRetry = 'done';
     };
 
+    const fallbackSrc = img.dataset.fallbackSrc || '';
+
     const markFailed = () => {
       if (img.dataset.galleryRetry !== '1' && originalSrc) {
         img.dataset.galleryRetry = '1';
-        // Re-request once after referrerPolicy has definitely been applied.
+        // Re-request the same-origin proxy once in case the first request was transient.
         img.removeAttribute('src');
         requestAnimationFrame(() => {
           img.src = originalSrc;
         });
         return;
       }
+
+      if (fallbackSrc && img.dataset.galleryFallback !== '1') {
+        img.dataset.galleryFallback = '1';
+        img.removeAttribute('src');
+        requestAnimationFrame(() => {
+          img.src = fallbackSrc;
+        });
+        return;
+      }
+
       item?.classList.add('image-unavailable');
     };
 
