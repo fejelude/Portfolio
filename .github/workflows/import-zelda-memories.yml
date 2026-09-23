@@ -1,0 +1,132 @@
+name: Import Zelda memory images
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/import-zelda-memories.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-images:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Download captured-memory images
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p assets/zelda-memories
+
+          fetch_image() {
+            local out="$1"
+            local primary="$2"
+            local fallback="$3"
+            local tmp="${out}.download"
+
+            rm -f "$tmp"
+            echo "Downloading $out"
+
+            if ! curl -fL --retry 3 --retry-delay 2 --connect-timeout 15 --max-time 90               -A "Mozilla/5.0 (GitHub Actions; fejelude.xyz)"               -e "https://www.nintendolife.com/"               "$primary" -o "$tmp"; then
+              echo "Primary source failed; trying Zelda Dungeon fallback"
+              curl -fL --retry 3 --retry-delay 2 --connect-timeout 15 --max-time 90                 -A "Mozilla/5.0 (GitHub Actions; fejelude.xyz)"                 "$fallback" -o "$tmp"
+            fi
+
+            test -s "$tmp"
+            if ! file --brief --mime-type "$tmp" | grep -q '^image/'; then
+              echo "Downloaded content for $out is not an image"
+              file "$tmp" || true
+              exit 1
+            fi
+
+            mv "$tmp" "$out"
+          }
+
+          fetch_image "assets/zelda-memories/subdued-ceremony.jpg"             "https://images.nintendolife.com/6ab1a7069b9cf/2017032012061100-f1c11a22faee3b82f21b330e1b786a39.large.jpg"             "https://www.zeldadungeon.net/wiki/Special:Redirect/file/Memory-1.jpg"
+
+          fetch_image "assets/zelda-memories/resolve-and-grief.jpg"             "https://images.nintendolife.com/e7ac5ae31f79c/2017032012061400-f1c11a22faee3b82f21b330e1b786a39.large.jpg"             "https://www.zeldadungeon.net/wiki/Special:Redirect/file/Memory-3.jpg"
+
+          fetch_image "assets/zelda-memories/zeldas-resentment.jpg"             "https://images.nintendolife.com/a1832a2a17367/2017032012061600-f1c11a22faee3b82f21b330e1b786a39.large.jpg"             "https://www.zeldadungeon.net/wiki/Special:Redirect/file/Memory-5.jpg"
+
+          fetch_image "assets/zelda-memories/blades-of-the-yiga.jpg"             "https://images.nintendolife.com/019b65df93816/2017032012061900-f1c11a22faee3b82f21b330e1b786a39.large.jpg"             "https://www.zeldadungeon.net/wiki/Special:Redirect/file/Memory-7.jpg"
+
+          fetch_image "assets/zelda-memories/a-premonition.jpg"             "https://images.nintendolife.com/0802b6803f51d/2017032012062100-f1c11a22faee3b82f21b330e1b786a39.large.jpg"             "https://www.zeldadungeon.net/wiki/Special:Redirect/file/Memory-8.jpg"
+
+          fetch_image "assets/zelda-memories/silent-princess.jpg"             "https://images.nintendolife.com/3cfe5dff30b59/2017032012062400-f1c11a22faee3b82f21b330e1b786a39.large.jpg"             "https://www.zeldadungeon.net/wiki/Special:Redirect/file/Memory-9.jpg"
+
+          fetch_image "assets/zelda-memories/shelter-from-the-storm.jpg"             "https://images.nintendolife.com/e27338713842b/2017032012062600-f1c11a22faee3b82f21b330e1b786a39.large.jpg"             "https://www.zeldadungeon.net/wiki/Special:Redirect/file/Memory-11.jpg"
+
+          fetch_image "assets/zelda-memories/father-and-daughter.jpg"             "https://images.nintendolife.com/ddb5b64be8b4e/2017032012062900-f1c11a22faee3b82f21b330e1b786a39.large.jpg"             "https://www.zeldadungeon.net/wiki/Special:Redirect/file/Memory-12.jpg"
+
+          fetch_image "assets/zelda-memories/slumbering-power.jpg"             "https://images.nintendolife.com/162c0e3669ce3/2017032012063100-f1c11a22faee3b82f21b330e1b786a39.large.jpg"             "https://www.zeldadungeon.net/wiki/Special:Redirect/file/Memory-13.jpg"
+
+          fetch_image "assets/zelda-memories/to-mount-lanayru.jpg"             "https://images.nintendolife.com/385c9f3e5a956/2017032012063400-f1c11a22faee3b82f21b330e1b786a39.large.jpg"             "https://www.zeldadungeon.net/wiki/Special:Redirect/file/Memory-14.jpg"
+
+          fetch_image "assets/zelda-memories/return-of-calamity-ganon.jpg"             "https://images.nintendolife.com/93e7be8681662/2017032012063600-f1c11a22faee3b82f21b330e1b786a39.large.jpg"             "https://www.zeldadungeon.net/wiki/Special:Redirect/file/Memory-15.jpg"
+
+          fetch_image "assets/zelda-memories/despair.jpg"             "https://images.nintendolife.com/9bd7196d2a703/2017032012063900-f1c11a22faee3b82f21b330e1b786a39.large.jpg"             "https://www.zeldadungeon.net/wiki/Special:Redirect/file/Memory-16.jpg"
+
+          fetch_image "assets/zelda-memories/zeldas-awakening.jpg"             "https://images.nintendolife.com/4b99d97f77c19/final.large.jpg"             "https://www.zeldadungeon.net/wiki/Special:Redirect/file/Memory-17.jpg"
+
+      - name: Point gallery at local assets
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          gallery = Path("Gallery.html")
+          text = gallery.read_text(encoding="utf-8")
+
+          names = [
+              "subdued-ceremony",
+              "resolve-and-grief",
+              "zeldas-resentment",
+              "blades-of-the-yiga",
+              "a-premonition",
+              "silent-princess",
+              "shelter-from-the-storm",
+              "father-and-daughter",
+              "slumbering-power",
+              "to-mount-lanayru",
+              "return-of-calamity-ganon",
+              "despair",
+              "zeldas-awakening",
+          ]
+
+          for name in names:
+              pattern = (
+                  rf'src="/api/zelda-image\?id={re.escape(name)}"'
+                  rf'(?:\s+data-fallback-src="[^"]*")?'
+              )
+              replacement = f'src="/assets/zelda-memories/{name}.jpg"'
+              text, count = re.subn(pattern, replacement, text, count=1)
+              if count != 1:
+                  raise SystemExit(f"Could not update gallery image: {name}")
+
+          gallery.write_text(text, encoding="utf-8")
+
+          proxy = Path("api/zelda-image.js")
+          if proxy.exists():
+              proxy.unlink()
+
+      - name: Commit local Zelda gallery assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Gallery.html assets/zelda-memories api/zelda-image.js
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "Store Zelda memory gallery images locally"
+          git push origin HEAD:main
