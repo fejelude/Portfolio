@@ -18,8 +18,7 @@ const server=createServer(async(req,res)=>{
    for(const mobile of [false,true]){
     const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1440,height:900},hasTouch:mobile,deviceScaleFactor:mobile?3:1});
     const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
-    // Third-party portfolio embellishments are not needed for this regression.
-    await page.route('https://**/*',route=>route.abort());
+    // Load the existing site's graphics dependencies as a normal visitor would.
     await page.addInitScript(()=>{const NativeAudio=window.Audio;window.Audio=function(...args){const a=new NativeAudio(...args);window.__testAudio=a;return a;};});
     await page.goto('http://127.0.0.1:8765');
     await page.locator('#surprise-trigger').scrollIntoViewIfNeeded();
@@ -49,7 +48,7 @@ const server=createServer(async(req,res)=>{
     await context.close();
    }
    const context=await browser.newContext({reducedMotion:'reduce',viewport:{width:320,height:568}});
-   const page=await context.newPage();await page.route('https://**/*',route=>route.abort());
+   const page=await context.newPage();
    await page.addInitScript(()=>{HTMLMediaElement.prototype.play=function(){return Promise.reject(new DOMException('blocked','NotAllowedError'));};});
    await page.goto('http://127.0.0.1:8765');await page.locator('#surprise-trigger').click();
    await page.waitForFunction(()=>document.querySelector('.kawaii-reveal')?.style.visibility==='visible');
