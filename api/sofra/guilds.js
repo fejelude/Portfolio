@@ -12,7 +12,7 @@ module.exports = async (request, response) => {
   try {
     const session = await requireSession(request, response);
     if (!session) return;
-    const manageable = (await getUserGuilds(session))
+    const manageable = (await getUserGuilds(session, response))
       .filter((guild) => guild.manageable)
       .sort((left, right) => left.name.localeCompare(right.name));
     let installationStatusAvailable = true;
