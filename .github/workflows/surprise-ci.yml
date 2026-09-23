@@ -24,6 +24,14 @@ jobs:
       - run: node --check js/surprise.js && node --test tests/surprise.test.mjs
       - run: npm install --no-save --package-lock=false playwright@1.62.1
       - run: npx playwright install --with-deps chromium firefox webkit
+      # Hosted Linux runners have no physical sound device. Keep a real media
+      # clock with a virtual output rather than mocking successful playback.
+      - name: Start virtual audio output
+        run: |
+          sudo apt-get install -y pulseaudio
+          pulseaudio --start --exit-idle-time=-1
+          pactl load-module module-null-sink sink_name=ci_audio
+          pactl set-default-sink ci_audio
       - run: node verification/surprise-smoke.cjs
       - uses: actions/upload-artifact@v4
         if: always()
