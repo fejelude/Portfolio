@@ -222,7 +222,8 @@ function renderGuildOptions() {
   for (const guild of state.guilds) {
     const option = document.createElement('option');
     option.value = guild.id;
-    option.textContent = `${guild.name}${guild.botInstalled ? '' : ' • Add Sofra'}`;
+    const suffix = guild.botInstalled === true ? '' : (guild.botInstalled === false ? ' • Add Sofra' : ' • Status unavailable');
+    option.textContent = `${guild.name}${suffix}`;
     select.appendChild(option);
   }
 }
@@ -237,14 +238,23 @@ function renderServerPicker() {
     const card = document.createElement('article');
     card.className = 'server-card card';
     const iconStyle = guild.iconUrl ? ` style="background-image:url('${escapeHtml(guild.iconUrl)}')"` : '';
-    card.innerHTML = `<div class="server-icon"${iconStyle}>${escapeHtml(guild.name.slice(0, 1).toUpperCase())}</div><div class="server-details"><h3>${escapeHtml(guild.name)}</h3><span class="install-state ${guild.botInstalled ? 'installed' : ''}">${guild.botInstalled ? 'Sofra installed' : 'Sofra not installed'}</span></div>${guild.botInstalled ? '<button class="btn pink server-action">Manage</button>' : `<a class="btn ghost server-action" href="/api/sofra/install?guildId=${encodeURIComponent(guild.id)}" target="_blank" rel="noopener">Add Sofra</a>`}`;
+    const statusKnown = typeof guild.botInstalled === 'boolean';
+    const statusText = guild.botInstalled ? 'Sofra installed' : (statusKnown ? 'Sofra not installed' : 'Installation status unavailable');
+    const action = guild.botInstalled
+      ? '<button class="btn pink server-action">Manage</button>'
+      : (statusKnown
+        ? `<a class="btn ghost server-action" href="/api/sofra/install?guildId=${encodeURIComponent(guild.id)}" target="_blank" rel="noopener">Add Sofra</a>`
+        : '<button class="btn ghost server-action">Retry status</button>');
+    card.innerHTML = `<div class="server-icon"${iconStyle}>${escapeHtml(guild.name.slice(0, 1).toUpperCase())}</div><div class="server-details"><h3>${escapeHtml(guild.name)}</h3><span class="install-state ${guild.botInstalled ? 'installed' : ''}">${statusText}</span></div>${action}`;
     if (guild.botInstalled) {
       card.querySelector('.server-action').onclick = () => {
         $('guild-select').value = guild.id;
         loadGuild(guild.id);
       };
-    } else {
+    } else if (statusKnown) {
       card.querySelector('.server-action').addEventListener('click', () => startInstallCheck(guild.id));
+    } else {
+      card.querySelector('.server-action').addEventListener('click', () => refreshGuilds());
     }
     grid.appendChild(card);
   }
@@ -258,7 +268,9 @@ async function refreshGuilds(quiet=false) {
     state.guilds = data.guilds || [];
     renderGuildOptions();
     renderServerPicker();
-    if (!quiet) toast('Server installation status refreshed.');
+    if (!quiet) toast(data.installationStatusAvailable === false
+      ? 'Your servers loaded, but Sofra installation status is temporarily unavailable.'
+      : 'Server installation status refreshed.', data.installationStatusAvailable === false ? 'error' : 'success');
     return state.guilds;
   } catch (error) {
     if (!quiet) toast(error.message, 'error');

@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { canManageGuild, botInstallUrl } = require('../api/sofra/_auth');
+const { canManageGuild, botInstallUrl, getBotGuildIds } = require('../api/sofra/_auth');
 
 test('guild management accepts only owner, Administrator, or Manage Server', () => {
   assert.equal(canManageGuild({ owner: true, permissions: '0' }), true);
@@ -22,4 +22,31 @@ test('installation URL is locked to the authorized guild and official scopes', (
   assert.equal(url.searchParams.get('disable_guild_select'), 'true');
   assert.equal(url.searchParams.get('scope'), 'bot applications.commands');
   assert.equal(url.searchParams.get('permissions'), '42');
+});
+
+test('bot installation status is fetched in one guild-list request', async () => {
+  const originalFetch = global.fetch;
+  const originalToken = process.env.DISCORD_BOT_TOKEN;
+  let request;
+  process.env.DISCORD_BOT_TOKEN = 'test-token';
+  global.fetch = async (url, options) => {
+    request = { url, options };
+    return {
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify([{ id: '123' }, { id: '456' }]),
+      headers: { get: () => null }
+    };
+  };
+
+  try {
+    const ids = await getBotGuildIds();
+    assert.deepEqual([...ids], ['123', '456']);
+    assert.match(request.url, /\/users\/@me\/guilds\?limit=200$/);
+    assert.equal(request.options.headers.Authorization, 'Bot test-token');
+  } finally {
+    global.fetch = originalFetch;
+    if (originalToken === undefined) delete process.env.DISCORD_BOT_TOKEN;
+    else process.env.DISCORD_BOT_TOKEN = originalToken;
+  }
 });
