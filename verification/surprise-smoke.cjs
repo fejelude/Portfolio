@@ -24,7 +24,12 @@ const server=createServer(async(req,res)=>{
     await page.locator('#surprise-trigger').scrollIntoViewIfNeeded();
     await page.screenshot({path:path.join(__dirname,`surprise-results/${name}-${mobile?'mobile':'desktop'}-rest.png`)});
     await page.locator('#surprise-trigger').click();
-    await page.waitForFunction(()=>window.__testAudio.currentTime>.1);
+    try { await page.waitForFunction(()=>window.__testAudio.currentTime>.1, {}, {timeout:8000}); }
+    catch(error) {
+      console.error(name, {mobile}, await page.evaluate(()=>({status:document.querySelector('#surprise-status')?.textContent, overlays:document.querySelectorAll('.kawaii-world').length, audio:{src:window.__testAudio.src,paused:window.__testAudio.paused,time:window.__testAudio.currentTime,ready:window.__testAudio.readyState,error:window.__testAudio.error?.message}})), errors);
+      await page.screenshot({path:path.join(__dirname,`surprise-results/${name}-${mobile?'mobile':'desktop'}-failure.png`)});
+      throw error;
+    }
     const track=await page.evaluate(()=>window.__testAudio.src);
     await page.locator('#surprise-trigger').click({force:true});
     assert.equal(await page.locator('.kawaii-world').count(),1);
