@@ -1,0 +1,45 @@
+name: Surprise CI
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'main.js'
+      - 'css/surprise.css'
+      - 'js/surprise*.js'
+      - 'assets/surprise/**'
+      - 'tests/surprise.test.mjs'
+      - 'verification/surprise-smoke.cjs'
+      - '.github/workflows/surprise-ci.yml'
+permissions:
+  contents: read
+jobs:
+  surprise:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check js/surprise.js && node --test tests/surprise.test.mjs
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install --with-deps chromium firefox webkit
+      # Hosted Linux runners have no physical sound device. Keep a real media
+      # clock with a virtual output rather than mocking successful playback.
+      - name: Start virtual audio output
+        run: |
+          sudo apt-get install -y pulseaudio ffmpeg
+          pulseaudio --start --exit-idle-time=-1
+          pactl load-module module-null-sink sink_name=ci_audio
+          pactl set-default-sink ci_audio
+      - name: Decode every audio track
+        run: |
+          for track in assets/surprise/*.mp3; do
+            ffmpeg -nostdin -v error -xerror -i "$track" -f null -
+          done
+      - run: node verification/surprise-smoke.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: surprise-browser-previews
+          path: verification/surprise-results/

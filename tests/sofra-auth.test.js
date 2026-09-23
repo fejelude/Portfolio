@@ -320,7 +320,12 @@ test('Discord OAuth callback creates an encrypted cookie session without Redis',
     const separator = pair.indexOf('=');
     const name = pair.slice(0, separator);
     const value = pair.slice(separator + 1);
-    const tampered = `${name}=${value.slice(0, -1)}${value.endsWith('A') ? 'B' : 'A'}`;
+    // Change an actual tag byte; the last base64url character may only change padding bits.
+    const parts = value.split('.');
+    const tag = Buffer.from(parts[3], 'base64url');
+    tag[0] ^= 1;
+    parts[3] = tag.toString('base64url');
+    const tampered = `${name}=${parts.join('.')}`;
     assert.equal(await loadSession({ headers: { cookie: tampered } }, responseRecorder()), null);
   } finally {
     global.fetch = originalFetch;

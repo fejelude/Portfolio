@@ -12,6 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/surprise.css">
 </head>
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -36,7 +37,7 @@
         <a href="/sofra/about">Sofra</a>
         <a href="#learning">Learning</a>
         <a href="#goals">Goals</a>
-        <a href="Arcade.html" class="nav-arcade-link">Play My Games</a>
+        <a href="#surprise">Click me ♡</a>
         <a href="Gallery.html">Gallery</a>
         <a href="#contact" class="btn-primary">Contact</a>
       </nav>
@@ -148,8 +149,8 @@
                 <span>MY FOCUS</span>
               </div>
             <div class="stat">
-                <strong>Game Arcade</strong>
-                <span>My website game</span>
+                <strong>Creative</strong>
+                <span>EXPERIMENTS</span>
             </div>
               <div class="stat">
                 <strong>Systems</strong>
@@ -284,13 +285,11 @@
             </button>
           </div>
 
-          <div class="arcade-highlight spotlight-card">
-             <h3 class="aura-text">Game Arcade</h3>
-             <p>Enter the arcade and play my web games, featuring slot machines, and more games to come.</p>
-          </div>
-
-          <div class="surprise-wrapper">
-             <a href="Arcade.html" class="btn-surprise">Play My Games</a>
+          <div id="surprise" class="surprise-card">
+            <h3>Click me</h3>
+            <p>nothing, just click me hehe.</p>
+            <button type="button" class="surprise-trigger" id="surprise-trigger">Click me ♡</button>
+            <p class="surprise-sr" id="surprise-status" role="status" aria-live="polite"></p>
           </div>
 
         </div>
@@ -318,6 +317,8 @@
   <script src="react-bits-vanilla.js"></script>
   <script src="js/activity-logger.js"></script>
   <script src="main.js"></script>
+  <script src="js/surprise-assets.js"></script>
+  <script src="js/surprise.js"></script>
   
   <script>
     // Initialize the background
@@ -332,3 +333,4 @@
   </script>
 </body>
 </html>
+

@@ -27,6 +27,11 @@
       ]
     }
   ],
+  "redirects": [
+    { "source": "/arcade", "destination": "/#surprise", "permanent": false },
+    { "source": "/Arcade", "destination": "/#surprise", "permanent": false },
+    { "source": "/Arcade.html", "destination": "/#surprise", "permanent": false }
+  ],
   "rewrites": [
     { "source": "/sofra/about", "destination": "/Sofra" },
     { "source": "/admin", "destination": "/api/admin-page" },
@@ -34,8 +39,7 @@
     { "source": "/Admin.html", "destination": "/api/admin-page" },
     { "source": "/crush", "destination": "/api/admin-page" },
     { "source": "/crush.html", "destination": "/api/admin-page" },
-    { "source": "/arcade", "destination": "/Arcade.html" },
-    { "source": "/Arcade", "destination": "/Arcade.html" },
     { "source": "/sofra", "destination": "/SofraPanel" }
   ]
 }
+
