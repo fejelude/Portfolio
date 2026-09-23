@@ -1,6 +1,6 @@
 'use strict';
 
-const { requireSession, getUserGuilds, isBotInstalled } = require('./_auth');
+const { requireSession, getUserGuilds, getBotGuildIds } = require('./_auth');
 
 module.exports = async (request, response) => {
   response.setHeader('Cache-Control', 'no-store');
@@ -15,20 +15,29 @@ module.exports = async (request, response) => {
     const manageable = (await getUserGuilds(session))
       .filter((guild) => guild.manageable)
       .sort((left, right) => left.name.localeCompare(right.name));
-    const guilds = new Array(manageable.length);
-    let cursor = 0;
-    await Promise.all(Array.from({ length: Math.min(4, manageable.length) }, async () => {
-      while (cursor < manageable.length) {
-        const index = cursor++;
-        const guild = manageable[index];
-        guilds[index] = { id: guild.id, name: guild.name, icon: guild.icon, iconUrl: guild.iconUrl, botInstalled: await isBotInstalled(guild.id) };
-      }
+    let installationStatusAvailable = true;
+    let botGuildIds = null;
+    try {
+      botGuildIds = await getBotGuildIds();
+    } catch {
+      // Bot installation is useful metadata, but a failed bot-token probe must
+      // not make a valid user session or the whole server picker unavailable.
+      // Configuration endpoints still verify installation before exposing data.
+      installationStatusAvailable = false;
+    }
+    const guilds = manageable.map((guild) => ({
+      id: guild.id,
+      name: guild.name,
+      icon: guild.icon,
+      iconUrl: guild.iconUrl,
+      botInstalled: botGuildIds ? botGuildIds.has(guild.id) : null
     }));
     return response.status(200).json({
       ok: true,
       user: session.user,
       csrf: session.csrf,
-      guilds
+      guilds,
+      installationStatusAvailable
     });
   } catch (error) {
     return response.status(502).json({ ok: false, error: 'Discord could not be reached. Please try again.' });

@@ -347,6 +347,11 @@ async function isBotInstalled(guildId) {
   }
 }
 
+async function getBotGuildIds() {
+  const guilds = await botFetch('/users/@me/guilds?limit=200');
+  return new Set(guilds.map((guild) => String(guild.id)));
+}
+
 async function requireInstalledGuildAccess(request, response, guildId) {
   const access = await requireGuildAccess(request, response, guildId);
   if (!access) return null;
@@ -416,6 +421,7 @@ module.exports = {
   requireCsrf,
   botFetch,
   isBotInstalled,
+  getBotGuildIds,
   botInstallUrl,
   requiredEnv
 };
