@@ -88,13 +88,63 @@ function clearSessionCookie(response) {
   appendSetCookie(response, cookie(SESSION_COOKIE, '', { maxAge: 0 }));
 }
 
-function publicBaseUrl(request) {
-  const configured = String(process.env.SOFRA_PUBLIC_URL || '').trim().replace(/\/$/, '');
-  if (configured) return configured;
-  const host = String(request.headers?.['x-forwarded-host'] || request.headers?.host || '').trim();
-  const proto = String(request.headers?.['x-forwarded-proto'] || 'https').split(',')[0].trim();
+function configuredPublicBaseUrl() {
+  const raw = String(process.env.SOFRA_PUBLIC_URL || '').trim();
+  if (!raw) return null;
+
+  let url;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new Error('SOFRA_PUBLIC_URL must be an absolute URL such as https://example.com.');
+  }
+
+  if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password || url.search || url.hash) {
+    throw new Error('SOFRA_PUBLIC_URL must be a plain HTTP(S) origin without credentials, query parameters, or fragments.');
+  }
+  if (url.pathname !== '/' && url.pathname !== '') {
+    throw new Error('SOFRA_PUBLIC_URL must be an origin only, without a path.');
+  }
+  if (url.protocol !== 'https:' && process.env.NODE_ENV !== 'development') {
+    throw new Error('SOFRA_PUBLIC_URL must use HTTPS outside local development.');
+  }
+
+  return url.origin;
+}
+
+function requestOrigin(request) {
+  const host = String(request.headers?.['x-forwarded-host'] || request.headers?.host || '')
+    .split(',')[0]
+    .trim();
+  const proto = String(request.headers?.['x-forwarded-proto'] || 'https')
+    .split(',')[0]
+    .trim()
+    .toLowerCase();
+
   if (!host) throw new Error('Unable to determine Sofra Panel public URL.');
-  return `${proto}://${host}`;
+
+  let url;
+  try {
+    url = new URL(`${proto}://${host}`);
+  } catch {
+    throw new Error('Unable to determine Sofra Panel public URL.');
+  }
+  if (!['https:', 'http:'].includes(url.protocol)) {
+    throw new Error('Unable to determine Sofra Panel public URL.');
+  }
+
+  return url.origin;
+}
+
+function publicBaseUrl(request) {
+  return configuredPublicBaseUrl() || requestOrigin(request);
+}
+
+function canonicalLoginUrl(request) {
+  const configured = configuredPublicBaseUrl();
+  if (!configured) return null;
+  const current = requestOrigin(request);
+  return current === configured ? null : `${configured}/api/sofra/auth/login`;
 }
 
 function redirectUri(request) {
@@ -405,7 +455,10 @@ module.exports = {
   clearStateCookie,
   setSessionCookie,
   clearSessionCookie,
+  configuredPublicBaseUrl,
+  requestOrigin,
   publicBaseUrl,
+  canonicalLoginUrl,
   redirectUri,
   randomToken,
   discordFetch,

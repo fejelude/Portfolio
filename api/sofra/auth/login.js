@@ -1,6 +1,6 @@
 'use strict';
 
-const { randomToken, setStateCookie, redirectUri, requiredEnv, loadSession, publicBaseUrl } = require('../_auth');
+const { randomToken, setStateCookie, redirectUri, requiredEnv, loadSession, publicBaseUrl, canonicalLoginUrl } = require('../_auth');
 
 module.exports = async (request, response) => {
   response.setHeader('Cache-Control', 'no-store');
@@ -10,6 +10,12 @@ module.exports = async (request, response) => {
   }
 
   try {
+    // OAuth state is stored in a host-only cookie. If this deployment is
+    // reachable through a Vercel alias and a custom domain, always begin OAuth
+    // on SOFRA_PUBLIC_URL so the state cookie and callback share one origin.
+    const canonicalLogin = canonicalLoginUrl(request);
+    if (canonicalLogin) return response.redirect(302, canonicalLogin);
+
     // If Sofra already has a valid remembered session, do not send the user
     // through Discord OAuth again. This is the normal returning-user path.
     try {
