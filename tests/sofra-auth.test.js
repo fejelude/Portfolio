@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { canManageGuild, botInstallUrl, getBotGuildIds, publicBaseUrl, redirectUri, canonicalLoginUrl } = require('../api/sofra/_auth');
+const { canManageGuild, botInstallUrl, getBotGuildIds, publicBaseUrl, redirectUri, canonicalLoginUrl, loadSession } = require('../api/sofra/_auth');
 const loginHandler = require('../api/sofra/auth/login');
 const logoutHandler = require('../api/sofra/auth/logout');
 const callbackHandler = require('../api/sofra/auth/callback');
@@ -262,15 +262,8 @@ test('OAuth callback rejects a state cookie from a different origin/session', as
 });
 
 
-test('Discord OAuth callback completes token exchange and creates a persistent session', async () => {
-  const envNames = [
-    'SOFRA_PUBLIC_URL',
-    'DISCORD_CLIENT_ID',
-    'DISCORD_CLIENT_SECRET',
-    'SOFRA_SESSION_SECRET',
-    'UPSTASH_REDIS_REST_URL',
-    'UPSTASH_REDIS_REST_TOKEN'
-  ];
+test('Discord OAuth callback creates an encrypted cookie session without Redis', async () => {
+  const envNames = ['SOFRA_PUBLIC_URL','DISCORD_CLIENT_ID','DISCORD_CLIENT_SECRET','SOFRA_SESSION_SECRET','UPSTASH_REDIS_REST_URL','UPSTASH_REDIS_REST_TOKEN'];
   const originalEnv = Object.fromEntries(envNames.map((name) => [name, process.env[name]]));
   const originalFetch = global.fetch;
   const requests = [];
@@ -280,55 +273,26 @@ test('Discord OAuth callback completes token exchange and creates a persistent s
   process.env.DISCORD_CLIENT_SECRET = 'test-client-secret';
   process.env.SOFRA_SESSION_SECRET = 'test-session-secret-that-is-long-enough-for-tests';
   process.env.UPSTASH_REDIS_REST_URL = 'https://redis.example.test';
-  process.env.UPSTASH_REDIS_REST_TOKEN = 'test-redis-token';
+  process.env.UPSTASH_REDIS_REST_TOKEN = 'quota-exhausted-token';
 
-  const jsonResponse = (body, status = 200) => {
-    const raw = JSON.stringify(body);
-    return {
-      ok: status >= 200 && status < 300,
-      status,
-      text: async () => raw,
-      json: async () => body,
-      headers: { get: () => null }
-    };
-  };
+  const jsonResponse = (body, status = 200) => ({
+    ok: status >= 200 && status < 300,
+    status,
+    text: async () => JSON.stringify(body),
+    json: async () => body,
+    headers: { get: () => null }
+  });
 
   global.fetch = async (url, options = {}) => {
     requests.push({ url, options });
     if (url === 'https://discord.com/api/v10/oauth2/token') {
-      const form = new URLSearchParams(options.body);
-      assert.equal(form.get('client_id'), '123456789012345678');
-      assert.equal(form.get('client_secret'), 'test-client-secret');
-      assert.equal(form.get('grant_type'), 'authorization_code');
-      assert.equal(form.get('code'), 'test-code');
-      assert.equal(form.get('redirect_uri'), 'https://www.fejelude.xyz/api/sofra/auth/callback');
-      return jsonResponse({
-        access_token: 'test-access-token',
-        refresh_token: 'test-refresh-token',
-        expires_in: 3600
-      });
+      return jsonResponse({ access_token: 'test-access-token', refresh_token: 'test-refresh-token', expires_in: 3600 });
     }
     if (url === 'https://discord.com/api/v10/users/@me') {
       assert.equal(options.headers.Authorization, 'Bearer test-access-token');
-      return jsonResponse({
-        id: '123456789012345678',
-        username: 'tester',
-        global_name: 'Test User',
-        avatar: null
-      });
+      return jsonResponse({ id: '123456789012345678', username: 'tester', global_name: 'Test User', avatar: null });
     }
-    if (url === 'https://redis.example.test') {
-      assert.equal(options.headers.Authorization, 'Bearer test-redis-token');
-      const command = JSON.parse(options.body);
-      assert.equal(command[0], 'SET');
-      assert.match(command[1], /^sofra:session:/);
-      const session = JSON.parse(command[2]);
-      assert.equal(session.user.id, '123456789012345678');
-      assert.equal(session.accessToken, 'test-access-token');
-      assert.equal(session.refreshToken, 'test-refresh-token');
-      assert.equal(command[3], 'EX');
-      return jsonResponse({ result: 'OK' });
-    }
+    if (url === 'https://redis.example.test') throw new Error('OAuth must not depend on Redis.');
     throw new Error(`Unexpected fetch URL: ${url}`);
   };
 
@@ -336,24 +300,28 @@ test('Discord OAuth callback completes token exchange and creates a persistent s
     const response = responseRecorder();
     await callbackHandler({
       method: 'GET',
-      headers: {
-        host: 'www.fejelude.xyz',
-        cookie: 'sofra_oauth_state=test-state'
-      },
-      query: {
-        code: 'test-code',
-        state: 'test-state'
-      }
+      headers: { host: 'www.fejelude.xyz', cookie: 'sofra_oauth_state=test-state' },
+      query: { code: 'test-code', state: 'test-state' }
     }, response);
 
     assert.equal(response.statusCode, 302);
     assert.equal(response.location, 'https://www.fejelude.xyz/sofra?auth=success');
     const cookies = response.headers['Set-Cookie'];
-    assert.ok(Array.isArray(cookies));
-    assert.ok(cookies.some((value) => value.startsWith('sofra_session=')));
-    assert.ok(cookies.some((value) => value.startsWith('sofra_oauth_state=') && value.includes('Max-Age=0')));
-    assert.equal(requests.filter((request) => request.url.includes('discord.com/api/v10')).length, 2);
-    assert.equal(requests.filter((request) => request.url === 'https://redis.example.test').length, 1);
+    const sessionCookie = cookies.find((value) => value.startsWith('sofra_session='));
+    assert.ok(sessionCookie);
+    assert.doesNotMatch(sessionCookie, /test-access-token|test-refresh-token/);
+    assert.equal(requests.filter((request) => request.url === 'https://redis.example.test').length, 0);
+
+    const pair = sessionCookie.split(';')[0];
+    const loaded = await loadSession({ headers: { cookie: pair } }, responseRecorder());
+    assert.equal(loaded.user.id, '123456789012345678');
+    assert.equal(loaded.accessToken, 'test-access-token');
+
+    const separator = pair.indexOf('=');
+    const name = pair.slice(0, separator);
+    const value = pair.slice(separator + 1);
+    const tampered = `${name}=${value.slice(0, -1)}${value.endsWith('A') ? 'B' : 'A'}`;
+    assert.equal(await loadSession({ headers: { cookie: tampered } }, responseRecorder()), null);
   } finally {
     global.fetch = originalFetch;
     for (const name of envNames) restoreEnv(name, originalEnv[name]);
