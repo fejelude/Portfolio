@@ -84,6 +84,8 @@ const DEFAULTS = Object.freeze({
   })
 });
 
+const DIRTY_GUILDS_KEY = 'sofra:config:dirty';
+
 function guildKey(guildId) {
   return `sofra:guild:${guildId}:config`;
 }
@@ -171,10 +173,11 @@ async function readGuildConfig(guildId) {
 async function writeSection(guildId, section, value) {
   if (!Object.prototype.hasOwnProperty.call(DEFAULTS, section)) throw new Error('Unsupported Sofra configuration section.');
   const payload = JSON.stringify(value);
-  await redis.hset(guildKey(guildId), {
-    [section]: payload,
-    updatedAt: String(Date.now())
-  });
+  const updatedAt = String(Date.now());
+  await redis.transaction([
+    ['HSET', guildKey(guildId), section, payload, 'updatedAt', updatedAt],
+    ['SADD', DIRTY_GUILDS_KEY, String(guildId)]
+  ]);
   return value;
 }
 
@@ -316,6 +319,7 @@ module.exports = {
   DEFAULTS,
   CATEGORIES,
   PANEL_ICON_KEYS,
+  DIRTY_GUILDS_KEY,
   guildKey,
   readGuildConfig,
   writeSection,
