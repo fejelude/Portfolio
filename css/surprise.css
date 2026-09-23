@@ -1,0 +1,33 @@
+/* Scoped, temporary party layers. The resting card stays deliberately quiet. */
+.surprise-card{margin:56px auto 0;padding:32px 24px;max-width:440px;border:1px solid #a78bfa2e;border-radius:24px;background:#0e0c18a6;scroll-margin-top:110px}
+.surprise-card h3{color:#eee9ff;font:600 1.65rem var(--font-display,sans-serif);margin:0 0 10px}
+.surprise-card p{font-size:.95rem;color:#aaa3ba}
+.surprise-trigger{appearance:none;margin-top:22px;padding:13px 28px;border:1px solid #8b6fba;border-radius:99px;background:#38234f;color:#f6efff;font:500 1rem system-ui,sans-serif;cursor:pointer;transition:background .2s,box-shadow .2s;touch-action:manipulation}
+.surprise-trigger:hover{background:#4a2d69;box-shadow:0 0 24px #bb8aff22}
+.surprise-trigger:focus-visible,.kawaii-controls button:focus-visible{outline:3px solid #ffc6e8;outline-offset:5px}
+.surprise-trigger[aria-disabled="true"]{cursor:default}
+.surprise-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.kawaii-world{--intensity:0;--fade:1;position:fixed;inset:0;z-index:2147483000;pointer-events:none;isolation:isolate;overflow:hidden;opacity:var(--fade);font-family:'Space Grotesk',system-ui,sans-serif}
+.kawaii-light{position:absolute;inset:-20%;opacity:var(--intensity);background:radial-gradient(ellipse at 20% 35%,#ff63b650,transparent 50%),radial-gradient(ellipse at 80% 65%,#9f7aff55,transparent 55%),radial-gradient(ellipse at 50% 95%,#67dfff35,transparent 50%);animation:kawaii-light 6s ease-in-out infinite alternate}
+.kawaii-light::after{content:'';position:absolute;inset:0;background:conic-gradient(from 25deg at 50% 50%,transparent,#ffc1dc18,transparent 25%,#8ae7ff20,transparent 55%,#df99ff25,transparent);animation:kawaii-orbit 18s linear infinite}
+.kawaii-canvas,.kawaii-stickers{position:absolute;inset:0;width:100%;height:100%}
+.kawaii-sticker{position:absolute;top:0;left:0;width:clamp(66px,10vw,126px);aspect-ratio:1;object-fit:contain;background:#fff;border:4px solid #fff;border-radius:24%;box-shadow:0 9px 24px #1a062e55,0 0 0 1px #ffcbea,0 0 22px #fb9cd950;will-change:transform,opacity}
+.kawaii-word{position:absolute;left:0;top:0;white-space:nowrap;color:#fff0fa;font-weight:700;font-size:clamp(18px,3vw,34px);text-shadow:2px 2px 0 #8c4b9a,0 0 16px #ff80c9;will-change:transform,opacity}
+.kawaii-reveal{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;padding:max(65px,env(safe-area-inset-top)) 18px max(28px,env(safe-area-inset-bottom));opacity:0;visibility:hidden}
+.kawaii-reveal::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,#1c0c35cc,#130b2488 40%,transparent 72%);z-index:-2}
+.kawaii-hero-wrap{position:relative;flex-shrink:1;min-height:0;width:min(290px,58vw,36vh);aspect-ratio:1116 / 1409}
+.kawaii-hero-wrap::before{content:'';position:absolute;inset:-30%;border-radius:50%;background:radial-gradient(circle,#ffb6e775,#c489ff28 45%,transparent 67%);z-index:-1}
+.kawaii-hero{display:block;width:100%;height:100%;object-fit:contain;border-radius:26px;border:5px solid #ffe3f2;box-shadow:0 0 0 1px #fff9,0 0 34px #ff9dd889,0 18px 65px #08001580}
+.kawaii-reveal h2{margin:10px 0 0;font-size:clamp(27px,6.4vw,72px);font-weight:700;line-height:1.12;letter-spacing:-.05em;color:#fff5fc;text-align:center;text-shadow:0 3px 0 #b44a91,0 0 22px #f585cf}
+.kawaii-reveal p{margin:0;color:#ffe0f5;font-size:clamp(15px,2.3vw,22px);letter-spacing:.03em}
+.kawaii-burst{position:absolute;width:min(110vw,900px);aspect-ratio:1;left:50%;top:50%;transform:translate(-50%,-50%);background:repeating-conic-gradient(from 0deg,#ffd6f040 0deg 2deg,transparent 2deg 18deg);mask-image:radial-gradient(circle,transparent 25%,#0008 48%,transparent 70%);-webkit-mask-image:radial-gradient(circle,transparent 25%,#0008 48%,transparent 70%);opacity:0}
+.kawaii-ring{position:absolute;width:120px;height:120px;left:calc(50% - 60px);top:calc(50% - 60px);border:2px solid #ffe6f4;border-radius:50%;opacity:0;box-shadow:0 0 24px #ff9fda}
+.kawaii-controls{position:absolute;top:max(18px,env(safe-area-inset-top));right:max(16px,env(safe-area-inset-right));display:flex;align-items:center;gap:8px;pointer-events:auto}
+.kawaii-controls button{appearance:none;border:1px solid #e6bbdf55;border-radius:99px;min-height:44px;padding:9px 15px;background:#1c122bed;color:#ffe9f9;font:500 12px system-ui,sans-serif;cursor:pointer}
+.kawaii-time{font:11px system-ui,sans-serif;color:#ebd6f5;background:#1c122bed;padding:8px 10px;border-radius:99px}
+body.kawaii-active .glass-nav,body.kawaii-active .surprise-card{box-shadow:0 0 28px #df83ff30;border-color:#d9a0ef88}
+.kawaii-world[data-reduced="true"] .kawaii-light,.kawaii-world[data-reduced="true"] .kawaii-light::after{animation:none}
+@keyframes kawaii-light{from{transform:translate(-3%,-2%) rotate(-7deg)}to{transform:translate(3%,2%) rotate(7deg)}}
+@keyframes kawaii-orbit{to{transform:rotate(360deg)}}
+@media(max-height:520px) and (orientation:landscape){.kawaii-reveal{flex-direction:row;flex-wrap:wrap;align-content:center;gap:16px}.kawaii-hero-wrap{width:140px;height:177px}.kawaii-reveal h2{font-size:32px}.kawaii-reveal p{flex-basis:100%;text-align:center}}
+@media(prefers-reduced-motion:reduce){.surprise-trigger{transition:none}.kawaii-light,.kawaii-light::after{animation:none}}

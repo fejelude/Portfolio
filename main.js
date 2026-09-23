@@ -80,15 +80,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Keep older cached markup compatible with the single FejeAce game hub.
+    // Retire the old game entry even when another page has cached navigation.
+    nav.querySelectorAll('a[href*="Arcade"], a[href="/arcade"]').forEach((link) => {
+      link.href = '/#surprise';
+      link.textContent = 'Click me ♡';
+      link.classList.remove('nav-arcade-link');
+    });
     const simulationDropdown = nav.querySelector(':scope > .dropdown');
-    if (simulationDropdown) {
-      const arcadeLink = document.createElement('a');
-      arcadeLink.href = 'Arcade.html';
-      arcadeLink.className = 'nav-arcade-link';
-      arcadeLink.textContent = 'Play My Games';
-      simulationDropdown.replaceWith(arcadeLink);
-    }
+    if (simulationDropdown) simulationDropdown.remove();
 
     if (!nav.querySelector('.sofra-panel-link')) {
       const sofraLink = document.createElement('a');
@@ -127,7 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
       background: linear-gradient(135deg, rgba(244,167,194,.22), rgba(198,168,255,.14));
       box-shadow: 0 10px 30px rgba(244,167,194,.12);
     }
-    .nav-links .nav-arcade-link { white-space: nowrap; }
     @media (min-width: 901px) {
       .nav-links { gap: clamp(12px, 1.5vw, 24px); }
       .nav-links > a { white-space: nowrap; }
@@ -255,3 +253,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
