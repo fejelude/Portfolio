@@ -28,10 +28,15 @@ jobs:
       # clock with a virtual output rather than mocking successful playback.
       - name: Start virtual audio output
         run: |
-          sudo apt-get install -y pulseaudio
+          sudo apt-get install -y pulseaudio ffmpeg
           pulseaudio --start --exit-idle-time=-1
           pactl load-module module-null-sink sink_name=ci_audio
           pactl set-default-sink ci_audio
+      - name: Decode every audio track
+        run: |
+          for track in assets/surprise/*.mp3; do
+            ffmpeg -nostdin -v error -xerror -i "$track" -f null -
+          done
       - run: node verification/surprise-smoke.cjs
       - uses: actions/upload-artifact@v4
         if: always()

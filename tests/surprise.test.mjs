@@ -62,7 +62,7 @@ function harness({reduced=false, mobile=false, playback='success'}={}) {
 test('every asset exists, hero is the selected ninth image, and cues fit all full tracks',()=>{
  assert.equal(manifest.images.length,32);assert.equal(manifest.tracks.length,4);
  assert.equal(manifest.images.find(i=>i.src===manifest.hero).original,'8DE684AF-8DBE-4B35-91FB-9686773CD2BF.jpeg');
- for(const {src} of [...manifest.images,...manifest.tracks])assert.ok(existsSync(new URL('..'+src,import.meta.url)),src);
+ for(const {src} of [...manifest.images,...manifest.tracks])assert.ok(readFileSync(new URL('..'+src,import.meta.url)).length > 100, `${src} must contain media data`);
  for(const t of manifest.tracks){assert.ok(t.duration>=18&&t.duration<22);assert.ok(t.reveal>3&&t.reveal<t.duration-3);}
 });
 test('plays immediately, prevents click stacking, reveals, and follows full audio length',async()=>{
