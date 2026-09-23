@@ -1,12 +1,12 @@
 'use strict';
 
 const crypto = require('node:crypto');
-const redis = require('./_redis');
 
 const SESSION_COOKIE = 'sofra_session';
 const STATE_COOKIE = 'sofra_oauth_state';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
-const SESSION_TOUCH_SECONDS = 60 * 60 * 6;
+const SESSION_TTL_MILLISECONDS = SESSION_TTL_SECONDS * 1000;
+const SESSION_COOKIE_VERSION = 'v1';
 const DISCORD_API = 'https://discord.com/api/v10';
 const ADMINISTRATOR = 1n << 3n;
 const MANAGE_GUILD = 1n << 5n;
@@ -56,32 +56,56 @@ function sessionSecret() {
   return requiredEnv('SOFRA_SESSION_SECRET');
 }
 
-function sign(value) {
-  return crypto.createHmac('sha256', sessionSecret()).update(value).digest('base64url');
-}
-
 function safeEqual(left, right) {
   const a = Buffer.from(String(left));
   const b = Buffer.from(String(right));
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
-function encodeSessionCookie(sessionId) {
-  return `${sessionId}.${sign(sessionId)}`;
+function sessionEncryptionKey() {
+  return crypto.createHash('sha256').update(sessionSecret()).digest();
+}
+
+function encodeSessionCookie(session) {
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', sessionEncryptionKey(), iv);
+  cipher.setAAD(Buffer.from(`sofra-session:${SESSION_COOKIE_VERSION}`));
+  const encrypted = Buffer.concat([
+    cipher.update(Buffer.from(JSON.stringify(session), 'utf8')),
+    cipher.final()
+  ]);
+  const tag = cipher.getAuthTag();
+  return [
+    SESSION_COOKIE_VERSION,
+    iv.toString('base64url'),
+    encrypted.toString('base64url'),
+    tag.toString('base64url')
+  ].join('.');
 }
 
 function decodeSessionCookie(raw) {
   if (!raw) return null;
-  const index = raw.lastIndexOf('.');
-  if (index <= 0) return null;
-  const id = raw.slice(0, index);
-  const signature = raw.slice(index + 1);
-  if (!/^[A-Za-z0-9_-]{24,128}$/.test(id)) return null;
-  return safeEqual(signature, sign(id)) ? id : null;
+  const parts = String(raw).split('.');
+  if (parts.length !== 4 || parts[0] !== SESSION_COOKIE_VERSION) return null;
+  try {
+    const iv = Buffer.from(parts[1], 'base64url');
+    const encrypted = Buffer.from(parts[2], 'base64url');
+    const tag = Buffer.from(parts[3], 'base64url');
+    if (iv.length !== 12 || tag.length !== 16 || encrypted.length === 0) return null;
+    const decipher = crypto.createDecipheriv('aes-256-gcm', sessionEncryptionKey(), iv);
+    decipher.setAAD(Buffer.from(`sofra-session:${SESSION_COOKIE_VERSION}`));
+    decipher.setAuthTag(tag);
+    const session = JSON.parse(Buffer.concat([decipher.update(encrypted), decipher.final()]).toString('utf8'));
+    const createdAt = Number(session?.createdAt || 0);
+    if (!Number.isFinite(createdAt) || createdAt <= 0 || Date.now() - createdAt > SESSION_TTL_MILLISECONDS) return null;
+    return session;
+  } catch {
+    return null;
+  }
 }
 
-function setSessionCookie(response, sessionId) {
-  appendSetCookie(response, cookie(SESSION_COOKIE, encodeSessionCookie(sessionId), { maxAge: SESSION_TTL_SECONDS }));
+function setSessionCookie(response, session) {
+  appendSetCookie(response, cookie(SESSION_COOKIE, encodeSessionCookie(session), { maxAge: SESSION_TTL_SECONDS }));
 }
 
 function clearSessionCookie(response) {
@@ -249,12 +273,7 @@ async function refreshAccessToken(session) {
   };
 }
 
-async function saveSession(sessionId, session) {
-  await redis.set(`sofra:session:${sessionId}`, JSON.stringify(session), { ex: SESSION_TTL_SECONDS });
-}
-
 async function createSession(response, tokens, user) {
-  const sessionId = randomToken(36);
   const now = Date.now();
   const session = {
     user: {
@@ -270,54 +289,37 @@ async function createSession(response, tokens, user) {
     createdAt: now,
     lastSeenAt: now
   };
-  await saveSession(sessionId, session);
-  setSessionCookie(response, sessionId);
+  setSessionCookie(response, session);
   return session;
 }
 
 async function loadSession(request, response) {
-  const sessionId = decodeSessionCookie(parseCookies(request)[SESSION_COOKIE]);
-  if (!sessionId) return null;
-  const raw = await redis.get(`sofra:session:${sessionId}`);
-  if (!raw) return null;
+  const rawCookie = parseCookies(request)[SESSION_COOKIE];
+  let session = decodeSessionCookie(rawCookie);
+  if (!session?.accessToken || !session?.refreshToken || !session?.user?.id || !session?.csrf) {
+    if (response && rawCookie) clearSessionCookie(response);
+    return null;
+  }
 
-  let session;
-  try { session = JSON.parse(raw); } catch { return null; }
-  if (!session?.accessToken || !session?.refreshToken || !session?.user?.id) return null;
-
-  let refreshed = false;
   if (Number(session.expiresAt || 0) <= Date.now() + 90_000) {
     try {
       session = await refreshAccessToken(session);
-      refreshed = true;
+      session.lastSeenAt = Date.now();
+      if (response) setSessionCookie(response, session);
     } catch (error) {
       const status = Number(error?.status || 0);
       if (status === 400 || status === 401) {
         if (response) clearSessionCookie(response);
-        await redis.del(`sofra:session:${sessionId}`).catch(() => undefined);
         return null;
       }
-
-      // A Discord outage, timeout, or rate limit should never log the user out.
-      // Preserve the refresh token/session and let the caller return a retryable error.
       throw error;
     }
   }
 
-  const now = Date.now();
-  const shouldTouch = refreshed || now - Number(session.lastSeenAt || session.createdAt || 0) >= SESSION_TOUCH_SECONDS * 1000;
-  if (shouldTouch) {
-    session.lastSeenAt = now;
-    await saveSession(sessionId, session);
-    if (response) setSessionCookie(response, sessionId);
-  }
-
-  return { id: sessionId, ...session };
+  return session;
 }
 
-async function destroySession(request, response) {
-  const sessionId = decodeSessionCookie(parseCookies(request)[SESSION_COOKIE]);
-  if (sessionId) await redis.del(`sofra:session:${sessionId}`).catch(() => undefined);
+async function destroySession(_request, response) {
   clearSessionCookie(response);
 }
 
@@ -334,7 +336,7 @@ function guildIconUrl(guild) {
   return `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.${extension}?size=128`;
 }
 
-async function getUserGuilds(session) {
+async function getUserGuilds(session, response = null) {
   const fetchGuilds = () => discordFetch('/users/@me/guilds', {
     headers: { Authorization: `Bearer ${session.accessToken}` }
   });
@@ -343,11 +345,11 @@ async function getUserGuilds(session) {
   try {
     guilds = await fetchGuilds();
   } catch (error) {
-    if (Number(error?.status || 0) !== 401 || !session?.refreshToken || !session?.id) throw error;
+    if (Number(error?.status || 0) !== 401 || !session?.refreshToken) throw error;
 
     const refreshed = await refreshAccessToken(session);
     Object.assign(session, refreshed, { lastSeenAt: Date.now() });
-    await saveSession(session.id, session);
+    if (response) setSessionCookie(response, session);
     guilds = await fetchGuilds();
   }
 
@@ -378,7 +380,7 @@ async function requireGuildAccess(request, response, guildId) {
   }
   const session = await requireSession(request, response);
   if (!session) return null;
-  const guilds = await getUserGuilds(session);
+  const guilds = await getUserGuilds(session, response);
   const guild = guilds.find((item) => item.id === guildId && item.manageable);
   if (!guild) {
     response.status(403).json({ ok: false, error: 'You no longer have Manage Server or Administrator permission in this server.' });
