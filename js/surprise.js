@@ -30,6 +30,7 @@
     if (cache.has(src)) return;
     const img = new Image();
     img.src = src;
+    if (img.decode) img.decode().catch(() => {});
     cache.set(src, img);
   }
   function pickNext() {
@@ -103,6 +104,7 @@
     const mobile = touch.matches || innerWidth < 700;
     const overlay = node('div', 'kawaii-world', document.body);
     overlay.dataset.reduced = String(reduced);
+    overlay.dataset.variant = String(nextTrack);
     const light = node('div', 'kawaii-light', overlay);
     light.setAttribute('aria-hidden', 'true');
     const canvas = node('canvas', 'kawaii-canvas', overlay);
@@ -132,12 +134,13 @@
     close.setAttribute('aria-label', 'End surprise');
     const now = performance.now();
     const run = active = {
-      overlay, controls, canvas, stickers, reveal, burst, ring, reduced, mobile,
+      overlay, controls, canvas, stickers, reveal, heroWrap, burst, ring, reduced, mobile,
       track, trackIndex: nextTrack, duration: track.duration, ctx: canvas.getContext('2d'),
       abort: new AbortController(), animations: new Set(), particles: [], cards: [],
       raf: 0, born: now, lastFrame: now, lastAdvance: now, lastAudio: 0,
       elapsed: 0, clock: 'pending', silentStart: now, silentOffset: 0,
       lastSpawn: 0, lastSticker: -1, lastWord: 0, lastTrail: 0,
+      cue: 0, variant: nextTrack, cardCap: mobile ? 10 : 20,
       revealed: false, cap: reduced ? 12 : mobile ? 72 : 150,
       width: innerWidth, height: innerHeight, slowFrames: 0, hadControlFocus: false,
     };
@@ -195,7 +198,7 @@
       const dt = Math.min((timestamp - run.lastFrame) / 1000, .05);
       if (timestamp - run.lastFrame > 30) run.slowFrames++;
       else run.slowFrames = Math.max(0, run.slowFrames - 1);
-      if (run.slowFrames > 35) { run.cap = Math.max(30, Math.floor(run.cap * .8)); run.slowFrames = 0; }
+      if (run.slowFrames > 35) { run.cap = Math.max(run.reduced ? 12 : 30, Math.floor(run.cap * .8)); run.cardCap = Math.max(4, run.cardCap - 2); run.slowFrames = 0; }
       run.lastFrame = timestamp;
       if (run.clock === 'audio') {
         const current = audio.currentTime;
@@ -219,10 +222,18 @@
           emit(run, random(0, run.width), random(run.height * .35, run.height + 25), t < 3 ? 2 : 4, 'float');
           if (t > 3 && Math.random() < .075) emit(run, -80, random(run.height * .15, run.height * .8), 1, 'giant');
         }
-        if (t > .8 && t - run.lastSticker > (mobile ? 1.25 : .95)) { run.lastSticker = t; sticker(run); }
+        if (t > .8 && t - run.lastSticker > (run.revealed ? (mobile ? .42 : .22) : .8)) { run.lastSticker = t; sticker(run); }
         if (t > 3 && t - run.lastWord > 2.1) { run.lastWord = t; word(run); }
       }
-      if (!run.revealed && t >= (run.reduced ? 1.3 : track.reveal)) revealPeak(run);
+      if (!run.revealed && run.clock !== 'pending' && t >= track.reveal) revealPeak(run);
+      // All visual hits use the same media clock as the pre-mixed sound effect.
+      // Consume skipped cues once after a delayed frame; never catch up in a storm.
+      const cues = assets.impactCues || [0];
+      let hit = false;
+      while (run.revealed && run.cue < cues.length && t >= track.reveal + cues[run.cue]) {
+        run.cue++; hit = true;
+      }
+      if (hit && !run.reduced && t < run.duration - .8) celebrate(run);
       draw(run, dt);
       run.raf = requestAnimationFrame(frame);
     }
@@ -260,15 +271,19 @@
     run.particles = run.particles.filter(p => p.life < p.ttl);
     for (const p of run.particles) {
       p.life += dt;
-      if (!run.reduced) { p.x += p.vx * dt; p.y += p.vy * dt; p.angle += p.spin * dt; }
-      const wave = run.reduced ? 0 : Math.sin(p.life * 2 + p.phase) * 13;
+      if (!run.reduced) {
+        p.x += p.vx * dt; p.y += p.vy * dt; p.angle += p.spin * dt;
+        if (p.mode === 'firework') { p.vy += 100 * dt; p.vx *= Math.exp(-.8 * dt); }
+      }
+      const wave = run.reduced || p.mode === 'firework' ? 0 : Math.sin(p.life * 2 + p.phase) * 13;
       c.save(); c.translate(p.x + wave, p.y); c.rotate(run.reduced ? 0 : p.angle); c.scale(p.size, p.size);
       c.globalAlpha = p.alpha * clamp((p.ttl - p.life) / .7);
       c.fillStyle = p.color;
       // Only a few foreground hearts use blur; never blur the entire page.
       if (p.mode === 'giant') { c.globalAlpha *= .4; if ('filter' in c) c.filter = 'blur(2px)'; }
       c.beginPath();
-      if (p.type === 'heart') {
+      if (p.type === 'spark') { c.arc(0, 0, .65, 0, Math.PI * 2);
+      } else if (p.type === 'heart') {
         c.moveTo(0, .7); c.bezierCurveTo(-1.3, -.05, -.8, -1, 0, -.42); c.bezierCurveTo(.8, -1, 1.3, -.05, 0, .7);
       } else if (p.type === 'star') {
         c.moveTo(0, -1); c.quadraticCurveTo(.15, -.15, .8, 0); c.quadraticCurveTo(.15, .15, 0, 1); c.quadraticCurveTo(-.15, .15, -.8, 0); c.quadraticCurveTo(-.15, -.15, 0, -1);
@@ -284,14 +299,33 @@
   }
   function sticker(run) {
     run.cards = run.cards.filter(c => c.isConnected);
-    if (run.cards.length >= (run.mobile ? 3 : 4)) return;
+    if (run.cards.length >= run.cardCap) return;
     const img = drawImageCard(nextImage(), run.stickers, 'kawaii-sticker');
     run.cards.push(img);
     const size = clamp(run.width * .1, 66, 126) + 8;
     const left = Math.random() < .5;
     const x = left ? random(12, run.width * .18) : random(run.width * .75, run.width - size - 12);
     const y = random(90, Math.max(100, run.height - size - 55));
-    const rotate = random(-19, 19);
+    const rotate = random(-28, 28);
+    // Four motion families: radial blast, confetti rain, crossfire and fountain.
+    if (run.revealed) {
+      const variant = run.variant;
+      const angle = random(0, Math.PI * 2);
+      const radius = Math.max(run.width, run.height) * .65;
+      let sx = run.width / 2 - size / 2, sy = run.height / 2 - size / 2;
+      let ex = sx + Math.cos(angle) * radius, ey = sy + Math.sin(angle) * radius;
+      if (variant === 1) { sx = random(0, run.width - size); sy = -size; ex = sx + random(-120, 120); ey = run.height + size; }
+      if (variant === 2) { sx = left ? -size : run.width; sy = random(90, run.height - size); ex = left ? run.width : -size; ey = sy + random(-180, 180); }
+      if (variant === 3) { sx = random(0, run.width - size); sy = run.height; ex = sx + random(-180, 180); ey = -size; }
+      const a = animate(run, img, [
+        { transform: `translate(${sx}px, ${sy}px) rotate(${rotate}deg) scale(.3)`, opacity: 0 },
+        { transform: `translate(${sx + (ex-sx)*.22}px, ${sy + (ey-sy)*.22}px) rotate(${-rotate}deg) scale(1.15)`, opacity: 1, offset: .2 },
+        { transform: `translate(${sx + (ex-sx)*.75}px, ${sy + (ey-sy)*.75}px) rotate(${rotate*2}deg) scale(1)`, opacity: 1, offset: .75 },
+        { transform: `translate(${ex}px, ${ey}px) rotate(${rotate*3}deg) scale(.65)`, opacity: 0 },
+      ], { duration: random(1800, 2900), easing: 'linear' });
+      if (a) a.onfinish = () => { run.animations.delete(a); img.remove(); }; else img.remove();
+      return;
+    }
     const a = animate(run, img, [
       { transform: `translate(${x}px, ${y + 65}px) rotate(${rotate - 15}deg) scale(.2)`, opacity: 0 },
       { transform: `translate(${x}px, ${y}px) rotate(${rotate}deg) scale(1.08)`, opacity: 1, offset: .18 },
@@ -312,20 +346,43 @@
     ], { duration: 1800, easing: 'ease-out' });
     if (a) a.onfinish = () => { run.animations.delete(a); el.remove(); }; else el.remove();
   }
+  function celebrate(run) {
+    const count = run.mobile ? 22 : 36;
+    // Reclaim old confetti before adding sparks; the total stays inside the budget.
+    run.particles.splice(0, Math.max(0, run.particles.length + count * 2 - run.cap));
+    for (let side = 0; side < 2; side++) {
+      const x = run.width * (side ? random(.68, .9) : random(.1, .32));
+      const y = run.height * random(.18, .6);
+      for (let i = 0; i < count && run.particles.length < run.cap; i++) {
+        const angle = i / count * Math.PI * 2;
+        const speed = random(95, run.mobile ? 200 : 290);
+        run.particles.push({x, y, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed,
+          size: random(2, 4), life: 0, ttl: random(.8, 1.6), spin: 0, angle: 0,
+          color: colors[(i + run.variant) % colors.length], alpha: 1, phase: 0,
+          type: 'spark', mode: 'firework'});
+      }
+    }
+    for (let i = 0; i < (run.mobile ? 3 : 6); i++) sticker(run);
+    if (run.cue % 3 === 1) word(run);
+    // Pulse just the artwork, never the full-screen backdrop.
+    if (run.elapsed > run.track.reveal + .85) animate(run, run.heroWrap, [
+      { transform: 'scale(1)' }, { transform: 'scale(1.055)', offset: .25 }, { transform: 'scale(1)' },
+    ], { duration: 360, easing: 'ease-out' });
+  }
   function revealPeak(run) {
     run.revealed = true;
     run.reveal.style.visibility = 'visible';
-    run.reveal.style.opacity = '1';
+    run.reveal.style.opacity = 'var(--fade)';
     status.textContent = 'SURPRISEEE! hehe you found it ♡';
     if (run.reduced) {
-      animate(run, run.reveal, [{ opacity: 0 }, { opacity: 1 }], { duration: 650 });
+      animate(run, run.heroWrap, [{ opacity: 0 }, { opacity: 1 }], { duration: 650 });
       return;
     }
     // Make room for a finite peak burst without exceeding the particle budget.
     run.particles.splice(0, Math.min(run.particles.length, Math.floor(run.cap * .35)));
     emit(run, run.width / 2, run.height / 2, Math.floor(run.cap * .35), 'burst');
-    animate(run, run.reveal, [
-      { transform: 'scale(.35) rotate(-7deg)', opacity: 0 },
+    animate(run, run.heroWrap, [
+      { transform: 'scale(.8) rotate(-7deg)', opacity: 1 },
       { transform: 'scale(1.09) rotate(2deg)', opacity: 1, offset: .55 },
       { transform: 'scale(.97) rotate(-1deg)', opacity: 1, offset: .78 },
       { transform: 'scale(1)', opacity: 1 },
