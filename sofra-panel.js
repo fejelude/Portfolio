@@ -641,6 +641,7 @@
     const heading = gate.querySelector('.auth-card h1');
     const copy = gate.querySelector('.auth-card > p');
     const button = gate.querySelector('.discord-login');
+    const reauthButton = gate.querySelector('.discord-reauth');
     const note = gate.querySelector('.security-note');
     if (!heading || !copy || !button) return;
 
@@ -653,6 +654,7 @@
       event.preventDefault();
       location.reload();
     };
+    if (reauthButton) reauthButton.classList.remove('hidden');
     if (note) note.innerHTML = '<span>♡</span> Temporary connection errors never sign you out of Sofra.';
   }
 

@@ -10,20 +10,27 @@ module.exports = async (request, response) => {
   }
 
   try {
+    const forceReauth = String(request.query?.reauth || '') === '1';
+
     // OAuth state is stored in a host-only cookie. If this deployment is
     // reachable through a Vercel alias and a custom domain, always begin OAuth
     // on SOFRA_PUBLIC_URL so the state cookie and callback share one origin.
     const canonicalLogin = canonicalLoginUrl(request);
-    if (canonicalLogin) return response.redirect(302, canonicalLogin);
+    if (canonicalLogin) {
+      return response.redirect(302, forceReauth ? `${canonicalLogin}?reauth=1` : canonicalLogin);
+    }
 
     // If Sofra already has a valid remembered session, do not send the user
-    // through Discord OAuth again. This is the normal returning-user path.
-    try {
-      const existing = await loadSession(request, response);
-      if (existing) return response.redirect(302, `${publicBaseUrl(request)}/sofra`);
-    } catch {
-      // A temporary Discord/Redis hiccup should not prevent a manual sign-in
-      // attempt from starting if the user explicitly clicked the button.
+    // through Discord OAuth again. A deliberate re-authentication skips this
+    // shortcut so the recovery button always obtains a fresh authorization.
+    if (!forceReauth) {
+      try {
+        const existing = await loadSession(request, response);
+        if (existing) return response.redirect(302, `${publicBaseUrl(request)}/sofra`);
+      } catch {
+        // A temporary Discord/Redis hiccup should not prevent a manual sign-in
+        // attempt from starting if the user explicitly clicked the button.
+      }
     }
 
     const state = randomToken(24);
@@ -34,8 +41,11 @@ module.exports = async (request, response) => {
     authorize.searchParams.set('redirect_uri', redirectUri(request));
     authorize.searchParams.set('scope', 'identify guilds');
     authorize.searchParams.set('state', state);
-    // Do not force prompt=consent. Discord can reuse the user's existing grant,
-    // which avoids repeatedly showing the authorization screen.
+    if (forceReauth) {
+      // Discord documents prompt=consent as the way to make an existing grant
+      // ask the user to approve the requested scopes again.
+      authorize.searchParams.set('prompt', 'consent');
+    }
     return response.redirect(302, authorize.toString());
   } catch (error) {
     return response.status(500).json({ ok: false, error: error.message || 'Unable to start Discord login.' });

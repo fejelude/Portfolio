@@ -29,7 +29,14 @@ test('public Sofra page and existing dashboard have distinct routes', () => {
   assert.equal(routes.find((r) => r.source === '/sofra').destination, '/SofraPanel');
   assert.equal(routes.find((r) => r.source === '/sofra/about').destination, '/Sofra');
   const html = fs.readFileSync(path.join(__dirname, '../SofraPanel.html'), 'utf8');
+  const css = fs.readFileSync(path.join(__dirname, '../sofra-panel.css'), 'utf8');
+  const enhancement = fs.readFileSync(path.join(__dirname, '../sofra-panel.js'), 'utf8');
   assert.match(html, /sofra-panel-core.js" defer/);
   assert.match(html, /role="dialog" aria-modal="true"/);
-  assert.doesNotMatch(fs.readFileSync(path.join(__dirname, '../sofra-panel.js'), 'utf8'), /document\.write/);
+  assert.match(html, /discord-reauth hidden/);
+  assert.match(html, /\/api\/sofra\/auth\/logout\?reauth=1/);
+  assert.match(css, /connection-retry-mode \.discord-login[\s\S]*width: min\(380px, 100%\)/);
+  assert.match(css, /@media \(max-width: 430px\)[\s\S]*connection-retry-mode \.discord-login[\s\S]*width: 100%/);
+  assert.match(enhancement, /reauthButton\.classList\.remove\('hidden'\)/);
+  assert.doesNotMatch(enhancement, /document\.write/);
 });

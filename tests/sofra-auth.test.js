@@ -4,6 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { canManageGuild, botInstallUrl, getBotGuildIds, publicBaseUrl, redirectUri, canonicalLoginUrl } = require('../api/sofra/_auth');
 const loginHandler = require('../api/sofra/auth/login');
+const logoutHandler = require('../api/sofra/auth/logout');
 const callbackHandler = require('../api/sofra/auth/callback');
 
 test('guild management accepts only owner, Administrator, or Manage Server', () => {
@@ -114,10 +115,79 @@ test('OAuth uses one canonical origin even when the site is opened through a Ver
     assert.equal(authorize.origin, 'https://discord.com');
     assert.equal(authorize.pathname, '/oauth2/authorize');
     assert.equal(authorize.searchParams.get('redirect_uri'), 'https://www.fejelude.xyz/api/sofra/auth/callback');
+    assert.equal(authorize.searchParams.has('prompt'), false, 'normal sign-in should reuse an existing Discord grant');
     assert.match(String(canonicalResponse.headers['Set-Cookie']), /sofra_oauth_state=/);
   } finally {
     restoreEnv('SOFRA_PUBLIC_URL', originalPublicUrl);
     restoreEnv('DISCORD_CLIENT_ID', originalClientId);
+  }
+});
+
+test('manual re-login clears the current Sofra session and starts forced Discord OAuth', async () => {
+  const originalPublicUrl = process.env.SOFRA_PUBLIC_URL;
+  const originalClientId = process.env.DISCORD_CLIENT_ID;
+  process.env.SOFRA_PUBLIC_URL = 'https://www.fejelude.xyz';
+  process.env.DISCORD_CLIENT_ID = '123456789012345678';
+
+  try {
+    const logoutResponse = responseRecorder();
+    await logoutHandler({
+      method: 'GET',
+      headers: {
+        host: 'www.fejelude.xyz',
+        'x-forwarded-proto': 'https'
+      },
+      query: { reauth: '1' }
+    }, logoutResponse);
+
+    assert.equal(logoutResponse.statusCode, 302);
+    assert.equal(logoutResponse.location, 'https://www.fejelude.xyz/api/sofra/auth/login?reauth=1');
+    assert.match(String(logoutResponse.headers['Set-Cookie']), /sofra_session=/);
+    assert.match(String(logoutResponse.headers['Set-Cookie']), /Max-Age=0/);
+
+    const loginResponse = responseRecorder();
+    await loginHandler({
+      method: 'GET',
+      headers: {
+        host: 'www.fejelude.xyz',
+        'x-forwarded-proto': 'https'
+      },
+      query: { reauth: '1' }
+    }, loginResponse);
+
+    assert.equal(loginResponse.statusCode, 302);
+    const authorize = new URL(loginResponse.location);
+    assert.equal(authorize.origin, 'https://discord.com');
+    assert.equal(authorize.pathname, '/oauth2/authorize');
+    assert.equal(authorize.searchParams.get('scope'), 'identify guilds');
+    assert.equal(authorize.searchParams.get('prompt'), 'consent');
+    assert.match(String(loginResponse.headers['Set-Cookie']), /sofra_oauth_state=/);
+  } finally {
+    restoreEnv('SOFRA_PUBLIC_URL', originalPublicUrl);
+    restoreEnv('DISCORD_CLIENT_ID', originalClientId);
+  }
+});
+
+test('forced re-login keeps the reauth flag when canonicalizing an alias hostname', async () => {
+  const originalPublicUrl = process.env.SOFRA_PUBLIC_URL;
+  process.env.SOFRA_PUBLIC_URL = 'https://www.fejelude.xyz';
+
+  try {
+    const response = responseRecorder();
+    await loginHandler({
+      method: 'GET',
+      headers: {
+        host: 'portfolio-alias.vercel.app',
+        'x-forwarded-proto': 'https'
+      },
+      query: { reauth: '1' }
+    }, response);
+
+    assert.equal(response.statusCode, 302);
+    assert.equal(response.location, 'https://www.fejelude.xyz/api/sofra/auth/login?reauth=1');
+    assert.equal(response.headers['Set-Cookie'], undefined);
+  } finally {
+    restoreEnv('SOFRA_PUBLIC_URL', originalPublicUrl);
   }
 });
 
