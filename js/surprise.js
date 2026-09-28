@@ -106,11 +106,12 @@
     warm();
     const track = assets.tracks[nextTrack];
     // Prime both media elements in the click call stack for mobile autoplay.
-    // The replacement SFX stays muted until the image reveal cue.
+    // Keep the SFX user-authorized and running silently via volume (not muted);
+    // some browsers can gate a later muted -> audible transition.
     effect.currentTime = 0;
-    effect.muted = true;
+    effect.muted = false;
     effect.loop = true;
-    effect.volume = .9;
+    effect.volume = 0;
     audio.currentTime = 0;
     audio.muted = false;
     audio.volume = .85;
@@ -206,7 +207,7 @@
     mute.addEventListener('click', () => {
       run.userMuted = !run.userMuted;
       audio.muted = run.userMuted;
-      effect.muted = !run.revealed || run.userMuted;
+      effect.volume = run.userMuted || !run.revealed ? 0 : .9;
       mute.textContent = run.userMuted ? 'Unmute' : 'Mute';
       mute.setAttribute('aria-pressed', String(run.userMuted));
     }, { signal });
@@ -411,8 +412,29 @@
     run.revealed = true;
     audio.volume = .22;
     effect.loop = false;
+    effect.volume = 0;
+
+    let armed = true;
+    const makeAudible = () => {
+      if (!armed || active !== run || !run.revealed) return;
+      armed = false;
+      effect.volume = run.userMuted ? 0 : .9;
+    };
+    // Keep the seek itself silent so the first audible frame always starts at 0:00.
+    // Reassert play() after the seek; if the browser kept the primed loop alive this
+    // resolves immediately, and if it briefly paused the element this resumes it.
+    effect.addEventListener('seeked', makeAudible, { once: true, signal: run.abort.signal });
     try { effect.currentTime = 0; } catch (_) {}
-    effect.muted = run.userMuted;
+    let restart;
+    try { restart = effect.play(); } catch (_) { restart = Promise.reject(_); }
+    Promise.resolve(restart).catch(() => {
+      // The element was already primed by the user's click. A redundant restart
+      // rejection does not cancel the already-authorized playback.
+    });
+    // Reveal on the next paint after the seek request. The seeked listener above
+    // wins when available; this frame fallback covers engines that coalesce seeks.
+    requestAnimationFrame(makeAudible);
+
     run.reveal.style.visibility = 'visible';
     run.reveal.style.opacity = 'var(--fade)';
     status.textContent = 'SURPRISEEE! hehe you found it ♡';

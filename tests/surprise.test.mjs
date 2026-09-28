@@ -8,7 +8,8 @@ const manifest = JSON.parse(readFileSync(new URL('../assets/surprise/manifest.js
 // Deterministic DOM/media harness: exercise the production controller, including
 // rejected/pending play promises, stalled clocks, lifecycle events and animation disposal.
 function harness({reduced=false, mobile=false, playback='success'}={}) {
-  let now=0, frames=new Map(), frameId=0, media, fills=0, peakFills=0;
+  let now=0, frames=new Map(), frameId=0, media, effect, fills=0, peakFills=0;
+  const audios=[];
   const animations=new Set();
   class Target {
     listeners=new Map();
@@ -36,7 +37,7 @@ function harness({reduced=false, mobile=false, playback='success'}={}) {
   document.getElementById=id=>id==='surprise-trigger'?trigger:status;document.createElement=t=>new Element(t);
   const motion=new Target();motion.matches=reduced;
   class Audio extends Target {
-    constructor(){super();media=this;this.currentTime=0;this.paused=true;this.muted=false;this.playCalls=0;}
+    constructor(){super();audios.push(this);effect=audios[0];media=this;this.currentTime=0;this.paused=true;this.muted=false;this.volume=1;this.playCalls=0;}
     set src(v){this._src=v;this.currentTime=0;this.duration=manifest.effect?.src===v?manifest.effect.duration:manifest.tracks.some(t=>t.src===v)?20.664:undefined;}
     get src(){return this._src;}
     load(){}
@@ -50,13 +51,13 @@ function harness({reduced=false, mobile=false, playback='success'}={}) {
   function step(ms,{stall=false}={}) {
     const ticks=Math.ceil(ms/16);
     for(let i=0;i<ticks;i++) {
-      now+=16;if(!media.paused&&!stall&&playback==='success')media.currentTime+=.016;
+      now+=16;for(const a of audios)if(!a.paused&&!stall&&playback==='success')a.currentTime+=.016;
       for(const a of [...animations])if(now>=a.until){animations.delete(a);a.onfinish?.();}
       const list=[...frames.values()];frames.clear();list.forEach(fn=>fn(now));
     }
   }
-  function clean(){assert.equal(find('kawaii-world'),undefined);assert.equal(frames.size,0);assert.equal(animations.size,0);assert.equal(media.paused,true);assert.equal(trigger.attributes['aria-disabled'],undefined);assert.ok(!document.body.className.includes('kawaii-active'));}
-  return {click,step,find,clean,media,document,trigger,motion,window,animations,peak:()=>Math.max(fills,peakFills)};
+  function clean(){assert.equal(find('kawaii-world'),undefined);assert.equal(frames.size,0);assert.equal(animations.size,0);assert.equal(media.paused,true);assert.equal(effect.paused,true);assert.equal(trigger.attributes['aria-disabled'],undefined);assert.ok(!document.body.className.includes('kawaii-active'));}
+  return {click,step,find,clean,media,effect,document,trigger,motion,window,animations,peak:()=>Math.max(fills,peakFills)};
 }
 
 test('every asset exists, hero is selected, and reveal audio metadata is valid',()=>{
@@ -107,4 +108,21 @@ test('hero reveal shares the SFX cue and remains through the rest of the song',a
  h.step(120);assert.equal(h.find('kawaii-reveal').style.visibility,'visible');
  h.step((manifest.effect.duration+.5)*1000);assert.ok(h.find('kawaii-world'),'short SFX must not end the hero reveal');
  h.document.fire('keydown',{key:'Escape'});h.clean();
+});
+
+test('replacement SFX is re-armed on every reveal instead of relying on a later unmute',async()=>{
+ const h=harness();
+ for(let i=0;i<4;i++){
+   await h.click();
+   const track=manifest.tracks.find(t=>t.src===h.media.src);
+   assert.equal(h.effect.muted,false);
+   assert.equal(h.effect.volume,0);
+   const before=h.effect.playCalls;
+   h.step((track.reveal+.15)*1000);
+   assert.ok(h.effect.playCalls>before,'reveal should reassert SFX playback');
+   assert.equal(h.effect.muted,false);
+   assert.equal(h.effect.volume,.9);
+   h.document.fire('keydown',{key:'Escape'});
+   h.clean();
+ }
 });
