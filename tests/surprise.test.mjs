@@ -37,7 +37,7 @@ function harness({reduced=false, mobile=false, playback='success'}={}) {
   const motion=new Target();motion.matches=reduced;
   class Audio extends Target {
     constructor(){super();media=this;this.currentTime=0;this.paused=true;this.muted=false;this.playCalls=0;}
-    set src(v){this._src=v;this.currentTime=0;this.duration=manifest.tracks.find(t=>t.src===v)?.duration;}
+    set src(v){this._src=v;this.currentTime=0;this.duration=manifest.effect?.src===v?manifest.effect.duration:undefined;}
     get src(){return this._src;}
     load(){}
     play(){this.playCalls++;this.paused=false;if(playback==='reject')return Promise.reject(new Error('NotAllowedError'));if(playback==='pending')return new Promise(()=>{});return Promise.resolve();}
@@ -59,20 +59,25 @@ function harness({reduced=false, mobile=false, playback='success'}={}) {
   return {click,step,find,clean,media,document,trigger,motion,window,animations,peak:()=>Math.max(fills,peakFills)};
 }
 
-test('every asset exists, hero is the selected ninth image, and cues fit all full tracks',()=>{
+test('every asset exists, hero is selected, and reveal audio metadata is valid',()=>{
  assert.equal(manifest.images.length,32);assert.equal(manifest.tracks.length,4);
  assert.equal(manifest.images.find(i=>i.src===manifest.hero).original,'8DE684AF-8DBE-4B35-91FB-9686773CD2BF.jpeg');
- for(const {src} of [...manifest.images,...manifest.tracks])assert.ok(readFileSync(new URL('..'+src,import.meta.url)).length > 100, `${src} must contain media data`);
- for(const t of manifest.tracks){assert.ok(t.duration>=21&&t.duration<26);assert.ok(t.reveal>3&&t.reveal<t.duration-3);}
+ for(const {src} of [...manifest.images,...manifest.tracks,manifest.effect])assert.ok(readFileSync(new URL('..'+src,import.meta.url)).length > 100, `${src} must contain media data`);
+ assert.ok(manifest.effect.duration>3&&manifest.effect.duration<4);
+ assert.ok(manifest.exitTail>=.4&&manifest.exitTail<=1);
+ for(const t of manifest.tracks)assert.ok(t.reveal>3);
+ for(const cue of manifest.impactCues)assert.ok(cue>=0&&cue<manifest.effect.duration);
 });
-test('plays immediately, prevents click stacking, reveals, and follows full audio length',async()=>{
- const h=harness();await h.click();assert.equal(h.media.playCalls,1);const duration=h.media.duration;
+test('plays immediately, prevents click stacking, reveals, and follows effect duration',async()=>{
+ const h=harness();await h.click();assert.equal(h.media.playCalls,1);
+ const track=manifest.tracks.find(t=>t.src===h.media.src);
+ const duration=track.reveal+manifest.effect.duration+manifest.exitTail;
  await h.click();await h.click();assert.equal(h.media.playCalls,1);
- h.step(14500);assert.equal(h.find('kawaii-reveal').style.visibility,'visible');assert.ok(h.find('kawaii-world'));
- h.step((duration-14.5)*1000+100);h.clean();assert.ok(h.peak()<=150);
+ h.step((track.reveal+.1)*1000);assert.equal(h.find('kawaii-reveal').style.visibility,'visible');assert.ok(h.find('kawaii-world'));
+ h.step((duration-track.reveal-.1)*1000+100);h.clean();assert.ok(h.peak()<=150);
 });
 test('replay avoids the previous track and resets audio/mute state',async()=>{
- const h=harness();for(let i=0;i<5;i++){await h.click();const src=h.media.src;h.find('kawaii-controls').children[1].fire('click');assert.equal(h.media.muted,true);h.step(h.media.duration*1000+100);h.clean();assert.notEqual(h.media.src,src);assert.equal(h.media.muted,false);}
+ const h=harness();for(let i=0;i<5;i++){await h.click();const src=h.media.src;const track=manifest.tracks.find(t=>t.src===src);h.find('kawaii-controls').children[1].fire('click');assert.equal(h.media.muted,true);h.step((track.reveal+manifest.effect.duration+manifest.exitTail)*1000+100);h.clean();assert.notEqual(h.media.src,src);assert.equal(h.media.muted,false);}
 });
 test('blocked audio completes a silent sequence and unlocks replay',async()=>{
  const h=harness({playback:'reject'});await h.click();assert.equal(h.find('kawaii-controls').children[1].textContent,'Sound unavailable');h.step(27000);h.clean();await h.click();assert.ok(h.find('kawaii-world'));
@@ -90,17 +95,17 @@ test('Escape, pagehide, visibility change and motion changes each clean up',asyn
  for(const event of ['Escape','pagehide','visibilitychange','change']){const h=harness();await h.click();h.step(1000);if(event==='Escape')h.document.fire('keydown',{key:'Escape'});if(event==='pagehide')h.window.fire(event);if(event==='visibilitychange'){h.document.hidden=true;h.document.fire(event);}if(event==='change')h.motion.fire(event);h.clean();}
 });
 test('reduced motion displays the reveal gently with no flying stickers',async()=>{
- const h=harness({reduced:true});await h.click();h.step(14500);assert.equal(h.find('kawaii-world').dataset.reduced,'true');assert.equal(h.find('kawaii-reveal').style.visibility,'visible');assert.equal(h.find('kawaii-sticker'),undefined);h.step(27000);h.clean();assert.ok(h.peak()<=12);
+ const h=harness({reduced:true});await h.click();const track=manifest.tracks.find(t=>t.src===h.media.src);h.step((track.reveal+.1)*1000);assert.equal(h.find('kawaii-world').dataset.reduced,'true');assert.equal(h.find('kawaii-reveal').style.visibility,'visible');assert.equal(h.find('kawaii-sticker'),undefined);h.step(27000);h.clean();assert.ok(h.peak()<=12);
 });
 test('mobile particle count stays bounded under sustained pointer activity',async()=>{
- const h=harness({mobile:true});await h.click();h.step(14000);for(let i=0;i<100;i++){h.window.fire('pointermove',{clientX:180,clientY:300});h.step(60);}assert.ok(h.peak()<=72);h.window.visualViewport.width=844;h.window.visualViewport.height=390;h.window.fire('resize');assert.equal(h.find('kawaii-canvas').width,1266);h.step(27000);h.clean();
+ const h=harness({mobile:true});await h.click();const track=manifest.tracks.find(t=>t.src===h.media.src);h.step((track.reveal-.2)*1000);for(let i=0;i<40;i++){h.window.fire('pointermove',{clientX:180,clientY:300});h.step(50);}assert.ok(h.peak()<=72);h.window.visualViewport.width=844;h.window.visualViewport.height=390;h.window.fire('resize');assert.equal(h.find('kawaii-canvas').width,1266);h.step(27000);h.clean();
 });
 
 test('hero reveal shares the sound cue and leaves room for the complete effect',async()=>{
  const h=harness();await h.click();const track=manifest.tracks.find(t=>t.src===h.media.src);
  h.step((track.reveal-.1)*1000);assert.notEqual(h.find('kawaii-reveal').style.visibility,'visible');
  h.step(120);assert.equal(h.find('kawaii-reveal').style.visibility,'visible');
- assert.ok(track.duration>=track.reveal+manifest.effectDuration);
- h.step(manifest.effectDuration*1000-200);assert.ok(h.find('kawaii-world'));
+ assert.ok(manifest.effect.duration>3);
+ h.step(manifest.effect.duration*1000-200);assert.ok(h.find('kawaii-world'));
  h.document.fire('keydown',{key:'Escape'});h.clean();
 });

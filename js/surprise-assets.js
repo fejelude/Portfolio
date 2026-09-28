@@ -1,4 +1,4 @@
-/* Audio-clocked celebration mixes; see assets/surprise/README.md. */
+/* Surprise assets and audio cues; see assets/surprise/README.md. */
 window.FejeSurpriseAssets = {
   "hero": "/assets/surprise/hero.webp",
   "images": [
@@ -133,40 +133,33 @@ window.FejeSurpriseAssets = {
   ],
   "tracks": [
     {
-      "src": "/assets/surprise/celebration-1.mp3",
-      "duration": 24.883,
+      "src": "/assets/surprise/track-1.mp3",
       "reveal": 13.55
     },
     {
-      "src": "/assets/surprise/celebration-2.mp3",
-      "duration": 24.783,
+      "src": "/assets/surprise/track-2.mp3",
       "reveal": 13.45
     },
     {
-      "src": "/assets/surprise/celebration-3.mp3",
-      "duration": 25.033,
+      "src": "/assets/surprise/track-3.mp3",
       "reveal": 13.7
     },
     {
-      "src": "/assets/surprise/celebration-4.mp3",
-      "duration": 21.033,
+      "src": "/assets/surprise/track-4.mp3",
       "reveal": 9.7
     }
   ],
   "impactCues": [
-    0.0,
-    0.88,
-    1.76,
-    2.48,
-    3.2,
-    3.92,
-    4.48,
-    5.04,
-    6.0,
-    6.72,
-    7.44,
-    8.24,
-    9.68
+    0,
+    0.49,
+    1.19,
+    1.79,
+    2.64,
+    2.93
   ],
-  "effectDuration": 10.633
+  "effect": {
+    "src": "/assets/surprise/love-you-sfx.mp3",
+    "duration": 3.667
+  },
+  "exitTail": 0.55
 };

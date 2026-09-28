@@ -20,17 +20,20 @@ Old arcade URLs redirect to `/#surprise`; the button itself never navigates.
 - `js/surprise-assets.js`: the same manifest embedded for synchronous click startup.
   Update both manifests together when replacing assets.
 
-Tracks are selected randomly without consecutive repeats. Their full lengths are
-18.04–20.664 seconds; per-track reveal cues were selected from waveform energy
-changes. The supplied audio was converted to MP3 with a 0.9-second ending fade;
-no track was shortened. Images are scaled WebP copies presented in sticker frames,
-with the original artwork and attribution marks retained. Total media is about 1.9 MB.
-The selected braided-girl image always appears at the peak. Supporting artwork
-uses a shuffled deck so all images can appear over repeated plays.
+Tracks are selected randomly without consecutive repeats. The original background
+music remains unchanged; the reveal now uses the supplied 3.667-second replacement
+sound as a separate optimized MP3. Both streams are primed in the click handler.
+At the per-track reveal cue, the effect restarts from zero, the music ducks, and the
+selected braided-girl image appears on the same media-clock frame. The sequence
+length follows the effect element's actual duration plus a short exit tail instead
+of the previous fixed ~10-second sound window.
 
-Audio `play()` runs in the click handler. Blocked, pending, or stalled playback
-falls back to a finite silent sequence. Reduced-motion users get a gentle reveal.
-End, Escape, leaving the page, or hiding the tab cancels audio and animations.
+Images are scaled WebP copies presented in sticker frames, with the original artwork
+and attribution marks retained. Supporting artwork uses a shuffled deck so all
+images can appear over repeated plays. Blocked, pending, or stalled playback falls
+back to a finite visual sequence. Reduced-motion users get a gentle reveal. End,
+Escape, leaving the page, or hiding the tab cancels and resets both audio streams
+and all animations.
 No account, backend, environment variable, or new production dependency is needed.
 
 Run `node --test tests/surprise.test.mjs` for controller regressions.

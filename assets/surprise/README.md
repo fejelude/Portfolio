@@ -1,34 +1,12 @@
 # Surprise audio and choreography
 
-`reveal-sfx.wav` is the supplied 10.633-second sound effect, preserved unchanged.
-`track-1.mp3` through `track-4.mp3` are the existing music, also unchanged.
-The browser now plays `celebration-1.mp3` through `celebration-4.mp3`.
+`track-1.mp3` through `track-4.mp3` are the existing background music.
+`love-you-sfx.mp3` is a browser-optimized MP3 made from the replacement audio supplied for this update. Its decoded duration is 3.667 seconds.
 
-Each celebration is a single pre-mixed stream so playback permission, buffering,
-mute, and cancellation apply to both music and sound together. The effect starts
-at the track's `reveal` timestamp (sample-aligned at 44.1 kHz); the image appears
-on the first animation frame at that same media timestamp. Music ducks to 22%
-at the reveal. The full effect plays, followed by a 0.7-second fade. Finales are
-about 21–25 seconds. Original music and effect are never cut short.
+The controller primes both audio elements directly inside the user's click so desktop and mobile browsers can authorize playback. The music remains the animation clock. The reveal SFX stays muted and loops until the selected track's `reveal` timestamp, then restarts at zero, becomes audible, and the hero image appears on that same media-clock frame.
 
-Mix recipe (FFmpeg, replace REVEAL, DELAY_SAMPLES and END for each manifest entry):
+The sequence duration is calculated as `reveal + actual SFX duration + exitTail`. `loadedmetadata` updates the fallback duration from the media element itself, so future SFX replacements do not require restoring the old hard-coded 10-second window. Music ducks to 22% during the reveal and both audio elements are paused/reset by the shared cleanup path.
 
-```sh
-ffmpeg -i track-1.mp3 -i reveal-sfx.wav -filter_complex \
-"[0:a]volume='if(lt(t,REVEAL),0.85,0.22)':eval=frame,apad[m];[1:a]volume=0.9,adelay=DELAY_SAMPLES_S:all=1[s];[m][s]amix=inputs=2:duration=longest:normalize=0,alimiter=limit=0.95:level=false:latency=true,atrim=duration=END,afade=t=out:st=FADE_START:d=0.7[a]" \
--map '[a]' -c:a libmp3lame -b:a 128k celebration-1.mp3
-```
+`impactCues` are seconds relative to the reveal and are chosen from the replacement clip's strongest moments. The controller coalesces skipped cues, keeps one capped particle canvas, reuses the existing WebP sticker deck, and preserves the existing desktop/mobile and reduced-motion limits.
 
-DELAY_SAMPLES = round(REVEAL × 44100); END = REVEAL + 10.633375 + 0.7;
-FADE_START = END - 0.7. Replace `DELAY_SAMPLES_S` with the integer followed by `S` (e.g. `597555S`).
-
-`impactCues` are seconds relative to reveal, chosen from the effect's loud
-transients, at least 0.55 seconds apart. The controller uses the media clock,
-coalesces skipped cues, and draws fireworks on one capped canvas. Flying images
-reuse the existing WebP collection with limits of 20 desktop / 10 mobile;
-slow frames reduce the limits. Replays alternate four motion families. Reduced
-motion preserves the synchronized reveal with no flying images or fireworks.
-
-Keep `manifest.json` and `js/surprise-assets.js` in sync when changing cues.
-Validate with `node --test tests/surprise.test.mjs` and the existing
-`node verification/surprise-smoke.cjs` browser suite.
+Keep `manifest.json` and `js/surprise-assets.js` in sync when changing assets or cues. Validate with `node --check js/surprise.js`, `node --test tests/surprise.test.mjs`, and `node verification/surprise-smoke.cjs`.
