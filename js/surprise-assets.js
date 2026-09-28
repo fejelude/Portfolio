@@ -160,6 +160,5 @@ window.FejeSurpriseAssets = {
   "effect": {
     "src": "/assets/surprise/love-you-sfx.mp3",
     "duration": 3.667
-  },
-  "exitTail": 0.55
+  }
 };

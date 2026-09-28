@@ -7,14 +7,11 @@
   const status = document.getElementById('surprise-status');
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   const touch = matchMedia('(pointer: coarse)');
-  // Prime the reveal SFX first so the main music remains the last Audio instance.
-  // This keeps existing diagnostics stable while satisfying mobile autoplay rules.
   const effect = new Audio();
   effect.preload = 'auto';
   effect.src = assets.effect.src;
   const audio = new Audio();
   audio.preload = 'auto';
-  const exitTail = Number.isFinite(assets.exitTail) ? assets.exitTail : .55;
   let active = null;
   let previousTrack = -1;
   let nextTrack = 0;
@@ -108,9 +105,8 @@
     if (active) return;
     warm();
     const track = assets.tracks[nextTrack];
-    const fallbackEffectDuration = Number.isFinite(assets.effect.duration) ? assets.effect.duration : 3.667;
-    // Prime both streams in the actual click call stack. The short SFX loops
-    // silently until its reveal cue, then restarts from zero and becomes audible.
+    // Prime both media elements in the click call stack for mobile autoplay.
+    // The replacement SFX stays muted until the image reveal cue.
     effect.currentTime = 0;
     effect.muted = true;
     effect.loop = true;
@@ -157,12 +153,12 @@
     const now = performance.now();
     const run = active = {
       overlay, controls, canvas, stickers, reveal, heroWrap, burst, ring, reduced, mobile,
-      track, trackIndex: nextTrack, effectDuration: fallbackEffectDuration,
-      duration: track.reveal + fallbackEffectDuration + exitTail, ctx: canvas.getContext('2d'),
+      track, trackIndex: nextTrack,
+      duration: Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : track.reveal + 12,
+      ctx: canvas.getContext('2d'),
       abort: new AbortController(), animations: new Set(), particles: [], cards: [],
       raf: 0, born: now, lastFrame: now, lastAdvance: now, lastAudio: 0,
-      elapsed: 0, clock: 'pending', silentStart: now, silentOffset: 0,
-      musicAvailable: null, effectAvailable: null, userMuted: false, exiting: false,
+      elapsed: 0, clock: 'pending', silentStart: now, silentOffset: 0, userMuted: false,
       lastSpawn: 0, lastSticker: -1, lastWord: 0, lastTrail: 0,
       cue: 0, variant: nextTrack, cardCap: mobile ? 10 : 20,
       revealed: false, cap: reduced ? 12 : mobile ? 72 : 150,
@@ -173,59 +169,38 @@
     document.body.classList.add('kawaii-active');
     status.textContent = 'Surprise started. Use Mute or End to control it.';
     const signal = run.abort.signal;
-    function refreshMuteControl() {
-      const unavailable = run.musicAvailable === false && run.effectAvailable === false;
-      mute.disabled = unavailable;
-      mute.textContent = unavailable ? 'Sound unavailable' : run.userMuted ? 'Unmute' : 'Mute';
-      mute.setAttribute('aria-pressed', String(run.userMuted));
-      audio.muted = run.userMuted;
-      effect.muted = !run.revealed || run.userMuted;
-    }
-    function setEffectDuration(duration) {
-      if (!Number.isFinite(duration) || duration <= 0 || active !== run) return;
-      run.effectDuration = duration;
-      run.duration = track.reveal + duration + exitTail;
-    }
     function silent() {
       if (active !== run || run.clock === 'silent') return;
       audio.pause();
-      run.musicAvailable = false;
       run.clock = 'silent';
       run.silentOffset = run.elapsed;
       run.silentStart = performance.now();
-      refreshMuteControl();
-      status.textContent = run.effectAvailable === false
-        ? 'Sound could not play. The visual surprise will continue.'
-        : 'Music could not play. The surprise sound will still play at the reveal.';
+      mute.textContent = 'Sound unavailable';
+      mute.disabled = true;
+      status.textContent = 'Sound could not play. The visual surprise will continue.';
     }
-    function effectUnavailable() {
-      if (active !== run || run.effectAvailable === false) return;
-      run.effectAvailable = false;
-      effect.pause();
-      refreshMuteControl();
-      status.textContent = run.musicAvailable === false
-        ? 'Sound could not play. The visual surprise will continue.'
-        : 'The surprise sound could not play, but the music and visuals will continue.';
-    }
-    Promise.resolve(effectPlayResult).then(() => {
-      if (active !== run) return;
-      run.effectAvailable = true;
-      setEffectDuration(effect.duration);
-      refreshMuteControl();
-    }).catch(effectUnavailable);
-    effect.addEventListener('loadedmetadata', () => setEffectDuration(effect.duration), { signal });
-    effect.addEventListener('error', effectUnavailable, { signal });
+    Promise.resolve(effectPlayResult).catch(() => {});
     Promise.resolve(playResult).then(() => {
       if (active !== run || run.clock === 'silent') return;
-      run.musicAvailable = true;
       run.clock = 'audio';
       run.lastAdvance = performance.now();
-      refreshMuteControl();
+      if (Number.isFinite(audio.duration) && audio.duration > 0) run.duration = audio.duration;
     }).catch(silent);
+    audio.addEventListener('loadedmetadata', () => {
+      if (active === run && Number.isFinite(audio.duration) && audio.duration > 0) run.duration = audio.duration;
+    }, { signal });
+    audio.addEventListener('durationchange', () => {
+      if (active === run && Number.isFinite(audio.duration) && audio.duration > 0) run.duration = audio.duration;
+    }, { signal });
     audio.addEventListener('error', silent, { signal });
+    // Keep the image/animation alive for the whole song, then use the normal cleanup path.
+    audio.addEventListener('ended', () => { if (active === run) finish(); }, { signal });
     mute.addEventListener('click', () => {
       run.userMuted = !run.userMuted;
-      refreshMuteControl();
+      audio.muted = run.userMuted;
+      effect.muted = !run.revealed || run.userMuted;
+      mute.textContent = run.userMuted ? 'Unmute' : 'Mute';
+      mute.setAttribute('aria-pressed', String(run.userMuted));
     }, { signal });
     close.addEventListener('click', () => finish(), { signal });
     controls.addEventListener('focusin', () => { run.hadControlFocus = true; }, { signal });
@@ -236,7 +211,7 @@
     window.addEventListener('resize', () => resize(run), { signal, passive: true });
     window.visualViewport?.addEventListener('resize', () => resize(run), { signal, passive: true });
     window.addEventListener('pointermove', e => {
-      if (run.reduced || performance.now() - run.lastTrail < 55 || run.elapsed > run.duration - .65) return;
+      if (run.reduced || performance.now() - run.lastTrail < 55 || run.elapsed > run.duration - 2) return;
       run.lastTrail = performance.now();
       emit(run, e.clientX, e.clientY, 2, 'trail');
     }, { signal, passive: true });
@@ -262,19 +237,15 @@
       } else if (run.clock === 'pending') {
         if (timestamp - run.born > 4000) silent();
       }
-      if (timestamp - run.born > 4000 && run.effectAvailable === null) effectUnavailable();
       if (run.clock === 'silent') run.elapsed = run.silentOffset + (timestamp - run.silentStart) / 1000;
       const t = run.elapsed;
       if (t >= run.duration) { finish(); return; }
-      const effectEnd = track.reveal + run.effectDuration;
-      const fadeLead = Math.min(.28, Math.max(.12, run.effectDuration * .12));
-      const fadeStart = Math.max(track.reveal, effectEnd - fadeLead);
-      const fade = t < fadeStart ? 1 : clamp((run.duration - t) / Math.max(.2, run.duration - fadeStart));
+      const fade = clamp((run.duration - t) / 2.1);
       const intensity = (run.reduced ? .3 : clamp(t / 4, .1, 1)) * fade;
       overlay.style.setProperty('--intensity', intensity.toFixed(3));
       overlay.style.setProperty('--fade', fade.toFixed(3));
       time.textContent = run.clock === 'pending' ? '♡' : `${Math.ceil(run.duration - t)}s ♡`;
-      if (run.clock !== 'pending' && !run.reduced && t < effectEnd - .2) {
+      if (run.clock !== 'pending' && !run.reduced && t < run.duration - 2.6) {
         if (t - run.lastSpawn > .13) {
           run.lastSpawn = t;
           emit(run, random(0, run.width), random(run.height * .35, run.height + 25), t < 3 ? 2 : 4, 'float');
@@ -284,8 +255,7 @@
         if (t > 3 && t - run.lastWord > 2.1) { run.lastWord = t; word(run); }
       }
       if (!run.revealed && run.clock !== 'pending' && t >= track.reveal) revealPeak(run);
-      if (run.revealed && !run.exiting && t >= effectEnd - .16) exitPeak(run);
-      // All visual hits use the same media clock as the reveal sound.
+      // Visual hits stay on the music clock; the replacement SFX starts at reveal.
       // Consume skipped cues once after a delayed frame; never catch up in a storm.
       const cues = assets.impactCues || [0];
       let hit = false;
@@ -428,39 +398,28 @@
       { transform: 'scale(1)' }, { transform: 'scale(1.055)', offset: .25 }, { transform: 'scale(1)' },
     ], { duration: 360, easing: 'ease-out' });
   }
-  function exitPeak(run) {
-    run.exiting = true;
-    if (run.reduced) return;
-    animate(run, run.heroWrap, [
-      { transform: 'translateY(0) scale(1)', opacity: 1 },
-      { transform: 'translateY(-4px) scale(1.025)', opacity: 1, offset: .28 },
-      { transform: 'translateY(-12px) scale(.94)', opacity: 0 },
-    ], { duration: Math.max(420, (exitTail + .16) * 1000), easing: 'cubic-bezier(.4,0,.2,1)' });
-  }
   function revealPeak(run) {
     run.revealed = true;
     audio.volume = .22;
-    if (run.effectAvailable !== false) {
-      effect.loop = false;
-      try { effect.currentTime = 0; } catch (_) {}
-      effect.muted = run.userMuted;
-    }
+    effect.loop = false;
+    try { effect.currentTime = 0; } catch (_) {}
+    effect.muted = run.userMuted;
     run.reveal.style.visibility = 'visible';
     run.reveal.style.opacity = 'var(--fade)';
     status.textContent = 'SURPRISEEE! hehe you found it ♡';
     if (run.reduced) {
-      animate(run, run.heroWrap, [{ opacity: 0 }, { opacity: 1 }], { duration: 360 });
+      animate(run, run.heroWrap, [{ opacity: 0 }, { opacity: 1 }], { duration: 650 });
       return;
     }
     // Make room for a finite peak burst without exceeding the particle budget.
     run.particles.splice(0, Math.min(run.particles.length, Math.floor(run.cap * .35)));
     emit(run, run.width / 2, run.height / 2, Math.floor(run.cap * .35), 'burst');
     animate(run, run.heroWrap, [
-      { transform: 'translateY(18px) scale(.72) rotate(-6deg)', opacity: 0 },
-      { transform: 'translateY(-3px) scale(1.08) rotate(2deg)', opacity: 1, offset: .52 },
-      { transform: 'translateY(1px) scale(.98) rotate(-1deg)', opacity: 1, offset: .78 },
-      { transform: 'translateY(0) scale(1) rotate(0)', opacity: 1 },
-    ], { duration: 680, easing: 'cubic-bezier(.16,.84,.28,1)' });
+      { transform: 'scale(.8) rotate(-7deg)', opacity: 1 },
+      { transform: 'scale(1.09) rotate(2deg)', opacity: 1, offset: .55 },
+      { transform: 'scale(.97) rotate(-1deg)', opacity: 1, offset: .78 },
+      { transform: 'scale(1)', opacity: 1 },
+    ], { duration: 850, easing: 'cubic-bezier(.18,.7,.25,1)' });
     animate(run, run.burst, [{ opacity: 0 }, { opacity: .9, offset: .15 }, { opacity: 0 }], { duration: 1300 });
     animate(run, run.ring, [{ transform: 'scale(.2)', opacity: .9 }, { transform: 'scale(9)', opacity: 0 }], { duration: 1100, easing: 'ease-out' });
     animate(run, run.canvas, [{ transform: 'translate(0)' }, { transform: 'translate(2px,-1px)' }, { transform: 'translate(-2px,1px)' }, { transform: 'translate(0)' }], { duration: 240 });

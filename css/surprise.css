@@ -16,7 +16,7 @@
 .kawaii-word{position:absolute;left:0;top:0;white-space:nowrap;color:#fff0fa;font-weight:700;font-size:clamp(18px,3vw,34px);text-shadow:2px 2px 0 #8c4b9a,0 0 16px #ff80c9;will-change:transform,opacity}
 .kawaii-reveal{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;padding:max(65px,env(safe-area-inset-top)) 18px max(28px,env(safe-area-inset-bottom));opacity:0;visibility:hidden}
 .kawaii-reveal::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,#1c0c35cc,#130b2488 40%,transparent 72%);z-index:-2}
-.kawaii-hero-wrap{position:relative;flex-shrink:1;min-height:0;width:min(340px,62vw,40vh);aspect-ratio:1116 / 1409;transform-origin:50% 62%;will-change:transform,opacity}
+.kawaii-hero-wrap{position:relative;flex-shrink:1;min-height:0;width:min(340px,62vw,40vh);aspect-ratio:1116 / 1409}
 .kawaii-hero-wrap::before{content:'';position:absolute;inset:-30%;border-radius:50%;background:radial-gradient(circle,#ffb6e775,#c489ff28 45%,transparent 67%);z-index:-1}
 .kawaii-hero{display:block;width:100%;height:100%;object-fit:contain;border-radius:26px;border:5px solid #ffe3f2;box-shadow:0 0 0 1px #fff9,0 0 34px #ff9dd889,0 18px 65px #08001580}
 .kawaii-reveal h2{margin:10px 0 0;font-size:clamp(27px,6.4vw,72px);font-weight:700;line-height:1.12;letter-spacing:-.05em;color:#fff5fc;text-align:center;text-shadow:0 3px 0 #b44a91,0 0 22px #f585cf}
