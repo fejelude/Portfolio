@@ -158,7 +158,7 @@
       ctx: canvas.getContext('2d'),
       abort: new AbortController(), animations: new Set(), particles: [], cards: [],
       raf: 0, born: now, lastFrame: now, lastAdvance: now, lastAudio: 0,
-      elapsed: 0, clock: 'pending', silentStart: now, silentOffset: 0, userMuted: false,
+      elapsed: 0, clock: 'pending', silentStart: now, silentOffset: 0, userMuted: false, fadeStart: 0,
       lastSpawn: 0, lastSticker: -1, lastWord: 0, lastTrail: 0,
       cue: 0, variant: nextTrack, cardCap: mobile ? 10 : 20,
       revealed: false, cap: reduced ? 12 : mobile ? 72 : 150,
@@ -193,8 +193,16 @@
       if (active === run && Number.isFinite(audio.duration) && audio.duration > 0) run.duration = audio.duration;
     }, { signal });
     audio.addEventListener('error', silent, { signal });
-    // Keep the image/animation alive for the whole song, then use the normal cleanup path.
-    audio.addEventListener('ended', () => { if (active === run) finish(); }, { signal });
+    function beginFade(timestamp = performance.now()) {
+      if (active !== run || run.clock === 'fadeout') return;
+      audio.pause();
+      effect.pause();
+      run.elapsed = run.duration;
+      run.clock = 'fadeout';
+      run.fadeStart = timestamp;
+    }
+    // Keep the image fully visible through the song; fade only after it ends.
+    audio.addEventListener('ended', () => beginFade(), { signal });
     mute.addEventListener('click', () => {
       run.userMuted = !run.userMuted;
       audio.muted = run.userMuted;
@@ -239,13 +247,14 @@
       }
       if (run.clock === 'silent') run.elapsed = run.silentOffset + (timestamp - run.silentStart) / 1000;
       const t = run.elapsed;
-      if (t >= run.duration) { finish(); return; }
-      const fade = clamp((run.duration - t) / 2.1);
+      if (run.clock !== 'fadeout' && t >= run.duration) beginFade(timestamp);
+      const fade = run.clock === 'fadeout' ? clamp(1 - (timestamp - run.fadeStart) / 2100) : 1;
+      if (run.clock === 'fadeout' && fade <= 0) { finish(); return; }
       const intensity = (run.reduced ? .3 : clamp(t / 4, .1, 1)) * fade;
       overlay.style.setProperty('--intensity', intensity.toFixed(3));
       overlay.style.setProperty('--fade', fade.toFixed(3));
-      time.textContent = run.clock === 'pending' ? '♡' : `${Math.ceil(run.duration - t)}s ♡`;
-      if (run.clock !== 'pending' && !run.reduced && t < run.duration - 2.6) {
+      time.textContent = run.clock === 'pending' ? '♡' : run.clock === 'fadeout' ? '0s ♡' : `${Math.ceil(run.duration - t)}s ♡`;
+      if (run.clock !== 'pending' && run.clock !== 'fadeout' && !run.reduced && t < run.duration - 2.6) {
         if (t - run.lastSpawn > .13) {
           run.lastSpawn = t;
           emit(run, random(0, run.width), random(run.height * .35, run.height + 25), t < 3 ? 2 : 4, 'float');

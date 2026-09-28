@@ -73,19 +73,20 @@ test('plays immediately, prevents click stacking, reveals, and stays up until th
  await h.click();await h.click();assert.equal(h.media.playCalls,1);
  h.step((track.reveal+.1)*1000);assert.equal(h.find('kawaii-reveal').style.visibility,'visible');assert.ok(h.find('kawaii-world'));
  h.step((manifest.effect.duration+.5)*1000);assert.ok(h.find('kawaii-world'),'image should remain after the short SFX finishes');
- h.step((duration-track.reveal-manifest.effect.duration-.6)*1000+100);h.clean();assert.ok(h.peak()<=150);
+ h.step((duration-track.reveal-manifest.effect.duration-.6)*1000+100);assert.ok(h.find('kawaii-world'),'image should still be present when the song ends');
+ h.step(2200);h.clean();assert.ok(h.peak()<=150);
 });
 test('replay avoids the previous track and resets audio/mute state',async()=>{
- const h=harness();for(let i=0;i<5;i++){await h.click();const src=h.media.src;h.find('kawaii-controls').children[1].fire('click');assert.equal(h.media.muted,true);h.step(h.media.duration*1000+100);h.clean();assert.notEqual(h.media.src,src);assert.equal(h.media.muted,false);}
+ const h=harness();for(let i=0;i<5;i++){await h.click();const src=h.media.src;h.find('kawaii-controls').children[1].fire('click');assert.equal(h.media.muted,true);h.step(h.media.duration*1000+100);assert.ok(h.find('kawaii-world'));h.step(2200);h.clean();assert.notEqual(h.media.src,src);assert.equal(h.media.muted,false);}
 });
 test('blocked audio completes a silent sequence and unlocks replay',async()=>{
- const h=harness({playback:'reject'});await h.click();assert.equal(h.find('kawaii-controls').children[1].textContent,'Sound unavailable');h.step(27000);h.clean();await h.click();assert.ok(h.find('kawaii-world'));
+ const h=harness({playback:'reject'});await h.click();assert.equal(h.find('kawaii-controls').children[1].textContent,'Sound unavailable');h.step(30000);h.clean();await h.click();assert.ok(h.find('kawaii-world'));
 });
 test('never-settling play promise times out instead of deadlocking',async()=>{
- const h=harness({playback:'pending'});await h.click();h.step(4500);assert.equal(h.find('kawaii-controls').children[1].disabled,true);h.step(27000);h.clean();
+ const h=harness({playback:'pending'});await h.click();h.step(4500);assert.equal(h.find('kawaii-controls').children[1].disabled,true);h.step(30000);h.clean();
 });
 test('stalled playback switches to a monotonic silent clock',async()=>{
- const h=harness();await h.click();h.step(2000);h.step(3500,{stall:true});assert.equal(h.media.paused,true);h.step(27000);h.clean();
+ const h=harness();await h.click();h.step(2000);h.step(3500,{stall:true});assert.equal(h.media.paused,true);h.step(30000);h.clean();
 });
 test('End restores focus and removes all running effects',async()=>{
  const h=harness();await h.click();h.step(4000);const end=h.find('kawaii-controls').children[2];end.focus();end.fire('click');h.clean();assert.equal(h.document.activeElement,h.trigger);
@@ -94,10 +95,10 @@ test('Escape, pagehide, visibility change and motion changes each clean up',asyn
  for(const event of ['Escape','pagehide','visibilitychange','change']){const h=harness();await h.click();h.step(1000);if(event==='Escape')h.document.fire('keydown',{key:'Escape'});if(event==='pagehide')h.window.fire(event);if(event==='visibilitychange'){h.document.hidden=true;h.document.fire(event);}if(event==='change')h.motion.fire(event);h.clean();}
 });
 test('reduced motion displays the reveal gently with no flying stickers',async()=>{
- const h=harness({reduced:true});await h.click();const track=manifest.tracks.find(t=>t.src===h.media.src);h.step((track.reveal+.1)*1000);assert.equal(h.find('kawaii-world').dataset.reduced,'true');assert.equal(h.find('kawaii-reveal').style.visibility,'visible');assert.equal(h.find('kawaii-sticker'),undefined);h.step(27000);h.clean();assert.ok(h.peak()<=12);
+ const h=harness({reduced:true});await h.click();const track=manifest.tracks.find(t=>t.src===h.media.src);h.step((track.reveal+.1)*1000);assert.equal(h.find('kawaii-world').dataset.reduced,'true');assert.equal(h.find('kawaii-reveal').style.visibility,'visible');assert.equal(h.find('kawaii-sticker'),undefined);h.step(30000);h.clean();assert.ok(h.peak()<=12);
 });
 test('mobile particle count stays bounded under sustained pointer activity',async()=>{
- const h=harness({mobile:true});await h.click();const track=manifest.tracks.find(t=>t.src===h.media.src);h.step((track.reveal-.2)*1000);for(let i=0;i<40;i++){h.window.fire('pointermove',{clientX:180,clientY:300});h.step(50);}assert.ok(h.peak()<=72);h.window.visualViewport.width=844;h.window.visualViewport.height=390;h.window.fire('resize');assert.equal(h.find('kawaii-canvas').width,1266);h.step(27000);h.clean();
+ const h=harness({mobile:true});await h.click();const track=manifest.tracks.find(t=>t.src===h.media.src);h.step((track.reveal-.2)*1000);for(let i=0;i<40;i++){h.window.fire('pointermove',{clientX:180,clientY:300});h.step(50);}assert.ok(h.peak()<=72);h.window.visualViewport.width=844;h.window.visualViewport.height=390;h.window.fire('resize');assert.equal(h.find('kawaii-canvas').width,1266);h.step(30000);h.clean();
 });
 
 test('hero reveal shares the SFX cue and remains through the rest of the song',async()=>{
