@@ -8,7 +8,8 @@ const manifest = JSON.parse(readFileSync(new URL('../assets/surprise/manifest.js
 // Deterministic DOM/media harness: exercise the production controller, including
 // rejected/pending play promises, stalled clocks, lifecycle events and animation disposal.
 function harness({reduced=false, mobile=false, playback='success'}={}) {
-  let now=0, frames=new Map(), frameId=0, media, fills=0, peakFills=0;
+  let now=0, frames=new Map(), frameId=0, fills=0, peakFills=0;
+  const mediaElements=[];
   const animations=new Set();
   class Target {
     listeners=new Map();
@@ -36,7 +37,7 @@ function harness({reduced=false, mobile=false, playback='success'}={}) {
   document.getElementById=id=>id==='surprise-trigger'?trigger:status;document.createElement=t=>new Element(t);
   const motion=new Target();motion.matches=reduced;
   class Audio extends Target {
-    constructor(){super();media=this;this.currentTime=0;this.paused=true;this.muted=false;this.playCalls=0;}
+    constructor(){super();mediaElements.push(this);this.currentTime=0;this.paused=true;this.muted=false;this.playCalls=0;}
     set src(v){this._src=v;this.currentTime=0;this.duration=manifest.effect?.src===v?manifest.effect.duration:manifest.tracks.some(t=>t.src===v)?20.664:undefined;}
     get src(){return this._src;}
     load(){}
@@ -50,13 +51,14 @@ function harness({reduced=false, mobile=false, playback='success'}={}) {
   function step(ms,{stall=false}={}) {
     const ticks=Math.ceil(ms/16);
     for(let i=0;i<ticks;i++) {
-      now+=16;if(!media.paused&&!stall&&playback==='success')media.currentTime+=.016;
+      now+=16;for(const item of mediaElements)if(!item.paused&&!stall&&playback==='success')item.currentTime+=.016;
       for(const a of [...animations])if(now>=a.until){animations.delete(a);a.onfinish?.();}
       const list=[...frames.values()];frames.clear();list.forEach(fn=>fn(now));
     }
   }
-  function clean(){assert.equal(find('kawaii-world'),undefined);assert.equal(frames.size,0);assert.equal(animations.size,0);assert.equal(media.paused,true);assert.equal(trigger.attributes['aria-disabled'],undefined);assert.ok(!document.body.className.includes('kawaii-active'));}
-  return {click,step,find,clean,media,document,trigger,motion,window,animations,peak:()=>Math.max(fills,peakFills)};
+  const effect=mediaElements[0],media=mediaElements[1];
+  function clean(){assert.equal(find('kawaii-world'),undefined);assert.equal(frames.size,0);assert.equal(animations.size,0);assert.equal(media.paused,true);assert.equal(effect.paused,true);assert.equal(trigger.attributes['aria-disabled'],undefined);assert.ok(!document.body.className.includes('kawaii-active'));}
+  return {click,step,find,clean,media,effect,document,trigger,motion,window,animations,peak:()=>Math.max(fills,peakFills)};
 }
 
 test('every asset exists, hero is selected, and reveal audio metadata is valid',()=>{
@@ -67,11 +69,12 @@ test('every asset exists, hero is selected, and reveal audio metadata is valid',
  for(const t of manifest.tracks)assert.ok(t.reveal>3);
  for(const cue of manifest.impactCues)assert.ok(cue>=0&&cue<manifest.effect.duration);
 });
-test('plays immediately, prevents click stacking, reveals, and stays up until the song ends',async()=>{
- const h=harness();await h.click();assert.equal(h.media.playCalls,1);
+test('plays the SFX with the immediate reveal and rapid taps reliably restart it',async()=>{
+ const h=harness();await h.click();assert.equal(h.media.playCalls,1);assert.equal(h.effect.playCalls,1);
+ assert.equal(h.effect.muted,false);assert.equal(h.find('kawaii-reveal').style.visibility,'visible');
  const track=manifest.tracks.find(t=>t.src===h.media.src);const duration=h.media.duration;
- await h.click();await h.click();assert.equal(h.media.playCalls,1);
- h.step((track.reveal+.1)*1000);assert.equal(h.find('kawaii-reveal').style.visibility,'visible');assert.ok(h.find('kawaii-world'));
+ await h.click();await h.click();assert.equal(h.media.playCalls,1);assert.equal(h.effect.playCalls,3);assert.equal(h.effect.currentTime,0);
+ h.step((track.reveal+.1)*1000);assert.ok(h.find('kawaii-world'));
  h.step((manifest.effect.duration+.5)*1000);assert.ok(h.find('kawaii-world'),'image should remain after the short SFX finishes');
  h.step((duration-track.reveal-manifest.effect.duration-.6)*1000+100);assert.ok(h.find('kawaii-world'),'image should still be present when the song ends');
  h.step(2200);h.clean();assert.ok(h.peak()<=150);
@@ -103,8 +106,8 @@ test('mobile particle count stays bounded under sustained pointer activity',asyn
 
 test('hero reveal shares the SFX cue and remains through the rest of the song',async()=>{
  const h=harness();await h.click();const track=manifest.tracks.find(t=>t.src===h.media.src);
- h.step((track.reveal-.1)*1000);assert.notEqual(h.find('kawaii-reveal').style.visibility,'visible');
- h.step(120);assert.equal(h.find('kawaii-reveal').style.visibility,'visible');
+ assert.equal(h.find('kawaii-reveal').style.visibility,'visible');assert.equal(h.effect.playCalls,1);
+ h.step((track.reveal+.02)*1000);assert.equal(h.effect.playCalls,1,'animation cue must not replay the SFX');
  h.step((manifest.effect.duration+.5)*1000);assert.ok(h.find('kawaii-world'),'short SFX must not end the hero reveal');
  h.document.fire('keydown',{key:'Escape'});h.clean();
 });

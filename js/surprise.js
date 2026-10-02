@@ -102,22 +102,25 @@
     pickNext();
   }
   function start() {
-    if (active) return;
+    // A second activation is still a real user gesture. Use it to restart the
+    // SFX instead of ignoring it, which also makes rapid taps deterministic.
+    if (active) {
+      playEffect(active);
+      return;
+    }
     warm();
     const track = assets.tracks[nextTrack];
-    // Prime both media elements in the click call stack for mobile autoplay.
-    // The replacement SFX stays muted until the image reveal cue.
+    // Start the music in the click call stack so mobile autoplay policies see
+    // an immediate, user-initiated play request. The SFX is started below at
+    // the exact moment the hero is made visible.
     effect.currentTime = 0;
-    effect.muted = true;
-    effect.loop = true;
+    effect.muted = false;
+    effect.loop = false;
     effect.volume = .9;
     audio.currentTime = 0;
     audio.muted = false;
     audio.volume = .85;
-    let effectPlayResult;
     let playResult;
-    try { effectPlayResult = effect.play(); } catch (_) { effectPlayResult = Promise.reject(_); }
-    try { playResult = audio.play(); } catch (_) { playResult = Promise.reject(_); }
     const reduced = motion.matches;
     const mobile = touch.matches || innerWidth < 700;
     const overlay = node('div', 'kawaii-world', document.body);
@@ -179,13 +182,6 @@
       mute.disabled = true;
       status.textContent = 'Sound could not play. The visual surprise will continue.';
     }
-    Promise.resolve(effectPlayResult).catch(() => {});
-    Promise.resolve(playResult).then(() => {
-      if (active !== run || run.clock === 'silent') return;
-      run.clock = 'audio';
-      run.lastAdvance = performance.now();
-      if (Number.isFinite(audio.duration) && audio.duration > 0) run.duration = audio.duration;
-    }).catch(silent);
     audio.addEventListener('loadedmetadata', () => {
       if (active === run && Number.isFinite(audio.duration) && audio.duration > 0) run.duration = audio.duration;
     }, { signal });
@@ -224,6 +220,19 @@
       emit(run, e.clientX, e.clientY, 2, 'trail');
     }, { signal, passive: true });
     resize(run);
+    // This stays in start(), and therefore in the original click/tap stack.
+    // In particular, do not defer it to a timer or animation-frame callback:
+    // iOS requires audible playback to remain directly tied to the gesture.
+    revealPeak(run);
+    // Give the short, image-coupled SFX the first audible play request, then
+    // start the backing track while still inside the same user gesture.
+    try { playResult = audio.play(); } catch (error) { playResult = Promise.reject(error); }
+    Promise.resolve(playResult).then(() => {
+      if (active !== run || run.clock === 'silent') return;
+      run.clock = 'audio';
+      run.lastAdvance = performance.now();
+      if (Number.isFinite(audio.duration) && audio.duration > 0) run.duration = audio.duration;
+    }).catch(silent);
     const rect = trigger.getBoundingClientRect();
     emit(run, rect.left + rect.width / 2, rect.top + rect.height / 2, reduced ? 8 : mobile ? 30 : 50, 'burst');
     if (!reduced) animate(run, trigger, [
@@ -263,8 +272,8 @@
         if (t > .8 && t - run.lastSticker > (run.revealed ? (mobile ? .42 : .22) : .8)) { run.lastSticker = t; sticker(run); }
         if (t > 3 && t - run.lastWord > 2.1) { run.lastWord = t; word(run); }
       }
-      if (!run.revealed && run.clock !== 'pending' && t >= track.reveal) revealPeak(run);
-      // Visual hits stay on the music clock; the replacement SFX starts at reveal.
+      // Visual hits stay on the music clock, relative to the track's original
+      // reveal cue, while the hero and its SFX now begin together immediately.
       // Consume skipped cues once after a delayed frame; never catch up in a storm.
       const cues = assets.impactCues || [0];
       let hit = false;
@@ -410,12 +419,10 @@
   function revealPeak(run) {
     run.revealed = true;
     audio.volume = .22;
-    effect.loop = false;
-    try { effect.currentTime = 0; } catch (_) {}
-    effect.muted = run.userMuted;
     run.reveal.style.visibility = 'visible';
     run.reveal.style.opacity = 'var(--fade)';
     status.textContent = 'SURPRISEEE! hehe you found it ♡';
+    playEffect(run);
     if (run.reduced) {
       animate(run, run.heroWrap, [{ opacity: 0 }, { opacity: 1 }], { duration: 650 });
       return;
@@ -432,6 +439,21 @@
     animate(run, run.burst, [{ opacity: 0 }, { opacity: .9, offset: .15 }, { opacity: 0 }], { duration: 1300 });
     animate(run, run.ring, [{ transform: 'scale(.2)', opacity: .9 }, { transform: 'scale(9)', opacity: 0 }], { duration: 1100, easing: 'ease-out' });
     animate(run, run.canvas, [{ transform: 'translate(0)' }, { transform: 'translate(2px,-1px)' }, { transform: 'translate(-2px,1px)' }, { transform: 'translate(0)' }], { duration: 240 });
+  }
+  function playEffect(run) {
+    const attempt = run.effectAttempt = (run.effectAttempt || 0) + 1;
+    effect.pause();
+    try { effect.currentTime = 0; } catch (_) {}
+    effect.loop = false;
+    effect.muted = run.userMuted;
+    effect.volume = .9;
+    let result;
+    try { result = effect.play(); } catch (error) { result = Promise.reject(error); }
+    Promise.resolve(result).catch(() => {
+      if (active === run && run.effectAttempt === attempt && !run.userMuted) {
+        status.textContent = 'The surprise sound could not play. Tap again to retry.';
+      }
+    });
   }
   trigger.addEventListener('click', start);
   trigger.addEventListener('pointerenter', warm, { once: true });
