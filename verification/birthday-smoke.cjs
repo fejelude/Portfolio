@@ -11,7 +11,7 @@ const out=path.join(__dirname,'birthday-results');
 // performance clock for bounded interruption tests. Native media is tested below.
 const controlledTime=()=>{
  window.__birthdayNow=performance.now();const nativeRAF=window.requestAnimationFrame.bind(window);
- performance.now=()=>window.__birthdayNow;
+ Object.defineProperty(performance,'now',{configurable:true,value:()=>window.__birthdayNow});
  window.requestAnimationFrame=callback=>nativeRAF(()=>callback(window.__birthdayNow));
 };
 const fakeAudio=()=>{
@@ -20,7 +20,11 @@ const fakeAudio=()=>{
  HTMLMediaElement.prototype.play=function(){if(state.denied)return Promise.reject(new DOMException('denied','NotAllowedError'));state.paused=false;state.ended=false;return Promise.resolve().then(()=>this.dispatchEvent(new Event('playing')));};
  HTMLMediaElement.prototype.pause=function(){if(!state.paused){state.paused=true;this.dispatchEvent(new Event('pause'));}};
 };
-async function tick(page,ms=35){await page.evaluate(ms=>window.__birthdayNow+=ms,ms);await page.waitForTimeout(60);}
+async function tick(page,ms=35){
+ await page.evaluate(ms=>window.__birthdayNow+=ms,ms);
+ // Observe completed frames, rather than guessing how quickly each engine renders.
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+}
 async function position(page,t){await page.evaluate(t=>window.__birthdayMedia.time=t,t);await tick(page);}
 async function revealed(page){return page.$eval('#celebration',e=>!e.hidden);}
 async function layout(page){
@@ -33,6 +37,7 @@ async function simulated(browser,name,url){
   const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1440,height:1000},deviceScaleFactor:mobile?3:1,hasTouch:mobile});
   const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.addInitScript(controlledTime);await page.addInitScript(fakeAudio);
   await page.goto(url+'/sofhia-franchesca-16');await tick(page,100);await page.waitForFunction(()=>!document.getElementById('start').disabled);
+  assert.equal(await page.evaluate(()=>performance.now()===window.__birthdayNow),true,name+' controlled performance clock');
   assert.equal(await page.locator('button:visible').count(),1);assert.equal(await revealed(page),false);await layout(page);
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-welcome.png`)});
   await page.click('#start');await tick(page,600);
