@@ -1,6 +1,6 @@
 # Birthday garden verification
 
-Verified October 7, 2026. **No physical-device testing was performed.**
+Verified October 6, 2026. **No physical-device testing was performed.**
 
 ## Repository and references
 
@@ -29,7 +29,7 @@ SHA-256: 1cd80df76b0d9fd2d252e6da7ada4d598ec04b67e8081a583f73bbb493068545
 | Check | Result | Evidence / method |
 | --- | --- | --- |
 | Full 60-second progression | Passed | Played the actual MP3 at normal speed in Chromium 141.0.7390.37, with a real pause and continuation. Inspected story checkpoints at 10, 32, 47, 57, and 59s. |
-| Reveal at 1:00 | Passed within one render frame | Native audit measured **60.014113s** of active story time. The message remained hidden at 59s. Native track ended at 59.418413s; the remaining fraction was a silent coda. |
+| Reveal at 1:00 | Passed within one render frame | Native audits measured **60.014113s** locally and **60.007913s** in CI. The message remained hidden at 59s. Native track ended at 59.418413s; the remaining fraction was a silent coda. |
 | Audio startup and synchronization | Passed in Chromium | Real playback started from START, `currentTime` progressed, and no media error occurred. The media clock remained authoritative during playback. |
 | Audio before motion permission | Passed with simulated permission API | START invoked `play()` before requesting motion permission. A permission promise deliberately left unresolved did not delay real audio playback. Physical iOS permission UI was not tested. |
 | Pause/resume | Passed | Native audio held exactly at the paused position; visuals resumed. Separate controlled-clock cases held media and silent fallback during pauses. |
@@ -51,6 +51,14 @@ SHA-256: 1cd80df76b0d9fd2d252e6da7ada4d598ec04b67e8081a583f73bbb493068545
 | noindex / route isolation | Passed | HTML robots metadata and both clean/.html route headers checked; all four existing HTML pages have no link to the new route. |
 | Sitemap exclusion | Passed for current repo | No sitemap or generator exists; the route is not added to either. Future generators must exclude it explicitly. |
 | Existing-site regressions | Passed | All **52** Node tests passed, including existing Surprise/Sofra/API tests. Existing static routes and arcade redirect resolved on the local verification host. Existing HTML/CSS/JS/API files are unchanged. |
+| Cross-browser automation | Passed in CI | Chromium 141.0.7390.37, Firefox 142.0.1, and WebKit 26.0 passed the controlled chapter/coda, interruption, replay, reduced-motion, responsive-layout, missing-audio, and static-fallback suite. The actual full MP3 was tested separately in Chromium. [Successful run](https://github.com/fejelude/Portfolio/actions/runs/37546678710). |
+| Vercel deployment | Builds passed | Both connected Vercel projects reported successful preview deployments for this branch. The preview redirected to Vercel sign-in, so deployed page rendering, response headers, and audio range behavior could not be inspected. |
+
+The first CI run exposed an unreliable simulated coda assertion in WebKit.
+The test now defines its performance clock explicitly and waits for completed
+animation frames. The full cross-browser rerun passed; production animation
+code did not need a change. Firefox/WebKit could not run in the local container,
+so their results above come from the GitHub Actions Ubuntu runner.
 
 ## Unverified environments
 
@@ -58,14 +66,12 @@ SHA-256: 1cd80df76b0d9fd2d252e6da7ada4d598ec04b67e8081a583f73bbb493068545
   physical tilt sensors, and system audio interruption behavior.
 - Native macOS Safari, Windows Edge, physical safe-area/browser-bar behavior,
   and frame performance on a mid-range phone.
-- Firefox browser UI locally: the engine launched, but this container timed out
-  creating a page. WebKit locally: required host libraries were unavailable and
-  this container could not install them. The added CI suite is configured for
-  Chromium, Firefox, and WebKit on a normal GitHub Actions runner; configuration
-  is not itself evidence those engines passed.
-- Vercel preview/production response headers, MIME, and range behavior remain
-  deployment checks until a preview is available. Production is not changed by
-  creating this PR.
+- Full native MP3 playback in Firefox and WebKit. Their automated timing and
+  interruption tests used controlled media; real full-track playback was
+  verified in Chromium. Linux WebKit automation is not physical iPhone Safari.
+- Vercel preview rendering, response headers, MIME, and range behavior remain
+  unverified because the preview requires Vercel sign-in. Production is not
+  changed by creating this PR.
 
 ## Review artifacts
 
