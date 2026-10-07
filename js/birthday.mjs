@@ -26,7 +26,7 @@ const source=audio.querySelector('source');if(source.getAttribute('src')!==CONFI
 function setStatus(message='') { $('playback-status').textContent=message; }
 function setReady() {
   if(ready||disposed)return;ready=true;
-  $('start').disabled=false;$('start').textContent='START';$('ready-status').textContent='tap ittt · sound on 💖';
+  $('start').disabled=false;$('start').textContent='START';$('ready-status').textContent='tap it sofii HEHEHEHE';
 }
 function resize() {
   grove.resize(innerWidth,innerHeight);
@@ -210,7 +210,7 @@ audio.addEventListener('ended',()=>{
   // of a second is a pauseable silent crescendo, never an early birthday reveal.
   schedule();
 },options);
-function mediaFailed(){audioUnavailable=true;setReady();$('ready-status').textContent='tap ittt 💖';if(active)useSilent();}
+function mediaFailed(){audioUnavailable=true;setReady();$('ready-status').textContent='tap it sofii HEHEHEHE';if(active)useSilent();}
 audio.addEventListener('error',mediaFailed,options);
 // With <source>, a failed resource can report only on the source element.
 source.addEventListener('error',mediaFailed,options);
