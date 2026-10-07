@@ -19,14 +19,14 @@ const flower=document.createElement('span');flower.className='birthday__emoji';f
 $('greeting').append(name,flower);
 $('birthday-message').replaceChildren(document.createTextNode(CONFIG.message),document.createElement('br'),document.createTextNode(`${CONFIG.name} 💖`));
 $('wish').textContent=CONFIG.wish;$('date').textContent=CONFIG.date;
-$('signature').textContent=`${CONFIG.signature} ♡`;
-document.title=`A little garden for ${CONFIG.name} 🌸`;
+$('signature').textContent=`${CONFIG.signature} 💗`;
+document.title=`a little something for ${CONFIG.name} 🌸`;
 const source=audio.querySelector('source');if(source.getAttribute('src')!==CONFIG.audio){source.src=CONFIG.audio;audio.load();}
 
 function setStatus(message='') { $('playback-status').textContent=message; }
 function setReady() {
   if(ready||disposed)return;ready=true;
-  $('start').disabled=false;$('start').textContent='START';$('ready-status').textContent='Tap to begin · sound on ♡';
+  $('start').disabled=false;$('start').textContent='START';$('ready-status').textContent='tap ittt · sound on 💖';
 }
 function resize() {
   grove.resize(innerWidth,innerHeight);
@@ -37,7 +37,7 @@ function readAmbient(now) { return ambient+(ambientRunning?(now-ambientAnchor)/1
 function pauseAmbient(now) { ambient=readAmbient(now);ambientRunning=false; }
 function schedule() { if(!raf&&!disposed&&!document.hidden)raf=requestAnimationFrame(frame); }
 function isPaused() { return active&&!revealed&&!clock.running&&!buffering&&!playPending; }
-function showContinue(copy='Your flowers are waiting 🌸') {
+function showContinue(copy='your flowers are still here 🌸') {
   $('continue-copy').textContent=copy;$('continue-panel').hidden=false;
   $('pause').setAttribute('aria-label','Continue experience');
 }
@@ -72,7 +72,7 @@ function useSilent() {
   $('sound').disabled=true;$('sound').setAttribute('aria-label','Music unavailable');
   if(!document.hidden&&!manualPaused){clock.start(now);hideContinue();}
   else {clock.running=false;if(!document.hidden)showContinue();}
-  setStatus('A little quiet magic ♡');
+  setStatus('no sound rn, but keep going 💗');
   if(!wasRunning)lastVisual=clock.time;
   schedule();
 }
@@ -92,7 +92,7 @@ function settlePlay(promise,token,fromGesture,initial=false) {
     // AbortError commonly comes from pausing during a background transition.
     if(document.hidden||manualPaused){clock.pause(performance.now(),audio.currentTime);return;}
     if(error?.name==='AbortError'){showContinue();setStatus();return;}
-    if(!initial&&error?.name==='NotAllowedError'){clock.pause(performance.now(),audio.currentTime);showContinue('A little tap, and the magic continues 🌸');setStatus();return;}
+    if(!initial&&error?.name==='NotAllowedError'){clock.pause(performance.now(),audio.currentTime);showContinue('tap once and we’re back 🌸');setStatus();return;}
     useSilent();
   });
 }
@@ -104,8 +104,8 @@ function begin() {
   audio.muted=false;$('sound').disabled=false;$('sound').setAttribute('aria-pressed','false');$('sound').setAttribute('aria-label','Mute music');
   lastVisual=0;lastSecond=-1;lastPhase=-1;ambient=0;ambientRunning=false;playPending=true;welcomeFade=now;
   $('welcome').classList.add('is-leaving');$('progress-panel').hidden=false;$('celebration').hidden=true;$('replay').hidden=true;
-  $('controls').hidden=false;$('chrome-star').hidden=true;$('announcement').textContent='Your bouquet is beginning to grow.';
-  $('pause').disabled=false;hideContinue();setStatus('Finding the first note…');
+  $('controls').hidden=false;$('chrome-star').hidden=true;$('announcement').textContent='okayyy, here we go 🌸';
+  $('pause').disabled=false;hideContinue();setStatus('starting the song… 🌸');
   try { audio.currentTime=0; } catch { /* A cold media element can seek once metadata arrives. */ }
   // This call and the permission request are both synchronous consequences of
   // START. Never await permission, asset loading, or a transition before play().
@@ -125,9 +125,9 @@ function pauseExperience(manual=false) {
 function resumeExperience(fromGesture=true) {
   if(!active||revealed||disposed)return;
   manualPaused=false;hideContinue();
-  if(clock.mode!=='media'){clock.start(performance.now());setStatus(clock.mode==='silent'?'A little quiet magic ♡':'');schedule();return;}
+  if(clock.mode!=='media'){clock.start(performance.now());setStatus(clock.mode==='silent'?'no sound rn, but keep going 💗':'');schedule();return;}
   if(audio.ended){clock.ended(performance.now(),audio.currentTime);clock.start(performance.now());schedule();return;}
-  playPending=true;setStatus('Finding our place…');
+  playPending=true;setStatus('finding the song again… 🌸');
   try { const promise=audio.play();if(fromGesture)requestMotion();settlePlay(promise,generation,fromGesture); }
   catch { useSilent(); }
   schedule();
@@ -188,12 +188,12 @@ audio.addEventListener('playing',()=>{
 },options);
 audio.addEventListener('waiting',()=>{
   if(!active||revealed||clock.mode!=='media'||document.hidden||manualPaused)return;
-  clock.pause(performance.now(),audio.currentTime);buffering=true;setStatus('A tiny moment… waiting for the music.');schedule();
+  clock.pause(performance.now(),audio.currentTime);buffering=true;setStatus('hold uppp, the song is loading 🌸');schedule();
 },options);
 audio.addEventListener('stalled',()=>{
   // stalled is a network event, not proof that the buffered audio stopped.
   // Let currentTime continue until waiting/paused says it actually stopped.
-  if(active&&!revealed&&audio.readyState<3&&!audio.paused){clock.pause(performance.now(),audio.currentTime);buffering=true;setStatus('A tiny moment… waiting for the music.');}
+  if(active&&!revealed&&audio.readyState<3&&!audio.paused){clock.pause(performance.now(),audio.currentTime);buffering=true;setStatus('hold uppp, the song is loading 🌸');}
 },options);
 audio.addEventListener('pause',()=>{
   if(!active||revealed||clock.mode!=='media'||audio.ended||!audio.paused||disposed)return;
@@ -210,7 +210,7 @@ audio.addEventListener('ended',()=>{
   // of a second is a pauseable silent crescendo, never an early birthday reveal.
   schedule();
 },options);
-function mediaFailed(){audioUnavailable=true;setReady();$('ready-status').textContent='Tap to begin ♡';if(active)useSilent();}
+function mediaFailed(){audioUnavailable=true;setReady();$('ready-status').textContent='tap ittt 💖';if(active)useSilent();}
 audio.addEventListener('error',mediaFailed,options);
 // With <source>, a failed resource can report only on the source element.
 source.addEventListener('error',mediaFailed,options);
