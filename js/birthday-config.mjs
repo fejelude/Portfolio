@@ -9,5 +9,5 @@ export const CONFIG = Object.freeze({
   audio: '/assets/birthday/song.mp3',
   duration: 60,
   stages: [10, 32, 47, 57, 60],
-  phases: ['okayyy here we go 🌸', 'more flowers for you 💗', 'still going hehe 🌸', 'almost done 🎀', 'one last thing 💖'],
+  phases: ['i didn't really know what to make at first 🌸', 'so i started with one flower... then another 💗', 'and somehow this whole thing happened 🌸', 'i just wanted to make you something myself 🎀', 'okay... almost yours now 💖'],
 });
