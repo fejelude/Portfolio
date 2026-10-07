@@ -3,7 +3,7 @@ export const CONFIG = Object.freeze({
   name: 'Sofhia',
   greeting: 'hiii,',
   message: 'Happy 16th Birthday,',
-  wish: 'i hope you have a really, really good birthday. you deserve a good day today 🌸',
+  wish: 'i hope you have a really, really good birthday. you deserve a good day today, may ibibigay din ako sayo na something 🤫',
   date: '21 • 10 • 2026',
   signature: '— Feje',
   audio: '/assets/birthday/song.mp3',
