@@ -1,0 +1,39 @@
+name: Birthday garden CI
+on:
+  pull_request:
+    paths:
+      - 'sofhia-franchesca-16.html'
+      - 'css/birthday.css'
+      - 'js/birthday*.mjs'
+      - 'assets/birthday/**'
+      - 'tests/birthday.test.mjs'
+      - 'verification/birthday*.cjs'
+      - 'vercel.json'
+      - '.github/workflows/birthday-ci.yml'
+permissions:
+  contents: read
+jobs:
+  garden:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/*.test.* api/sofra/*.test.js
+      - run: npm install --no-save --package-lock=false playwright@1.56.1
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - name: Start virtual audio output
+        run: |
+          sudo apt-get install -y pulseaudio ffmpeg
+          pulseaudio --start --exit-idle-time=-1
+          pactl load-module module-null-sink sink_name=ci_audio
+          pactl set-default-sink ci_audio
+      - run: ffmpeg -nostdin -v error -xerror -i assets/birthday/song.mp3 -f null -
+      - run: node verification/birthday-smoke.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: birthday-browser-checks
+          path: verification/birthday-results/
