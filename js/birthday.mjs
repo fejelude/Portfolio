@@ -193,7 +193,7 @@ audio.addEventListener('waiting',()=>{
 audio.addEventListener('stalled',()=>{
   // stalled is a network event, not proof that the buffered audio stopped.
   // Let currentTime continue until waiting/paused says it actually stopped.
-  if(active&&!revealed&&audio.readyState<3&&!audio.paused){clock.pause(performance.now(),audio.currentTime);buffering=true;setStatus('A tiny moment… waiting for the music.');}
+  if(active&&!revealed&&audio.readyState<3&&!audio.paused){clock.pause(performance.now(),audio.currentTime);buffering=true;setStatus('hold uppp, the song is loading 🌸');}
 },options);
 audio.addEventListener('pause',()=>{
   if(!active||revealed||clock.mode!=='media'||audio.ended||!audio.paused||disposed)return;
