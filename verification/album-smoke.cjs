@@ -73,12 +73,18 @@ async function nativeControls(browser,name,url,mobile) {
   await page.screenshot({ path: path.join(out,`${name}-${mobile?'mobile':'desktop'}-cover.png`), fullPage: true });
   await activate('#open-album'); await page.locator('#album-inside').waitFor({state:'visible'});
   const { ALBUM } = await import('../js/album-config.mjs');
+  assert.equal(await page.$eval('#player-cover',e=>new URL(e.src).pathname),ALBUM.idleCover);
+  assert.equal(await page.$eval('#player-record',e=>e.classList.contains('is-waiting')),true);
+  assert.equal(await page.$eval('#player-record i',e=>getComputedStyle(e).display),'none');
   assert.equal(await page.locator('.album__letter').isVisible(),true);
   assert.equal(await page.locator('#album-note-title').textContent(),'a little note for sofiii ♡');
   assert.deepEqual(await page.locator('#album-note-copy p').allTextContents(),ALBUM.note);
   assert.ok(await page.evaluate(()=>document.querySelector('.album__letter').getBoundingClientRect().bottom<=document.getElementById('now-playing').getBoundingClientRect().top));
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-letter.png`),fullPage:true});
   assert.equal(await page.locator('.album__track-button').count(),18);
+  await page.locator('#now-playing').scrollIntoViewIfNeeded();
+  await page.waitForFunction(()=>{const i=document.getElementById('player-cover');return i.complete&&i.naturalWidth>0;});
+  await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-waiting-photo.png`)});
   await page.waitForFunction(() => window.__albumAudit.loops.some(s => s.loop && s.buffer));
   await sleep(750);
   // Audit the exact native-decoded buffer used for the browser's loop, including
@@ -96,6 +102,9 @@ async function nativeControls(browser,name,url,mobile) {
   assert.equal(seam.loop,true); assert.ok(seam.duration>40&&seam.duration<48);
   for(const channel of seam.channels) assert.ok(channel.step<channel.normal);
   await activate('[data-track-id="song-01"] .album__track-button');
+  await page.waitForFunction(()=>!document.getElementById('player-record').classList.contains('is-waiting'));
+  assert.equal(await page.$eval('#player-cover',e=>new URL(e.src).pathname),ALBUM.tracks[0].cover);
+  assert.notEqual(await page.$eval('#player-record i',e=>getComputedStyle(e).display),'none');
   await playing(page);
   await page.waitForFunction(() => document.getElementById('song-audio').currentTime>.1);
   const gates = await page.evaluate(() => window.__albumAudit.gains.slice(0,2).map(g => g.gain.value));
