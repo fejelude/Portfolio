@@ -16,10 +16,17 @@ let activeView = '', currentView = '', scrubbing = false, previousFocus = null;
 // updates both screens, the footer, birthday entry copy, and Media Session.
 document.title = `${ALBUM.title} 💿`;
 for (const id of ['cover-title', 'inside-title']) $(id).textContent = ALBUM.title;
-for (const id of ['cover-subtitle', 'inside-subtitle']) $(id).textContent = ALBUM.subtitle;
+$('cover-subtitle').textContent = ALBUM.subtitle;
+$('opening-heading').textContent = ALBUM.openingHeading;
+$('album-signature').textContent = ALBUM.signature;
+$('album-note-title').textContent = ALBUM.noteTitle;
+$('album-note-copy').replaceChildren(...ALBUM.note.map(text => {
+  const paragraph = document.createElement('p'); paragraph.textContent = text; return paragraph;
+}));
 $('album-cover').src = ALBUM.frontCover || ALBUM.cover;
 $('player-cover').src = ALBUM.cover;
 $('closing-message').textContent = ALBUM.closingMessage;
+$('closing-message').closest('.album__closing').hidden = !ALBUM.closingMessage;
 $('birthday-back').href = ALBUM.birthdayPath;
 $('track-count').textContent = `${String(ALBUM.tracks.length).padStart(2, '0')} tracks ♡`;
 $('sample-label').hidden = !ALBUM.tracks.some(t => t.placeholder);
@@ -240,5 +247,5 @@ addEventListener('pagehide', event => {
 }, opts);
 addEventListener('pageshow', event => { if (event.persisted) { player.setHidden(document.hidden); resize(); schedule(); } }, opts);
 $('birthday-back').addEventListener('click', () => player.pause(), opts);
-$('open-album').disabled = false; $('cover-hint').textContent = 'tap to open your album & turn the music on ♡';
+$('open-album').disabled = false; $('cover-hint').textContent = ALBUM.openingHint;
 resize(); schedule();
