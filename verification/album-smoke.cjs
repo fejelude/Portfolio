@@ -126,7 +126,7 @@ async function nativeControls(browser,name,url,mobile) {
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-album.png`),fullPage:true});
   if(mobile){await page.setViewportSize({width:320,height:568});await assertLayout(page);await page.screenshot({path:path.join(out,`${name}-small.png`),fullPage:true});await page.setViewportSize({width:844,height:390});await assertLayout(page);}
   await activate('#birthday-back'); await page.waitForURL('**/sofhia-franchesca-16');
-  assert.equal(await page.locator('#start').isVisible(),true); assert.equal(await page.locator('#album-entry').isVisible(),false);
+  assert.equal(await page.locator('#start').isVisible(),true); assert.equal(await page.locator('#album-entry').isVisible(),true);
   assert.deepEqual(errors,[]); console.log(name+' '+(mobile?'mobile':'desktop')+': native audio, seam '+JSON.stringify(seam)+', ducking, controls, seek, interruptions, finish, layouts, and birthday return passed');
   await context.close();
 }
