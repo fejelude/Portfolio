@@ -97,12 +97,25 @@ test('external pauses and interrupted contexts require a tap; hidden pauses cann
   p.setHidden(true); audio.pause(); await delay(5); assert.equal(p.needsTap,true); assert.equal(p.mixer.envelope.to,0);
   p.setHidden(false); p.continue(); await settled(p);
   p.mixer.context.state = 'interrupted'; p.mixer.context.dispatchEvent(new Event('statechange'));
-  assert.equal(p.needsTap,true); assert.equal(audio.paused,true); p.dispose();
+  assert.equal(p.needsTap,true); assert.equal(audio.paused,true);
+  p.setHidden(true); p.setHidden(false); p.mixer.context.dispatchEvent(new Event('statechange'));
+  assert.equal(p.resumeTarget,'song'); p.continue(); await settled(p);
+  assert.equal(p.state,'playing'); assert.equal(p.current.id,'a'); p.dispose();
 });
 test('background mute never opens its gate over a song', async () => {
   const { p } = fixture(); p.open(); await delay(5); p.select('a'); await settled(p);
   p.setMuted(true); p.setMuted(false); assert.equal(p.mixer.envelope.to,0); assert.equal(p.mixer.songAudible,true);
   p.pause(); p.setMuted(true); assert.equal(p.mixer.envelope.to,0); p.dispose();
+});
+test('returning to interrupted background music offers a tap and preserves a manually paused song', async () => {
+  const { p, audio } = fixture(); p.open(); await delay(5);
+  p.setHidden(true); p.mixer.context.state = 'interrupted'; p.setHidden(false);
+  assert.equal(p.needsTap,true); assert.equal(p.resumeTarget,'ambient'); p.continue(); await delay(5);
+  assert.equal(p.needsTap,false); assert.equal(audio.paused,true);
+  p.select('a'); await settled(p); p.pause(); const calls = audio.playCount;
+  p.mixer.context.state = 'suspended'; p.mixer.context.dispatchEvent(new Event('statechange'));
+  assert.equal(p.resumeTarget,'ambient'); p.continue(); await delay(5);
+  assert.equal(audio.playCount,calls); assert.equal(p.wantsPlaying,false); assert.equal(p.needsTap,false); p.dispose();
 });
 test('ended advances, skips locked songs, and cleanly finishes with restart available', async () => {
   const { p, audio } = fixture(); p.open(); await delay(5); p.select('a'); await settled(p);

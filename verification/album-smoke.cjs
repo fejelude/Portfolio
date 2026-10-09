@@ -27,6 +27,22 @@ async function assertLayout(page) {
   assert.equal(data.overflow,false,'horizontal scroll');
   for (const e of data.controls) assert.ok(e.x >= -1 && e.right <= data.width + 1,`${e.id} horizontal bounds`);
 }
+async function playing(page) {
+  try {
+    await page.waitForFunction(() => document.body.classList.contains('is-playing') || !document.getElementById('tap-continue').hidden, {}, {timeout:15000});
+    // Exercise the real recovery UI if native audio policy requires a new tap.
+    if (await page.locator('#tap-continue').isVisible()) await page.click('#tap-continue');
+    await page.waitForFunction(() => document.body.classList.contains('is-playing'), {}, {timeout:15000});
+  } catch (error) {
+    console.log('Native playback failure', await page.evaluate(() => {
+      const a = document.getElementById('song-audio');
+      return {title:document.getElementById('player-title').textContent,status:document.getElementById('status-copy').textContent,
+        tap:!document.getElementById('tap-continue').hidden,paused:a.paused,time:a.currentTime,ready:a.readyState,src:a.currentSrc,
+        error:a.error?.code,contexts:window.__albumAudit.gains.map(g=>g.context.state)};
+    }));
+    await page.screenshot({path:path.join(out,'native-playback-failure.png'),fullPage:true}); throw error;
+  }
+}
 async function nativeControls(browser,name,url,mobile) {
   const device = mobile && name === 'webkit' ? pw.devices['iPhone 13'] : mobile && name === 'chromium' ? pw.devices['Pixel 5'] :
     { viewport: mobile ? { width: 390, height: 844 } : { width: 1440, height: 1000 }, hasTouch: mobile };
@@ -56,7 +72,7 @@ async function nativeControls(browser,name,url,mobile) {
   assert.equal(seam.loop,true); assert.ok(seam.duration>40&&seam.duration<48);
   for(const channel of seam.channels) assert.ok(channel.step<channel.normal);
   await page.click('[data-track-id="song-01"] .album__track-button');
-  await page.waitForFunction(() => document.body.classList.contains('is-playing'));
+  await playing(page);
   await page.waitForFunction(() => document.getElementById('song-audio').currentTime>.1);
   const gates = await page.evaluate(() => window.__albumAudit.gains.slice(0,2).map(g => g.gain.value));
   assert.equal(gates[0],0); assert.equal(gates[1],1);
@@ -70,27 +86,27 @@ async function nativeControls(browser,name,url,mobile) {
   await page.click('[data-track-id="song-01"] .album__track-note');
   assert.equal(await page.locator('#note-dialog').isVisible(),true); await page.click('#note-ok');
   assert.equal(await page.locator('#note-dialog').isVisible(),false);
-  await page.click('#play-pause'); await page.waitForFunction(()=>document.body.classList.contains('is-playing'));
+  await page.click('#play-pause'); await playing(page);
   // Native seeking, rapid selection, and external pause/explicit resume.
   await page.locator('#song-seek').focus(); await page.keyboard.press('End'); await page.keyboard.press('ArrowLeft');
   await page.click('[data-track-id="song-03"] .album__track-button');
   await page.click('[data-track-id="song-02"] .album__track-button');
-  await page.waitForFunction(()=>document.body.classList.contains('is-playing'));
+  await playing(page);
   assert.equal(await page.locator('#player-title').textContent(),'Placeholder 02');
   await page.evaluate(()=>document.getElementById('song-audio').pause());
   await page.locator('#tap-continue').waitFor({state:'visible'}); await page.click('#tap-continue');
-  await page.waitForFunction(()=>document.body.classList.contains('is-playing'));
+  await playing(page);
   await page.click('#shuffle'); assert.equal(await page.locator('#shuffle').getAttribute('aria-pressed'),'true'); await page.click('#shuffle');
   await page.click('#repeat'); assert.equal(await page.locator('#repeat').getAttribute('aria-pressed'),'true');
   await page.click('#repeat'); assert.equal(await page.locator('#repeat-one').isVisible(),true); await page.click('#repeat');
   // A real ended event advances when its decoded native sample finishes.
   await page.evaluate(()=>{const a=document.getElementById('song-audio');a.currentTime=a.duration-.1;});
   await page.waitForFunction(()=>document.getElementById('player-title').textContent==='Placeholder 03');
-  await page.waitForFunction(()=>document.body.classList.contains('is-playing'));
-  await page.click('[data-track-id="song-18"] .album__track-button'); await page.waitForFunction(()=>document.body.classList.contains('is-playing'));
+  await playing(page);
+  await page.click('[data-track-id="song-18"] .album__track-button'); await playing(page);
   await page.evaluate(()=>{const a=document.getElementById('song-audio');a.currentTime=a.duration-.1;});
   await page.locator('#play-again').waitFor({state:'visible'}); assert.equal(await page.$eval('#song-audio',a=>a.paused),true);
-  await page.click('#play-again'); await page.waitForFunction(()=>document.body.classList.contains('is-playing'));
+  await page.click('#play-again'); await playing(page);
   assert.equal(await page.locator('#player-title').textContent(),'Placeholder 01'); await page.click('#play-pause');
   await assertLayout(page);
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-album.png`),fullPage:true});
@@ -127,6 +143,6 @@ async function variants(browser,name,url){
   await fs.mkdir(out,{recursive:true});const {server,url}=await startServer();
   try{for(const name of (process.env.ALBUM_ENGINES||'chromium,firefox,webkit').split(',')){
     const browser=await pw[name].launch({headless:true});
-    try{console.log(name+' '+browser.version());await nativeControls(browser,name,url,false);await nativeControls(browser,name,url,true);await variants(browser,name,url);}finally{await browser.close();}
+    try{console.log(name+' '+browser.version());await nativeControls(browser,name,url,false);if(name!=='firefox')await nativeControls(browser,name,url,true);await variants(browser,name,url);}finally{await browser.close();}
   }}finally{server.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

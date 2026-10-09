@@ -3,7 +3,7 @@
 ## Passed in the development workspace
 
 - Existing repository baseline: 52 tests passed before edits.
-- Final repository suite: **75 tests passed, zero failures** (`node --test
+- Final repository suite: **76 tests passed, zero failures** (`node --test
   tests/*.test.* api/sofra/*.test.js`).
 - Queue tests: sequential autoplay, skipping locked/failed tracks, stopping after
   the last track, repeat one/all, manual Next, shuffle permutation, Previous
@@ -28,7 +28,17 @@
   tests verify consecutive original samples at the join and no input mutation.
 - Syntax, config JSON, original artwork inspection, and repository diff review.
 
-## Browser checks supplied, execution not verified locally
+## Native browser checks on GitHub Actions
+
+The initial CI run found a continuously moving button that prevented automation
+from acquiring a stable click target. The pulse now animates opacity, keeping the
+tap target stationary. The next run passed complete native audio and layout
+checks on Chromium desktop, Android Chrome (Pixel 5 emulation), and Firefox
+desktop. Birthday garden CI also passed its full existing three-engine checks,
+including the native minute-long timeline, Replay, and mobile/landscape bounds.
+WebKit and the final album matrix are being verified on the PR; inspect the
+latest Actions result for the current commit. Physical-device claims are not
+implied by these engine/emulation results.
 
 `verification/album-smoke.cjs` uses native media and Web Audio in Chromium,
 Firefox, and WebKit, with desktop/mobile viewports. It covers cover-to-album,

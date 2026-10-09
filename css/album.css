@@ -1,3 +1,4 @@
+.album-root{overscroll-behavior:none}
 .album{overflow:auto;overflow-x:clip;background:#ffe5ef;-webkit-text-size-adjust:100%;touch-action:pan-y pinch-zoom}
 .album a{color:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .album :is(a,button,input):focus-visible{outline:3px solid #823a87;outline-offset:5px}

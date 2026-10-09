@@ -28,7 +28,7 @@ export class AlbumMixer {
         this.songSource = this.context.createMediaElementSource(this.audio);
         this.songSource.connect(this.songGain); this.songGain.connect(this.analyser); this.analyser.connect(this.context.destination);
         this.context.addEventListener('statechange', () => {
-          if (this.songWanted && this.context.state !== 'running' && this.context.state !== 'closed') this.onInterruption();
+          if (this.context.state !== 'running' && this.context.state !== 'closed') this.onInterruption();
         }, { signal: this.life.signal });
         this.loadAmbient();
       }
@@ -113,12 +113,12 @@ export class AlbumPlayer {
     this.update = update; this.burst = burst; this.queue = new TrackQueue(config.tracks);
     this.failed = new Set(); this.life = new AbortController(); this.attempt = null;
     this.current = null; this.state = 'idle'; this.wantsPlaying = false; this.generation = 0;
-    this.message = ''; this.needsTap = false; this.opened = false; this.disposed = false;
+    this.message = ''; this.needsTap = false; this.resumeTarget = ''; this.opened = false; this.disposed = false;
     this.transitioning = false; this.usedFallback = false; this.metadata = new Map();
     this.mixer = new AlbumMixer(audio, config, () => this.interrupt(), () => {
       if (!this.current && this.opened) { this.message = 'the background music is taking a little break ♡'; this.emit(); }
     });
-    this.mixer.onWake = () => { if (!this.current && this.needsTap) { this.needsTap = false; this.message = ''; this.mixer.restoreAmbient(); this.emit(); } };
+    this.mixer.onWake = () => { if (!this.disposed && this.needsTap && this.resumeTarget === 'ambient') { this.needsTap = false; this.resumeTarget = ''; this.message = ''; this.mixer.restoreAmbient(); this.emit(); } };
     const opts = { signal: this.life.signal };
     audio.addEventListener('loadedmetadata', () => {
       if (!this.matches()) return;
@@ -197,7 +197,7 @@ export class AlbumPlayer {
     if (this.disposed || !this.queue.playable(this.current.id, this.failed)) return;
     this.cancelAttempt(); const token = this.generation;
     this.attempt = new AbortController(); const signal = this.attempt.signal;
-    this.wantsPlaying = true; this.mixer.songWanted = true; this.needsTap = false;
+    this.wantsPlaying = true; this.mixer.songWanted = true; this.needsTap = false; this.resumeTarget = '';
     this.transitioning = true; this.state = 'loading'; this.message = '';
     const position = this.audio.ended ? 0 : this.audio.currentTime || 0;
     this.mixer.wake(); this.mixer.silenceSong();
@@ -236,17 +236,21 @@ export class AlbumPlayer {
     if (this.disposed) return;
     this.cancelAttempt(); this.wantsPlaying = false; this.mixer.songWanted = false;
     this.mixer.silenceSong(); this.audio.pause(); this.state = this.current ? 'paused' : 'idle';
-    this.needsTap = !manual && !!this.current; this.message = this.needsTap ? 'your song is still here ♡' : '';
+    this.needsTap = !manual && !!this.current; this.resumeTarget = this.needsTap ? 'song' : '';
+    this.message = this.needsTap ? 'your song is still here ♡' : '';
     this.mixer.restoreAmbient(); this.emit(); this.positionState();
   }
   interrupt() {
     if (!this.opened || this.disposed) return;
     if (this.wantsPlaying) this.pause(false);
-    else if (!this.current && !this.mixer.hidden && this.mixer.context?.state !== 'running') {
-      this.needsTap = true; this.message = 'tap once for your music ♡'; this.emit();
+    else if (this.resumeTarget !== 'song' && !this.mixer.hidden && this.mixer.context && this.mixer.context.state !== 'running') {
+      this.needsTap = true; this.resumeTarget = 'ambient'; this.message = 'tap once for your background music ♡'; this.emit();
     }
   }
-  continue() { if (this.current) this.play(); else { this.mixer.wake(); this.mixer.restoreAmbient(); } }
+  continue() {
+    if (this.current && this.resumeTarget !== 'ambient') this.play();
+    else { this.mixer.wake(); this.mixer.restoreAmbient(); }
+  }
   toggle() { if (this.wantsPlaying) this.pause(); else this.play(); }
   finish() {
     this.pause(); this.state = 'finished'; this.message = 'that was the last little song ♡'; this.emit();
@@ -301,7 +305,7 @@ export class AlbumPlayer {
   setMuted(value) { this.mixer.wake(); this.mixer.muted = value; this.mixer.restoreAmbient(); this.emit(); }
   setHidden(hidden) {
     this.mixer.hidden = hidden; this.mixer.restoreAmbient();
-    if (!hidden && this.wantsPlaying && (this.audio.paused || this.mixer.context?.state !== 'running')) this.interrupt();
+    if (!hidden && ((this.wantsPlaying && this.audio.paused) || this.mixer.context && this.mixer.context.state !== 'running')) this.interrupt();
   }
   installMediaSession() {
     if (!('mediaSession' in navigator)) return;
