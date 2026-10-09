@@ -21,6 +21,8 @@
 .album__sleeve-head{border-bottom:2px solid #e7b0c8;background:#ffe0ed}
 .album__sleeve-foot{border-top:2px solid #e7b0c8}
 .album__sleeve img{display:block;width:100%;height:auto;aspect-ratio:1}
+.album__cover-disc{aspect-ratio:1;padding:14px;display:grid;place-items:center;background:radial-gradient(circle,#fffafc,#ffe5f1)}
+.album__sleeve .album__cover-disc img{height:100%;object-fit:contain;border-radius:50%;image-rendering:auto;animation:album-spin 24s linear infinite;box-shadow:0 0 0 2px #f4bfd9,0 0 22px #eab0cb55}
 .album__sticker{position:absolute;right:-16px;top:-17px;width:53px;height:53px;background:#fff2cb;border:2px solid #c99b53;box-shadow:3px 3px #e0b674;clip-path:polygon(12% 0,88% 0,88% 12%,100% 12%,100% 88%,88% 88%,88% 100%,12% 100%,12% 88%,0 88%,0 12%,12% 12%);color:#8d6330;font:600 1.25rem BirthdayPixel,monospace;line-height:1.05;padding-top:5px;transform:rotate(10deg)}
 .album__sticker small{font-size:1rem}
 .album__title{font:600 clamp(2.5rem,7.4vw,4.25rem)/1.05 BirthdayPixel,BirthdayEmoji,monospace;color:#ab4777;letter-spacing:-.035em;text-shadow:2px 2px #fff7fc,4px 4px #f6b6d3,5px 5px #d987ab;margin:0;text-wrap:balance;overflow-wrap:anywhere;outline:none}

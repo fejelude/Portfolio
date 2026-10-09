@@ -17,7 +17,7 @@ let activeView = '', currentView = '', scrubbing = false, previousFocus = null;
 document.title = `${ALBUM.title} 💿`;
 for (const id of ['cover-title', 'inside-title']) $(id).textContent = ALBUM.title;
 for (const id of ['cover-subtitle', 'inside-subtitle']) $(id).textContent = ALBUM.subtitle;
-$('album-cover').src = ALBUM.cover;
+$('album-cover').src = ALBUM.frontCover || ALBUM.cover;
 $('player-cover').src = ALBUM.cover;
 $('closing-message').textContent = ALBUM.closingMessage;
 $('birthday-back').href = ALBUM.birthdayPath;
