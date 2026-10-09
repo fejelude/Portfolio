@@ -114,7 +114,7 @@ export class AlbumPlayer {
     this.failed = new Set(); this.life = new AbortController(); this.attempt = null;
     this.current = null; this.state = 'idle'; this.wantsPlaying = false; this.generation = 0;
     this.message = ''; this.needsTap = false; this.resumeTarget = ''; this.opened = false; this.disposed = false;
-    this.transitioning = false; this.usedFallback = false; this.metadata = new Map();
+    this.transitioning = false; this.usedFallback = false; this.metadata = new Map(); this.observedPosition = 0;
     this.mixer = new AlbumMixer(audio, config, () => this.interrupt(), () => {
       if (!this.current && this.opened) { this.message = 'the background music is taking a little break ♡'; this.emit(); }
     });
@@ -125,10 +125,19 @@ export class AlbumPlayer {
       if (Number.isFinite(audio.duration)) this.metadata.set(this.current.id, audio.duration);
       this.emit(); this.positionState();
     }, opts);
-    audio.addEventListener('timeupdate', () => { this.emit(); this.positionState(); }, opts);
+    audio.addEventListener('timeupdate', () => {
+      const position = audio.currentTime || 0;
+      // Some WebKit pipelines omit a second playing event after a seek. Real
+      // forward clock movement also confirms recovery from buffering.
+      if (this.matches() && this.wantsPlaying && !this.transitioning && !audio.paused && !audio.seeking &&
+          this.state === 'buffering' && position > this.observedPosition + 0.02) {
+        clearTimeout(this.watchdog); this.state = 'playing'; this.message = '';
+      }
+      this.observedPosition = position; this.emit(); this.positionState();
+    }, opts);
     audio.addEventListener('durationchange', () => { if (this.matches() && Number.isFinite(audio.duration)) this.metadata.set(this.current.id, audio.duration); this.emit(); }, opts);
     audio.addEventListener('waiting', () => {
-      if (this.matches() && this.wantsPlaying) { this.state = 'buffering'; this.message = 'hold on, finding your song…'; this.armWatchdog(); this.emit(); }
+      if (this.matches() && this.wantsPlaying) { this.observedPosition = audio.currentTime || 0; this.state = 'buffering'; this.message = 'hold on, finding your song…'; this.armWatchdog(); this.emit(); }
     }, opts);
     audio.addEventListener('stalled', () => {
       if (this.matches() && this.wantsPlaying && audio.readyState < 3) { this.state = 'buffering'; this.armWatchdog(); this.emit(); }
@@ -228,7 +237,7 @@ export class AlbumPlayer {
       const done = () => { clearTimeout(timer); this.audio.removeEventListener('seeked', done); signal.removeEventListener('abort', done); resolve(); };
       this.audio.addEventListener('seeked', done, { once: true }); signal.addEventListener('abort', done, { once: true });
       timer = setTimeout(done, 1500);
-      try { this.audio.currentTime = position; } catch { done(); }
+      try { this.audio.currentTime = position; this.observedPosition = position; } catch { done(); }
     });
   }
   playRejected(error, token) {
@@ -267,7 +276,7 @@ export class AlbumPlayer {
   }
   seek(seconds) {
     if (!this.current || !Number.isFinite(this.audio.duration)) return;
-    try { this.audio.currentTime = clamp(seconds, 0, this.audio.duration); this.emit(); this.positionState(); } catch { /* Metadata not ready. */ }
+    try { this.audio.currentTime = clamp(seconds, 0, this.audio.duration); this.observedPosition = this.audio.currentTime; this.emit(); this.positionState(); } catch { /* Metadata not ready. */ }
   }
   restart() { const first = this.queue.first(this.failed); if (first) this.select(first); }
   armWatchdog() {

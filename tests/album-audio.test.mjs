@@ -136,6 +136,9 @@ test('buffering preserves the single song, resumes correctly, and next preload n
   assert.equal(p.state,'playing','resolved native playback is playing even with WebKit HAVE_CURRENT_DATA');
   assert.equal(next.src,'/b.mp3'); assert.equal(next.preload,'auto'); assert.equal(next.playCount,0);
   audio.dispatchEvent(new Event('waiting')); assert.equal(p.state,'buffering'); assert.equal(p.mixer.envelope.to,0);
+  audio.currentTime += .25; audio.dispatchEvent(new Event('timeupdate'));
+  assert.equal(p.state,'playing','native clock progress recovers buffering when WebKit omits playing');
+  audio.dispatchEvent(new Event('waiting')); assert.equal(p.state,'buffering');
   audio.dispatchEvent(new Event('playing')); assert.equal(p.state,'playing'); p.dispose();
 });
 test('a late failed file after a manual pause cannot restart song playback', async () => {
