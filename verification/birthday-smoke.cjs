@@ -28,7 +28,7 @@ async function tick(page,ms=35){
 async function position(page,t){await page.evaluate(t=>window.__birthdayMedia.time=t,t);await tick(page);}
 async function revealed(page){return page.$eval('#celebration',e=>!e.hidden);}
 async function layout(page){
- const data=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth,scene:document.getElementById('scene').getBoundingClientRect().height,controls:[...document.querySelectorAll('button')].filter(e=>e.getBoundingClientRect().width&&e.getBoundingClientRect().height).map(e=>{const r=e.getBoundingClientRect();return {id:e.id,x:r.x,y:r.y,right:r.right,bottom:r.bottom}}),w:innerWidth,h:innerHeight}));
+ const data=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth,scene:document.getElementById('scene').getBoundingClientRect().height,controls:[...document.querySelectorAll('button,a#album-entry')].filter(e=>e.getBoundingClientRect().width&&e.getBoundingClientRect().height).map(e=>{const r=e.getBoundingClientRect();return {id:e.id,x:r.x,y:r.y,right:r.right,bottom:r.bottom}}),w:innerWidth,h:innerHeight}));
  assert.equal(data.overflow,false);assert.ok(data.scene>0);
  for(const button of data.controls){assert.ok(button.x>=0&&button.right<=data.w+1,button.id+' horizontal bounds');assert.ok(button.y>=0&&button.bottom<=data.h+1,button.id+' vertical bounds');}
 }
@@ -39,6 +39,7 @@ async function simulated(browser,name,url){
   await page.goto(url+'/sofhia-franchesca-16');await tick(page,100);await page.waitForFunction(()=>!document.getElementById('start').disabled);
   assert.equal(await page.evaluate(()=>performance.now()===window.__birthdayNow),true,name+' controlled performance clock');
   assert.equal(await page.locator('button:visible').count(),1);assert.equal(await revealed(page),false);await layout(page);
+  assert.equal(await page.locator('#album-entry').isVisible(),false);
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-welcome.png`)});
   await page.click('#start');await tick(page,600);
   for(const t of [4,12,22,31,38,44,50,55,58,59.4]){await position(page,t);assert.equal(await revealed(page),false);}
@@ -46,9 +47,12 @@ async function simulated(browser,name,url){
   await page.evaluate(()=>{const a=document.getElementById('birthday-audio');window.__birthdayMedia.paused=true;window.__birthdayMedia.ended=true;a.dispatchEvent(new Event('ended'));});
   await tick(page,550);assert.equal(await revealed(page),false);await tick(page,100);assert.equal(await revealed(page),true);
   await tick(page,1700);assert.equal(await page.locator('#replay').isVisible(),true);await layout(page);
+  assert.equal(await page.locator('#album-entry').isVisible(),true);assert.equal(await page.locator('#album-entry').getAttribute('href'),'/sofhias-songs-67');
+  await page.waitForTimeout(1100);assert.ok(await page.$eval('#album-entry',e=>Number(getComputedStyle(e).opacity))>.75);
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-final.png`)});
   for(let run=0;run<3;run++){
    await page.click('#replay');await tick(page,100);assert.equal(await revealed(page),false);assert.equal(await page.locator('#replay').isVisible(),false);
+   assert.equal(await page.locator('#album-entry').isVisible(),false);
    await position(page,15);await page.click('#pause');await tick(page,5000);assert.equal(await page.$eval('#progress',e=>e.getAttribute('aria-valuenow')),'15');
    await page.click('#continue');await tick(page,100);await position(page,20);
    await page.evaluate(()=>document.getElementById('birthday-audio').dispatchEvent(new Event('waiting')));await position(page,30);assert.equal(await page.$eval('#progress',e=>e.getAttribute('aria-valuenow')),'20');
@@ -88,10 +92,13 @@ async function nativeMinute(browser,url){
  await page.waitForFunction(()=>document.getElementById('birthday-audio').currentTime>5);
  await page.click('#pause');const paused=await page.$eval('#birthday-audio',a=>a.currentTime);await page.waitForTimeout(500);assert.equal(await page.$eval('#birthday-audio',a=>a.currentTime),paused);await page.click('#continue');
  for(const target of [10,32,47,57,59]){await page.waitForFunction(t=>document.getElementById('birthday-audio').currentTime>=t,target,{timeout:30000});assert.equal(await revealed(page),false);await page.screenshot({path:path.join(out,`native-${target}s.png`)});console.log(`native media clock reached ${target}s; birthday message still hidden`);}
- await page.waitForFunction(()=>!document.getElementById('celebration').hidden,{},{timeout:5000});await page.waitForTimeout(1800);await layout(page);await page.screenshot({path:path.join(out,'native-final-mobile.png')});
+ await page.waitForFunction(()=>!document.getElementById('celebration').hidden,{},{timeout:5000});await page.waitForTimeout(2800);await layout(page);
+ assert.equal(await page.locator('#album-entry').isVisible(),true);assert.ok(await page.$eval('#album-entry',e=>Number(getComputedStyle(e).opacity))>.75);
+ await page.screenshot({path:path.join(out,'native-final-mobile.png')});
  const audit=await page.evaluate(()=>window.__nativeAudit),end=audit.events.find(e=>e.event==='ended');assert.ok(end);assert.equal(audit.events.some(e=>e.event==='error'),false);
  const revealStoryTime=end.time+(audit.reveal.now-end.now)/1000;assert.ok(revealStoryTime>=59.98&&revealStoryTime<60.12,`revealed at ${revealStoryTime}`);
- assert.deepEqual(errors,[]);console.log(JSON.stringify({decodedDuration,revealStoryTime,nativePauseHeld:true,audit}));await context.close();
+ await page.click('#album-entry');await page.waitForURL('**/sofhias-songs-67');assert.equal(await page.locator('#cover-screen').isVisible(),true);assert.equal(await page.$eval('#song-audio',a=>a.paused),true);
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({decodedDuration,revealStoryTime,nativePauseHeld:true,albumEntryPassed:true,audit}));await context.close();
 }
 
 (async()=>{

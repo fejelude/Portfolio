@@ -195,7 +195,10 @@ export class AlbumPlayer {
     this.queue.remember(id); this.usedFallback = false;
     this.sourcePath = this.sourceFor(track);
     this.audio.preload = 'auto';
-    if (this.audio.getAttribute('src') !== this.sourcePath) this.audio.src = this.sourcePath;
+    // Reset the native decoder even when placeholders share the same URL.
+    // WebKit can otherwise retain its previous end-of-stream state after a
+    // zero seek and immediately end the newly selected/repeated track.
+    this.audio.src = this.sourcePath;
     try { this.audio.currentTime = 0; } catch { /* Cold metadata arrives next. */ }
     this.state = 'loading'; this.needsTap = false; this.message = '';
     this.mediaMetadata(); this.preloadNext(); this.emit();
@@ -210,7 +213,9 @@ export class AlbumPlayer {
     this.transitioning = true; this.state = 'loading'; this.message = '';
     // A new selection starts at zero even when WebKit briefly reports the
     // previous clip's position while the native reset seek is pending.
-    const position = Number.isFinite(startAt) ? startAt : this.audio.ended ? 0 : this.audio.currentTime || 0;
+    const ended = this.audio.ended;
+    const position = Number.isFinite(startAt) ? startAt : ended ? 0 : this.audio.currentTime || 0;
+    if (ended) this.audio.src = this.sourcePath;
     this.mixer.wake(); this.mixer.silenceSong();
     const quiet = this.mixer.fadeAmbient(0);
     this.armWatchdog(); this.emit();
