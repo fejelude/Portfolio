@@ -214,7 +214,11 @@ export class AlbumPlayer {
       if (this.audio.paused) { this.interrupt(); return; }
       if (this.mixer.context && this.mixer.context.state !== 'running') { this.interrupt(); return; }
       this.transitioning = false; clearTimeout(this.watchdog);
-      this.mixer.startSong(); this.state = this.audio.readyState < 3 ? 'buffering' : 'playing';
+      // play() resolved and the quiet seek completed. WebKit can retain
+      // HAVE_CURRENT_DATA while its native clock advances; readiness alone
+      // must not leave a playing song stuck behind the loading indicator.
+      // Native waiting/stalled events report subsequent buffering.
+      this.mixer.startSong(); this.state = 'playing';
       this.message = ''; this.burst(); this.emit(); this.positionState();
     }).catch(error => this.playRejected(error, token));
   }

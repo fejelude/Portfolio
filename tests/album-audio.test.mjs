@@ -132,7 +132,8 @@ test('missing files try AAC once, then skip gracefully without an unhandled reje
   audio.bad = false; p.select('a'); await settled(p); assert.equal(p.state,'playing'); p.dispose();
 });
 test('buffering preserves the single song, resumes correctly, and next preload never plays', async () => {
-  const { p, audio, next } = fixture(); p.open(); await delay(5); p.select('a'); await settled(p);
+  const { p, audio, next } = fixture(); p.open(); await delay(5); audio.readyState = 2; p.select('a'); await settled(p);
+  assert.equal(p.state,'playing','resolved native playback is playing even with WebKit HAVE_CURRENT_DATA');
   assert.equal(next.src,'/b.mp3'); assert.equal(next.preload,'auto'); assert.equal(next.playCount,0);
   audio.dispatchEvent(new Event('waiting')); assert.equal(p.state,'buffering'); assert.equal(p.mixer.envelope.to,0);
   audio.dispatchEvent(new Event('playing')); assert.equal(p.state,'playing'); p.dispose();
