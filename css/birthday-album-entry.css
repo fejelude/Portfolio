@@ -1,10 +1,11 @@
-/* Only the new finale link is styled. The bouquet, caption, and Replay retain
-   their existing rules and controller. */
-.birthday__album-entry{display:block;width:fit-content;max-width:100%;margin:14px auto 8px;padding:8px 12px;font-size:.85rem!important;min-height:44px;text-align:center;text-decoration:none;line-height:1.3;animation:album-entry-in .8s .25s both,album-entry-pulse 3s 1.1s ease-in-out infinite;position:relative;touch-action:manipulation}
+/* A softer companion to START, scoped to the welcome screen. */
+.birthday__album-entry{display:block;width:fit-content;max-width:100%;margin:20px auto 8px;padding:8px 12px;font-size:.85rem!important;min-height:44px;text-align:center;text-decoration:none;line-height:1.3;background:#ffe0ee;border-color:#c7799c;box-shadow:inset 3px 3px #fff5fa,inset -3px -3px #efb4d0,0 4px #c7799c,0 7px #f0cada;animation:album-entry-in .6s both;position:relative;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.birthday__album-entry:hover{background:#ffeaf3}
 .birthday__album-entry::after{content:'♫';position:absolute;top:-9px;right:7px;color:#b96796;font-family:BirthdayPixel,monospace;font-size:.85rem;background:#fff1f8;padding:0 3px;animation:album-entry-note 2.7s infinite;pointer-events:none}
 .birthday__album-entry:focus-visible{outline:3px solid #823a87;outline-offset:5px}
-@keyframes album-entry-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
-@keyframes album-entry-pulse{50%{opacity:.85}}
+@keyframes album-entry-in{from{opacity:0}to{opacity:1}}
 @keyframes album-entry-note{50%{opacity:.4;transform:translateY(-2px)}}
-@media(max-height:640px){.birthday__album-entry{margin-top:10px;padding:5px 8px;font-size:.75rem!important}}
+/* Keep both choices in view on short phones without changing the bouquet. */
+@media(max-height:640px){.birthday__welcome{padding-top:8px;padding-bottom:8px}.birthday__welcome-flower{font-size:1.8rem;margin-bottom:6px}.birthday__eyebrow{margin-bottom:6px}.birthday__welcome-copy{margin:8px 0 12px}.birthday__hint{margin-top:8px}.birthday__album-entry{margin-top:12px;padding:5px 8px;font-size:.75rem!important}}
+@media(orientation:landscape) and (max-height:580px) and (min-width:601px){.birthday__welcome h1{font-size:1.8rem}.birthday__welcome h1 br{display:none}.birthday__welcome-copy{max-width:none}}
 @media(prefers-reduced-motion:reduce){.birthday__album-entry,.birthday__album-entry::after{animation:none}}

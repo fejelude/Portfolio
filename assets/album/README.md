@@ -1,8 +1,9 @@
 # Sofhia’s Songs
 
 The album is a buildless page at `/sofhias-songs-67` on the existing Vercel host.
-The birthday finale adds one link when its existing Replay button appears. No
-bouquet, clock, birthday audio, Replay handler, homepage, or nav code changed.
+The birthday welcome screen includes a smaller album button below START and its
+hint, so the album is available immediately. No bouquet, clock, birthday audio,
+Replay handler, homepage, or nav code changed.
 
 ## Edit the album
 

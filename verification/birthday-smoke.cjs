@@ -39,7 +39,8 @@ async function simulated(browser,name,url){
   await page.goto(url+'/sofhia-franchesca-16');await tick(page,100);await page.waitForFunction(()=>!document.getElementById('start').disabled);
   assert.equal(await page.evaluate(()=>performance.now()===window.__birthdayNow),true,name+' controlled performance clock');
   assert.equal(await page.locator('button:visible').count(),1);assert.equal(await revealed(page),false);await layout(page);
-  assert.equal(await page.locator('#album-entry').isVisible(),false);
+  assert.equal(await page.locator('#album-entry').isVisible(),true);assert.equal(await page.locator('#album-entry').getAttribute('href'),'/sofhias-songs-67');
+  await page.waitForTimeout(700);assert.ok(await page.$eval('#album-entry',e=>Number(getComputedStyle(e).opacity))>.95);
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-welcome.png`)});
   await page.click('#start');await tick(page,600);
   for(const t of [4,12,22,31,38,44,50,55,58,59.4]){await position(page,t);assert.equal(await revealed(page),false);}
@@ -47,8 +48,7 @@ async function simulated(browser,name,url){
   await page.evaluate(()=>{const a=document.getElementById('birthday-audio');window.__birthdayMedia.paused=true;window.__birthdayMedia.ended=true;a.dispatchEvent(new Event('ended'));});
   await tick(page,550);assert.equal(await revealed(page),false);await tick(page,100);assert.equal(await revealed(page),true);
   await tick(page,1700);assert.equal(await page.locator('#replay').isVisible(),true);await layout(page);
-  assert.equal(await page.locator('#album-entry').isVisible(),true);assert.equal(await page.locator('#album-entry').getAttribute('href'),'/sofhias-songs-67');
-  await page.waitForTimeout(1100);assert.ok(await page.$eval('#album-entry',e=>Number(getComputedStyle(e).opacity))>.75);
+  assert.equal(await page.locator('#album-entry').isVisible(),false);
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-final.png`)});
   for(let run=0;run<3;run++){
    await page.click('#replay');await tick(page,100);assert.equal(await revealed(page),false);assert.equal(await page.locator('#replay').isVisible(),false);
@@ -79,6 +79,21 @@ async function simulated(browser,name,url){
  console.log(name+': simulated chapter boundaries, coda, buffering, background/blocked resume, three replays, reduced motion, responsive layouts, no-JS passed');
 }
 
+async function welcomeEntry(browser,name,url){
+ for(const viewport of [{width:390,height:844},{width:320,height:568},{width:844,height:390}]){
+  const context=await browser.newContext({viewport,hasTouch:true});const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  // The album remains reachable even while the birthday audio is still loading.
+  await page.route('**/assets/birthday/song.mp3',route=>route.abort());
+  await page.goto(url+'/sofhia-franchesca-16');await page.waitForTimeout(700);await layout(page);
+  assert.equal(await page.locator('#album-entry').isVisible(),true);assert.equal(await page.locator('#celebration').isVisible(),false);
+  const fit=await page.$eval('#welcome',e=>({height:e.clientHeight,content:e.scrollHeight}));assert.ok(fit.content<=fit.height+1,JSON.stringify({viewport,fit}));
+  await page.screenshot({path:path.join(out,`${name}-welcome-${viewport.width}x${viewport.height}.png`)});
+  await page.click('#album-entry');await page.waitForURL('**/sofhias-songs-67');assert.equal(await page.locator('#cover-screen').isVisible(),true);assert.equal(await page.$eval('#song-audio',a=>a.paused),true);
+  assert.deepEqual(errors,[]);await context.close();
+ }
+ console.log(name+': welcome album entry, unloaded birthday audio, narrow/landscape bounds and navigation passed');
+}
+
 async function nativeMinute(browser,url){
  const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true});const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(url+'/sofhia-franchesca-16');await page.waitForFunction(()=>!document.getElementById('start').disabled);
@@ -93,19 +108,18 @@ async function nativeMinute(browser,url){
  await page.click('#pause');const paused=await page.$eval('#birthday-audio',a=>a.currentTime);await page.waitForTimeout(500);assert.equal(await page.$eval('#birthday-audio',a=>a.currentTime),paused);await page.click('#continue');
  for(const target of [10,32,47,57,59]){await page.waitForFunction(t=>document.getElementById('birthday-audio').currentTime>=t,target,{timeout:30000});assert.equal(await revealed(page),false);await page.screenshot({path:path.join(out,`native-${target}s.png`)});console.log(`native media clock reached ${target}s; birthday message still hidden`);}
  await page.waitForFunction(()=>!document.getElementById('celebration').hidden,{},{timeout:5000});await page.waitForTimeout(2800);await layout(page);
- assert.equal(await page.locator('#album-entry').isVisible(),true);assert.ok(await page.$eval('#album-entry',e=>Number(getComputedStyle(e).opacity))>.75);
+ assert.equal(await page.locator('#album-entry').isVisible(),false);
  await page.screenshot({path:path.join(out,'native-final-mobile.png')});
  const audit=await page.evaluate(()=>window.__nativeAudit),end=audit.events.find(e=>e.event==='ended');assert.ok(end);assert.equal(audit.events.some(e=>e.event==='error'),false);
  const revealStoryTime=end.time+(audit.reveal.now-end.now)/1000;assert.ok(revealStoryTime>=59.98&&revealStoryTime<60.12,`revealed at ${revealStoryTime}`);
- await page.click('#album-entry');await page.waitForURL('**/sofhias-songs-67');assert.equal(await page.locator('#cover-screen').isVisible(),true);assert.equal(await page.$eval('#song-audio',a=>a.paused),true);
- assert.deepEqual(errors,[]);console.log(JSON.stringify({decodedDuration,revealStoryTime,nativePauseHeld:true,albumEntryPassed:true,audit}));await context.close();
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({decodedDuration,revealStoryTime,nativePauseHeld:true,audit}));await context.close();
 }
 
 (async()=>{
  await fs.mkdir(out,{recursive:true});const {server,url}=await startServer();
  try{
   for(const name of (process.env.BIRTHDAY_ENGINES||'chromium,firefox,webkit').split(',')){
-   const browser=await pw[name].launch({headless:true});try{console.log(name+' '+browser.version());await simulated(browser,name,url);if(name==='chromium'&&process.env.BIRTHDAY_SKIP_NATIVE!=='1')await nativeMinute(browser,url);}finally{await browser.close();}
+   const browser=await pw[name].launch({headless:true});try{console.log(name+' '+browser.version());await welcomeEntry(browser,name,url);await simulated(browser,name,url);if(name==='chromium'&&process.env.BIRTHDAY_SKIP_NATIVE!=='1')await nativeMinute(browser,url);}finally{await browser.close();}
   }
   const audio=await fetch(url+'/assets/birthday/song.mp3',{headers:{Range:'bytes=0-255'}});assert.equal(audio.status,206);assert.equal(audio.headers.get('content-type'),'audio/mpeg');assert.match(audio.headers.get('content-range'),/^bytes 0-255\//);
   for(const route of ['/','/Gallery','/sofra/about','/sofra'])assert.equal((await fetch(url+route)).status,200);

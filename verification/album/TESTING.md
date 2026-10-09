@@ -16,7 +16,8 @@
   controls, listener/source/timer cleanup. These are simulations, not physical
   device observations.
 - Birthday clock/art/privacy regression tests; existing modules and birthday
-  CSS are unchanged. The entry observes the existing settled Replay signal.
+  CSS are unchanged. The album entry is immediately available on the welcome
+  screen, independently of birthday audio loading.
 - Local HTTP checks: album clean/raw URLs and birthday route return 200 with
   `X-Robots-Tag`; MP3/background/AAC return correct MIME, `206`, the correct
   `Content-Range`, and 256 requested bytes. Existing homepage/Gallery/Sofra routes
