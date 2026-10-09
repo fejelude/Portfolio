@@ -56,7 +56,7 @@ test('unknown duration never renders NaN; times are stable on long songs', () =>
 test('all 18 samples are explicit placeholders with existing audio, fallback and original covers', () => {
   assert.equal(ALBUM.tracks.length,18); assert.equal(new Set(ALBUM.tracks.map(t => t.id)).size,18);
   for (const t of ALBUM.tracks) {
-    assert.equal(t.placeholder,true); assert.match(t.title,/Placeholder \d{2}/);
+    assert.equal(t.placeholder,true); assert.match(t.title,/Song \d{2}/);
     for (const p of [t.audio,t.fallbackAudio,t.cover]) assert.ok(existsSync(new URL(`..${p}`, import.meta.url)),p);
   }
   for (const p of [ALBUM.backgroundMusic,ALBUM.cover,ALBUM.mediaCover,ALBUM.unlockAudio]) assert.ok(existsSync(new URL(`..${p}`,import.meta.url)));
@@ -66,7 +66,7 @@ test('only the birthday page links to the album, and both clean/raw routes are n
     assert.doesNotMatch(readFileSync(new URL(`../${name}`,import.meta.url),'utf8'),/sofhias-songs-67/);
   }
   const birthday = readFileSync(new URL('../sofhia-franchesca-16.html',import.meta.url),'utf8');
-  assert.equal((birthday.match(/href="\/sofhias-songs-67"/g)||[]).length,1);
+  assert.equal((birthday.match(/href="\/sofhias-songs-67"/g)||[]).length,2);
   const html = readFileSync(new URL('../sofhias-songs-67.html',import.meta.url),'utf8');
   assert.match(html,/<meta name="robots" content="noindex, nofollow">/);
   assert.doesNotMatch(html,/user-scalable|maximum-scale|activity-logger|main\.js|style\.css/);
