@@ -109,7 +109,7 @@
 .album__dialog-body .birthday__pixel-button{font-size:.93rem!important;padding:9px 16px}
 .album__nojs{position:relative;text-align:center;padding:20px;font-size:.9rem}
 @keyframes album-spin{to{transform:rotate(360deg)}}
-@keyframes album-button-pulse{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes album-button-pulse{0%,100%{opacity:1}50%{opacity:.88}}
 @keyframes album-screen-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes album-track-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 @keyframes album-equalizer{to{transform:scaleY(1)}}
