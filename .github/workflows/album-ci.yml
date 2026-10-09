@@ -1,0 +1,47 @@
+name: Sofhia album CI
+on:
+  pull_request:
+    paths:
+      - 'sofhias-songs-67.html'
+      - 'sofhia-franchesca-16.html'
+      - 'css/album.css'
+      - 'css/birthday-album-entry.css'
+      - 'js/album*.mjs'
+      - 'js/birthday-album-entry.mjs'
+      - 'assets/album/**'
+      - 'tests/album*.test.mjs'
+      - 'verification/album*'
+      - 'verification/birthday-server.cjs'
+      - 'vercel.json'
+      - '.github/workflows/album-ci.yml'
+permissions:
+  contents: read
+jobs:
+  album:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/*.test.* api/sofra/*.test.js
+      - run: npm install --no-save --package-lock=false playwright@1.56.1
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - name: Start virtual audio output
+        run: |
+          sudo apt-get install -y pulseaudio ffmpeg
+          pulseaudio --start --exit-idle-time=-1
+          pactl load-module module-null-sink sink_name=ci_audio
+          pactl set-default-sink ci_audio
+      - name: Verify media decoding
+        run: |
+          ffmpeg -nostdin -v error -xerror -i assets/album/background.mp3 -f null -
+          ffmpeg -nostdin -v error -xerror -i assets/album/sample.mp3 -f null -
+          ffmpeg -nostdin -v error -xerror -i assets/album/sample.m4a -f null -
+      - run: node verification/album-smoke.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sofhia-album-browser-checks
+          path: verification/album-results/
