@@ -77,7 +77,9 @@ test('song and background gates remain exclusive through the 600ms duck and paus
 });
 test('rapid track changes and pauses cancel obsolete play completions', async () => {
   const { p, audio } = fixture(); p.open(); await delay(5); await p.mixer.fadeAmbient(.4,0);
-  p.select('a'); p.select('b'); p.select('c'); p.pause(); await delay(650);
+  p.select('a'); p.select('b'); audio.end();
+  assert.equal(p.current.id,'b','an obsolete ended event during the silent transition cannot advance the new selection');
+  p.select('c'); p.pause(); await delay(650);
   assert.equal(p.current.id,'c'); assert.equal(p.state,'paused'); assert.equal(audio.paused,true); assert.equal(p.mixer.songAudible,false);
   p.play(); await settled(p); assert.equal(p.current.id,'c'); assert.equal(p.state,'playing'); p.dispose();
 });

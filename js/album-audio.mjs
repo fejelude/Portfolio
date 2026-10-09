@@ -154,7 +154,7 @@ export class AlbumPlayer {
       this.interrupt();
     }, opts);
     audio.addEventListener('ended', () => {
-      if (!this.matches() || !audio.ended || !this.wantsPlaying || this.disposed) return;
+      if (!this.matches() || !audio.ended || !this.wantsPlaying || this.transitioning || this.disposed) return;
       clearTimeout(this.watchdog); this.mixer.silenceSong();
       const next = this.queue.next(this.current.id, this.failed, true);
       if (next) this.select(next); else this.finish();
@@ -199,16 +199,18 @@ export class AlbumPlayer {
     try { this.audio.currentTime = 0; } catch { /* Cold metadata arrives next. */ }
     this.state = 'loading'; this.needsTap = false; this.message = '';
     this.mediaMetadata(); this.preloadNext(); this.emit();
-    if (autoplay) this.play(); else this.pause();
+    if (autoplay) this.play(0); else this.pause();
   }
-  play() {
+  play(startAt) {
     if (!this.current) { const first = this.queue.first(this.failed); if (first) this.select(first); return; }
     if (this.disposed || !this.queue.playable(this.current.id, this.failed)) return;
     this.cancelAttempt(); const token = this.generation;
     this.attempt = new AbortController(); const signal = this.attempt.signal;
     this.wantsPlaying = true; this.mixer.songWanted = true; this.needsTap = false; this.resumeTarget = '';
     this.transitioning = true; this.state = 'loading'; this.message = '';
-    const position = this.audio.ended ? 0 : this.audio.currentTime || 0;
+    // A new selection starts at zero even when WebKit briefly reports the
+    // previous clip's position while the native reset seek is pending.
+    const position = Number.isFinite(startAt) ? startAt : this.audio.ended ? 0 : this.audio.currentTime || 0;
     this.mixer.wake(); this.mixer.silenceSong();
     const quiet = this.mixer.fadeAmbient(0);
     this.armWatchdog(); this.emit();
