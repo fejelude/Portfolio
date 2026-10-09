@@ -29,7 +29,10 @@ $('closing-message').textContent = ALBUM.closingMessage;
 $('closing-message').closest('.album__closing').hidden = !ALBUM.closingMessage;
 $('birthday-back').href = ALBUM.birthdayPath;
 $('track-count').textContent = `${String(ALBUM.tracks.length).padStart(2, '0')} tracks ♡`;
-$('sample-label').hidden = !ALBUM.tracks.some(t => t.placeholder);
+$('sample-label').textContent = ALBUM.tracklistCaption;
+$('sample-label').hidden = ALBUM.tracks.length === 0;
+$('player-title').textContent = ALBUM.waitingTitle;
+$('player-detail').textContent = ALBUM.waitingDetail;
 $('empty-album').hidden = ALBUM.tracks.length > 0;
 
 function icon(name) {
@@ -84,8 +87,8 @@ function refreshRows(p) {
     const locked = !track.audio || p.failed.has(id), active = p.current?.id === id;
     row.classList.toggle('is-locked', locked); row.classList.toggle('is-active', active);
     button.disabled = locked; button.setAttribute('aria-pressed', String(active));
-    button.setAttribute('aria-label', `${track.title}${locked ? ' — Coming soon' : ` — ${timeLabel(p.metadata.get(id) ?? track.duration)}${track.placeholder ? ' — sample placeholder' : ''}`}`);
-    meta.textContent = locked ? 'Coming soon 🔒' : `${timeLabel(p.metadata.get(id) ?? track.duration)}${track.placeholder ? ' · sample' : ''}`;
+    button.setAttribute('aria-label', `${track.title}${locked ? ' — Coming soon' : ` — ${timeLabel(p.metadata.get(id) ?? track.duration)}`}`);
+    meta.textContent = locked ? 'Coming soon 🔒' : `${timeLabel(p.metadata.get(id) ?? track.duration)}`;
   }
 }
 function render(p) {
@@ -98,14 +101,14 @@ function render(p) {
     currentView = track.id;
     $('player-title').textContent = track.title;
     $('player-number').textContent = `TRACK ${String(ALBUM.tracks.indexOf(track) + 1).padStart(2, '0')} / ${String(ALBUM.tracks.length).padStart(2, '0')}`;
-    $('player-detail').textContent = track.placeholder ? 'a sample, waiting to become your song ♡' : `made with love by ${ALBUM.artist}`;
+    $('player-detail').textContent = ALBUM.artist;
     $('player-cover').style.visibility = ''; delete $('player-cover').dataset.fallback;
     $('player-cover').src = track.cover || ALBUM.cover;
     $('player-note').hidden = !track.note && !track.lyrics;
     $('player-note').textContent = track.lyrics ? '♡ your little lyrics page' : '♡ a little note for you';
   }
   const loading = p.state === 'buffering' || p.state === 'loading';
-  $('player-state').textContent = { idle: 'PICK A LITTLE SONG', loading: 'GETTING YOUR SONG', buffering: 'A LITTLE MOMENT…', playing: 'NOW PLAYING ♫', paused: 'SAVED YOUR PLACE ♡', finished: 'THANK YOU FOR LISTENING ♡' }[p.state];
+  $('player-state').textContent = { idle: ALBUM.playerInvitation, loading: 'GETTING YOUR SONG', buffering: 'A LITTLE MOMENT…', playing: 'NOW PLAYING ♫', paused: 'SAVED YOUR PLACE ♡', finished: 'THANK YOU FOR LISTENING ♡' }[p.state];
   $('buffering').hidden = !loading; $('status-copy').textContent = p.message || (loading ? 'finding your song…' : '');
   $('tap-continue').hidden = !p.needsTap; $('play-again').hidden = p.state !== 'finished';
   $('play-pause').replaceChildren(icon(p.wantsPlaying ? 'pause' : 'play'));

@@ -9,3 +9,6 @@
 @media(max-height:640px){.birthday__welcome{padding-top:8px;padding-bottom:8px}.birthday__welcome-flower{font-size:1.8rem;margin-bottom:6px}.birthday__eyebrow{margin-bottom:6px}.birthday__welcome-copy{margin:8px 0 12px}.birthday__hint{margin-top:8px}.birthday__album-entry{margin-top:12px;padding:5px 8px;font-size:.75rem!important}}
 @media(orientation:landscape) and (max-height:580px) and (min-width:601px){.birthday__welcome h1{font-size:1.8rem}.birthday__welcome h1 br{display:none}.birthday__welcome-copy{max-width:none}}
 @media(prefers-reduced-motion:reduce){.birthday__album-entry,.birthday__album-entry::after{animation:none}}
+
+.birthday__album-return{margin:15px auto 8px;padding:6px 12px;font-size:.8rem!important}
+@media(orientation:landscape) and (max-height:580px){.birthday__album-return{margin-top:10px;margin-bottom:4px}.birthday__caption:has(.birthday__album-return:not([hidden])){padding-block:8px}.birthday__caption:has(.birthday__album-return:not([hidden])) .birthday__signature{margin-top:8px}}

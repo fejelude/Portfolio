@@ -3,7 +3,9 @@
 The album is a buildless page at `/sofhias-songs-67` on the existing Vercel host.
 The birthday welcome screen includes a smaller album button below START and its
 hint, so the album is available immediately. No bouquet, clock, birthday audio,
-Replay handler, homepage, or nav code changed.
+Replay handler, homepage, or nav code changed. A smaller “my little album 💿♡”
+link also appears below Replay after the existing finale settles. Both birthday
+links use `albumPath` in the config.
 
 ## Edit the album
 
@@ -39,8 +41,8 @@ newlines are preserved. For unfinished songs set `audio: ''`: they display
 
 The 18 supplied placeholders play the same original **8-second bell sample**,
 with MP3 and AAC copies, so every control is testable. They are not the final
-songs. Set `placeholder: false` when replacing each sample. The sample banner
-disappears when no entry is a placeholder. Short-duration differences in MP3
+songs. Set `placeholder: false` when replacing each sample. The technical flag is retained in the data; the interface displays neutral
+numbered song names and durations, without sample labels. Short-duration differences in MP3
 metadata reflect codec padding; the actual playback duration is used.
 
 Change `title`, `subtitle`, `artist`, `closingMessage`, `cover`, `mediaCover`, and

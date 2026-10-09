@@ -75,6 +75,10 @@ async function nativeControls(browser,name,url,mobile) {
   const { ALBUM } = await import('../js/album-config.mjs');
   assert.equal(await page.$eval('#player-cover',e=>new URL(e.src).pathname),ALBUM.idleCover);
   assert.equal(await page.$eval('#player-record',e=>e.classList.contains('is-waiting')),true);
+  assert.equal(await page.locator('#player-state').textContent(),ALBUM.playerInvitation);
+  assert.equal(await page.locator('#player-title').textContent(),ALBUM.waitingTitle);
+  assert.equal(await page.locator('#player-detail').textContent(),ALBUM.waitingDetail);
+  assert.equal(await page.locator('#sample-label').textContent(),ALBUM.tracklistCaption);
   assert.equal(await page.$eval('#player-record i',e=>getComputedStyle(e).display),'none');
   assert.equal(await page.locator('.album__letter').isVisible(),true);
   assert.equal(await page.locator('#album-note-title').textContent(),'a little note for sofiii ♡');
@@ -130,7 +134,7 @@ async function nativeControls(browser,name,url,mobile) {
   await activate('[data-track-id="song-03"] .album__track-button');
   await activate('[data-track-id="song-02"] .album__track-button');
   await playing(page);
-  assert.equal(await page.locator('#player-title').textContent(),'Placeholder 02');
+  assert.equal(await page.locator('#player-title').textContent(),'Song 02');
   await page.evaluate(()=>document.getElementById('song-audio').pause());
   await page.locator('#tap-continue').waitFor({state:'visible'}); await activate('#tap-continue');
   await playing(page);
@@ -139,13 +143,13 @@ async function nativeControls(browser,name,url,mobile) {
   await activate('#repeat'); assert.equal(await page.locator('#repeat-one').isVisible(),true); await activate('#repeat'); assert.equal(await page.locator('#repeat').getAttribute('aria-pressed'),'false');
   // A real ended event advances when its decoded native sample finishes.
   await page.evaluate(()=>{const a=document.getElementById('song-audio');a.currentTime=a.duration-.1;});
-  await page.waitForFunction(()=>document.getElementById('player-title').textContent==='Placeholder 03');
+  await page.waitForFunction(()=>document.getElementById('player-title').textContent==='Song 03');
   await playing(page);
   await activate('[data-track-id="song-18"] .album__track-button'); await playing(page);
   await page.evaluate(()=>{const a=document.getElementById('song-audio');a.currentTime=a.duration-.1;});
   await page.locator('#play-again').waitFor({state:'visible'}); assert.equal(await page.$eval('#song-audio',a=>a.paused),true);
   await activate('#play-again'); await playing(page);
-  assert.equal(await page.locator('#player-title').textContent(),'Placeholder 01'); await activate('#play-pause');
+  assert.equal(await page.locator('#player-title').textContent(),'Song 01'); await activate('#play-pause');
   await assertLayout(page);
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-album.png`),fullPage:true});
   if(mobile){await page.setViewportSize({width:320,height:568});await assertLayout(page);await page.screenshot({path:path.join(out,`${name}-small.png`),fullPage:true});await page.setViewportSize({width:844,height:390});await assertLayout(page);}
@@ -158,7 +162,7 @@ async function variants(browser,name,url){
   const config=await fs.readFile(path.join(__dirname,'../js/album-config.mjs'),'utf8');
   for(const count of [0,1,25]){
     const context=await browser.newContext({viewport:{width:320,height:568},reducedMotion:'reduce'}),page=await context.newPage();
-    await page.route('**/js/album-config.mjs',r=>r.fulfill({contentType:'text/javascript',body:config+`\nALBUM.tracks=Array.from({length:${count}},(_,i)=>({...ALBUM.tracks[0],id:'variant-'+i,title:'Placeholder '+(i+1),audio:i%3===2?'':ALBUM.tracks[0].audio}));`}));
+    await page.route('**/js/album-config.mjs',r=>r.fulfill({contentType:'text/javascript',body:config+`\nALBUM.tracks=Array.from({length:${count}},(_,i)=>({...ALBUM.tracks[0],id:'variant-'+i,title:'a very long song title '+('sofiii'.repeat(12))+' '+(i+1),audio:i%3===2?'':ALBUM.tracks[0].audio}));`}));
     await page.goto(url+'/sofhias-songs-67');assert.equal(await page.$eval('#album-cover',e=>getComputedStyle(e).animationName),'none');await page.click('#open-album');await page.locator('#album-inside').waitFor({state:'visible'});
     assert.equal(await page.locator('.album__track').count(),count);await assertLayout(page);
     if(count===25)assert.equal(await page.locator('.album__track-button:disabled').count(),8);
@@ -168,7 +172,7 @@ async function variants(browser,name,url){
   // Force only track 1 to be missing, with no fallback. Track 2 remains native.
   await page.route('**/js/album-config.mjs',r=>r.fulfill({contentType:'text/javascript',body:config+"\nALBUM.tracks[0].audio='/assets/album/missing.mp3';ALBUM.tracks[0].fallbackAudio='';"}));
   await page.goto(url+'/sofhias-songs-67');await page.click('#open-album');await page.locator('#album-inside').waitFor({state:'visible'});
-  await page.click('[data-track-id="song-01"] .album__track-button');await page.waitForFunction(()=>document.getElementById('player-title').textContent==='Placeholder 02');
+  await page.click('[data-track-id="song-01"] .album__track-button');await page.waitForFunction(()=>document.getElementById('player-title').textContent==='Song 02');
   assert.equal(await page.locator('[data-track-id="song-01"] .album__track-button').isEnabled(),false);assert.deepEqual(errors,[]);await context.close();
   // Delayed native track download exercises loading and recovery.
   const slow=await browser.newContext({viewport:{width:390,height:844}}),slowPage=await slow.newPage();
