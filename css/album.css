@@ -37,6 +37,10 @@
 .album__heading .album__eyebrow{margin-bottom:12px}
 .album__heading .album__title{font-size:clamp(2.15rem,6.5vw,3.4rem)}
 .album__heading .album__subtitle{margin-top:12px}
+.album__letter{margin:0 auto 30px;padding:clamp(18px,4vw,28px);max-width:65ch;border:2px solid #d780a5;background:#fff7fb;box-shadow:inset 3px 3px #fff,0 4px #efbed3;color:#854563;overflow-wrap:anywhere}
+.album__letter h2{font:600 clamp(1.1rem,4vw,1.35rem)/1.4 BirthdayPixel,BirthdayEmoji,monospace;margin:0 0 20px;color:#95416a}
+.album__letter p{font-size:1rem;line-height:1.75;margin:0 0 1.1em;white-space:pre-wrap}
+.album__letter p:last-child{margin-bottom:0}
 .album__layout{display:grid;grid-template-columns:280px minmax(0,1fr);gap:27px;align-items:start}
 .album__player{position:sticky;top:20px;min-width:0;border:2px solid #d780a5;background:#fff4f9;box-shadow:inset 3px 3px #fff,4px 4px #efbed3;padding:0 17px 17px;text-align:center;isolation:isolate}
 .album__player-chrome{display:flex;justify-content:space-between;align-items:center;margin:0 -17px;padding:9px 11px;background:#ffe0ed;border-bottom:2px solid #d780a5;font:500 .75rem BirthdayPixel,monospace;letter-spacing:.04em}

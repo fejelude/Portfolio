@@ -60,6 +60,10 @@ async function nativeControls(browser,name,url,mobile) {
   await page.addInitScript(observeNativeMixer); await page.goto(url+'/sofhias-songs-67');
   await page.waitForFunction(() => !document.getElementById('open-album').disabled);
   assert.equal(await page.locator('#album-inside').isVisible(),false);
+  assert.equal(await page.locator('#opening-heading').textContent(),'HAPPY 16TH, SOFIII ♡');
+  assert.equal(await page.locator('#cover-subtitle').textContent(),'made you something hehe');
+  assert.equal(await page.locator('#cover-hint').textContent(),'go onnn, open it HAHAHA ♡');
+  assert.equal(await page.locator('#album-signature').textContent(),'- fejee ♡');
   assert.equal(await page.$eval('#song-audio',a => a.paused),true); await assertLayout(page);
   await page.waitForFunction(() => { const image=document.getElementById('album-cover'); return image.complete && image.naturalWidth>0; });
   assert.ok(await page.$eval('#album-cover',e=>e.currentSrc.endsWith('/sofhia-birthday-disc.jpg')));
@@ -68,6 +72,12 @@ async function nativeControls(browser,name,url,mobile) {
   assert.notEqual(await page.$eval('#album-cover',e=>getComputedStyle(e).transform),rotation,'the welcome CD spins before opening');
   await page.screenshot({ path: path.join(out,`${name}-${mobile?'mobile':'desktop'}-cover.png`), fullPage: true });
   await activate('#open-album'); await page.locator('#album-inside').waitFor({state:'visible'});
+  const { ALBUM } = await import('../js/album-config.mjs');
+  assert.equal(await page.locator('.album__letter').isVisible(),true);
+  assert.equal(await page.locator('#album-note-title').textContent(),'a little note for sofiii ♡');
+  assert.deepEqual(await page.locator('#album-note-copy p').allTextContents(),ALBUM.note);
+  assert.ok(await page.evaluate(()=>document.querySelector('.album__letter').getBoundingClientRect().bottom<=document.getElementById('now-playing').getBoundingClientRect().top));
+  await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-letter.png`),fullPage:true});
   assert.equal(await page.locator('.album__track-button').count(),18);
   await page.waitForFunction(() => window.__albumAudit.loops.some(s => s.loop && s.buffer));
   await sleep(750);

@@ -7,7 +7,7 @@
   <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#ffe5ef">
   <title>Sofhia's Songs 💿</title>
-  <meta name="description" content="A little birthday album, made with love for Sofhia.">
+  <meta name="description" content="Sofhia's Songs — made you something hehe.">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preload" href="/assets/birthday/pixelify-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/css/birthday.css">
@@ -30,36 +30,37 @@
   <canvas class="birthday__grove" id="album-grove" aria-hidden="true"></canvas>
   <canvas class="album__particles" id="album-particles" aria-hidden="true"></canvas>
   <main class="album__viewport">
-    <p class="album__edition"><span aria-hidden="true">✦</span> a birthday edition, just for you <span aria-hidden="true">✦</span></p>
     <section class="album__window" aria-label="Sofhia’s birthday album">
       <header class="birthday__chrome album__chrome">
         <span class="birthday__lives" aria-hidden="true"><i></i><i></i><i></i></span>
-        <span class="birthday__window-label">a little love, on repeat ♡</span>
+        <span class="birthday__window-label">for sofiii ♡</span>
         <button class="album__icon album__ambient" id="ambient-toggle" type="button" aria-label="Mute background music" aria-pressed="false" disabled>
           <svg aria-hidden="true"><use href="#icon-speaker"/></svg>
         </button>
       </header>
       <section class="album__cover-screen" id="cover-screen" aria-labelledby="cover-title">
-        <p class="album__eyebrow">FOR MY FAVORITE HUMAN ♡</p>
+        <p class="album__eyebrow" id="opening-heading">HAPPY 16TH, SOFIII ♡</p>
         <div class="album__sleeve" id="album-sleeve">
           <div class="album__sleeve-head"><span>FOR SOFHIA</span><span aria-hidden="true">♡ ♡ ♡</span></div>
           <div class="album__cover-disc">
             <img id="album-cover" src="/assets/album/sofhia-birthday-disc.jpg" width="1536" height="1536" alt="Sofhia’s pink birthday CD, decorated with hearts, bows, and her photo." fetchpriority="high" decoding="async">
           </div>
-          <div class="album__sleeve-foot"><span>MADE WITH LOVE</span><span>VOL. 16</span></div>
+          <div class="album__sleeve-foot"><span>SIDE A</span><span>VOL. 16</span></div>
           <span class="album__sticker" aria-hidden="true">16<br><small>♡</small></span>
         </div>
         <h1 class="album__title" id="cover-title">Sofhia's Songs</h1>
-        <p class="album__subtitle" id="cover-subtitle">made with love, for your 16th birthdayy</p>
+        <p class="album__subtitle" id="cover-subtitle">made you something hehe</p>
         <button class="birthday__pixel-button album__open" id="open-album" type="button" disabled>OPEN ITT 💿</button>
         <p class="album__tiny" id="cover-hint">getting your little album ready…</p>
       </section>
       <section class="album__inside" id="album-inside" hidden aria-labelledby="inside-title">
         <header class="album__heading">
-          <p class="album__eyebrow">EVERY LITTLE SONG, FOR YOU</p>
           <h1 class="album__title" id="inside-title" tabindex="-1">Sofhia's Songs</h1>
-          <p class="album__subtitle" id="inside-subtitle"></p>
         </header>
+        <section class="album__letter" aria-labelledby="album-note-title">
+          <h2 id="album-note-title">a little note for sofiii ♡</h2>
+          <div id="album-note-copy"></div>
+        </section>
         <div class="album__layout">
           <section class="album__player" id="now-playing" aria-label="Now playing">
             <div class="album__player-chrome"><span id="player-state">PICK A LITTLE SONG</span><span aria-hidden="true">✦</span></div>
@@ -69,7 +70,7 @@
               <span class="album__tonearm" aria-hidden="true"></span>
             </div>
             <div class="album__player-copy">
-              <p class="album__eyebrow" id="player-number">a little something from me</p>
+              <p class="album__eyebrow" id="player-number">NOW PLAYING</p>
               <h2 id="player-title">Your songs are waiting ♡</h2>
               <p class="album__tiny" id="player-detail">choose a track below</p>
             </div>
@@ -98,12 +99,12 @@
           </section>
         </div>
         <footer class="album__footer">
-          <div class="birthday__dialog album__closing"><span class="birthday__dialog-star" aria-hidden="true">✦</span><p id="closing-message">Happy 16th Birthday, Sofhia 💖 — made with love</p></div>
+          <div class="birthday__dialog album__closing" hidden><span class="birthday__dialog-star" aria-hidden="true">✦</span><p id="closing-message"></p></div>
           <a class="album__back" id="birthday-back" href="/sofhia-franchesca-16">← back to your birthday flowers</a>
         </footer>
       </section>
     </section>
-    <p class="album__signature">a little piece of my heart, from me to you ♡</p>
+    <p class="album__signature" id="album-signature">- fejee ♡</p>
   </main>
   <dialog class="album__dialog" id="note-dialog" aria-labelledby="note-title">
     <div class="album__dialog-head"><span>♡ A LITTLE NOTE</span><button class="album__icon" id="close-note" type="button" aria-label="Close note"><svg aria-hidden="true"><use href="#icon-close"/></svg></button></div>

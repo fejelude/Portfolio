@@ -7,7 +7,12 @@ Replay handler, homepage, or nav code changed.
 
 ## Edit the album
 
-All content is in **`js/album-config.mjs`**. Add, remove, or reorder entries in
+All content is in **`js/album-config.mjs`**.
+`ALBUM.note` contains the visible letter's paragraphs. Edit `noteTitle`,
+`openingHeading`, `subtitle`, `openingHint`, and `signature` for the page copy.
+An empty `closingMessage` hides the optional closing dialog to avoid repetition.
+
+Add, remove, or reorder entries in
 `ALBUM.tracks`; no HTML, CSS, or controller change is needed. It supports empty,
 single-track, 18-track, and larger albums. Keep each `id` unique.
 
