@@ -27,7 +27,7 @@ class Context extends EventTarget {
 class Media extends EventTarget {
   constructor() { super(); this.attrs = new Map(); this.paused = true; this.ended = false; this.readyState = 4; this.duration = 8; this.volume = 1; this.position = 0; this.playCount = 0; this.denied = false; this.bad = false; this.pending = false; }
   get currentTime() { return this.position; }
-  set currentTime(value) { this.position = value; this.ended = false; queueMicrotask(() => this.dispatchEvent(new Event('seeked'))); }
+  set currentTime(value) { this.position = value; this.ended = false; if (this.pauseOnSeek && !this.paused) this.pause(); queueMicrotask(() => this.dispatchEvent(new Event('seeked'))); }
   get src() { return this.attrs.get('src') || ''; }
   set src(value) { this.attrs.set('src', value); this.currentSrc = new URL(value, document.baseURI).href; this.position = 0; this.ended = false; this.paused = true; }
   getAttribute(key) { return this.attrs.get(key) ?? null; }
@@ -87,6 +87,13 @@ test('stale play rejection cannot interrupt a newer successful track', async () 
   const { p, audio } = fixture(); p.open(); await delay(5);
   audio.denied = true; p.select('a'); audio.denied = false; p.select('c'); await settled(p);
   assert.equal(p.current.id,'c'); assert.equal(p.needsTap,false); assert.equal(p.state,'playing'); p.dispose();
+});
+test('a WebKit pause during the quiet rewind resumes before the song gate opens', async () => {
+  const { p, audio } = fixture(); p.open(); await delay(5); audio.pauseOnSeek = true;
+  p.select('a'); audio.position = .5; const calls = audio.playCount; await settled(p);
+  assert.equal(audio.playCount,calls+1); assert.equal(audio.currentTime,0);
+  assert.equal(audio.paused,false); assert.equal(p.state,'playing'); assert.equal(p.needsTap,false);
+  audio.pause(); await delay(5); assert.equal(p.needsTap,true,'a later external pause still requires a tap'); p.dispose();
 });
 test('blocked play provides Tap to continue and keeps the selected position', async () => {
   const { p, audio } = fixture(); p.open(); await delay(5); audio.denied = true; p.select('a'); await settled(p);

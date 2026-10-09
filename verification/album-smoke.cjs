@@ -10,7 +10,14 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve,ms));
 function observeNativeMixer() {
   const Native = window.AudioContext || window.webkitAudioContext;
   if (!Native) return;
-  window.__albumAudit = { gains: [], loops: [], analysers: [] };
+  window.__albumAudit = { gains: [], loops: [], analysers: [], events: [] };
+  addEventListener('DOMContentLoaded',()=>{
+    const audio=document.getElementById('song-audio');
+    for(const type of ['play','playing','pause','ended','seeking','seeked','waiting','error'])audio.addEventListener(type,()=>{
+      window.__albumAudit.events.push({type,time:audio.currentTime,paused:audio.paused,ready:audio.readyState,title:document.getElementById('player-title').textContent});
+      if(window.__albumAudit.events.length>40)window.__albumAudit.events.shift();
+    });
+  },{once:true});
   class ObservedContext extends Native {
     createGain() { const gain = super.createGain(); window.__albumAudit.gains.push(gain); return gain; }
     createBufferSource() { const source = super.createBufferSource(); window.__albumAudit.loops.push(source); return source; }
@@ -39,7 +46,7 @@ async function playing(page) {
       const a = document.getElementById('song-audio');
       return {title:document.getElementById('player-title').textContent,status:document.getElementById('status-copy').textContent,
         tap:!document.getElementById('tap-continue').hidden,paused:a.paused,time:a.currentTime,ready:a.readyState,src:a.currentSrc,
-        error:a.error?.code,contexts:window.__albumAudit.gains.map(g=>g.context.state)};
+        error:a.error?.code,contexts:window.__albumAudit.gains.map(g=>g.context.state),events:window.__albumAudit.events};
     }));
     await page.screenshot({path:path.join(out,'native-playback-failure.png'),fullPage:true}); throw error;
   }

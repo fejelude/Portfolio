@@ -3,7 +3,7 @@
 ## Passed in the development workspace
 
 - Existing repository baseline: 52 tests passed before edits.
-- Final repository suite: **76 tests passed, zero failures** (`node --test
+- Final repository suite: **77 tests passed, zero failures** (`node --test
   tests/*.test.* api/sofra/*.test.js`).
 - Queue tests: sequential autoplay, skipping locked/failed tracks, stopping after
   the last track, repeat one/all, manual Next, shuffle permutation, Previous
@@ -30,10 +30,10 @@
 
 ## Native browser checks on GitHub Actions
 
-The complete album matrix passed on commit
-`fd39b443532e4824b82d777bfccb8b7cfcd1952f` in
-[Sofhia album CI run 7](https://github.com/fejelude/Portfolio/actions/runs/37918183005).
-Both jobs also passed the full 76-test repository suite.
+The complete album matrix passed in
+[Sofhia album CI](https://github.com/fejelude/Portfolio/pull/95/checks).
+The workflow runs the full repository suite on both hosts as well. The PR’s
+Checks tab links each commit’s results, native logs, and screenshot artifacts.
 
 | Runner | Native browser / viewport | Result |
 | --- | --- | --- |
@@ -46,7 +46,9 @@ taps. They are not physical-device observations. WebKit audio is verified on
 macOS; earlier Linux WebKit attempts failed the gain assertion and are not
 counted as passed audio checks. Browser verification found and resolved a moving
 tap target, WebKit buffering-status recovery, and native ended/seek races when
-restarting or switching tracks.
+restarting or switching tracks. The controller also resumes the already
+activated native element after its quiet rewind, covering an intermittent
+WebKit seek pause; a dedicated regression test exercises that recovery.
 
 Birthday garden CI independently passed its existing three-engine checks,
 including the native minute-long timeline, Replay, and mobile/landscape bounds.

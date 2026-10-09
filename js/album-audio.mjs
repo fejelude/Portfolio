@@ -220,7 +220,16 @@ export class AlbumPlayer {
     try { played = this.audio.play(); } catch (error) { this.playRejected(error, token); return; }
     Promise.all([Promise.resolve(played), quiet]).then(async () => {
       if (token !== this.generation || this.disposed || !this.wantsPlaying) return;
-      if (this.audio.currentTime > position + 0.04) await this.seekQuietly(position, signal);
+      if (this.audio.currentTime > position + 0.04) {
+        await this.seekQuietly(position, signal);
+        if (token !== this.generation || this.disposed || !this.wantsPlaying) return;
+        if (this.mixer.context && this.mixer.context.state !== 'running') { this.interrupt(); return; }
+        // WebKit may pause a native element during this reset seek. The same
+        // element was already activated in the original tap; resume it after
+        // seek completion while its song gain is still closed. A browser
+        // rejection still leads to the explicit Tap to continue control.
+        this.armWatchdog(); await this.audio.play();
+      }
       if (token !== this.generation || this.disposed || !this.wantsPlaying) return;
       if (this.audio.paused) { this.interrupt(); return; }
       if (this.mixer.context && this.mixer.context.state !== 'running') { this.interrupt(); return; }
