@@ -18,7 +18,17 @@ permissions:
   contents: read
 jobs:
   album:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            browsers: chromium firefox
+            engines: chromium,firefox
+          - os: macos-15
+            browsers: webkit
+            engines: webkit
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -27,21 +37,25 @@ jobs:
           node-version: '24'
       - run: node --test tests/*.test.* api/sofra/*.test.js
       - run: npm install --no-save --package-lock=false playwright@1.56.1
-      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: npx playwright install --with-deps ${{ matrix.browsers }}
       - name: Start virtual audio output
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get install -y pulseaudio ffmpeg
           pulseaudio --start --exit-idle-time=-1
           pactl load-module module-null-sink sink_name=ci_audio
           pactl set-default-sink ci_audio
       - name: Verify media decoding
+        if: runner.os == 'Linux'
         run: |
           ffmpeg -nostdin -v error -xerror -i assets/album/background.mp3 -f null -
           ffmpeg -nostdin -v error -xerror -i assets/album/sample.mp3 -f null -
           ffmpeg -nostdin -v error -xerror -i assets/album/sample.m4a -f null -
       - run: node verification/album-smoke.cjs
+        env:
+          ALBUM_ENGINES: ${{ matrix.engines }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: sofhia-album-browser-checks
+          name: sofhia-album-browser-checks-${{ runner.os }}
           path: verification/album-results/

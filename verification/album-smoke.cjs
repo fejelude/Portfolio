@@ -10,10 +10,11 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve,ms));
 function observeNativeMixer() {
   const Native = window.AudioContext || window.webkitAudioContext;
   if (!Native) return;
-  window.__albumAudit = { gains: [], loops: [] };
+  window.__albumAudit = { gains: [], loops: [], analysers: [] };
   class ObservedContext extends Native {
     createGain() { const gain = super.createGain(); window.__albumAudit.gains.push(gain); return gain; }
     createBufferSource() { const source = super.createBufferSource(); window.__albumAudit.loops.push(source); return source; }
+    createAnalyser() { const analyser = super.createAnalyser(); window.__albumAudit.analysers.push(analyser); return analyser; }
   }
   window.AudioContext = ObservedContext;
 }
@@ -75,6 +76,11 @@ async function nativeControls(browser,name,url,mobile) {
   await playing(page);
   await page.waitForFunction(() => document.getElementById('song-audio').currentTime>.1);
   const gates = await page.evaluate(() => window.__albumAudit.gains.slice(0,2).map(g => g.gain.value));
+  if(gates[0]!==0||gates[1]!==1)console.log('Native gain diagnostics',await page.evaluate(()=>({
+    gains:window.__albumAudit.gains.map(g=>({value:g.gain.value,time:g.context.currentTime,state:g.context.state})),
+    signal:window.__albumAudit.analysers.map(a=>{const data=new Uint8Array(a.fftSize);a.getByteTimeDomainData(data);return Math.max(...data)-Math.min(...data);}),
+    songTime:document.getElementById('song-audio').currentTime,ready:document.getElementById('song-audio').readyState
+  })));
   assert.equal(gates[0],0); assert.equal(gates[1],1);
   assert.equal(await page.$eval('#next-audio',a=>a.paused),true);
   await page.click('#play-pause'); const paused = await page.$eval('#song-audio',a=>a.currentTime);
