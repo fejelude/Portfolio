@@ -105,6 +105,4 @@ phones and physical Safari/Edge checks remain distinct from engine emulation.
 
 The opening CD is the supplied birthday artwork, displayed unchanged with CSS
 rotation and circular framing. The template cover/thumbnail art is original
-pixel geometry. No reference image,
-brand, game asset, or third-party melody is included in the album artwork or
-sample song. The existing birthday fonts/renderers keep their existing licenses.
+pixel geometry, and the sample song is an original bell melody. The existing birthday fonts/renderers keep their existing licenses.
