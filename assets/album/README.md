@@ -39,7 +39,8 @@ disappears when no entry is a placeholder. Short-duration differences in MP3
 metadata reflect codec padding; the actual playback duration is used.
 
 Change `title`, `subtitle`, `artist`, `closingMessage`, `cover`, `mediaCover`, and
-`entryButtonText` in the same config. The birthday page imports that entry text.
+`entryButtonText` in the same config. `frontCover` sets the spinning CD image on
+the opening screen independently of track and lock-screen covers. The birthday page imports that entry text.
 `mediaCover` is a square PNG/JPEG/WebP for lock-screen artwork; SVG covers use
 the album’s PNG fallback. An individual track can also supply `mediaCover`.
 
@@ -102,6 +103,6 @@ See **`verification/album/TESTING.md`** for checks actually performed and explic
 limits. CI uploads native browser screenshots as an Actions artifact. Real
 phones and physical Safari/Edge checks remain distinct from engine emulation.
 
-All new cover/thumbnail art is original pixel geometry. No reference image,
-brand, game asset, or third-party melody is included in the album artwork or
-sample song. The existing birthday fonts/renderers keep their existing licenses.
+The opening CD is the supplied birthday artwork, displayed unchanged with CSS
+rotation and circular framing. The template cover/thumbnail art is original
+pixel geometry, and the sample song is an original bell melody. The existing birthday fonts/renderers keep their existing licenses.

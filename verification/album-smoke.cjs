@@ -61,6 +61,11 @@ async function nativeControls(browser,name,url,mobile) {
   await page.waitForFunction(() => !document.getElementById('open-album').disabled);
   assert.equal(await page.locator('#album-inside').isVisible(),false);
   assert.equal(await page.$eval('#song-audio',a => a.paused),true); await assertLayout(page);
+  await page.waitForFunction(() => { const image=document.getElementById('album-cover'); return image.complete && image.naturalWidth>0; });
+  assert.ok(await page.$eval('#album-cover',e=>e.currentSrc.endsWith('/sofhia-birthday-disc.jpg')));
+  const rotation=await page.$eval('#album-cover',e=>getComputedStyle(e).transform);
+  await page.waitForTimeout(150);
+  assert.notEqual(await page.$eval('#album-cover',e=>getComputedStyle(e).transform),rotation,'the welcome CD spins before opening');
   await page.screenshot({ path: path.join(out,`${name}-${mobile?'mobile':'desktop'}-cover.png`), fullPage: true });
   await activate('#open-album'); await page.locator('#album-inside').waitFor({state:'visible'});
   assert.equal(await page.locator('.album__track-button').count(),18);
@@ -135,7 +140,7 @@ async function variants(browser,name,url){
   for(const count of [0,1,25]){
     const context=await browser.newContext({viewport:{width:320,height:568},reducedMotion:'reduce'}),page=await context.newPage();
     await page.route('**/js/album-config.mjs',r=>r.fulfill({contentType:'text/javascript',body:config+`\nALBUM.tracks=Array.from({length:${count}},(_,i)=>({...ALBUM.tracks[0],id:'variant-'+i,title:'Placeholder '+(i+1),audio:i%3===2?'':ALBUM.tracks[0].audio}));`}));
-    await page.goto(url+'/sofhias-songs-67');await page.click('#open-album');await page.locator('#album-inside').waitFor({state:'visible'});
+    await page.goto(url+'/sofhias-songs-67');assert.equal(await page.$eval('#album-cover',e=>getComputedStyle(e).animationName),'none');await page.click('#open-album');await page.locator('#album-inside').waitFor({state:'visible'});
     assert.equal(await page.locator('.album__track').count(),count);await assertLayout(page);
     if(count===25)assert.equal(await page.locator('.album__track-button:disabled').count(),8);
     await page.screenshot({path:path.join(out,`${name}-${count}-tracks.png`),fullPage:true});await context.close();

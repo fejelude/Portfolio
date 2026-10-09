@@ -8,6 +8,7 @@ export const ALBUM = {
   entryButtonText: '🎵 I made you an album — tap to open',
   birthdayPath: '/sofhia-franchesca-16',
   cover: '/assets/album/cover.svg',
+  frontCover: '/assets/album/sofhia-birthday-disc.jpg',
   mediaCover: '/assets/album/cover.png',
   backgroundMusic: '/assets/album/background.mp3',
   backgroundVolume: 0.4,
