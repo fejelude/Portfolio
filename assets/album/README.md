@@ -45,7 +45,11 @@ metadata reflect codec padding; the actual playback duration is used.
 
 Change `title`, `subtitle`, `artist`, `closingMessage`, `cover`, `mediaCover`, and
 `entryButtonText` in the same config. `frontCover` sets the spinning CD image on
-the opening screen independently of track and lock-screen covers. The birthday page imports that entry text.
+the opening screen independently of track and lock-screen covers. `idleCover`
+sets the photo in the player before a song is selected. The photo is circularly
+framed in CSS without altering the upload; selecting a track replaces it with
+that track’s cover (or the album cover when none is supplied). Pausing keeps the
+selected song’s cover. The birthday page imports that entry text.
 `mediaCover` is a square PNG/JPEG/WebP for lock-screen artwork; SVG covers use
 the album’s PNG fallback. An individual track can also supply `mediaCover`.
 

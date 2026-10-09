@@ -22,6 +22,7 @@ export const ALBUM = {
   birthdayPath: '/sofhia-franchesca-16',
   cover: '/assets/album/cover.svg',
   frontCover: '/assets/album/sofhia-birthday-disc.jpg',
+  idleCover: '/assets/album/feje-birthday-photo.jpg',
   mediaCover: '/assets/album/cover.png',
   backgroundMusic: '/assets/album/background.mp3',
   backgroundVolume: 0.4,

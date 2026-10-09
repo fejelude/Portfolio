@@ -24,7 +24,7 @@ $('album-note-copy').replaceChildren(...ALBUM.note.map(text => {
   const paragraph = document.createElement('p'); paragraph.textContent = text; return paragraph;
 }));
 $('album-cover').src = ALBUM.frontCover || ALBUM.cover;
-$('player-cover').src = ALBUM.cover;
+$('player-cover').src = ALBUM.idleCover || ALBUM.cover;
 $('closing-message').textContent = ALBUM.closingMessage;
 $('closing-message').closest('.album__closing').hidden = !ALBUM.closingMessage;
 $('birthday-back').href = ALBUM.birthdayPath;
@@ -93,6 +93,7 @@ function render(p) {
   const key = `${p.current?.id}|${p.failed.size}|${[...p.metadata.values()].join()}`;
   if (key !== activeView) { activeView = key; refreshRows(p); }
   const track = p.current;
+  $('player-record').classList.toggle('is-waiting', !track);
   if (track && track.id !== currentView) {
     currentView = track.id;
     $('player-title').textContent = track.title;
