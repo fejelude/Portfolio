@@ -30,15 +30,26 @@
 
 ## Native browser checks on GitHub Actions
 
-The initial CI run found a continuously moving button that prevented automation
-from acquiring a stable click target. The pulse now animates opacity, keeping the
-tap target stationary. The next run passed complete native audio and layout
-checks on Chromium desktop, Android Chrome (Pixel 5 emulation), and Firefox
-desktop. Birthday garden CI also passed its full existing three-engine checks,
+The complete album matrix passed on commit
+`fd39b443532e4824b82d777bfccb8b7cfcd1952f` in
+[Sofhia album CI run 7](https://github.com/fejelude/Portfolio/actions/runs/37918183005).
+Both jobs also passed the full 76-test repository suite.
+
+| Runner | Native browser / viewport | Result |
+| --- | --- | --- |
+| Linux | Chromium 141 desktop and Pixel 5 touch emulation | Passed |
+| Linux | Firefox 142 desktop and narrow configuration variants | Passed |
+| macOS 15 | WebKit 26 desktop and iPhone 13 touch emulation | Passed |
+
+These are real browser media decoders and Web Audio graphs, with genuine mobile
+taps. They are not physical-device observations. WebKit audio is verified on
+macOS; earlier Linux WebKit attempts failed the gain assertion and are not
+counted as passed audio checks. Browser verification found and resolved a moving
+tap target, WebKit buffering-status recovery, and native ended/seek races when
+restarting or switching tracks.
+
+Birthday garden CI independently passed its existing three-engine checks,
 including the native minute-long timeline, Replay, and mobile/landscape bounds.
-WebKit and the final album matrix are being verified on the PR; inspect the
-latest Actions result for the current commit. Physical-device claims are not
-implied by these engine/emulation results.
 
 `verification/album-smoke.cjs` uses native media and Web Audio in Chromium,
 Firefox, and WebKit, with desktop/mobile viewports. It covers cover-to-album,
@@ -49,10 +60,12 @@ locked/missing files, delayed downloads, and return to the birthday page.
 `Sofhia album CI` runs this script and saves screenshots. The existing birthday
 workflow independently runs its complete timeline/Replay/layout checks.
 
+Chromium desktop/mobile/320px and final WebKit iPhone/320px screenshots were
+visually reviewed; controls, titles, notes, the full 18-song list and footer fit.
 Local browser installation failed because the network returned a non-archive
-response for the official Playwright download. The separate cloud preview could
-not connect to the local server. Do not count these attempts as passed browser
-tests or visual layout verification. Check the PR’s Actions results before merge.
+response for the official Playwright download; the separate cloud preview could
+not connect to the local server. Browser execution used GitHub Actions instead.
+Those unsuccessful local attempts are not counted as passed checks.
 
 ## Still requires a real device / production check
 

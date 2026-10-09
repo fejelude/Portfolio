@@ -89,9 +89,12 @@ Browser automation uses the existing repo’s Playwright convention:
 
 ```sh
 npm install --no-save --package-lock=false playwright@1.56.1
-npx playwright install --with-deps chromium firefox webkit
-node verification/album-smoke.cjs
-node verification/birthday-smoke.cjs
+# Linux: native Chromium and Firefox
+npx playwright install --with-deps chromium firefox
+ALBUM_ENGINES=chromium,firefox node verification/album-smoke.cjs
+# macOS: native WebKit desktop and iPhone touch emulation
+npx playwright install webkit
+ALBUM_ENGINES=webkit node verification/album-smoke.cjs
 ```
 
 See **`verification/album/TESTING.md`** for checks actually performed and explicit
