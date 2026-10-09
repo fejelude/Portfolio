@@ -13,6 +13,7 @@ function observeNativeMixer() {
   window.__albumAudit = { gains: [], loops: [], analysers: [], events: [] };
   addEventListener('DOMContentLoaded',()=>{
     const audio=document.getElementById('song-audio');
+    if(!audio)return;
     for(const type of ['play','playing','pause','ended','seeking','seeked','waiting','error'])audio.addEventListener(type,()=>{
       window.__albumAudit.events.push({type,time:audio.currentTime,paused:audio.paused,ready:audio.readyState,title:document.getElementById('player-title').textContent});
       if(window.__albumAudit.events.length>40)window.__albumAudit.events.shift();
