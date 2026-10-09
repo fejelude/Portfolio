@@ -2,6 +2,22 @@
   "cleanUrls": true,
   "headers": [
     {
+      "source": "/sofhias-songs-67",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/sofhias-songs-67.html",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/assets/album/:file.mp3",
+      "headers": [{ "key": "Content-Type", "value": "audio/mpeg" }, { "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/assets/album/:file.m4a",
+      "headers": [{ "key": "Content-Type", "value": "audio/mp4" }, { "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
       "source": "/sofhia-franchesca-16",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
