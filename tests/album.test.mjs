@@ -53,13 +53,31 @@ test('unknown duration never renders NaN; times are stable on long songs', () =>
   assert.equal(timeLabel(undefined),'—:—'); assert.equal(timeLabel(NaN),'—:—');
   assert.equal(timeLabel(Infinity),'—:—'); assert.equal(timeLabel(8.04),'0:08'); assert.equal(timeLabel(3725),'62:05');
 });
-test('all 18 samples are explicit placeholders with existing audio, fallback and original covers', () => {
-  assert.equal(ALBUM.tracks.length,18); assert.equal(new Set(ALBUM.tracks.map(t => t.id)).size,18);
-  for (const t of ALBUM.tracks) {
-    assert.equal(t.placeholder,true); assert.match(t.title,/Song \d{2}/);
-    for (const p of [t.audio,t.fallbackAudio,t.cover]) assert.ok(existsSync(new URL(`..${p}`, import.meta.url)),p);
+test('Song 01 uses the supplied full-length MP4 and cover; the other 17 stay as samples', () => {
+  assert.equal(ALBUM.title, 'Fejes World');
+  assert.equal(ALBUM.tracks.length, 18);
+  assert.equal(new Set(ALBUM.tracks.map(t => t.id)).size, 18);
+  const [first, ...samples] = ALBUM.tracks;
+  assert.equal(first.id, 'song-01');
+  assert.equal(first.title, 'Song 01');
+  assert.equal(first.placeholder, false);
+  assert.equal(first.audio, '/assets/album/song-01.mp4');
+  assert.equal(first.cover, '/assets/album/song-01-cover.jpg');
+  assert.equal(first.mediaCover, first.cover);
+  assert.ok(first.duration > 175 && first.duration < 176);
+  for (const path of [first.audio, first.cover]) {
+    assert.ok(existsSync(new URL(`..${path}`, import.meta.url)), path);
   }
-  for (const p of [ALBUM.backgroundMusic,ALBUM.cover,ALBUM.mediaCover,ALBUM.unlockAudio]) assert.ok(existsSync(new URL(`..${p}`,import.meta.url)));
+  for (const track of samples) {
+    assert.equal(track.placeholder, true);
+    assert.match(track.title, /Song \d{2}/);
+    for (const path of [track.audio, track.fallbackAudio, track.cover]) {
+      assert.ok(existsSync(new URL(`..${path}`, import.meta.url)), path);
+    }
+  }
+  for (const path of [ALBUM.backgroundMusic, ALBUM.cover, ALBUM.mediaCover, ALBUM.unlockAudio]) {
+    assert.ok(existsSync(new URL(`..${path}`, import.meta.url)), path);
+  }
 });
 test('only the birthday page links to the album, and both clean/raw routes are noindex', () => {
   for (const name of ['index.html','Gallery.html','Sofra.html','SofraPanel.html','404.html']) {
