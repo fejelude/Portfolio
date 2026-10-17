@@ -1,7 +1,7 @@
 // Everything you give Sofhia lives here. Keep IDs unique and stable; order is
 // exactly the order below. Set audio: '' for an unfinished / locked song.
 export const ALBUM = {
-  title: "Sofhia's Songs",
+  title: 'Fejes World',
   subtitle: 'made you something hehe',
   openingHeading: 'HAPPY 16TH, SOFIII ♡',
   openingHint: 'go onnn, open it HAHAHA ♡',
@@ -37,7 +37,7 @@ export const ALBUM = {
   // Do not replace this with a real song: priming is inaudible.
   unlockAudio: '/assets/album/sample.mp3',
   tracks: [
-    { id: 'song-01', title: 'Song 01', audio: '/assets/album/sample.mp3', fallbackAudio: '/assets/album/sample.m4a', cover: '/assets/album/heart.svg', duration: 8, placeholder: true, note: '♡' },
+    { id: 'song-01', title: 'Song 01', audio: '/assets/album/song-01.mp4', cover: '/assets/album/song-01-cover.jpg', mediaCover: '/assets/album/song-01-cover.jpg', duration: 175.45, placeholder: false, note: '♡' },
     { id: 'song-02', title: 'Song 02', audio: '/assets/album/sample.mp3', fallbackAudio: '/assets/album/sample.m4a', cover: '/assets/album/star.svg', duration: 8, placeholder: true },
     { id: 'song-03', title: 'Song 03', audio: '/assets/album/sample.mp3', fallbackAudio: '/assets/album/sample.m4a', cover: '/assets/album/blossom.svg', placeholder: true },
     { id: 'song-04', title: 'Song 04', audio: '/assets/album/sample.mp3', fallbackAudio: '/assets/album/sample.m4a', cover: '/assets/album/star.svg', duration: 8, placeholder: true },
