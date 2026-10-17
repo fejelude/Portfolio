@@ -15,7 +15,8 @@ let activeView = '', currentView = '', scrubbing = false, previousFocus = null;
 // Recipient content is text, never interpolated HTML. Changing just the config
 // updates both screens, the footer, birthday entry copy, and Media Session.
 document.title = `${ALBUM.title} 💿`;
-for (const id of ['cover-title', 'inside-title']) $(id).textContent = ALBUM.title;
+$('cover-title').textContent = ALBUM.title;
+$('inside-title').textContent = ALBUM.insideTitle || ALBUM.title;
 $('cover-subtitle').textContent = ALBUM.subtitle;
 $('opening-heading').textContent = ALBUM.openingHeading;
 $('album-signature').textContent = ALBUM.signature;
@@ -60,7 +61,7 @@ function noteFor(track, origin) {
 }
 
 for (const [index, track] of ALBUM.tracks.entries()) {
-  const row = document.createElement('li'); row.className = 'album__track'; row.dataset.trackId = track.id; row.style.setProperty('--i', index);
+  const row = document.createElement('li'); row.className = 'album__track'; row.dataset.trackId = track.id; row.classList.toggle('has-square-cover', track.coverShape === 'square'); row.style.setProperty('--i', index);
   const button = document.createElement('button'); button.type = 'button'; button.className = 'album__track-button';
   const number = document.createElement('span'); number.className = 'album__track-number'; number.textContent = String(index + 1).padStart(2, '0');
   const art = document.createElement('span'); art.className = 'album__track-art'; art.setAttribute('aria-hidden', 'true');
@@ -97,6 +98,7 @@ function render(p) {
   if (key !== activeView) { activeView = key; refreshRows(p); }
   const track = p.current;
   $('player-record').classList.toggle('is-waiting', !track);
+  $('player-record').classList.toggle('is-square', track?.coverShape === 'square');
   if (track && track.id !== currentView) {
     currentView = track.id;
     $('player-title').textContent = track.title;

@@ -4,7 +4,7 @@ const {createServer}=require('node:http');
 const {readFile}=require('node:fs/promises');
 const path=require('node:path');
 const root=path.resolve(__dirname,'..');
-const mime={'.html':'text/html; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.webp':'image/webp','.png':'image/png','.mp3':'audio/mpeg','.m4a':'audio/mp4','.woff2':'font/woff2','.svg':'image/svg+xml','.json':'application/json'};
+const mime={'.html':'text/html; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.webp':'image/webp','.png':'image/png','.mp3':'audio/mpeg','.m4a':'audio/mp4','.mp4':'audio/mp4','.jpg':'image/jpeg','.jpeg':'image/jpeg','.woff2':'font/woff2','.svg':'image/svg+xml','.json':'application/json'};
 async function startServer(port=0){
  const server=createServer(async(req,res)=>{
   try{

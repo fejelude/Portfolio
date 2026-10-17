@@ -14,6 +14,10 @@
       "headers": [{ "key": "Content-Type", "value": "audio/mpeg" }, { "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     },
     {
+      "source": "/assets/album/:file.mp4",
+      "headers": [{ "key": "Content-Type", "value": "audio/mp4" }, { "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
       "source": "/assets/album/:file.m4a",
       "headers": [{ "key": "Content-Type", "value": "audio/mp4" }, { "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     },
