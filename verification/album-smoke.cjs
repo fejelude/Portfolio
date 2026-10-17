@@ -187,11 +187,18 @@ async function variants(browser,name,url){
   await slowPage.goto(url+'/sofhias-songs-67');await slowPage.click('#open-album');await slowPage.locator('#album-inside').waitFor({state:'visible'});
   await slowPage.click('[data-track-id="song-01"] .album__track-button');await slowPage.waitForFunction(()=>document.body.classList.contains('is-playing'),{},{timeout:15000});await slow.close();
   const aacContext=await browser.newContext({viewport:{width:390,height:844}}),aacPage=await aacContext.newPage();
+  await aacPage.addInitScript(observeNativeMixer);
   await aacPage.route('**/assets/album/song-01.mp3',route=>route.abort());
   await aacPage.goto(url+'/sofhias-songs-67');await aacPage.click('#open-album');await aacPage.locator('#album-inside').waitFor({state:'visible'});
   await aacPage.click('[data-track-id="song-01"] .album__track-button');await playing(aacPage);
-  assert.ok(await aacPage.$eval('#song-audio',a=>a.currentSrc.endsWith('/song-01.mp4')&&a.duration>175));
-  await aacPage.$eval('#song-audio',a=>{a.currentTime=90});await aacPage.waitForFunction(()=>document.getElementById('song-audio').currentTime>90.1);
+  const fallback=await aacPage.$eval('#song-audio',a=>({src:a.currentSrc,duration:a.duration,aac:a.canPlayType('audio/mp4'),codec:a.canPlayType('audio/mp4; codecs="mp4a.40.2"'),title:document.getElementById('player-title').textContent,error:a.error?.code}));
+  console.log(name+': forced MP3 failure recovery '+JSON.stringify(fallback));
+  if(fallback.aac){
+    assert.ok(fallback.src.endsWith('/song-01.mp4')&&fallback.duration>175);
+    await aacPage.$eval('#song-audio',a=>{a.currentTime=90});await aacPage.waitForFunction(()=>document.getElementById('song-audio').currentTime>90.1);
+  }else{
+    assert.equal(fallback.title,'Song 02','a browser without AAC skips the failed track gracefully');
+  }
   await aacContext.close();
   for(const [file,mime] of [['song-01.mp3','audio/mpeg'],['song-01.mp4','audio/mp4']]){
     const response=await fetch(url+'/assets/album/'+file,{headers:{Range:'bytes=0-255'}});assert.equal(response.status,206);assert.equal(response.headers.get('content-type'),mime);assert.equal((await response.arrayBuffer()).byteLength,256);
