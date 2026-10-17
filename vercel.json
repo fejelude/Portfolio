@@ -18,6 +18,10 @@
       "headers": [{ "key": "Content-Type", "value": "audio/mp4" }, { "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     },
     {
+      "source": "/assets/album/:file.mp4",
+      "headers": [{ "key": "Content-Type", "value": "audio/mp4" }, { "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
       "source": "/sofhia-franchesca-16",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
