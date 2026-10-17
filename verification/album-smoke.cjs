@@ -144,7 +144,28 @@ async function nativeControls(browser,name,url,mobile) {
   await activate('[data-track-id="song-03"] .album__track-button');
   await activate('[data-track-id="song-02"] .album__track-button');
   await playing(page);
-  assert.equal(await page.locator('#player-title').textContent(),'Song 02');
+  assert.equal(await page.locator('#player-title').textContent(),'Made in Camella');
+  assert.ok(await page.$eval('#song-audio',a=>a.currentSrc.endsWith('/song-02.mp3')&&a.duration>40.6&&a.duration<40.8));
+  await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>.1);
+  assert.equal(await page.$eval('#player-cover',e=>new URL(e.src).pathname),ALBUM.tracks[1].cover);
+  await page.waitForFunction(()=>{const i=document.getElementById('player-cover');return i.complete&&i.naturalWidth>0;});
+  const artwork=await page.$eval('#player-cover',e=>{const r=e.getBoundingClientRect();return {width:r.width,height:r.height,fit:getComputedStyle(e).objectFit};});
+  assert.equal(artwork.width,artwork.height);assert.equal(artwork.fit,'contain');
+  assert.equal(await page.$eval('#next-audio',a=>a.paused),true);
+  await activate('#play-pause');const songTwoPaused=await page.$eval('#song-audio',a=>a.currentTime);
+  await sleep(250);assert.equal(await page.$eval('#song-audio',a=>a.currentTime),songTwoPaused);
+  await activate('#player-note');assert.equal(await page.locator('#note-copy').textContent(),ALBUM.tracks[1].note);
+  assert.equal(await page.$eval('#note-copy',e=>getComputedStyle(e).whiteSpace),'pre-wrap');await assertLayout(page);await activate('#note-ok');
+  await activate('#play-pause');await playing(page);
+  await page.locator('#song-seek').evaluate(e=>{e.value='20';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
+  await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>20.1);
+  assert.equal(await page.locator('#duration').textContent(),'0:40');
+  await page.locator('#now-playing').scrollIntoViewIfNeeded();
+  await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-song-two.png`)});
+  await activate('[data-track-id="song-01"] .album__track-button');await playing(page);
+  assert.equal(await page.$eval('#player-cover',e=>new URL(e.src).pathname),ALBUM.tracks[0].cover);
+  await activate('[data-track-id="song-02"] .album__track-button');await playing(page);
+
   await page.evaluate(()=>document.getElementById('song-audio').pause());
   await page.locator('#tap-continue').waitFor({state:'visible'}); await activate('#tap-continue');
   await playing(page);
@@ -182,7 +203,7 @@ async function variants(browser,name,url){
   // Force only track 1 to be missing, with no fallback. Track 2 remains native.
   await page.route('**/js/album-config.mjs',r=>r.fulfill({contentType:'text/javascript',body:config+"\nALBUM.tracks[0].audio='/assets/album/missing.mp3';ALBUM.tracks[0].fallbackAudio='';"}));
   await page.goto(url+'/sofhias-songs-67');await page.click('#open-album');await page.locator('#album-inside').waitFor({state:'visible'});
-  await page.click('[data-track-id="song-01"] .album__track-button');await page.waitForFunction(()=>document.getElementById('player-title').textContent==='Song 02');
+  await page.click('[data-track-id="song-01"] .album__track-button');await page.waitForFunction(()=>document.getElementById('player-title').textContent==='Made in Camella');
   assert.equal(await page.locator('[data-track-id="song-01"] .album__track-button').isEnabled(),false);assert.deepEqual(errors,[]);await context.close();
   // Delayed native track download exercises loading and recovery.
   const slow=await browser.newContext({viewport:{width:390,height:844}}),slowPage=await slow.newPage();
@@ -202,10 +223,10 @@ async function variants(browser,name,url){
     await aacPage.locator('#song-seek').evaluate(e=>{e.value='90';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
     await playing(aacPage);await aacPage.waitForFunction(()=>document.getElementById('song-audio').currentTime>90.1);
   }else{
-    assert.equal(fallback.title,'Song 02','a browser without AAC skips the failed track gracefully');
+    assert.equal(fallback.title,'Made in Camella','a browser without AAC skips the failed track gracefully');
   }
   await aacContext.close();
-  for(const [file,mime] of [['song-01.mp3','audio/mpeg'],['song-01.mp4','audio/mp4']]){
+  for(const [file,mime] of [['song-01.mp3','audio/mpeg'],['song-01.mp4','audio/mp4'],['song-02.mp3','audio/mpeg'],['song-02.m4a','audio/mp4']]){
     const response=await fetch(url+'/assets/album/'+file,{headers:{Range:'bytes=0-255'}});assert.equal(response.status,206);assert.equal(response.headers.get('content-type'),mime);assert.equal((await response.arrayBuffer()).byteLength,256);
   }
   console.log(name+': reduced-motion 0/1/25 tracks, locked/missing track, slow response passed');
