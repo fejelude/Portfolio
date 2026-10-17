@@ -7,6 +7,19 @@ Replay handler, homepage, or nav code changed. A smaller “my little album 💿
 link also appears below Replay after the existing finale settles. Both birthday
 links use `albumPath` in the config.
 
+## Song 01
+
+Song 01 now uses the supplied video's full 175.45-second audio: MP3 for normal
+playback and audio-only MP4/AAC as fallback. Both exports use standard 192kbps stereo encoding for browser compatibility,
+with no video, added fade, trim, or loudness normalization.
+Its supplied 3464×3464 JPEG is unchanged. `coverShape: 'square'` displays the whole
+cover in the track row and selected player, with no circular crop or center hole.
+The waiting photo and other tracks retain their existing record appearance.
+The title stays “Song 01” until its song name is supplied.
+
+`insideTitle` changes only the heading above the letter to “Fejes World”; the
+opening screen title remains “Sofhia's Songs”. The other 17 audio files are unchanged.
+
 ## Edit the album
 
 All content is in **`js/album-config.mjs`**.
@@ -39,7 +52,7 @@ Omit `note` and `lyrics` to remove the heart and dialog. Both may be present;
 newlines are preserved. For unfinished songs set `audio: ''`: they display
 “Coming soon 🔒” and are skipped, including in shuffle and repeat.
 
-The 18 supplied placeholders play the same original **8-second bell sample**,
+The 17 remaining numbered template tracks play the same original **8-second bell sample**,
 with MP3 and AAC copies, so every control is testable. They are not the final
 songs. Set `placeholder: false` when replacing each sample. The technical flag is retained in the data; the interface displays neutral
 numbered song names and durations, without sample labels. Short-duration differences in MP3

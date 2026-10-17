@@ -129,3 +129,10 @@
 @media(max-width:350px){.album__inside{padding-inline:12px}.album__chrome .birthday__window-label{font-size:.72rem}.album__track-button{gap:8px;padding-inline:9px}.album__track-title{font-size:.98rem}.album__player{padding-inline:12px}.album__player-chrome{margin-inline:-12px}.album__transport{margin-inline:-5px}.album__edition{font-size:.7rem}.album__sleeve{width:65vw}}
 @media(prefers-reduced-motion:reduce){.album *{animation:none!important;transition:none!important}.album__record-glow{will-change:auto}}
 .album.is-hidden .album__record,.album.is-hidden .album__equalizer i{animation-play-state:paused}
+
+/* Square song artwork stays complete; the waiting photo and other records keep their shape. */
+.album__record.is-square{border-radius:0;animation:none;image-rendering:auto}
+.album__record.is-square img{object-fit:contain}
+.album__record.is-square i{display:none}
+.album__track.has-square-cover .album__track-art{border-radius:0;animation:none;overflow:hidden}
+.album__track.has-square-cover .album__track-art img{object-fit:contain;image-rendering:auto}

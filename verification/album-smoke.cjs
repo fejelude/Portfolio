@@ -86,6 +86,7 @@ async function nativeControls(browser,name,url,mobile) {
   assert.ok(await page.evaluate(()=>document.querySelector('.album__letter').getBoundingClientRect().bottom<=document.getElementById('now-playing').getBoundingClientRect().top));
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-letter.png`),fullPage:true});
   assert.equal(await page.locator('.album__track-button').count(),18);
+  assert.equal(await page.locator('[data-track-id="song-01"] .album__track-meta').textContent(),'2:55');
   await page.locator('#now-playing').scrollIntoViewIfNeeded();
   await page.waitForFunction(()=>{const i=document.getElementById('player-cover');return i.complete&&i.naturalWidth>0;});
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-waiting-photo.png`)});
@@ -108,9 +109,16 @@ async function nativeControls(browser,name,url,mobile) {
   await activate('[data-track-id="song-01"] .album__track-button');
   await page.waitForFunction(()=>!document.getElementById('player-record').classList.contains('is-waiting'));
   assert.equal(await page.$eval('#player-cover',e=>new URL(e.src).pathname),ALBUM.tracks[0].cover);
-  assert.notEqual(await page.$eval('#player-record i',e=>getComputedStyle(e).display),'none');
+  assert.equal(await page.$eval('#player-record i',e=>getComputedStyle(e).display),'none');
+  assert.equal(await page.$eval('#player-record',e=>getComputedStyle(e).borderRadius),'0px');
+  assert.equal(await page.$eval('#player-cover',e=>getComputedStyle(e).objectFit),'contain');
   await playing(page);
   await page.waitForFunction(() => document.getElementById('song-audio').currentTime>.1);
+  assert.ok(await page.$eval('#song-audio',a=>a.duration>175&&a.duration<176));
+  assert.equal(await page.locator('#inside-title').textContent(),'Fejes World');
+  await page.waitForFunction(()=>{const i=document.getElementById('player-cover');return i.complete&&i.naturalWidth>0;});
+  await page.locator('#now-playing').scrollIntoViewIfNeeded();
+  await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-song-one.png`)});
   const gates = await page.evaluate(() => window.__albumAudit.gains.slice(0,2).map(g => g.gain.value));
   if(gates[0]!==0||gates[1]!==1)console.log('Native gain diagnostics',await page.evaluate(()=>({
     gains:window.__albumAudit.gains.map(g=>({value:g.gain.value,time:g.context.currentTime,state:g.context.state})),
@@ -176,9 +184,28 @@ async function variants(browser,name,url){
   assert.equal(await page.locator('[data-track-id="song-01"] .album__track-button').isEnabled(),false);assert.deepEqual(errors,[]);await context.close();
   // Delayed native track download exercises loading and recovery.
   const slow=await browser.newContext({viewport:{width:390,height:844}}),slowPage=await slow.newPage();
-  await slowPage.route('**/assets/album/sample.mp3',async route=>{await sleep(1500);await route.continue();});
+  await slowPage.route('**/assets/album/song-01.mp3',async route=>{await sleep(1500);await route.continue();});
   await slowPage.goto(url+'/sofhias-songs-67');await slowPage.click('#open-album');await slowPage.locator('#album-inside').waitFor({state:'visible'});
   await slowPage.click('[data-track-id="song-01"] .album__track-button');await slowPage.waitForFunction(()=>document.body.classList.contains('is-playing'),{},{timeout:15000});await slow.close();
+  const aacContext=await browser.newContext({viewport:{width:390,height:844}}),aacPage=await aacContext.newPage();
+  await aacPage.addInitScript(observeNativeMixer);
+  await aacPage.route('**/assets/album/song-01.mp3',route=>route.abort());
+  await aacPage.goto(url+'/sofhias-songs-67');await aacPage.click('#open-album');await aacPage.locator('#album-inside').waitFor({state:'visible'});
+  await aacPage.click('[data-track-id="song-01"] .album__track-button');await playing(aacPage);
+  const fallback=await aacPage.$eval('#song-audio',a=>({src:a.currentSrc,duration:a.duration,aac:a.canPlayType('audio/mp4'),codec:a.canPlayType('audio/mp4; codecs="mp4a.40.2"'),title:document.getElementById('player-title').textContent,error:a.error?.code}));
+  console.log(name+': forced MP3 failure recovery '+JSON.stringify(fallback));
+  if(fallback.codec){
+    assert.ok(fallback.src.endsWith('/song-01.mp4')&&fallback.duration>175);
+    await aacPage.waitForFunction(()=>document.getElementById('song-audio').currentTime>.1);
+    await aacPage.locator('#song-seek').evaluate(e=>{e.value='90';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
+    await playing(aacPage);await aacPage.waitForFunction(()=>document.getElementById('song-audio').currentTime>90.1);
+  }else{
+    assert.equal(fallback.title,'Song 02','a browser without AAC skips the failed track gracefully');
+  }
+  await aacContext.close();
+  for(const [file,mime] of [['song-01.mp3','audio/mpeg'],['song-01.mp4','audio/mp4']]){
+    const response=await fetch(url+'/assets/album/'+file,{headers:{Range:'bytes=0-255'}});assert.equal(response.status,206);assert.equal(response.headers.get('content-type'),mime);assert.equal((await response.arrayBuffer()).byteLength,256);
+  }
   console.log(name+': reduced-motion 0/1/25 tracks, locked/missing track, slow response passed');
 }
 (async()=>{

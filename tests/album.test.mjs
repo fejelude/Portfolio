@@ -53,12 +53,16 @@ test('unknown duration never renders NaN; times are stable on long songs', () =>
   assert.equal(timeLabel(undefined),'—:—'); assert.equal(timeLabel(NaN),'—:—');
   assert.equal(timeLabel(Infinity),'—:—'); assert.equal(timeLabel(8.04),'0:08'); assert.equal(timeLabel(3725),'62:05');
 });
-test('all 18 samples are explicit placeholders with existing audio, fallback and original covers', () => {
+test('song one is connected and all 18 tracks have existing audio and covers', () => {
   assert.equal(ALBUM.tracks.length,18); assert.equal(new Set(ALBUM.tracks.map(t => t.id)).size,18);
   for (const t of ALBUM.tracks) {
-    assert.equal(t.placeholder,true); assert.match(t.title,/Song \d{2}/);
+    assert.match(t.title,/Song \d{2}/);
     for (const p of [t.audio,t.fallbackAudio,t.cover]) assert.ok(existsSync(new URL(`..${p}`, import.meta.url)),p);
   }
+  assert.equal(ALBUM.tracks[0].placeholder,false);
+  assert.equal(ALBUM.tracks[0].coverShape,'square');
+  assert.ok(ALBUM.tracks[0].duration>175&&ALBUM.tracks[0].duration<176);
+  assert.ok(ALBUM.tracks.slice(1).every(t=>t.placeholder));
   for (const p of [ALBUM.backgroundMusic,ALBUM.cover,ALBUM.mediaCover,ALBUM.unlockAudio]) assert.ok(existsSync(new URL(`..${p}`,import.meta.url)));
 });
 test('only the birthday page links to the album, and both clean/raw routes are noindex', () => {
