@@ -115,7 +115,9 @@ async function nativeControls(browser,name,url,mobile) {
   await playing(page);
   await page.waitForFunction(() => document.getElementById('song-audio').currentTime>.1);
   assert.ok(await page.$eval('#song-audio',a=>a.duration>175&&a.duration<176));
-  assert.equal(await page.locator('#inside-title').textContent(),'Fejes World');
+  assert.equal(await page.locator('#cover-title').textContent(),ALBUM.title);
+  assert.equal(await page.locator('#inside-title').textContent(),ALBUM.insideTitle);
+  assert.equal(await page.locator('#player-note').textContent(),'fun fact ->');
   await page.waitForFunction(()=>{const i=document.getElementById('player-cover');return i.complete&&i.naturalWidth>0;});
   await page.locator('#now-playing').scrollIntoViewIfNeeded();
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-song-one.png`)});
