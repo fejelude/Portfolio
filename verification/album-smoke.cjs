@@ -86,6 +86,7 @@ async function nativeControls(browser,name,url,mobile) {
   assert.ok(await page.evaluate(()=>document.querySelector('.album__letter').getBoundingClientRect().bottom<=document.getElementById('now-playing').getBoundingClientRect().top));
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-letter.png`),fullPage:true});
   assert.equal(await page.locator('.album__track-button').count(),18);
+  assert.equal(await page.locator('[data-track-id="song-01"] .album__track-meta').textContent(),'2:55');
   await page.locator('#now-playing').scrollIntoViewIfNeeded();
   await page.waitForFunction(()=>{const i=document.getElementById('player-cover');return i.complete&&i.naturalWidth>0;});
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-waiting-photo.png`)});
@@ -193,7 +194,7 @@ async function variants(browser,name,url){
   await aacPage.click('[data-track-id="song-01"] .album__track-button');await playing(aacPage);
   const fallback=await aacPage.$eval('#song-audio',a=>({src:a.currentSrc,duration:a.duration,aac:a.canPlayType('audio/mp4'),codec:a.canPlayType('audio/mp4; codecs="mp4a.40.2"'),title:document.getElementById('player-title').textContent,error:a.error?.code}));
   console.log(name+': forced MP3 failure recovery '+JSON.stringify(fallback));
-  if(fallback.aac){
+  if(fallback.codec){
     assert.ok(fallback.src.endsWith('/song-01.mp4')&&fallback.duration>175);
     await aacPage.$eval('#song-audio',a=>{a.currentTime=90});await aacPage.waitForFunction(()=>document.getElementById('song-audio').currentTime>90.1);
   }else{
