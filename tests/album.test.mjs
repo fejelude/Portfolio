@@ -70,7 +70,7 @@ test('Song 01 uses the supplied full-length MP4 and cover; the other 17 stay as 
   }
   for (const track of samples) {
     assert.equal(track.placeholder, true);
-    assert.match(track.title, /Song \\d{2}/);
+    assert.match(track.title, /Song \d{2}/);
     for (const path of [track.audio, track.fallbackAudio, track.cover]) {
       assert.ok(existsSync(new URL(`..${path}`, import.meta.url)), path);
     }
