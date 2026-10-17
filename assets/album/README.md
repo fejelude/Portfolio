@@ -1,4 +1,4 @@
-# Sofhia’s Songs
+# Fejes World
 
 The album is a buildless page at `/sofhias-songs-67` on the existing Vercel host.
 The birthday welcome screen includes a smaller album button below START and its
@@ -39,9 +39,13 @@ Omit `note` and `lyrics` to remove the heart and dialog. Both may be present;
 newlines are preserved. For unfinished songs set `audio: ''`: they display
 “Coming soon 🔒” and are skipped, including in shuffle and repeat.
 
-The 18 supplied placeholders play the same original **8-second bell sample**,
-with MP3 and AAC copies, so every control is testable. They are not the final
-songs. Set `placeholder: false` when replacing each sample. The technical flag is retained in the data; the interface displays neutral
+Song 01 now plays the **2:55 original audio** from the supplied video, remuxed
+without re-encoding into a fast-start, AAC-in-MP4 audio-only file at
+`assets/album/song-01.mp4`. Its unchanged, square 3464 × 3464 JPEG cover is
+`assets/album/song-01-cover.jpg`. The track, record, and Media Session use
+the matching artwork. The remaining 17 placeholders play the original
+**8-second bell sample** with MP3 and AAC copies. Set `placeholder: false`
+when replacing each future sample. The technical flag is retained in the data; the interface displays neutral
 numbered song names and durations, without sample labels. Short-duration differences in MP3
 metadata reflect codec padding; the actual playback duration is used.
 
