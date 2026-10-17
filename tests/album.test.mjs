@@ -65,6 +65,17 @@ test('song one is connected and all 18 tracks have existing audio and covers', (
   assert.ok(ALBUM.tracks.slice(1).every(t=>t.placeholder));
   for (const p of [ALBUM.backgroundMusic,ALBUM.cover,ALBUM.mediaCover,ALBUM.unlockAudio]) assert.ok(existsSync(new URL(`..${p}`,import.meta.url)));
 });
+test('updated album labels are consistent in config, markup, and player code', () => {
+  const html = readFileSync(new URL('../sofhias-songs-67.html', import.meta.url), 'utf8');
+  const player = readFileSync(new URL('../js/album.mjs', import.meta.url), 'utf8');
+  assert.equal(ALBUM.title, 'Fejes world');
+  assert.equal(ALBUM.insideTitle, 'Fejes world');
+  assert.match(html, /id="cover-title">Fejes world<\/h1>/);
+  assert.match(html, /id="inside-title"[^>]*>Fejes world<\/h1>/);
+  assert.match(html, /id="player-note"[^>]*>fun fact -><\/button>/);
+  assert.match(player, /'fun fact ->'/);
+});
+
 test('only the birthday page links to the album, and both clean/raw routes are noindex', () => {
   for (const name of ['index.html','Gallery.html','Sofra.html','SofraPanel.html','404.html']) {
     assert.doesNotMatch(readFileSync(new URL(`../${name}`,import.meta.url),'utf8'),/sofhias-songs-67/);

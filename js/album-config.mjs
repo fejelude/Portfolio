@@ -1,8 +1,8 @@
 // Everything you give Sofhia lives here. Keep IDs unique and stable; order is
 // exactly the order below. Set audio: '' for an unfinished / locked song.
 export const ALBUM = {
-  title: "Sofhia's Songs",
-  insideTitle: 'Fejes World',
+  title: "Fejes world",
+  insideTitle: 'Fejes world',
   subtitle: 'made you something hehe',
   openingHeading: 'HAPPY 16TH, SOFIII ♡',
   openingHint: 'go onnn, open it HAHAHA ♡',
