@@ -115,7 +115,9 @@ async function nativeControls(browser,name,url,mobile) {
   await playing(page);
   await page.waitForFunction(() => document.getElementById('song-audio').currentTime>.1);
   assert.ok(await page.$eval('#song-audio',a=>a.duration>175&&a.duration<176));
-  assert.equal(await page.locator('#inside-title').textContent(),'Fejes World');
+  assert.equal(await page.locator('#cover-title').textContent(),ALBUM.title);
+  assert.equal(await page.locator('#inside-title').textContent(),ALBUM.insideTitle);
+  assert.equal(await page.locator('#player-note').textContent(),'fun fact ->');
   await page.waitForFunction(()=>{const i=document.getElementById('player-cover');return i.complete&&i.naturalWidth>0;});
   await page.locator('#now-playing').scrollIntoViewIfNeeded();
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-song-one.png`)});
@@ -157,7 +159,7 @@ async function nativeControls(browser,name,url,mobile) {
   await page.evaluate(()=>{const a=document.getElementById('song-audio');a.currentTime=a.duration-.1;});
   await page.locator('#play-again').waitFor({state:'visible'}); assert.equal(await page.$eval('#song-audio',a=>a.paused),true);
   await activate('#play-again'); await playing(page);
-  assert.equal(await page.locator('#player-title').textContent(),'Song 01'); await activate('#play-pause');
+  assert.equal(await page.locator('#player-title').textContent(),ALBUM.tracks[0].title); await activate('#play-pause');
   await assertLayout(page);
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-album.png`),fullPage:true});
   if(mobile){await page.setViewportSize({width:320,height:568});await assertLayout(page);await page.screenshot({path:path.join(out,`${name}-small.png`),fullPage:true});await page.setViewportSize({width:844,height:390});await assertLayout(page);}
