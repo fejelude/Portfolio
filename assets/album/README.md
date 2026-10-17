@@ -12,7 +12,8 @@ links use `albumPath` in the config.
 Song 01 now uses the supplied video's full 175.45-second audio: MP3 for normal
 playback and audio-only MP4/AAC as fallback. Both exports use standard 192kbps stereo encoding for browser compatibility,
 with no video, added fade, trim, or loudness normalization.
-Its supplied 3464×3464 JPEG is unchanged. `coverShape: 'square'` displays the whole
+The latest supplied PNG is unchanged. The square frame uses object-fit: contain
+to preserve the full artwork without stretching or cropping. `coverShape: 'square'` displays the whole
 cover in the track row and selected player, with no circular crop or center hole.
 The waiting photo and other tracks retain their existing record appearance.
 The title stays “Song 01” until its song name is supplied.
