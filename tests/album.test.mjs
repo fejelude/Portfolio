@@ -79,12 +79,12 @@ test('updated album labels are consistent in config, markup, and player code', (
 
 test('Love Me uses the supplied Fejes World 1.0 artwork', async () => {
   const { createHash } = await import('node:crypto');
-  const art = readFileSync(new URL('../assets/album/song-01-cover.jpg', import.meta.url));
+  const art = readFileSync(new URL('../assets/album/song-01-cover.png', import.meta.url));
   assert.equal(ALBUM.tracks[0].title, 'Love Me');
-  assert.equal(ALBUM.tracks[0].cover, '/assets/album/song-01-cover.jpg');
+  assert.equal(ALBUM.tracks[0].cover, '/assets/album/song-01-cover.png');
   assert.equal(ALBUM.tracks[0].mediaCover, ALBUM.tracks[0].cover);
   assert.equal(createHash('sha256').update(art).digest('hex'),
-    '506d7f3eaee89d9207860cdd4e8d6afc3de1929693ee4ac7cf6fba5a6436b37c');
+    '4c43a75e1d6b3bece43712ff1503568e4f20c165206f365cf2e0ae2c27fad2c5');
 });
 
 test('only the birthday page links to the album, and both clean/raw routes are noindex', () => {
