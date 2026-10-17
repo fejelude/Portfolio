@@ -196,7 +196,9 @@ async function variants(browser,name,url){
   console.log(name+': forced MP3 failure recovery '+JSON.stringify(fallback));
   if(fallback.codec){
     assert.ok(fallback.src.endsWith('/song-01.mp4')&&fallback.duration>175);
-    await aacPage.$eval('#song-audio',a=>{a.currentTime=90});await aacPage.waitForFunction(()=>document.getElementById('song-audio').currentTime>90.1);
+    await aacPage.waitForFunction(()=>document.getElementById('song-audio').currentTime>.1);
+    await aacPage.locator('#song-seek').evaluate(e=>{e.value='90';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
+    await playing(aacPage);await aacPage.waitForFunction(()=>document.getElementById('song-audio').currentTime>90.1);
   }else{
     assert.equal(fallback.title,'Song 02','a browser without AAC skips the failed track gracefully');
   }

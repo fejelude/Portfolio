@@ -10,8 +10,8 @@ links use `albumPath` in the config.
 ## Song 01
 
 Song 01 now uses the supplied video's full 175.45-second audio: MP3 for normal
-playback and audio-only MP4/AAC as fallback. The AAC stream is copied without
-re-encoding; both files have no video and no added fade, trim, or normalization.
+playback and audio-only MP4/AAC as fallback. Both exports use standard 192kbps stereo encoding for browser compatibility,
+with no video, added fade, trim, or loudness normalization.
 Its supplied 3464×3464 JPEG is unchanged. `coverShape: 'square'` displays the whole
 cover in the track row and selected player, with no circular crop or center hole.
 The waiting photo and other tracks retain their existing record appearance.
