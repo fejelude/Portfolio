@@ -56,7 +56,8 @@ test('unknown duration never renders NaN; times are stable on long songs', () =>
 test('song one is connected and all 18 tracks have existing audio and covers', () => {
   assert.equal(ALBUM.tracks.length,18); assert.equal(new Set(ALBUM.tracks.map(t => t.id)).size,18);
   for (const t of ALBUM.tracks) {
-    assert.match(t.title,/Song \d{2}/);
+    if (t.id === 'song-01') assert.equal(t.title, 'Love Me');
+    else assert.match(t.title,/Song \d{2}/);
     for (const p of [t.audio,t.fallbackAudio,t.cover]) assert.ok(existsSync(new URL(`..${p}`, import.meta.url)),p);
   }
   assert.equal(ALBUM.tracks[0].placeholder,false);
