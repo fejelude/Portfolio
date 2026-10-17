@@ -107,7 +107,7 @@ function render(p) {
     $('player-cover').style.visibility = ''; delete $('player-cover').dataset.fallback;
     $('player-cover').src = track.cover || ALBUM.cover;
     $('player-note').hidden = !track.note && !track.lyrics;
-    $('player-note').textContent = track.lyrics ? '♡ your little lyrics page' : '♡ a little note for you';
+    $('player-note').textContent = track.lyrics ? '♡ your little lyrics page' : 'fun fact ->';
   }
   const loading = p.state === 'buffering' || p.state === 'loading';
   $('player-state').textContent = { idle: ALBUM.playerInvitation, loading: 'GETTING YOUR SONG', buffering: 'A LITTLE MOMENT…', playing: 'NOW PLAYING ♫', paused: 'SAVED YOUR PLACE ♡', finished: 'THANK YOU FOR LISTENING ♡' }[p.state];
