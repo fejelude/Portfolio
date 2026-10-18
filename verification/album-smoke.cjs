@@ -90,7 +90,7 @@ async function nativeControls(browser,name,url,mobile) {
   assert.equal(await page.locator('.album__track.is-deluxe').count(),1);
   assert.equal(await deluxeRow.locator('.album__track-title').textContent(),'One Less Lonely Girl');
   assert.equal(await deluxeRow.locator('.album__deluxe-badge').textContent(),'🔥 DELUXE');
-  assert.equal(await deluxeRow.locator('.album__track-button').isEnabled(),false,'missing Song #4 audio must never play a placeholder');
+  assert.equal(await deluxeRow.locator('.album__track-button').isEnabled(),true,'Song #4 has its actual audio connected');
   assert.equal(await deluxeRow.locator('img').getAttribute('src'),ALBUM.tracks[3].cover);
   await activate('[data-track-id="song-04"] .album__track-note');
   assert.equal(await page.locator('#note-copy').textContent(),ALBUM.tracks[3].note);await activate('#note-ok');
@@ -198,7 +198,7 @@ async function nativeControls(browser,name,url,mobile) {
   await sleep(250); assert.equal(await page.$eval('#song-audio',a=>a.currentTime),songThreePaused);
   await activate('#play-pause'); await playing(page);
   await page.locator('#song-seek').evaluate(e=>{e.value='45';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
-  await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>45.1);
+  await playing(page);await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>45.1);
   await page.locator('#now-playing').scrollIntoViewIfNeeded();
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-song-three.png`)});
   await activate('[data-track-id="song-18"] .album__track-button'); await playing(page);
@@ -251,37 +251,39 @@ async function variants(browser,name,url){
     assert.equal(fallback.title,'Made in Camella','a browser without AAC skips the failed track gracefully');
   }
   await aacContext.close();
-  for(const [file,mime] of [['song-01.mp3','audio/mpeg'],['song-01.mp4','audio/mp4'],['song-02.mp3','audio/mpeg'],['song-02.m4a','audio/mp4'],['song-03.mp3','audio/mpeg'],['song-03.m4a','audio/mp4']]){
+  for(const [file,mime] of [['song-01.mp3','audio/mpeg'],['song-01.mp4','audio/mp4'],['song-02.mp3','audio/mpeg'],['song-02.m4a','audio/mp4'],['song-03.mp3','audio/mpeg'],['song-03.m4a','audio/mp4'],['song-04.mp3','audio/mpeg'],['song-04.m4a','audio/mp4']]){
     const response=await fetch(url+'/assets/album/'+file,{headers:{Range:'bytes=0-255'}});assert.equal(response.status,206);assert.equal(response.headers.get('content-type'),mime);assert.equal((await response.arrayBuffer()).byteLength,256);
   }
   console.log(name+': reduced-motion 0/1/25 tracks, locked/missing track, slow response passed');
 }
-// Test-only media fixture exercises the existing player with the Deluxe UI.
-// Production Song #4 remains locked until its actual video is supplied.
-async function deluxePreview(browser,name,url,mobile){
-  const config=await fs.readFile(path.join(__dirname,'../js/album-config.mjs'),'utf8');
+// Exercise the actual Song #4 recording and the exclusive Deluxe treatment.
+async function deluxeControls(browser,name,url,mobile){
+  const { ALBUM } = await import('../js/album-config.mjs');
   const device=mobile&&name==='webkit'?pw.devices['iPhone 13']:mobile&&name==='chromium'?pw.devices['Pixel 5']:{viewport:{width:1440,height:1000}};
   const context=await browser.newContext(device),page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(observeNativeMixer);
-  await page.route('**/js/album-config.mjs',r=>r.fulfill({contentType:'text/javascript',body:config+"\nObject.assign(ALBUM.tracks[3],{audio:'/assets/album/sample.mp3',fallbackAudio:'/assets/album/sample.m4a',duration:8});"}));
   const activate=selector=>mobile?page.tap(selector):page.click(selector);
   await page.goto(url+'/sofhias-songs-67');await page.waitForFunction(()=>!document.getElementById('open-album').disabled);
   await activate('#open-album');await page.locator('#album-inside').waitFor({state:'visible'});
   await activate('[data-track-id="song-04"] .album__track-button');await playing(page);
   assert.equal(await page.locator('#player-title').textContent(),'One Less Lonely Girl');
+  assert.ok(await page.$eval('#song-audio',a=>a.currentSrc.endsWith('/song-04.mp3')&&a.duration>227&&a.duration<227.4));
+  assert.equal(await page.locator('#duration').textContent(),'3:47');
   assert.equal(await page.locator('#now-playing.is-deluxe').count(),1);
   assert.equal(await page.locator('#player-detail .album__deluxe-badge').textContent(),'🔥 DELUXE');
   await page.waitForFunction(()=>{const i=document.getElementById('player-cover');return i.complete&&i.naturalWidth===3464;});
   assert.equal(await page.$eval('#player-cover',e=>getComputedStyle(e).objectFit),'contain');
   assert.equal(await page.$eval('#now-playing',e=>getComputedStyle(e,'::after').pointerEvents),'none');
   assert.equal(await page.$eval('#now-playing',e=>getComputedStyle(e,'::after').animationName),'album-deluxe-embers');
-  await activate('#play-pause');await activate('#player-note');
+  await activate('#play-pause');const pausedAt=await page.$eval('#song-audio',a=>a.currentTime);
+  await sleep(250);assert.equal(await page.$eval('#song-audio',a=>a.currentTime),pausedAt);
+  await activate('#player-note');assert.equal(await page.locator('#note-copy').textContent(),ALBUM.tracks[3].note);
   await assertLayout(page);await activate('#note-ok');
   await page.locator('#now-playing').scrollIntoViewIfNeeded();
-  await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-deluxe-preview.png`),fullPage:true});
+  await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-deluxe.png`),fullPage:true});
   await activate('#play-pause');await playing(page);
-  await page.locator('#song-seek').evaluate(e=>{e.value='3';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
-  await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>3.1);
+  await page.locator('#song-seek').evaluate(e=>{e.value='100';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
+  await playing(page);await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>100.1);
   for(const id of ['song-01','song-02','song-03']){
     await activate(`[data-track-id="${id}"] .album__track-button`);await playing(page);
     assert.equal(await page.locator('#now-playing.is-deluxe').count(),0);
@@ -291,12 +293,12 @@ async function deluxePreview(browser,name,url,mobile){
   await activate('#play-pause');await page.emulateMedia({reducedMotion:'reduce'});
   assert.equal(await page.$eval('[data-track-id="song-04"]',e=>getComputedStyle(e,'::after').animationName),'none');
   await assertLayout(page);assert.deepEqual(errors,[]);await context.close();
-  console.log(name+' Deluxe '+(mobile?'mobile':'desktop')+': test fixture playback, badge isolation, artwork, controls, bounds and reduced motion passed');
+  console.log(name+' Deluxe '+(mobile?'mobile':'desktop')+': actual recording playback, badge isolation, artwork, controls, bounds and reduced motion passed');
 }
 (async()=>{
   await fs.mkdir(out,{recursive:true});const {server,url}=await startServer();
   try{for(const name of (process.env.ALBUM_ENGINES||'chromium,firefox,webkit').split(',')){
     const browser=await pw[name].launch({headless:true});
-    try{console.log(name+' '+browser.version());await nativeControls(browser,name,url,false);if(name!=='firefox')await nativeControls(browser,name,url,true);await variants(browser,name,url);await deluxePreview(browser,name,url,false);if(name!=='firefox')await deluxePreview(browser,name,url,true);}finally{await browser.close();}
+    try{console.log(name+' '+browser.version());await nativeControls(browser,name,url,false);if(name!=='firefox')await nativeControls(browser,name,url,true);await variants(browser,name,url);await deluxeControls(browser,name,url,false);if(name!=='firefox')await deluxeControls(browser,name,url,true);}finally{await browser.close();}
   }}finally{server.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

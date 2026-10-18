@@ -68,8 +68,8 @@ test('songs one through three are connected and all 18 tracks have existing audi
   assert.ok(ALBUM.tracks[0].duration>175&&ALBUM.tracks[0].duration<176);
   assert.ok(ALBUM.tracks.slice(4).every(t=>t.placeholder));
   assert.deepEqual(ALBUM.tracks.filter(t=>t.deluxe).map(t=>t.id), ['song-04']);
-  assert.equal(ALBUM.tracks[3].audio, '', 'Song #4 waits for its own audio instead of playing a sample');
-  assert.equal(ALBUM.tracks[3].fallbackAudio, '');
+  assert.equal(ALBUM.tracks[3].audio, '/assets/album/song-04.mp3');
+  assert.equal(ALBUM.tracks[3].fallbackAudio, '/assets/album/song-04.m4a');
   assert.equal(ALBUM.tracks[3].coverShape, 'square');
   for (const p of [ALBUM.backgroundMusic,ALBUM.cover,ALBUM.mediaCover,ALBUM.unlockAudio]) assert.ok(existsSync(new URL(`..${p}`,import.meta.url)));
 });
