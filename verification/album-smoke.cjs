@@ -59,7 +59,12 @@ async function seekControl(page, seconds, mobile = false) {
   const max=await seek.evaluate(e=>Number(e.max)),box=await seek.boundingBox();
   const x=box.x+8+(box.width-16)*seconds/max,y=box.y+box.height/2;
   if(mobile)await page.touchscreen.tap(x,y);else await page.mouse.click(x,y);
-  await page.waitForFunction(target=>{const a=document.getElementById('song-audio');return !a.seeking&&Math.abs(a.currentTime-target)<3;},seconds);
+  try {
+    await page.waitForFunction(target=>{const a=document.getElementById('song-audio');return !a.seeking&&Math.abs(a.currentTime-target)<3;},seconds);
+  } catch(error) {
+    console.log('Native seek diagnostics',await page.evaluate(()=>{const a=document.getElementById('song-audio'),s=document.getElementById('song-seek');return {title:document.getElementById('player-title').textContent,position:a.currentTime,seeking:a.seeking,paused:a.paused,rangeValue:s.value,rangeMax:s.max,ready:a.readyState,source:a.currentSrc,tap:!document.getElementById('tap-continue').hidden,events:window.__albumAudit.events};}));
+    throw error;
+  }
   await playing(page);const position=await page.$eval('#song-audio',a=>a.currentTime);
   await page.waitForFunction(start=>{const a=document.getElementById('song-audio');return !a.paused&&a.currentTime>start+.1;},position);
 }
