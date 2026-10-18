@@ -308,6 +308,6 @@ async function deluxeControls(browser,name,url,mobile){
   await fs.mkdir(out,{recursive:true});const {server,url}=await startServer();
   try{for(const name of (process.env.ALBUM_ENGINES||'chromium,firefox,webkit').split(',')){
     const browser=await pw[name].launch({headless:true});
-    try{console.log(name+' '+browser.version());await nativeControls(browser,name,url,false);if(name!=='firefox')await nativeControls(browser,name,url,true);await deluxeControls(browser,name,url,false);if(name!=='firefox')await deluxeControls(browser,name,url,true);await variants(browser,name,url);}finally{await browser.close();}
+    try{console.log(name+' '+browser.version());await deluxeControls(browser,name,url,false);if(name!=='firefox')await deluxeControls(browser,name,url,true);await nativeControls(browser,name,url,false);if(name!=='firefox')await nativeControls(browser,name,url,true);await variants(browser,name,url);}finally{await browser.close();}
   }}finally{server.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});
