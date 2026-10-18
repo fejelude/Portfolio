@@ -86,6 +86,15 @@ async function nativeControls(browser,name,url,mobile) {
   assert.ok(await page.evaluate(()=>document.querySelector('.album__letter').getBoundingClientRect().bottom<=document.getElementById('now-playing').getBoundingClientRect().top));
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-letter.png`),fullPage:true});
   assert.equal(await page.locator('.album__track-button').count(),18);
+  const deluxeRow=page.locator('[data-track-id="song-04"]');
+  assert.equal(await page.locator('.album__track.is-deluxe').count(),1);
+  assert.equal(await deluxeRow.locator('.album__track-title').textContent(),'One Less Lonely Girl');
+  assert.equal(await deluxeRow.locator('.album__deluxe-badge').textContent(),'🔥 DELUXE');
+  assert.equal(await deluxeRow.locator('.album__track-button').isEnabled(),false,'missing Song #4 audio must never play a placeholder');
+  assert.equal(await deluxeRow.locator('img').getAttribute('src'),ALBUM.tracks[3].cover);
+  await activate('[data-track-id="song-04"] .album__track-note');
+  assert.equal(await page.locator('#note-copy').textContent(),ALBUM.tracks[3].note);await activate('#note-ok');
+
   assert.equal(await page.locator('[data-track-id="song-01"] .album__track-meta').textContent(),'2:55');
   await page.locator('#now-playing').scrollIntoViewIfNeeded();
   await page.waitForFunction(()=>{const i=document.getElementById('player-cover');return i.complete&&i.naturalWidth>0;});
@@ -247,10 +256,47 @@ async function variants(browser,name,url){
   }
   console.log(name+': reduced-motion 0/1/25 tracks, locked/missing track, slow response passed');
 }
+// Test-only media fixture exercises the existing player with the Deluxe UI.
+// Production Song #4 remains locked until its actual video is supplied.
+async function deluxePreview(browser,name,url,mobile){
+  const config=await fs.readFile(path.join(__dirname,'../js/album-config.mjs'),'utf8');
+  const device=mobile&&name==='webkit'?pw.devices['iPhone 13']:mobile&&name==='chromium'?pw.devices['Pixel 5']:{viewport:{width:1440,height:1000}};
+  const context=await browser.newContext(device),page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.addInitScript(observeNativeMixer);
+  await page.route('**/js/album-config.mjs',r=>r.fulfill({contentType:'text/javascript',body:config+"\nObject.assign(ALBUM.tracks[3],{audio:'/assets/album/sample.mp3',fallbackAudio:'/assets/album/sample.m4a',duration:8});"}));
+  const activate=selector=>mobile?page.tap(selector):page.click(selector);
+  await page.goto(url+'/sofhias-songs-67');await page.waitForFunction(()=>!document.getElementById('open-album').disabled);
+  await activate('#open-album');await page.locator('#album-inside').waitFor({state:'visible'});
+  await activate('[data-track-id="song-04"] .album__track-button');await playing(page);
+  assert.equal(await page.locator('#player-title').textContent(),'One Less Lonely Girl');
+  assert.equal(await page.locator('#now-playing.is-deluxe').count(),1);
+  assert.equal(await page.locator('#player-detail .album__deluxe-badge').textContent(),'🔥 DELUXE');
+  await page.waitForFunction(()=>{const i=document.getElementById('player-cover');return i.complete&&i.naturalWidth===3464;});
+  assert.equal(await page.$eval('#player-cover',e=>getComputedStyle(e).objectFit),'contain');
+  assert.equal(await page.$eval('#now-playing',e=>getComputedStyle(e,'::after').pointerEvents),'none');
+  assert.equal(await page.$eval('#now-playing',e=>getComputedStyle(e,'::after').animationName),'album-deluxe-embers');
+  await activate('#play-pause');await activate('#player-note');
+  await assertLayout(page);await activate('#note-ok');
+  await page.locator('#now-playing').scrollIntoViewIfNeeded();
+  await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-deluxe-preview.png`),fullPage:true});
+  await activate('#play-pause');await playing(page);
+  await page.locator('#song-seek').evaluate(e=>{e.value='3';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
+  await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>3.1);
+  for(const id of ['song-01','song-02','song-03']){
+    await activate(`[data-track-id="${id}"] .album__track-button`);await playing(page);
+    assert.equal(await page.locator('#now-playing.is-deluxe').count(),0);
+    assert.equal(await page.locator('#player-detail .album__deluxe-badge').count(),0);
+    assert.equal(await page.$eval('#next-audio',a=>a.paused),true);
+  }
+  await activate('#play-pause');await page.emulateMedia({reducedMotion:'reduce'});
+  assert.equal(await page.$eval('[data-track-id="song-04"]',e=>getComputedStyle(e,'::after').animationName),'none');
+  await assertLayout(page);assert.deepEqual(errors,[]);await context.close();
+  console.log(name+' Deluxe '+(mobile?'mobile':'desktop')+': test fixture playback, badge isolation, artwork, controls, bounds and reduced motion passed');
+}
 (async()=>{
   await fs.mkdir(out,{recursive:true});const {server,url}=await startServer();
   try{for(const name of (process.env.ALBUM_ENGINES||'chromium,firefox,webkit').split(',')){
     const browser=await pw[name].launch({headless:true});
-    try{console.log(name+' '+browser.version());await nativeControls(browser,name,url,false);if(name!=='firefox')await nativeControls(browser,name,url,true);await variants(browser,name,url);}finally{await browser.close();}
+    try{console.log(name+' '+browser.version());await nativeControls(browser,name,url,false);if(name!=='firefox')await nativeControls(browser,name,url,true);await variants(browser,name,url);await deluxePreview(browser,name,url,false);if(name!=='firefox')await deluxePreview(browser,name,url,true);}finally{await browser.close();}
   }}finally{server.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -136,3 +136,18 @@
 .album__record.is-square i{display:none}
 .album__track.has-square-cover .album__track-art{border-radius:0;animation:none;overflow:hidden}
 .album__track.has-square-cover .album__track-art img{object-fit:contain;image-rendering:auto}
+
+/* Deluxe treatment is opt-in per track. All decoration stays outside content. */
+.album__track.is-deluxe,.album__player.is-deluxe{isolation:isolate}
+.album__track.is-deluxe .album__track-button{border-color:#cc9355;box-shadow:inset 2px 2px #fff5fb,0 4px #ca8b59,0 0 12px #edb66d40}
+.album__track.is-deluxe.is-locked .album__track-art{opacity:1}
+.album__player.is-deluxe{border-color:#cc9355}
+.album__deluxe-badge{display:inline-block;vertical-align:middle;white-space:nowrap;padding:2px 5px;border:1px solid #dca35d;border-radius:3px;background:linear-gradient(120deg,#fff4cd,#ffe1bc);color:#874513;font:600 .61rem/1.25 BirthdayPixel,BirthdayEmoji,monospace;letter-spacing:.035em;box-shadow:0 0 6px #ffc46a33}
+.album__track.is-deluxe::before,.album__player.is-deluxe::before{content:'';position:absolute;inset:-3px;border:1px solid #e3a65d;border-radius:3px;box-shadow:0 0 8px #efb34f55,0 0 14px #ed926533;pointer-events:none;z-index:1}
+/* Without mask support the quiet gold outline above is the static fallback. */
+@supports (mask-composite:exclude) or (-webkit-mask-composite:xor){
+  .album__track.is-deluxe::after,.album__player.is-deluxe::after{content:'';position:absolute;inset:-6px;padding:7px;border-radius:6px;pointer-events:none;z-index:1;background:radial-gradient(ellipse at 18% 0%,#ffe3a5 0,transparent 42%) 0 0/58% 100%,radial-gradient(ellipse at 80% 100%,#ffb45f 0,transparent 42%) 100% 100%/64% 100%,conic-gradient(from 25deg,#e9955c88,#ffdf8bd9,#f1a34eaa,#df837255,#f8c86ad9,#e9955c88);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask-composite:exclude;opacity:.65;animation:album-deluxe-embers 7s ease-in-out infinite alternate}
+}
+@keyframes album-deluxe-embers{from{background-position:0% 0%,100% 100%,0 0;opacity:.5;transform:translateY(.5px)}to{background-position:100% 0%,0% 100%,0 0;opacity:.8;transform:translateY(-.5px)}}
+.album.is-hidden .is-deluxe::after{animation-play-state:paused}
+@media(prefers-reduced-motion:reduce){.album .is-deluxe::after{animation:none!important;transform:none;opacity:.65}}

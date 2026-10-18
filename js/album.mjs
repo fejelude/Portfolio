@@ -41,6 +41,10 @@ function icon(name) {
   const use = document.createElementNS(svg.namespaceURI, 'use');
   svg.setAttribute('aria-hidden', 'true'); use.setAttribute('href', `#icon-${name}`); svg.append(use); return svg;
 }
+function deluxeBadge() {
+  const badge = document.createElement('span'); badge.className = 'album__deluxe-badge';
+  badge.textContent = '🔥 DELUXE'; return badge;
+}
 function fallbackImage(img, src = ALBUM.cover) {
   img.addEventListener('error', () => {
     if (img.dataset.fallback) { img.style.visibility = 'hidden'; return; }
@@ -62,6 +66,7 @@ function noteFor(track, origin) {
 
 for (const [index, track] of ALBUM.tracks.entries()) {
   const row = document.createElement('li'); row.className = 'album__track'; row.dataset.trackId = track.id; row.classList.toggle('has-square-cover', track.coverShape === 'square'); row.style.setProperty('--i', index);
+  row.classList.toggle('is-deluxe', track.deluxe === true);
   const button = document.createElement('button'); button.type = 'button'; button.className = 'album__track-button';
   const number = document.createElement('span'); number.className = 'album__track-number'; number.textContent = String(index + 1).padStart(2, '0');
   const art = document.createElement('span'); art.className = 'album__track-art'; art.setAttribute('aria-hidden', 'true');
@@ -90,6 +95,7 @@ function refreshRows(p) {
     button.disabled = locked; button.setAttribute('aria-pressed', String(active));
     button.setAttribute('aria-label', `${track.title}${locked ? ' — Coming soon' : ` — ${timeLabel(p.metadata.get(id) ?? track.duration)}`}`);
     meta.textContent = locked ? 'Coming soon 🔒' : `${timeLabel(p.metadata.get(id) ?? track.duration)}`;
+    if (track.deluxe) { meta.append(' ', deluxeBadge()); button.setAttribute('aria-label', `${button.getAttribute('aria-label')} — ${track.edition}`); }
   }
 }
 function render(p) {
@@ -97,6 +103,7 @@ function render(p) {
   const key = `${p.current?.id}|${p.failed.size}|${[...p.metadata.values()].join()}`;
   if (key !== activeView) { activeView = key; refreshRows(p); }
   const track = p.current;
+  $('now-playing').classList.toggle('is-deluxe', track?.deluxe === true);
   $('player-record').classList.toggle('is-waiting', !track);
   $('player-record').classList.toggle('is-square', track?.coverShape === 'square');
   if (track && track.id !== currentView) {
@@ -104,6 +111,7 @@ function render(p) {
     $('player-title').textContent = track.title;
     $('player-number').textContent = `TRACK ${String(ALBUM.tracks.indexOf(track) + 1).padStart(2, '0')} / ${String(ALBUM.tracks.length).padStart(2, '0')}`;
     $('player-detail').textContent = ALBUM.artist;
+    if (track.deluxe) $('player-detail').append(' ', deluxeBadge());
     $('player-cover').style.visibility = ''; delete $('player-cover').dataset.fallback;
     $('player-cover').src = track.cover || ALBUM.cover;
     $('player-note').hidden = !track.note && !track.lyrics;
