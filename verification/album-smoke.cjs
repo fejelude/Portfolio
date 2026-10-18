@@ -52,6 +52,17 @@ async function playing(page) {
     await page.screenshot({path:path.join(out,'native-playback-failure.png'),fullPage:true}); throw error;
   }
 }
+// Use a native pointer gesture, then wait for the seek to settle before
+// testing playback/recovery. A synthetic change can race WebKit's late pause.
+async function seekControl(page, seconds, mobile = false) {
+  const seek=page.locator('#song-seek');await seek.scrollIntoViewIfNeeded();
+  const max=await seek.evaluate(e=>Number(e.max)),box=await seek.boundingBox();
+  const x=box.x+8+(box.width-16)*seconds/max,y=box.y+box.height/2;
+  if(mobile)await page.touchscreen.tap(x,y);else await page.mouse.click(x,y);
+  await page.waitForFunction(target=>{const a=document.getElementById('song-audio');return !a.seeking&&Math.abs(a.currentTime-target)<3;},seconds);
+  await playing(page);const position=await page.$eval('#song-audio',a=>a.currentTime);
+  await page.waitForFunction(start=>{const a=document.getElementById('song-audio');return !a.paused&&a.currentTime>start+.1;},position);
+}
 async function nativeControls(browser,name,url,mobile) {
   const device = mobile && name === 'webkit' ? pw.devices['iPhone 13'] : mobile && name === 'chromium' ? pw.devices['Pixel 5'] :
     { viewport: mobile ? { width: 390, height: 844 } : { width: 1440, height: 1000 }, hasTouch: mobile };
@@ -197,8 +208,7 @@ async function nativeControls(browser,name,url,mobile) {
   await activate('#play-pause'); const songThreePaused=await page.$eval('#song-audio',a=>a.currentTime);
   await sleep(250); assert.equal(await page.$eval('#song-audio',a=>a.currentTime),songThreePaused);
   await activate('#play-pause'); await playing(page);
-  await page.locator('#song-seek').evaluate(e=>{e.value='45';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
-  await playing(page);await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>45.1);
+  await seekControl(page,45,mobile);
   await page.locator('#now-playing').scrollIntoViewIfNeeded();
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-song-three.png`)});
   await activate('[data-track-id="song-18"] .album__track-button'); await playing(page);
@@ -282,8 +292,7 @@ async function deluxeControls(browser,name,url,mobile){
   await page.locator('#now-playing').scrollIntoViewIfNeeded();
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-deluxe.png`),fullPage:true});
   await activate('#play-pause');await playing(page);
-  await page.locator('#song-seek').evaluate(e=>{e.value='100';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
-  await playing(page);await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>100.1);
+  await seekControl(page,100,mobile);
   for(const id of ['song-01','song-02','song-03']){
     await activate(`[data-track-id="${id}"] .album__track-button`);await playing(page);
     assert.equal(await page.locator('#now-playing.is-deluxe').count(),0);
@@ -299,6 +308,6 @@ async function deluxeControls(browser,name,url,mobile){
   await fs.mkdir(out,{recursive:true});const {server,url}=await startServer();
   try{for(const name of (process.env.ALBUM_ENGINES||'chromium,firefox,webkit').split(',')){
     const browser=await pw[name].launch({headless:true});
-    try{console.log(name+' '+browser.version());await nativeControls(browser,name,url,false);if(name!=='firefox')await nativeControls(browser,name,url,true);await variants(browser,name,url);await deluxeControls(browser,name,url,false);if(name!=='firefox')await deluxeControls(browser,name,url,true);}finally{await browser.close();}
+    try{console.log(name+' '+browser.version());await nativeControls(browser,name,url,false);if(name!=='firefox')await nativeControls(browser,name,url,true);await deluxeControls(browser,name,url,false);if(name!=='firefox')await deluxeControls(browser,name,url,true);await variants(browser,name,url);}finally{await browser.close();}
   }}finally{server.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});
