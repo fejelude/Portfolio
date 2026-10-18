@@ -59,13 +59,18 @@ test('songs one through three are connected and all 18 tracks have existing audi
     if (t.id === 'song-01') assert.equal(t.title, 'Love Me');
     else if (t.id === 'song-02') assert.equal(t.title, 'Made in Camella');
     else if (t.id === 'song-03') assert.equal(t.title, 'Daisies');
+    else if (t.id === 'song-04') assert.equal(t.title, 'One Less Lonely Girl');
     else assert.match(t.title,/Song \d{2}/);
-    for (const p of [t.audio,t.fallbackAudio,t.cover]) assert.ok(existsSync(new URL(`..${p}`, import.meta.url)),p);
+    for (const p of [t.audio,t.fallbackAudio,t.cover].filter(Boolean)) assert.ok(existsSync(new URL(`..${p}`, import.meta.url)),p);
   }
   assert.equal(ALBUM.tracks[0].placeholder,false);
   assert.equal(ALBUM.tracks[0].coverShape,'square');
   assert.ok(ALBUM.tracks[0].duration>175&&ALBUM.tracks[0].duration<176);
-  assert.ok(ALBUM.tracks.slice(3).every(t=>t.placeholder));
+  assert.ok(ALBUM.tracks.slice(4).every(t=>t.placeholder));
+  assert.deepEqual(ALBUM.tracks.filter(t=>t.deluxe).map(t=>t.id), ['song-04']);
+  assert.equal(ALBUM.tracks[3].audio, '/assets/album/song-04.mp3');
+  assert.equal(ALBUM.tracks[3].fallbackAudio, '/assets/album/song-04.m4a');
+  assert.equal(ALBUM.tracks[3].coverShape, 'square');
   for (const p of [ALBUM.backgroundMusic,ALBUM.cover,ALBUM.mediaCover,ALBUM.unlockAudio]) assert.ok(existsSync(new URL(`..${p}`,import.meta.url)));
 });
 test('updated album labels are consistent in config, markup, and player code', () => {
