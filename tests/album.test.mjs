@@ -53,18 +53,19 @@ test('unknown duration never renders NaN; times are stable on long songs', () =>
   assert.equal(timeLabel(undefined),'—:—'); assert.equal(timeLabel(NaN),'—:—');
   assert.equal(timeLabel(Infinity),'—:—'); assert.equal(timeLabel(8.04),'0:08'); assert.equal(timeLabel(3725),'62:05');
 });
-test('songs one and two are connected and all 18 tracks have existing audio and covers', () => {
+test('songs one through three are connected and all 18 tracks have existing audio and covers', () => {
   assert.equal(ALBUM.tracks.length,18); assert.equal(new Set(ALBUM.tracks.map(t => t.id)).size,18);
   for (const t of ALBUM.tracks) {
     if (t.id === 'song-01') assert.equal(t.title, 'Love Me');
     else if (t.id === 'song-02') assert.equal(t.title, 'Made in Camella');
+    else if (t.id === 'song-03') assert.equal(t.title, 'Daisies');
     else assert.match(t.title,/Song \d{2}/);
     for (const p of [t.audio,t.fallbackAudio,t.cover]) assert.ok(existsSync(new URL(`..${p}`, import.meta.url)),p);
   }
   assert.equal(ALBUM.tracks[0].placeholder,false);
   assert.equal(ALBUM.tracks[0].coverShape,'square');
   assert.ok(ALBUM.tracks[0].duration>175&&ALBUM.tracks[0].duration<176);
-  assert.ok(ALBUM.tracks.slice(2).every(t=>t.placeholder));
+  assert.ok(ALBUM.tracks.slice(3).every(t=>t.placeholder));
   for (const p of [ALBUM.backgroundMusic,ALBUM.cover,ALBUM.mediaCover,ALBUM.unlockAudio]) assert.ok(existsSync(new URL(`..${p}`,import.meta.url)));
 });
 test('updated album labels are consistent in config, markup, and player code', () => {

@@ -55,6 +55,8 @@ jobs:
           ffmpeg -nostdin -v error -xerror -i assets/album/song-01.mp4 -f null -
           ffmpeg -nostdin -v error -xerror -i assets/album/song-02.mp3 -f null -
           ffmpeg -nostdin -v error -xerror -i assets/album/song-02.m4a -f null -
+          ffmpeg -nostdin -v error -xerror -i assets/album/song-03.mp3 -f null -
+          ffmpeg -nostdin -v error -xerror -i assets/album/song-03.m4a -f null -
       - run: node verification/album-smoke.cjs
         env:
           ALBUM_ENGINES: ${{ matrix.engines }}
