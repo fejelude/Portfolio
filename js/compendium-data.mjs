@@ -10,4 +10,9 @@ export const COMPENDIUM_ITEMS = Object.freeze([
   { thumb: '/assets/compendium/thumbs/07.webp', full: '/assets/compendium/full/07.jpeg', width: 1536, height: 709, caption: '' },
   { thumb: '/assets/compendium/thumbs/08.webp', full: '/assets/compendium/full/08.jpeg', width: 1536, height: 709, caption: '' },
   { thumb: '/assets/compendium/thumbs/09.webp', full: '/assets/compendium/full/09.jpeg', width: 1536, height: 709, caption: '' },
+  { thumb: '/assets/compendium/thumbs/10.webp', full: '/assets/compendium/full/10.png', width: 1751, height: 989, caption: '', template: 'red' },
+  { thumb: '/assets/compendium/thumbs/11.webp', full: '/assets/compendium/full/11.png', width: 1759, height: 989, caption: '', template: 'red' },
+  { thumb: '/assets/compendium/thumbs/12.webp', full: '/assets/compendium/full/12.png', width: 1752, height: 878, caption: '', template: 'red' },
+  { thumb: '/assets/compendium/thumbs/13.webp', full: '/assets/compendium/full/13.png', width: 1716, height: 892, caption: '', template: 'red' },
+  { thumb: '/assets/compendium/thumbs/14.webp', full: '/assets/compendium/full/14.png', width: 1759, height: 989, caption: '', template: 'red' },
 ]);
