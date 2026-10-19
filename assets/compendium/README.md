@@ -1,20 +1,24 @@
-# Compendium assets — merge gate
+# Compendium images
 
-The Compendium layout, behavior, and links are in this branch. The nine original
-user-provided screenshots and nine optimized WebP thumbnail files must also be
-committed before merging this draft PR. They are supplied separately in the
-Compendium asset archive because the GitHub connection cannot upload binary
-conversation attachments.
+These are the nine original screenshots provided for the birthday Compendium,
+stored without changes in `full/`. The `thumbs/` directory contains optimized
+WebP previews, one per original screenshot.
 
-Extract the archive at the **root of this branch**, retaining these paths:
+The gallery displays previews first and opens the original image when a card
+is selected. The image order, paths and optional captions live in
+`js/compendium-data.mjs`. Captions are intentionally empty until provided.
 
-- `assets/compendium/full/01.jpeg` through `09.jpeg`, except `03.png` and `04.png`
-- `assets/compendium/thumbs/01.webp` through `09.webp`
+| Item | Full-resolution image | Thumbnail |
+| --- | --- | --- |
+| 01 | `full/01.jpeg` | `thumbs/01.webp` |
+| 02 | `full/02.jpeg` | `thumbs/02.webp` |
+| 03 | `full/03.png` | `thumbs/03.webp` |
+| 04 | `full/04.png` | `thumbs/04.webp` |
+| 05 | `full/05.jpeg` | `thumbs/05.webp` |
+| 06 | `full/06.jpeg` | `thumbs/06.webp` |
+| 07 | `full/07.jpeg` | `thumbs/07.webp` |
+| 08 | `full/08.jpeg` | `thumbs/08.webp` |
+| 09 | `full/09.jpeg` | `thumbs/09.webp` |
 
-Original captures are preserved byte-for-byte in `full/`. Smaller WebP
-thumbnails make the grid fast. The lightbox loads original full-resolution files.
-No captions are invented. To change image order, paths, or optional captions,
-edit `js/compendium-data.mjs`.
-
-Run `node --test tests/compendium.test.mjs` after committing the assets.
-The asset-existence test is intentionally a merge gate, not a passing placeholder.
+Run `node --test tests/compendium.test.mjs` to verify the gallery
+configuration and image file presence.
