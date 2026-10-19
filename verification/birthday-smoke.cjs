@@ -38,7 +38,7 @@ async function simulated(browser,name,url){
   const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.addInitScript(controlledTime);await page.addInitScript(fakeAudio);
   await page.goto(url+'/sofhia-franchesca-16');await tick(page,100);await page.waitForFunction(()=>!document.getElementById('start').disabled);
   assert.equal(await page.evaluate(()=>performance.now()===window.__birthdayNow),true,name+' controlled performance clock');
-  assert.equal(await page.locator('button:visible').count(),1);assert.equal(await revealed(page),false);await layout(page);
+  assert.equal(await page.locator('button:visible:not(#lily-cake)').count(),1);assert.equal(await revealed(page),false);await layout(page);
   assert.equal(await page.locator('#album-entry').isVisible(),true);assert.equal(await page.locator('#album-entry').getAttribute('href'),'/sofhias-songs-67');
   await page.waitForTimeout(700);assert.ok(await page.$eval('#album-entry',e=>Number(getComputedStyle(e).opacity))>.95);
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-welcome.png`)});

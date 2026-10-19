@@ -4,9 +4,10 @@ on:
     paths:
       - 'sofhia-franchesca-16.html'
       - 'css/birthday.css'
+      - 'css/birthday-lily.css'
       - 'js/birthday*.mjs'
       - 'assets/birthday/**'
-      - 'tests/birthday.test.mjs'
+      - 'tests/birthday*.test.mjs'
       - 'verification/birthday*.cjs'
       - 'vercel.json'
       - '.github/workflows/birthday-ci.yml'
@@ -31,6 +32,7 @@ jobs:
           pactl load-module module-null-sink sink_name=ci_audio
           pactl set-default-sink ci_audio
       - run: ffmpeg -nostdin -v error -xerror -i assets/birthday/song.mp3 -f null -
+      - run: node verification/birthday-lily-smoke.cjs
       - run: node verification/birthday-smoke.cjs
       - uses: actions/upload-artifact@v4
         if: always()
