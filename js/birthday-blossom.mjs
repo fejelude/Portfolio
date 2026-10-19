@@ -1,4 +1,4 @@
-// The existing scroll-grown tree frames a staged birthday dedication.
+// The letters are actual branches in the SVG, not a font or an overlaid label.
 export const clamp = value => Math.max(0, Math.min(1, value));
 export const ease = value => { const t = clamp(value); return t * t * (3 - 2 * t); };
 export function scrollProgress(top, height, viewportHeight) {
@@ -14,41 +14,28 @@ export function initBlossom(doc = document, win = window) {
   const motion = win.matchMedia('(prefers-reduced-motion: reduce)');
   const paths = [...tree.querySelectorAll('.birthday-blossom__grow')];
   const flowers = [...tree.querySelectorAll('.birthday-blossom__bloom')];
-  const dedication = [...tree.querySelectorAll('.birthday-blossom__reveal')];
   const life = new AbortController(), options = { signal: life.signal };
-  let frame = 0, away = false, completed = false;
+  let frame = 0, away = false;
   const home = () => doc.body.classList.contains('birthday--home');
   function update() {
     frame = 0;
     if (doc.hidden || away || !home()) { tree.classList.remove('is-visible'); return; }
     const rect = tree.getBoundingClientRect();
-    const raw = motion.matches || completed ? 1 : scrollProgress(rect.top, rect.height, win.innerHeight);
-    const p = raw >= .999 ? 1 : raw;
-    if (p === 1) completed = true;
+    const p = motion.matches ? 1 : scrollProgress(rect.top, rect.height, win.innerHeight);
     tree.dataset.progress = p.toFixed(3);
     tree.classList.toggle('is-growing', !motion.matches);
     tree.classList.toggle('is-visible', rect.top < win.innerHeight && rect.bottom > 0);
-    tree.classList.toggle('is-blooming', p > .94);
+    tree.classList.toggle('is-blooming', p > .78);
     for (const path of paths) {
       const amount = growth(p, +path.dataset.start, +path.dataset.end);
       path.style.strokeDashoffset = String(1 - amount);
       path.style.opacity = String(Math.min(1, amount * 20));
     }
     for (const flower of flowers) {
-      const start = +flower.dataset.start;
-      const bud = growth(p, start, start + .07);
-      const bloom = growth(p, start + .07, +flower.dataset.end);
-      flower.style.opacity = String(bud);
-      const budShape = flower.querySelector('.birthday-blossom__bud');
-      const petals = flower.querySelector('use');
-      budShape.style.opacity = String(1 - bloom);
-      petals.style.opacity = String(bloom);
-      petals.style.scale = String(.35 + .65 * bloom);
-    }
-    for (const part of dedication) {
-      const amount = growth(p, +part.dataset.start, +part.dataset.end);
-      part.style.opacity = String(amount);
-      part.style.translate = `0 ${(1 - amount) * 6}px`;
+      const amount = growth(p, +flower.dataset.start, +flower.dataset.start + .1);
+      flower.style.opacity = String(amount);
+      // Scale the inner use so the parent SVG translation stays untouched.
+      flower.firstElementChild.style.scale = String(.3 + .7 * amount);
     }
   }
   function schedule() { if (!frame && !away) frame = win.requestAnimationFrame(update); }

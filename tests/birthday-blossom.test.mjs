@@ -20,11 +20,9 @@ function fixture() {
   const classSet = new Set();
   const classList = { contains: n => classSet.has(n), remove: n => classSet.delete(n), toggle(n, on) { on ? classSet.add(n) : classSet.delete(n); } };
   const paths = [{ dataset: { start: '0', end: '.32' }, style: {} }, { dataset: { start: '.67', end: '.94' }, style: {} }];
-  const budShape = { style: {} }, petals = { style: {} };
-  const flowers = [{ dataset: { start: '.3', end: '.54' }, style: {}, querySelector: selector => selector === 'use' ? petals : budShape }];
-  const dedication = [{ dataset: { start: '.63', end: '.74' }, style: {} }, { dataset: { start: '.89', end: '1' }, style: {} }];
+  const flowers = [{ dataset: { start: '.74' }, style: {}, firstElementChild: { style: {} } }];
   const rect = { top: 900, bottom: 1520, height: 620 };
-  const tree = { classList, dataset: {}, getBoundingClientRect: () => rect, querySelectorAll: selector => selector.includes('__grow') ? paths : selector.includes('__reveal') ? dedication : flowers };
+  const tree = { classList, dataset: {}, getBoundingClientRect: () => rect, querySelectorAll: selector => selector.includes('__grow') ? paths : flowers };
   let home = true, mutation;
   const doc = Object.assign(new EventTarget(), { hidden: false, body: { classList: { contains: () => home } }, getElementById: () => tree });
   const motion = Object.assign(new EventTarget(), { matches: false });
@@ -35,7 +33,7 @@ function fixture() {
   });
   const flush = () => { const queued = [...frames.values()]; frames.clear(); queued.forEach(fn => fn()); };
   initBlossom(doc, win);
-  return { paths, flowers, dedication, budShape, petals, tree, rect, doc, win, motion, frames, flush, setHome(value) { home = value; mutation(); } };
+  return { paths, flowers, tree, rect, doc, win, motion, frames, flush, setHome(value) { home = value; mutation(); } };
 }
 
 test('branches bloom with scroll; reduced motion exposes the full static tree', () => {
@@ -45,10 +43,7 @@ test('branches bloom with scroll; reduced motion exposes the full static tree', 
   for (let i = 0; i < 20; i++) p.win.dispatchEvent(new Event('scroll'));
   assert.equal(p.frames.size, 1, 'scroll work is coalesced into one frame'); p.flush();
   assert.ok(p.paths.every(path => path.style.strokeDashoffset === '0'));
-  assert.equal(p.flowers[0].style.opacity, '1'); assert.equal(p.petals.style.scale, '1');
-  assert.equal(p.dedication[1].style.opacity, '1');
-  p.rect.top = 900; p.win.dispatchEvent(new Event('scroll')); p.flush();
-  assert.equal(p.tree.dataset.progress, '1.000', 'completed dedication remains visible on reverse scrolling');
+  assert.equal(p.flowers[0].style.opacity, '1'); assert.equal(p.flowers[0].firstElementChild.style.scale, '1');
   assert.equal(p.frames.size, 0, 'there is no perpetual JavaScript animation loop');
   p.rect.top = 900; p.motion.matches = true; p.motion.dispatchEvent(new Event('change')); p.flush();
   assert.equal(p.tree.dataset.progress, '1.000'); assert.equal(p.tree.classList.contains('is-growing'), false);
@@ -66,22 +61,10 @@ test('leaving home and hiding/navigating away suspend decorative motion', () => 
   assert.equal(p.tree.classList.contains('is-visible'), true);
 });
 
-test('buds precede flowers and the age finishes after the name', () => {
-  const p = fixture();
-  // Choose the section top for an exact progress value under the existing mapping.
-  const at = value => { p.rect.top = 844 - 60 - value * (620 - 60); p.win.dispatchEvent(new Event('scroll')); p.flush(); };
-  at(.36); assert.ok(Number(p.flowers[0].style.opacity) > 0); assert.equal(p.petals.style.opacity, '0');
-  at(.6); assert.equal(p.petals.style.opacity, '1'); assert.equal(p.dedication[0].style.opacity, '0');
-  at(.86); assert.equal(p.dedication[0].style.opacity, '1'); assert.equal(p.dedication[1].style.opacity, '0');
-  at(.94); assert.ok(Number(p.dedication[1].style.opacity) > 0 && Number(p.dedication[1].style.opacity) < 1);
-  at(1); assert.equal(p.dedication[1].style.opacity, '1');
-});
-
-test('dedication preserves exact spelling and punctuation below the navigation', () => {
+test('Sofhia is six branch strokes below the navigation, without the old signature', () => {
   const html = readFileSync(new URL('../sofhia-franchesca-16.html', import.meta.url), 'utf8');
+  assert.equal((html.match(/class="birthday-blossom__grow birthday-blossom__letter"/g) || []).length, 6);
   assert.ok(html.indexOf('birthday__compendium-entry') < html.indexOf('id="birthday-blossom"'));
-  assert.doesNotMatch(html, /id="signature"|birthday-blossom__letter/);
-  assert.match(html, /aria-label="Sofhia Franchesca Roque, 16"/);
-  assert.equal((html.match(/class="birthday-blossom__reveal"/g) || []).length, 3);
-  assert.match(html, /birthday-blossom__age birthday-blossom__reveal/);
+  assert.doesNotMatch(html, /id="signature"|<text\b/);
+  assert.match(html, /Sofhia, written in cherry blossom branches/);
 });
