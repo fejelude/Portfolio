@@ -1,0 +1,56 @@
+/* Standalone page using the birthday palette and pixel typeface. */
+.compendium{margin:0;min-height:100vh;min-height:100dvh;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y pinch-zoom;background:radial-gradient(circle at 11% 12%,#fffafc 0,transparent 36%),radial-gradient(circle at 91% 24%,#f9cade 0,transparent 39%),linear-gradient(160deg,#ffe5ef,#fff0f7 52%,#f9dbeb);color:#74334f;font-family:BirthdayPixel,BirthdayEmoji,ui-rounded,monospace}
+.compendium *{box-sizing:border-box}
+.compendium [hidden]{display:none!important}
+.compendium a{color:inherit;text-decoration:none}
+.compendium button{font:inherit;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.compendium :is(a,button):focus-visible{outline:3px solid #823a87;outline-offset:5px}
+.compendium__symbols{position:absolute;width:0;height:0;overflow:hidden}
+.compendium__page{position:relative;z-index:1;max-width:1120px;margin:0 auto;padding:max(22px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(26px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));min-height:100vh;min-height:100dvh;animation:compendium-enter .5s ease-out both}
+.compendium__header{position:relative;display:flex;align-items:center;justify-content:center;min-height:92px;margin:0 auto 26px;padding:18px 86px;border:3px solid #d975a0;background:#fff3f9;box-shadow:inset 3px 3px #fff,0 5px #d69cb4,0 11px 30px #b5658926}
+.compendium__header::before{content:'';position:absolute;inset:7px;border:2px dashed #f3b7d0;pointer-events:none}
+.compendium__heading{display:flex;align-items:center;justify-content:center;gap:clamp(9px,2.5vw,24px);min-width:0}
+.compendium__heading h1{margin:0;font:700 clamp(1.9rem,5vw,3.4rem)/1.05 BirthdayPixel,BirthdayEmoji,monospace;color:#ae477b;text-shadow:2px 2px #fff,4px 4px #f8c0d7;letter-spacing:-.02em;overflow-wrap:anywhere;text-align:center}
+.compendium__lily{width:clamp(30px,5vw,53px);height:clamp(30px,5vw,53px);flex:none;filter:drop-shadow(2px 2px #f2b5d0)}
+.compendium__lily--flip{transform:scaleX(-1)}
+.compendium__header-star{position:absolute;right:23px;top:11px;color:#dd8cad;font-size:1.6rem}
+.compendium__back{position:absolute;z-index:1;left:19px;top:50%;transform:translateY(-50%);padding:9px 11px;border:2px solid #be7298;background:#ffe0ed;box-shadow:inset 2px 2px #fff8fc,0 3px #be7298;font-size:.9rem;white-space:nowrap;transition:background .2s,transform .2s}
+.compendium__back:hover{background:#ffcade;transform:translateY(calc(-50% - 2px))}
+.compendium__gallery{padding:16px 0 8px}
+.compendium__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:start;gap:clamp(22px,3vw,35px)}
+.compendium__card{min-width:0;display:block;width:100%;padding:12px 12px 29px;border:3px solid #d391b1;border-radius:0;background:#fffafc;box-shadow:inset 3px 3px #fff,5px 5px #e7a9c5,9px 10px 0 #f4d6e5;transform:rotate(var(--tilt,0deg));transition:transform .25s ease,box-shadow .25s ease;position:relative;text-align:left;color:#954c71}
+.compendium__card::after{content:'✦';position:absolute;right:9px;bottom:5px;color:#e29dbe;font-size:1.05rem}
+.compendium__card:hover,.compendium__card:focus-visible{transform:rotate(0deg) translateY(-5px) scale(1.015);box-shadow:inset 3px 3px #fff,5px 7px #d88dad,10px 13px 0 #f4d6e5}
+.compendium__card:active{transform:rotate(0) scale(.99)}
+.compendium__frame{display:block;border:2px solid #edbdd1;background:#ffeaf4;aspect-ratio:16/9;overflow:hidden}
+.compendium__frame img{display:block;width:100%;height:100%;object-fit:contain;image-rendering:auto}
+.compendium__card-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 3px 0;min-height:22px;font:500 .82rem/1.3 BirthdayPixel,BirthdayEmoji,monospace}
+.compendium__card-caption{min-width:0;overflow-wrap:anywhere}
+.compendium__card-index{margin-left:auto;font-size:.76rem;color:#b27e97;white-space:nowrap}
+.compendium__empty{text-align:center;padding:50px 15px;font-size:1rem}
+.compendium__footer{text-align:center;padding:42px 0 8px;color:#d184aa;font-size:1.1rem;letter-spacing:14px}
+.compendium__petals{position:fixed;inset:0;overflow:hidden;pointer-events:none;color:#df87b3;z-index:0}
+.compendium__petals span{position:absolute;left:var(--x);top:-25px;font-size:var(--s);opacity:0;animation:compendium-petal var(--d) linear infinite;animation-delay:var(--delay)}
+.compendium__petals span:nth-child(1){--x:5%;--s:20px;--d:18s;--delay:-3s}.compendium__petals span:nth-child(2){--x:21%;--s:15px;--d:23s;--delay:-15s}.compendium__petals span:nth-child(3){--x:41%;--s:22px;--d:26s;--delay:-11s}.compendium__petals span:nth-child(4){--x:65%;--s:16px;--d:19s;--delay:-8s}.compendium__petals span:nth-child(5){--x:83%;--s:19px;--d:27s;--delay:-18s}.compendium__petals span:nth-child(6){--x:96%;--s:14px;--d:21s;--delay:-2s}
+.compendium__lightbox{position:fixed;inset:0;width:min(96vw,1140px);max-width:none;max-height:96dvh;margin:auto;padding:0;border:3px solid #d375a0;background:#fff0f7;color:#74334f;box-shadow:0 20px 60px #4b163d60;overflow:visible;animation:compendium-zoom .24s ease-out both}
+.compendium__lightbox::backdrop{background:#481d39b9;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);animation:compendium-dim .24s both}
+.compendium__lightbox.is-closing{animation:compendium-out .17s ease-in both}
+.compendium__lightbox.is-closing::backdrop{animation:compendium-undim .17s ease-in both}
+.compendium__viewer{position:relative;display:flex;flex-direction:column;padding:clamp(12px,2vw,22px);max-height:calc(96dvh - 6px)}
+.compendium__close{position:absolute;right:8px;top:8px;z-index:1;width:44px;height:44px;border:2px solid #ba7398;background:#ffe2ef;box-shadow:inset 2px 2px #fff;color:#843a62;font-size:1.2rem}
+.compendium__close:hover{background:#ffcde2}
+.compendium__figure{display:flex;flex-direction:column;min-height:0;margin:0;align-items:center;justify-content:center}
+.compendium__figure img{display:block;max-width:100%;max-height:calc(96dvh - 120px);width:auto;height:auto;object-fit:contain;background:#fce6f1;box-shadow:0 0 0 2px #e4afc8}
+.compendium__figure figcaption{margin-top:12px;align-self:stretch;text-align:center;line-height:1.4;font-size:.9rem;overflow-wrap:anywhere}
+.compendium__viewer-controls{display:flex;align-items:center;justify-content:center;gap:clamp(18px,5vw,50px);padding-top:13px;color:#8c476d;font-size:.85rem}
+.compendium__step{width:48px;height:40px;border:2px solid #c77c9f;background:#ffe2ef;box-shadow:inset 2px 2px #fff,0 3px #c77c9f;color:#7c3659}
+.compendium__step:hover{background:#ffd0e3}
+@keyframes compendium-enter{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes compendium-zoom{from{opacity:0;transform:scale(.955)}to{opacity:1;transform:scale(1)}}
+@keyframes compendium-out{to{opacity:0;transform:scale(.975)}}
+@keyframes compendium-dim{from{opacity:0}to{opacity:1}}
+@keyframes compendium-undim{to{opacity:0}}
+@keyframes compendium-petal{0%{transform:translate3d(0,-5vh,0) rotate(0);opacity:0}12%{opacity:.35}85%{opacity:.25}100%{transform:translate3d(35px,112vh,0) rotate(140deg);opacity:0}}
+@media(max-width:820px){.compendium__grid{grid-template-columns:repeat(2,minmax(0,1fr))}.compendium__header{padding-left:100px;padding-right:55px}.compendium__header-star{right:14px}}
+@media(max-width:550px){.compendium__header{min-height:126px;align-items:flex-end;padding:17px 9px 15px}.compendium__heading{gap:8px}.compendium__heading h1{font-size:clamp(1.7rem,8vw,2.35rem)}.compendium__lily{width:28px;height:28px}.compendium__back{top:15px;left:14px;transform:none;padding:5px 8px;font-size:.76rem}.compendium__back:hover{transform:translateY(-2px)}.compendium__grid{grid-template-columns:1fr;gap:29px;max-width:470px;margin:auto}.compendium__card{transform:none}.compendium__close{right:5px;top:5px}.compendium__figure img{max-height:calc(94dvh - 123px)}.compendium__lightbox{width:97vw;max-height:94dvh}.compendium__viewer{max-height:calc(94dvh - 6px)}}
+@media(prefers-reduced-motion:reduce){.compendium__page,.compendium__petals span,.compendium__lightbox,.compendium__lightbox::backdrop,.compendium__lightbox.is-closing,.compendium__lightbox.is-closing::backdrop{animation:none!important}.compendium__card,.compendium__back{transition:none!important}}

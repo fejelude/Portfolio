@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#ffe5ef">
+  <title>Compendium</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preload" href="/assets/birthday/pixelify-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/birthday.css">
+  <link rel="stylesheet" href="/css/compendium.css">
+  <script type="module" src="/js/compendium.mjs"></script>
+</head>
+<body class="compendium">
+  <svg class="compendium__symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="compendium-lily" viewBox="0 0 72 72">
+      <path d="M36 41v24" stroke="#81a483" stroke-width="3" stroke-linecap="round"/>
+      <path d="M36 55q-15-11-21-4 8 13 21 8" fill="#a9c6a8"/>
+      <g fill="#ffd1e5" stroke="#c66e9a" stroke-width="2">
+        <path d="M36 36C21 26 21 13 27 6q13 8 9 30Z"/>
+        <path d="M36 36C40 16 49 10 61 13q-1 16-25 23Z"/>
+        <path d="M36 36C51 25 63 28 68 37q-12 11-32-1Z"/>
+        <path d="M36 36C50 47 45 59 35 62q-9-13 1-26Z"/>
+        <path d="M36 36C20 50 10 45 4 35q12-11 32 1Z"/>
+        <path d="M36 36C15 30 10 23 13 12q17 0 23 24Z"/>
+      </g>
+      <circle cx="36" cy="36" r="6" fill="#fff0bd" stroke="#c29369" stroke-width="2"/>
+      <path d="M36 36l-6-14m6 14 8-16m-8 16 15-2" stroke="#c68d63" stroke-width="1.8"/>
+    </symbol>
+  </svg>
+  <div class="compendium__petals" aria-hidden="true"><span>✿</span><span>✦</span><span>✿</span><span>✧</span><span>✿</span><span>✦</span></div>
+  <main class="compendium__page">
+    <header class="compendium__header">
+      <a class="compendium__back" href="/sofhia-franchesca-16" aria-label="Back to the birthday page">← back</a>
+      <div class="compendium__heading">
+        <svg class="compendium__lily" aria-hidden="true"><use href="#compendium-lily"/></svg>
+        <h1>Compendium</h1>
+        <svg class="compendium__lily compendium__lily--flip" aria-hidden="true"><use href="#compendium-lily"/></svg>
+      </div>
+      <span class="compendium__header-star" aria-hidden="true">✦</span>
+    </header>
+    <section class="compendium__gallery" aria-label="Creations gallery">
+      <div class="compendium__grid" id="compendium-grid"></div>
+      <p class="compendium__empty" id="compendium-empty" hidden>No images here yet. 🌸</p>
+    </section>
+    <footer class="compendium__footer" aria-hidden="true">✦  ✿  ✦</footer>
+  </main>
+  <dialog class="compendium__lightbox" id="compendium-lightbox" aria-label="Enlarged gallery image">
+    <div class="compendium__viewer">
+      <button class="compendium__close" id="compendium-close" type="button" aria-label="Close enlarged image">✕</button>
+      <figure class="compendium__figure">
+        <img id="compendium-large" alt="" decoding="async">
+        <figcaption id="compendium-caption" hidden></figcaption>
+      </figure>
+      <div class="compendium__viewer-controls">
+        <button class="compendium__step" id="compendium-prev" type="button" aria-label="Previous image">←</button>
+        <span id="compendium-count" aria-live="polite"></span>
+        <button class="compendium__step" id="compendium-next" type="button" aria-label="Next image">→</button>
+      </div>
+    </div>
+  </dialog>
+</body>
+</html>
