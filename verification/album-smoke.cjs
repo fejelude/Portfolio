@@ -85,7 +85,8 @@ async function nativeControls(browser,name,url,mobile) {
   assert.deepEqual(await page.locator('#album-note-copy p').allTextContents(),ALBUM.note);
   assert.ok(await page.evaluate(()=>document.querySelector('.album__letter').getBoundingClientRect().bottom<=document.getElementById('now-playing').getBoundingClientRect().top));
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-letter.png`),fullPage:true});
-  assert.equal(await page.locator('.album__track-button').count(),18);
+  assert.equal(await page.locator('.album__track-button').count(),5);
+  assert.equal(await page.locator('#track-count').textContent(), '05 tracks ♡');
   const deluxeRow=page.locator('[data-track-id="song-04"]');
   assert.equal(await page.locator('.album__track.is-deluxe').count(),1);
   assert.equal(await deluxeRow.locator('.album__track-title').textContent(),'One Less Lonely Girl');
@@ -129,6 +130,7 @@ async function nativeControls(browser,name,url,mobile) {
   assert.equal(await page.$eval('#player-cover', e => new URL(e.src).pathname), photograph.cover);
   assert.equal(await page.$eval('#player-cover', e => getComputedStyle(e).objectFit), 'contain');
   assert.match(await page.locator('#player-detail').textContent(), /Ed Sheeran cover/);
+  assert.equal(await page.locator('#player-number').textContent(), 'TRACK 05 / 05');
   assert.equal(await page.$eval('#next-audio', a => a.paused), true);
   assert.equal(await page.evaluate(() => window.__albumAudit.gains[0].gain.value), 0);
   await activate('#play-pause');
@@ -236,7 +238,7 @@ async function nativeControls(browser,name,url,mobile) {
   await playing(page);await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>45.1);
   await page.locator('#now-playing').scrollIntoViewIfNeeded();
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-song-three.png`)});
-  await activate('[data-track-id="song-18"] .album__track-button'); await playing(page);
+  await activate('[data-track-id="song-05"] .album__track-button'); await playing(page);
   await page.evaluate(()=>{const a=document.getElementById('song-audio');a.currentTime=a.duration-.1;});
   await page.locator('#play-again').waitFor({state:'visible'}); assert.equal(await page.$eval('#song-audio',a=>a.paused),true);
   await activate('#play-again'); await playing(page);

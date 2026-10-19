@@ -53,8 +53,8 @@ test('unknown duration never renders NaN; times are stable on long songs', () =>
   assert.equal(timeLabel(undefined),'—:—'); assert.equal(timeLabel(NaN),'—:—');
   assert.equal(timeLabel(Infinity),'—:—'); assert.equal(timeLabel(8.04),'0:08'); assert.equal(timeLabel(3725),'62:05');
 });
-test('songs one through five are connected and all 18 tracks have existing audio and covers', () => {
-  assert.equal(ALBUM.tracks.length,18); assert.equal(new Set(ALBUM.tracks.map(t => t.id)).size,18);
+test('exactly five integrated songs stay in order with existing audio and covers', () => {
+  assert.deepEqual(ALBUM.tracks.map(t => t.id), ['song-01', 'song-02', 'song-03', 'song-04', 'song-05']);
   for (const t of ALBUM.tracks) {
     if (t.id === 'song-01') assert.equal(t.title, 'Love Me');
     else if (t.id === 'song-02') assert.equal(t.title, 'Made in Camella');
@@ -67,7 +67,12 @@ test('songs one through five are connected and all 18 tracks have existing audio
   assert.equal(ALBUM.tracks[0].placeholder,false);
   assert.equal(ALBUM.tracks[0].coverShape,'square');
   assert.ok(ALBUM.tracks[0].duration>175&&ALBUM.tracks[0].duration<176);
-  assert.ok(ALBUM.tracks.slice(5).every(t=>t.placeholder));
+  assert.ok(ALBUM.tracks.every(t => t.placeholder === false && t.audio && t.cover && t.note));
+  const queue = new TrackQueue(ALBUM.tracks);
+  assert.equal(queue.next('song-04'), 'song-05');
+  assert.equal(queue.next('song-05'), null);
+  queue.repeat = 'all';
+  assert.equal(queue.next('song-05'), 'song-01');
   assert.deepEqual(ALBUM.tracks.filter(t=>t.deluxe).map(t=>t.id), ['song-04']);
   assert.equal(ALBUM.tracks[3].audio, '/assets/album/song-04.mp3');
   assert.equal(ALBUM.tracks[3].fallbackAudio, '/assets/album/song-04.m4a');
