@@ -104,6 +104,7 @@ function begin() {
   audio.muted=false;$('sound').disabled=false;$('sound').setAttribute('aria-pressed','false');$('sound').setAttribute('aria-label','Mute music');
   lastVisual=0;lastSecond=-1;lastPhase=-1;ambient=0;ambientRunning=false;playPending=true;welcomeFade=now;
   $('welcome').classList.add('is-leaving');$('progress-panel').hidden=false;$('celebration').hidden=true;$('replay').hidden=true;
+  $('return-home').hidden=true;
   $('controls').hidden=false;$('chrome-star').hidden=true;$('announcement').textContent='okayyy, here we go 🌸';
   $('pause').disabled=false;hideContinue();setStatus('starting the song… 🌸');
   try { audio.currentTime=0; } catch { /* A cold media element can seek once metadata arrives. */ }
@@ -113,6 +114,20 @@ function begin() {
   catch { requestMotion();useSilent(); }
   if(audio.error||audioUnavailable)useSilent();
   resize();schedule();
+}
+
+function returnHome() {
+  if(!revealed||disposed)return;
+  // Return to the existing welcome view without navigation or starting audio.
+  generation++;playAttempt++;active=false;revealed=false;buffering=false;playPending=false;manualPaused=false;backgroundResume=false;
+  audio.pause();clock.reset();particles.reset();ambient=0;ambientRunning=false;
+  loadingSince=performance.now();lastVisual=0;lastSecond=-1;lastPhase=-1;welcomeFade=0;
+  $('celebration').hidden=true;$('replay').hidden=true;$('return-home').hidden=true;
+  $('album-return').hidden=true;$('progress-panel').hidden=true;$('controls').hidden=true;$('chrome-star').hidden=false;
+  hideContinue();setStatus();$('welcome').hidden=false;$('welcome').classList.remove('is-leaving');
+  $('welcome').scrollTop=0;$('celebration').parentElement.scrollTop=0;
+  $('announcement').textContent='back home — your album and Compendium are here 🌸';
+  resize();schedule();$('start').focus({preventScroll:true});
 }
 
 function pauseExperience(manual=false) {
@@ -175,7 +190,7 @@ function frame(now) {
     const sec=Math.floor(t);
     if(sec!==lastSecond){lastSecond=sec;$('time').firstChild.textContent=`${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')} `;$('progress').setAttribute('aria-valuenow',String(sec));}
   }
-  if(revealed&&finalTime>=1.6)$('replay').hidden=false;
+  if(revealed&&finalTime>=1.6){$('replay').hidden=false;$('return-home').hidden=false;}
   // One loop for the entire page lifetime, including replay and resize.
   schedule();
 }
@@ -216,6 +231,7 @@ audio.addEventListener('error',mediaFailed,options);
 source.addEventListener('error',mediaFailed,options);
 $('start').addEventListener('click',begin,options);
 $('replay').addEventListener('click',begin,options);
+$('return-home').addEventListener('click',returnHome,options);
 $('continue').addEventListener('click',()=>resumeExperience(true),options);
 $('pause').addEventListener('click',()=>{if(isPaused())resumeExperience(true);else pauseExperience(true);},options);
 $('sound').addEventListener('click',()=>{

@@ -80,3 +80,4 @@
 .birthday #wish,.birthday__static-wish{white-space:pre-line;overflow-wrap:anywhere}
 .birthday__static{overflow-y:auto;justify-content:safe center}
 .birthday__static img{flex-shrink:0;height:30%;max-height:230px}
+.birthday__home-return{display:block;width:fit-content;max-width:100%;margin:15px auto 8px;padding:6px 12px;font-size:.8rem!important;line-height:1.3}
