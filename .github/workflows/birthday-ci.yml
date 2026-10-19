@@ -4,9 +4,10 @@ on:
     paths:
       - 'sofhia-franchesca-16.html'
       - 'css/birthday.css'
+      - 'css/birthday-lily.css'
       - 'js/birthday*.mjs'
       - 'assets/birthday/**'
-      - 'tests/birthday.test.mjs'
+      - 'tests/birthday*.test.mjs'
       - 'verification/birthday*.cjs'
       - 'vercel.json'
       - '.github/workflows/birthday-ci.yml'
@@ -14,7 +15,17 @@ permissions:
   contents: read
 jobs:
   garden:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            browsers: chromium firefox
+            engines: chromium,firefox
+          - os: macos-15
+            browsers: webkit
+            engines: webkit
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -23,17 +34,24 @@ jobs:
           node-version: '24'
       - run: node --test tests/*.test.* api/sofra/*.test.js
       - run: npm install --no-save --package-lock=false playwright@1.56.1
-      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: npx playwright install --with-deps ${{ matrix.browsers }}
       - name: Start virtual audio output
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get install -y pulseaudio ffmpeg
           pulseaudio --start --exit-idle-time=-1
           pactl load-module module-null-sink sink_name=ci_audio
           pactl set-default-sink ci_audio
       - run: ffmpeg -nostdin -v error -xerror -i assets/birthday/song.mp3 -f null -
+        if: runner.os == 'Linux'
+      - run: node verification/birthday-lily-smoke.cjs
+        env:
+          BIRTHDAY_ENGINES: ${{ matrix.engines }}
       - run: node verification/birthday-smoke.cjs
+        env:
+          BIRTHDAY_ENGINES: ${{ matrix.engines }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: birthday-browser-checks
+          name: birthday-browser-checks-${{ runner.os }}
           path: verification/birthday-results/

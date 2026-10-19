@@ -1,0 +1,16 @@
+/* Keeps the original flower's one-em slot and margins; art never changes layout. */
+.birthday .birthday-lily{position:relative;display:block;width:1.75em;height:1em;font-size:3.2rem;line-height:1;padding:0;border:0;border-radius:8px;background:transparent;overflow:visible;isolation:isolate}
+.birthday .birthday-lily:disabled{opacity:1;cursor:default}
+.birthday-lily__svg{position:absolute;left:50%;top:50%;width:2.18em;height:2.18em;transform:translate(-50%,-50%);overflow:visible;pointer-events:none}
+.birthday-lily[data-ready] [data-lily-art]{animation:lily-cake-float 3.8s ease-in-out infinite}
+.birthday-lily[data-ready] [data-lily-flame]{transform-origin:100px 52px;animation:lily-candle-glimmer 2.2s ease-in-out infinite alternate}
+.birthday-lily.is-celebrating .birthday-lily__svg{animation:lily-cake-bounce .65s ease-in-out}
+.birthday-lily.is-celebrating [data-lily-glow]{opacity:1!important}
+.birthday-lily-confetti{position:fixed;inset:0;width:100%;height:100%;z-index:6;pointer-events:none;overflow:hidden;contain:strict}
+.birthday__welcome.is-leaving .birthday-lily *{animation-play-state:paused}
+@keyframes lily-cake-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes lily-candle-glimmer{from{transform:scale(.96,1);filter:drop-shadow(0 0 2px #ffcf9f66)}to{transform:scale(1.03,.97);filter:drop-shadow(0 0 4px #ffd5a799)}}
+@keyframes lily-cake-bounce{0%,100%{transform:translate(-50%,-50%) scale(1)}40%{transform:translate(-50%,-55%) scale(1.045,.97)}70%{transform:translate(-50%,-48%) scale(.985,1.025)}}
+@media(max-height:640px){.birthday .birthday-lily{font-size:1.8rem}}
+@media(orientation:landscape) and (max-height:580px){.birthday .birthday-lily{display:none}}
+@media(prefers-reduced-motion:reduce){.birthday .birthday-lily *{animation:none!important;transition:none!important}}
