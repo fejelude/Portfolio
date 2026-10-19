@@ -110,7 +110,7 @@ function render(p) {
     currentView = track.id;
     $('player-title').textContent = track.title;
     $('player-number').textContent = `TRACK ${String(ALBUM.tracks.indexOf(track) + 1).padStart(2, '0')} / ${String(ALBUM.tracks.length).padStart(2, '0')}`;
-    $('player-detail').textContent = ALBUM.artist;
+    $('player-detail').textContent = track.originalArtist ? `${ALBUM.artist} · ${track.originalArtist} cover` : ALBUM.artist;
     if (track.deluxe) $('player-detail').append(' ', deluxeBadge());
     $('player-cover').style.visibility = ''; delete $('player-cover').dataset.fallback;
     $('player-cover').src = track.cover || ALBUM.cover;
