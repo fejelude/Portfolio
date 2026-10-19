@@ -11,6 +11,6 @@
 @keyframes lily-cake-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 @keyframes lily-candle-glimmer{from{transform:scale(.96,1);filter:drop-shadow(0 0 2px #ffcf9f66)}to{transform:scale(1.03,.97);filter:drop-shadow(0 0 4px #ffd5a799)}}
 @keyframes lily-cake-bounce{0%,100%{transform:translate(-50%,-50%) scale(1)}40%{transform:translate(-50%,-55%) scale(1.045,.97)}70%{transform:translate(-50%,-48%) scale(.985,1.025)}}
-@media(max-height:640px){.birthday .birthday-lily{font-size:2.3rem}}
+@media(max-height:640px){.birthday .birthday-lily{font-size:1.8rem}}
 @media(orientation:landscape) and (max-height:580px){.birthday .birthday-lily{display:none}}
 @media(prefers-reduced-motion:reduce){.birthday .birthday-lily *{animation:none!important;transition:none!important}}
