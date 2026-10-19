@@ -10,25 +10,34 @@ const closeButton = document.getElementById('compendium-close');
 const previousButton = document.getElementById('compendium-prev');
 const nextButton = document.getElementById('compendium-next');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+ 
+// Only show photos whose supplied thumbnails are present. This also prevents
+// broken-image cards while the binary asset upload is pending.
+const availableItems = (await Promise.all(COMPENDIUM_ITEMS.map(item => new Promise(resolve => {
+  const probe = new Image();
+  probe.onload = () => resolve(item);
+  probe.onerror = () => resolve(null);
+  probe.src = item.thumb;
+})))).filter(Boolean);
 let activeIndex = 0;
 let trigger = null;
 let closingTimer = 0;
 
 const updateImage = index => {
-  activeIndex = (index + COMPENDIUM_ITEMS.length) % COMPENDIUM_ITEMS.length;
-  const item = COMPENDIUM_ITEMS[activeIndex];
+  activeIndex = (index + availableItems.length) % availableItems.length;
+  const item = availableItems[activeIndex];
   large.src = item.full;
   large.alt = item.caption || `Compendium image ${activeIndex + 1}`;
   large.width = item.width;
   large.height = item.height;
   caption.textContent = item.caption || '';
   caption.hidden = !item.caption;
-  count.textContent = `${activeIndex + 1} / ${COMPENDIUM_ITEMS.length}`;
-  previousButton.hidden = nextButton.hidden = COMPENDIUM_ITEMS.length < 2;
+  count.textContent = `${activeIndex + 1} / ${availableItems.length}`;
+  previousButton.hidden = nextButton.hidden = availableItems.length < 2;
 };
 
 const openImage = (index, button) => {
-  if (!COMPENDIUM_ITEMS.length) return;
+  if (!availableItems.length) return;
   clearTimeout(closingTimer);
   dialog.classList.remove('is-closing');
   trigger = button;
@@ -44,12 +53,12 @@ const closeImage = () => {
   closingTimer = setTimeout(() => dialog.close(), 170);
 };
 
-COMPENDIUM_ITEMS.forEach((item, index) => {
+availableItems.forEach((item, index) => {
   const card = document.createElement('button');
   card.type = 'button';
   card.className = 'compendium__card';
   card.style.setProperty('--tilt', `${[-1.2, .9, -.5, 1, -1, .6][index % 6]}deg`);
-  card.setAttribute('aria-label', `Open image ${index + 1} of ${COMPENDIUM_ITEMS.length}${item.caption ? `: ${item.caption}` : ''}`);
+  card.setAttribute('aria-label', `Open image ${index + 1} of ${availableItems.length}${item.caption ? `: ${item.caption}` : ''}`);
   const frame = document.createElement('span');
   frame.className = 'compendium__frame';
   const image = document.createElement('img');
@@ -77,7 +86,7 @@ COMPENDIUM_ITEMS.forEach((item, index) => {
   grid.append(card);
 });
 
-empty.hidden = COMPENDIUM_ITEMS.length > 0;
+empty.hidden = availableItems.length > 0;
 closeButton.addEventListener('click', closeImage);
 previousButton.addEventListener('click', () => updateImage(activeIndex - 1));
 nextButton.addEventListener('click', () => updateImage(activeIndex + 1));
