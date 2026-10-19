@@ -20,7 +20,7 @@ export const ALBUM = {
   playerInvitation: 'PICK A SONG SOFIII HEHE',
   waitingTitle: 'pick oneee hehe ♡',
   waitingDetail: "i wonder which one you'll play first HAHAHA",
-  tracklistCaption: 'some songs i wanted you to hear hehe ♡',
+  tracklistCaption: 'Some songs i sang along during the time where i was still into you, very into you actually HIHI',
   albumPath: '/sofhias-songs-67',
   returnButtonText: 'my little album 💿♡',
   artist: 'Feje',
