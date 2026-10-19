@@ -17,6 +17,7 @@ let closingTimer = 0;
 const updateImage = index => {
   activeIndex = (index + COMPENDIUM_ITEMS.length) % COMPENDIUM_ITEMS.length;
   const item = COMPENDIUM_ITEMS[activeIndex];
+  dialog.classList.toggle('compendium__lightbox--red', item.template === 'red');
   large.src = item.full;
   large.alt = item.caption || `Compendium image ${activeIndex + 1}`;
   large.width = item.width;
@@ -47,11 +48,11 @@ const closeImage = () => {
 COMPENDIUM_ITEMS.forEach((item, index) => {
   const card = document.createElement('button');
   card.type = 'button';
-  card.className = 'compendium__card';
+  card.className = `compendium__card${item.template === 'red' ? ' compendium__card--red' : ''}`;
   card.style.setProperty('--tilt', `${[-1.2, .9, -.5, 1, -1, .6][index % 6]}deg`);
   card.setAttribute('aria-label', `Open image ${index + 1} of ${COMPENDIUM_ITEMS.length}${item.caption ? `: ${item.caption}` : ''}`);
   const frame = document.createElement('span');
-  frame.className = 'compendium__frame';
+  frame.className = `compendium__frame${item.template === 'red' ? ' compendium__frame--red' : ''}`;
   const image = document.createElement('img');
   image.src = item.thumb;
   image.alt = item.caption || `Compendium image ${index + 1}`;
