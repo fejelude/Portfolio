@@ -123,9 +123,21 @@ async function welcomeEntry(browser,name,url){
   await page.waitForFunction(()=>Number(document.getElementById('birthday-blossom').dataset.progress)>.99);
   await page.waitForTimeout(300);
   const final=Number(await tree.getAttribute('data-progress'));assert.ok(final>=initial);
-  assert.ok(await page.locator('.birthday-blossom__letter').evaluateAll(nodes=>nodes.every(n=>Number(n.style.strokeDashoffset)===0)));
-  assert.equal(await page.locator('.birthday-blossom__letter').count(),6);
-  assert.equal(await page.locator('#birthday-blossom text').count(),0,'name is drawn as branches');
+  assert.ok(await page.locator('.birthday-blossom__grow').evaluateAll(nodes=>nodes.every(n=>Number(n.style.strokeDashoffset)===0)));
+  assert.equal(await page.locator('#blossom-dedication').textContent(),'Sofhia Franchesca Roque, 16');
+  assert.equal(await page.locator('.birthday-blossom__age').textContent(),'16');
+  assert.ok(await page.locator('.birthday-blossom__reveal').evaluateAll(nodes=>nodes.every(n=>Number(n.style.opacity)===1)));
+  const composition=await page.evaluate(()=>{
+    const name=document.querySelector('.birthday-blossom__name').getBoundingClientRect();
+    const age=document.querySelector('.birthday-blossom__age').getBoundingClientRect();
+    const frame=document.querySelector('.birthday-blossom__composition').getBoundingClientRect();
+    return {name:{left:name.left,right:name.right,bottom:name.bottom},age:{top:age.top,bottom:age.bottom},frame:{left:frame.left,right:frame.right,bottom:frame.bottom}};
+  });
+  assert.ok(composition.name.left>=composition.frame.left&&composition.name.right<=composition.frame.right);
+  assert.ok(composition.name.bottom<composition.age.top&&composition.age.bottom<=composition.frame.bottom);
+  await page.evaluate(()=>window.scrollTo(0,0));await page.waitForTimeout(100);
+  assert.equal(await tree.getAttribute('data-progress'),'1.000','completed composition stays revealed');
+  await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   await page.screenshot({path:path.join(out,`${name}-blossom-${viewport.width}x${viewport.height}.png`),fullPage:true});
   await page.emulateMedia({reducedMotion:'reduce'});
