@@ -65,6 +65,25 @@ async function simulated(browser,name,url){
    await page.evaluate(()=>window.__birthdayMedia.denied=false);await page.click('#continue');await tick(page,100);await position(page,59.999);assert.equal(await revealed(page),false);
    await position(page,60);assert.equal(await revealed(page),true);await tick(page,1700);
   }
+  assert.equal(await page.locator('#return-home').isVisible(),true);
+  const buttons=await page.evaluate(()=>({home:document.getElementById('return-home').getBoundingClientRect().top,album:document.getElementById('album-return').getBoundingClientRect().bottom}));
+  assert.ok(buttons.home>=buttons.album,'return home sits below the album button');
+  // A document marker proves home is an in-page transition, not a reload.
+  await page.evaluate(()=>{window.__homeMarker='same-document';document.getElementById('birthday-audio').muted=true;});
+  const homeUrl=page.url();
+  if(mobile)await page.tap('#return-home');else await page.click('#return-home');
+  await tick(page,600);
+  assert.equal(page.url(),homeUrl);assert.equal(await page.evaluate(()=>window.__homeMarker),'same-document');
+  assert.equal(await page.locator('#start').isVisible(),true);
+  assert.equal(await page.locator('#album-entry').isVisible(),true);
+  assert.equal(await page.locator('.birthday__compendium-entry').isVisible(),true);
+  assert.equal(await page.locator('#return-home').isVisible(),false);
+  assert.equal(await revealed(page),false);
+  assert.equal(await page.$eval('#birthday-audio',a=>a.paused&&a.muted),true);
+  assert.equal(await page.evaluate(()=>document.activeElement.id),'start');
+  await tick(page,65000);assert.equal(await revealed(page),false);
+  await page.click('#start');await tick(page,600);await position(page,60);await tick(page,1700);
+  assert.equal(await revealed(page),true);assert.equal(await page.locator('#return-home').isVisible(),true);
   if(mobile){await page.setViewportSize({width:844,height:390});await tick(page,100);await layout(page);await page.screenshot({path:path.join(out,`${name}-landscape.png`)});}
   assert.deepEqual(errors,[]);await context.close();
  }
