@@ -7,6 +7,7 @@ const clamp = x => Math.max(0, Math.min(1, x));
 const ease = x => { x=clamp(x); return x*x*(3-2*x); };
 const mix = (a,b,t) => a.map((v,i)=>v+(b[i]-v)*t);
 export function pathData(points) {
+  points=points.map(n=>Math.round(n*1000)/1000);
   return `M${points.slice(0,2).join(',')} ${[2,8,14,20].map(i=>`C${points.slice(i,i+6).join(',')}`).join(' ')}Z`;
 }
 export function petalAt(index, time) {
