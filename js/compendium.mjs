@@ -1,4 +1,5 @@
 import { COMPENDIUM_ITEMS } from './compendium-data.mjs';
+import { createScrapbookScene } from './compendium-scene.mjs';
 
 const grid = document.getElementById('compendium-grid');
 const empty = document.getElementById('compendium-empty');
@@ -10,6 +11,8 @@ const closeButton = document.getElementById('compendium-close');
 const previousButton = document.getElementById('compendium-prev');
 const nextButton = document.getElementById('compendium-next');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const scene = createScrapbookScene(document.getElementById('compendium-sky'), document.getElementById('compendium-motion'), dialog);
+document.getElementById('compendium-total').textContent = `${String(COMPENDIUM_ITEMS.length).padStart(2, '0')} little worlds`;
 let activeIndex = 0;
 let trigger = null;
 let closingTimer = 0;
@@ -48,6 +51,7 @@ COMPENDIUM_ITEMS.forEach((item, index) => {
   const card = document.createElement('button');
   card.type = 'button';
   card.className = 'compendium__card';
+  card.style.setProperty('--card-order', index % 3);
   card.style.setProperty('--tilt', `${[-1.2, .9, -.5, 1, -1, .6][index % 6]}deg`);
   card.setAttribute('aria-label', `Open image ${index + 1} of ${COMPENDIUM_ITEMS.length}${item.caption ? `: ${item.caption}` : ''}`);
   const frame = document.createElement('span');
@@ -76,6 +80,8 @@ COMPENDIUM_ITEMS.forEach((item, index) => {
   card.addEventListener('click', () => openImage(index, card));
   grid.append(card);
 });
+
+scene.observeCards(grid.querySelectorAll('.compendium__card'));
 
 empty.hidden = COMPENDIUM_ITEMS.length > 0;
 closeButton.addEventListener('click', closeImage);
