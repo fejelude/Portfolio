@@ -28,9 +28,9 @@ async function tick(page,ms=35){
 async function position(page,t){await page.evaluate(t=>window.__birthdayMedia.time=t,t);await tick(page);}
 async function revealed(page){return page.$eval('#celebration',e=>!e.hidden);}
 async function layout(page){
- const data=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth,scene:document.getElementById('scene').getBoundingClientRect().height,controls:[...document.querySelectorAll('button,a#album-entry,a#album-return')].filter(e=>e.getBoundingClientRect().width&&e.getBoundingClientRect().height).map(e=>{const r=e.getBoundingClientRect();return {id:e.id,x:r.x,y:r.y,right:r.right,bottom:r.bottom}}),w:innerWidth,h:innerHeight}));
+ const data=await page.evaluate(()=>({home:document.body.classList.contains('birthday--home'),overflow:document.documentElement.scrollWidth>innerWidth,scene:document.getElementById('scene').getBoundingClientRect().height,controls:[...document.querySelectorAll('button,a#album-entry,a#album-return')].filter(e=>e.getBoundingClientRect().width&&e.getBoundingClientRect().height).map(e=>{const r=e.getBoundingClientRect();return {id:e.id,x:r.x,y:r.y,right:r.right,bottom:r.bottom}}),w:innerWidth,h:innerHeight}));
  assert.equal(data.overflow,false);assert.ok(data.scene>0);
- for(const button of data.controls){assert.ok(button.x>=0&&button.right<=data.w+1,button.id+' horizontal bounds');assert.ok(button.y>=0&&button.bottom<=data.h+1,button.id+' vertical bounds');}
+ for(const button of data.controls){assert.ok(button.x>=0&&button.right<=data.w+1,button.id+' horizontal bounds');if(!data.home)assert.ok(button.y>=0&&button.bottom<=data.h+1,button.id+' vertical bounds');}
 }
 async function simulated(browser,name,url){
  for(const mobile of [false,true]){
@@ -107,6 +107,30 @@ async function welcomeEntry(browser,name,url){
   await page.goto(url+'/sofhia-franchesca-16');await page.waitForTimeout(700);await layout(page);
   assert.equal(await page.locator('#album-entry').isVisible(),true);assert.equal(await page.locator('#celebration').isVisible(),false);
   const fit=await page.$eval('#welcome',e=>({height:e.clientHeight,content:e.scrollHeight}));assert.ok(fit.content<=fit.height+1,JSON.stringify({viewport,fit}));
+  assert.equal(await page.locator('#signature').count(),0);
+  const tree=page.locator('#birthday-blossom');
+  await tree.waitFor();
+  const initial=Number(await tree.getAttribute('data-progress'));
+  await page.locator('.birthday__compendium-entry').scrollIntoViewIfNeeded();
+  const compendium=await page.locator('.birthday__compendium-entry').evaluate(e=>{
+    const r=e.getBoundingClientRect(),album=document.getElementById('album-entry').getBoundingClientRect();
+    const hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+    return {top:r.top,bottom:r.bottom,height:innerHeight,gap:r.top-album.bottom,uncovered:e===hit||e.contains(hit)};
+  });
+  assert.ok(compendium.top>=0&&compendium.bottom<=compendium.height);
+  assert.ok(compendium.gap>=10);assert.equal(compendium.uncovered,true);
+  await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
+  await page.waitForFunction(()=>Number(document.getElementById('birthday-blossom').dataset.progress)>.99);
+  await page.waitForTimeout(300);
+  const final=Number(await tree.getAttribute('data-progress'));assert.ok(final>=initial);
+  assert.ok(await page.locator('.birthday-blossom__letter').evaluateAll(nodes=>nodes.every(n=>Number(n.style.strokeDashoffset)===0)));
+  assert.equal(await page.locator('.birthday-blossom__letter').count(),6);
+  assert.equal(await page.locator('#birthday-blossom text').count(),0,'name is drawn as branches');
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await page.screenshot({path:path.join(out,`${name}-blossom-${viewport.width}x${viewport.height}.png`),fullPage:true});
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.waitForFunction(()=>document.getElementById('birthday-blossom').dataset.progress==='1.000');
+  assert.ok(await page.locator('.birthday-blossom__petal').evaluateAll(nodes=>nodes.every(n=>getComputedStyle(n).animationName==='none')));
   await page.screenshot({path:path.join(out,`${name}-welcome-${viewport.width}x${viewport.height}.png`)});
   await page.click('#album-entry');await page.waitForURL('**/sofhias-songs-67');assert.equal(await page.locator('#cover-screen').isVisible(),true);assert.equal(await page.$eval('#song-audio',a=>a.paused),true);
   assert.deepEqual(errors,[]);await context.close();

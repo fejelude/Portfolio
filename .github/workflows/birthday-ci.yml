@@ -4,6 +4,7 @@ on:
     paths:
       - 'sofhia-franchesca-16.html'
       - 'css/birthday.css'
+      - 'css/birthday-blossom.css'
       - 'css/birthday-lily.css'
       - 'js/birthday*.mjs'
       - 'assets/birthday/**'

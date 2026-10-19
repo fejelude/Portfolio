@@ -10,7 +10,7 @@ async function shot(page,name,stage){
 }
 async function layoutUnchanged(page){
  const result=await page.evaluate(()=>{
-  const ids=['greeting','start','album-entry','signature'];
+  const ids=['greeting','start','album-entry'];
   const rects=()=>ids.map(id=>{const r=document.getElementById(id).getBoundingClientRect();return [r.x,r.y,r.width,r.height];});
   const after=rects(),button=document.getElementById('lily-cake'),old=document.createElement('span');old.className='birthday__welcome-flower';old.textContent='✿';
   button.replaceWith(old);const before=rects();old.replaceWith(button);

@@ -20,10 +20,12 @@
   <link rel="stylesheet" href="/css/birthday-lily.css">
   <link rel="stylesheet" href="/css/birthday-compendium-entry.css">
   <script type="module" src="/js/birthday.mjs"></script>
+  <link rel="stylesheet" href="/css/birthday-blossom.css">
+  <script type="module" src="/js/birthday-blossom.mjs"></script>
   <script type="module" src="/js/birthday-album-entry.mjs"></script>
   <script type="module" src="/js/birthday-lily.mjs"></script>
 </head>
-<body class="birthday">
+<body class="birthday birthday--home">
   <canvas class="birthday__grove" id="grove" aria-hidden="true"></canvas>
   <main class="birthday__viewport" id="birthday">
     <p class="birthday__date" id="date">21 • 10 • 2026</p>
@@ -73,6 +75,94 @@
           <p class="birthday__hint" id="ready-status" role="status">getting everything ready… 🌸</p>
           <a class="birthday__pixel-button birthday__album-entry" id="album-entry" href="/sofhias-songs-67">🎵 I made you an album — tap to open</a>
           <a class="birthday__pixel-button birthday__compendium-entry" href="/compendium">📖 Compendium</a>
+          <section class="birthday-blossom" id="birthday-blossom" aria-label="A cherry blossom tree growing into Sofhia">
+            <svg class="birthday-blossom__art" viewBox="0 0 680 480" role="img" aria-labelledby="blossom-title blossom-description">
+              <title id="blossom-title">Sofhia, written in cherry blossom branches</title>
+              <desc id="blossom-description">A delicate tree unfurls into the handwritten name Sofhia, with pink cherry blossoms blooming along the letter-shaped branches.</desc>
+              <defs>
+                <radialGradient id="sakura-pink"><stop stop-color="#fff4f8"/><stop offset="1" stop-color="#ed9dbf"/></radialGradient>
+                <symbol id="sakura-bloom" viewBox="-12 -12 24 24">
+                  <g fill="url(#sakura-pink)" stroke="#d789ab" stroke-width=".45">
+                    <path d="M0 1 C-9 -2 -7 -11 -2 -10 L0 -8 L2 -10 C7 -11 9 -2 0 1Z" transform="rotate(0)"/>
+                    <path d="M0 1 C-9 -2 -7 -11 -2 -10 L0 -8 L2 -10 C7 -11 9 -2 0 1Z" transform="rotate(72)"/>
+                    <path d="M0 1 C-9 -2 -7 -11 -2 -10 L0 -8 L2 -10 C7 -11 9 -2 0 1Z" transform="rotate(144)"/>
+                    <path d="M0 1 C-9 -2 -7 -11 -2 -10 L0 -8 L2 -10 C7 -11 9 -2 0 1Z" transform="rotate(216)"/>
+                    <path d="M0 1 C-9 -2 -7 -11 -2 -10 L0 -8 L2 -10 C7 -11 9 -2 0 1Z" transform="rotate(288)"/>
+                  </g><circle r="2" fill="#dba45f"/><g stroke="#b9768c" stroke-width=".6"><path d="M0 0L-3 -3 M0 0L3 -3 M0 0L0 4"/></g>
+                </symbol>
+              </defs>
+              <ellipse cx="337" cy="449" rx="98" ry="7" fill="#c98ca0" opacity=".1"/>
+              <g class="birthday-blossom__branches" fill="none" stroke="#a56b81" stroke-linecap="round" stroke-linejoin="round">
+                <path class="birthday-blossom__grow birthday-blossom__trunk" pathLength="1" data-start="0" data-end="0.32" stroke-width="8" d="M335 438 C324 401 350 367 335 333 C324 310 329 287 324 274"/>
+                <path class="birthday-blossom__grow birthday-blossom__limb" pathLength="1" data-start="0.13" data-end="0.48" stroke-width="4" d="M335 341 C282 290 169 294 104 246 L78 206"/>
+                <path class="birthday-blossom__grow birthday-blossom__limb" pathLength="1" data-start="0.18" data-end="0.53" stroke-width="3.5" d="M324 303 C283 273 241 267 213 225"/>
+                <path class="birthday-blossom__grow birthday-blossom__limb" pathLength="1" data-start="0.2" data-end="0.56" stroke-width="3" d="M328 284 C300 265 280 251 263 234"/>
+                <path class="birthday-blossom__grow birthday-blossom__limb" pathLength="1" data-start="0.22" data-end="0.58" stroke-width="3.5" d="M337 319 C363 282 335 252 339 225"/>
+                <path class="birthday-blossom__grow birthday-blossom__limb" pathLength="1" data-start="0.25" data-end="0.62" stroke-width="4" d="M339 350 C388 312 424 276 441 226"/>
+                <path class="birthday-blossom__grow birthday-blossom__limb" pathLength="1" data-start="0.28" data-end="0.65" stroke-width="4.5" d="M338 385 C430 342 514 310 534 223"/>
+                <path class="birthday-blossom__grow birthday-blossom__twig" pathLength="1" data-start="0.25" data-end="0.58" stroke-width="1.6" d="M170 277 Q149 252 127 258 M245 286 Q234 302 216 298 M379 329 Q382 299 395 293 M468 322 Q491 332 504 320 M333 413 Q303 402 292 415"/>
+                <path class="birthday-blossom__grow birthday-blossom__letter" pathLength="1" data-start="0.5" data-end="0.76" stroke-width="3.8" d="M78 206 C100 236 156 228 156 191 C155 153 69 159 86 119 C99 89 145 88 165 125"/>
+                <path class="birthday-blossom__grow birthday-blossom__letter" pathLength="1" data-start="0.55" data-end="0.8" stroke-width="3.8" d="M213 225 C195 232 188 215 188 202 C183 171 212 152 230 176 C245 197 228 231 213 225"/>
+                <path class="birthday-blossom__grow birthday-blossom__letter" pathLength="1" data-start="0.58" data-end="0.83" stroke-width="3.8" d="M263 234 C278 195 281 149 292 111 C306 71 346 93 324 113 M268 158 C281 153 305 151 319 155"/>
+                <path class="birthday-blossom__grow birthday-blossom__letter" pathLength="1" data-start="0.6" data-end="0.87" stroke-width="3.8" d="M339 225 C344 191 350 151 360 110 C366 90 378 96 370 121 C353 166 348 200 346 217 C360 178 398 160 400 188 C401 206 384 221 402 228"/>
+                <path class="birthday-blossom__grow birthday-blossom__letter" pathLength="1" data-start="0.64" data-end="0.9" stroke-width="3.8" d="M441 226 C428 224 433 205 441 178 M441 226 C452 226 459 216 464 210 M443 154 L447 148"/>
+                <path class="birthday-blossom__grow birthday-blossom__letter" pathLength="1" data-start="0.67" data-end="0.94" stroke-width="3.8" d="M534 223 C514 231 514 210 525 179 C509 231 479 234 477 206 C475 180 504 157 524 184 M534 223 C548 219 558 206 567 197"/>
+              </g>
+              <g class="birthday-blossom__flowers">
+                <g class="birthday-blossom__bloom" data-start="0.740" transform="translate(87 119)"><use href="#sakura-bloom" x="-8" y="-8" width="16" height="16" transform="rotate(0)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.770" transform="translate(112 99)"><use href="#sakura-bloom" x="-5" y="-5" width="10" height="10" transform="rotate(37)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.800" transform="translate(147 108)"><use href="#sakura-bloom" x="-7" y="-7" width="14" height="14" transform="rotate(74)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.830" transform="translate(119 156)"><use href="#sakura-bloom" x="-5" y="-5" width="10" height="10" transform="rotate(111)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.860" transform="translate(154 185)"><use href="#sakura-bloom" x="-8" y="-8" width="16" height="16" transform="rotate(148)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.740" transform="translate(134 220)"><use href="#sakura-bloom" x="-7" y="-7" width="14" height="14" transform="rotate(185)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.770" transform="translate(81 207)"><use href="#sakura-bloom" x="-7" y="-7" width="14" height="14" transform="rotate(222)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.800" transform="translate(190 181)"><use href="#sakura-bloom" x="-7" y="-7" width="14" height="14" transform="rotate(259)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.830" transform="translate(208 165)"><use href="#sakura-bloom" x="-7" y="-7" width="14" height="14" transform="rotate(296)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.860" transform="translate(228 184)"><use href="#sakura-bloom" x="-5" y="-5" width="10" height="10" transform="rotate(333)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.740" transform="translate(219 223)"><use href="#sakura-bloom" x="-7" y="-7" width="14" height="14" transform="rotate(10)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.770" transform="translate(264 227)"><use href="#sakura-bloom" x="-7" y="-7" width="14" height="14" transform="rotate(47)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.800" transform="translate(281 162)"><use href="#sakura-bloom" x="-7" y="-7" width="14" height="14" transform="rotate(84)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.830" transform="translate(298 99)"><use href="#sakura-bloom" x="-8" y="-8" width="16" height="16" transform="rotate(121)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.860" transform="translate(324 108)"><use href="#sakura-bloom" x="-5" y="-5" width="10" height="10" transform="rotate(158)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.740" transform="translate(315 154)"><use href="#sakura-bloom" x="-5" y="-5" width="10" height="10" transform="rotate(195)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.770" transform="translate(359 114)"><use href="#sakura-bloom" x="-7" y="-7" width="14" height="14" transform="rotate(232)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.800" transform="translate(370 99)"><use href="#sakura-bloom" x="-7" y="-7" width="14" height="14" transform="rotate(269)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.830" transform="translate(348 179)"><use href="#sakura-bloom" x="-5" y="-5" width="10" height="10" transform="rotate(306)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.860" transform="translate(378 177)"><use href="#sakura-bloom" x="-7" y="-7" width="14" height="14" transform="rotate(343)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.740" transform="translate(398 191)"><use href="#sakura-bloom" x="-5" y="-5" width="10" height="10" transform="rotate(20)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.770" transform="translate(398 227)"><use href="#sakura-bloom" x="-7" y="-7" width="14" height="14" transform="rotate(57)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.800" transform="translate(446 150)"><use href="#sakura-bloom" x="-11" y="-11" width="22" height="22" transform="rotate(94)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.830" transform="translate(436 195)"><use href="#sakura-bloom" x="-5" y="-5" width="10" height="10" transform="rotate(131)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.860" transform="translate(441 226)"><use href="#sakura-bloom" x="-5" y="-5" width="10" height="10" transform="rotate(168)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.740" transform="translate(481 188)"><use href="#sakura-bloom" x="-5" y="-5" width="10" height="10" transform="rotate(205)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.770" transform="translate(499 173)"><use href="#sakura-bloom" x="-7" y="-7" width="14" height="14" transform="rotate(242)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.800" transform="translate(522 183)"><use href="#sakura-bloom" x="-7" y="-7" width="14" height="14" transform="rotate(279)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.830" transform="translate(493 226)"><use href="#sakura-bloom" x="-5" y="-5" width="10" height="10" transform="rotate(316)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.860" transform="translate(535 222)"><use href="#sakura-bloom" x="-7" y="-7" width="14" height="14" transform="rotate(353)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.740" transform="translate(562 203)"><use href="#sakura-bloom" x="-7" y="-7" width="14" height="14" transform="rotate(30)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.770" transform="translate(128 257)"><use href="#sakura-bloom" x="-8" y="-8" width="16" height="16" transform="rotate(67)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.800" transform="translate(216 298)"><use href="#sakura-bloom" x="-7" y="-7" width="14" height="14" transform="rotate(104)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.830" transform="translate(397 291)"><use href="#sakura-bloom" x="-7" y="-7" width="14" height="14" transform="rotate(141)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.860" transform="translate(504 319)"><use href="#sakura-bloom" x="-8" y="-8" width="16" height="16" transform="rotate(178)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.740" transform="translate(291 415)"><use href="#sakura-bloom" x="-5" y="-5" width="10" height="10" transform="rotate(215)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.770" transform="translate(336 374)"><use href="#sakura-bloom" x="-5" y="-5" width="10" height="10" transform="rotate(252)"/></g>
+                <g class="birthday-blossom__bloom" data-start="0.800" transform="translate(304 287)"><use href="#sakura-bloom" x="-5" y="-5" width="10" height="10" transform="rotate(289)"/></g>
+              </g>
+              <g aria-hidden="true" class="birthday-blossom__atmosphere">
+                <g transform="translate(125 190)"><path class="birthday-blossom__petal" style="--delay:-0.0s;--duration:9s" d="M0 0 C-7 -7 5 -10 5 -4 Q6 2 0 0" fill="#eba3bf"/></g>
+                <g transform="translate(236 150)"><path class="birthday-blossom__petal" style="--delay:-1.7s;--duration:10s" d="M0 0 C-7 -7 5 -10 5 -4 Q6 2 0 0" fill="#eba3bf"/></g>
+                <g transform="translate(380 170)"><path class="birthday-blossom__petal" style="--delay:-3.4s;--duration:11s" d="M0 0 C-7 -7 5 -10 5 -4 Q6 2 0 0" fill="#eba3bf"/></g>
+                <g transform="translate(489 230)"><path class="birthday-blossom__petal" style="--delay:-5.1s;--duration:12s" d="M0 0 C-7 -7 5 -10 5 -4 Q6 2 0 0" fill="#eba3bf"/></g>
+                <g transform="translate(326 250)"><path class="birthday-blossom__petal" style="--delay:-6.8s;--duration:13s" d="M0 0 C-7 -7 5 -10 5 -4 Q6 2 0 0" fill="#eba3bf"/></g>
+                <g transform="translate(556 160)"><path class="birthday-blossom__petal" style="--delay:-8.5s;--duration:14s" d="M0 0 C-7 -7 5 -10 5 -4 Q6 2 0 0" fill="#eba3bf"/></g>
+                <path class="birthday-blossom__sparkle" style="--delay:-0.0s" d="M61 162 Q62 165 65 166 Q62 167 61 170 Q60 167 57 166 Q60 165 61 162" fill="#c9a16d"/>
+                <path class="birthday-blossom__sparkle" style="--delay:-1.3s" d="M243 123 Q244 126 247 127 Q244 128 243 131 Q242 128 239 127 Q242 126 243 123" fill="#c9a16d"/>
+                <path class="birthday-blossom__sparkle" style="--delay:-2.6s" d="M413 121 Q414 124 417 125 Q414 126 413 129 Q412 126 409 125 Q412 124 413 121" fill="#c9a16d"/>
+                <path class="birthday-blossom__sparkle" style="--delay:-3.9000000000000004s" d="M585 227 Q586 230 589 231 Q586 232 585 235 Q584 232 581 231 Q584 230 585 227" fill="#c9a16d"/>
+                <path class="birthday-blossom__sparkle" style="--delay:-5.2s" d="M390 381 Q391 384 394 385 Q391 386 390 389 Q389 386 386 385 Q389 384 390 381" fill="#c9a16d"/>
+              </g>
+            </svg>
+          </section>
         </section>
         <div class="birthday__continue" id="continue-panel" hidden>
           <p id="continue-copy">your flowers are still here 🌸</p>
@@ -86,7 +176,6 @@
 i just wanted to give you something a little different this year, something you can look back on whenever you want hehe
 
 anywayyy, i hope being 16 treats you well, sofiii. enjoy your day, okay? you deserve it, classmate &amp; friend :3</p>
-          <p>— Feje 💗</p>
         </div>
       </div>
       <footer class="birthday__caption">
@@ -110,12 +199,11 @@ anywayyy, i hope being 16 treats you well, sofiii. enjoy your day, okay? you des
           <a class="birthday__pixel-button birthday__album-entry birthday__album-return" id="album-return" href="/sofhias-songs-67" hidden>my little album 💿♡</a>
           <button class="birthday__pixel-button birthday__home-return" id="return-home" type="button" hidden>⌂ return home :)</button>
         </section>
-        <p class="birthday__signature" id="signature">-fejee <span aria-hidden="true">💗</span></p>
       </footer>
       <p class="birthday__sr-only" id="announcement" role="status" aria-live="polite"></p>
     </section>
   </main>
   <audio id="birthday-audio" preload="auto" playsinline><source src="/assets/birthday/song.mp3" type="audio/mpeg"></audio>
-  <noscript><style>.birthday #welcome,.birthday #bouquet,.birthday #halo,.birthday__signature{display:none}.birthday #static-fallback{display:flex!important}</style></noscript>
+  <noscript><style>.birthday #welcome,.birthday #bouquet,.birthday #halo{display:none}.birthday--home .birthday__scene{min-height:85dvh}.birthday #static-fallback{display:flex!important}</style></noscript>
 </body>
 </html>

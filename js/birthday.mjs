@@ -19,7 +19,6 @@ const flower=document.createElement('span');flower.className='birthday__emoji';f
 $('greeting').append(name,flower);
 $('birthday-message').textContent=CONFIG.message;
 $('wish').textContent=CONFIG.wish;$('date').textContent=CONFIG.date;
-$('signature').textContent=`${CONFIG.signature} 💗`;
 document.title=`a little something for ${CONFIG.name} 🌸`;
 const source=audio.querySelector('source');if(source.getAttribute('src')!==CONFIG.audio){source.src=CONFIG.audio;audio.load();}
 
@@ -99,6 +98,7 @@ function settlePlay(promise,token,fromGesture,initial=false) {
 
 function begin() {
   if(!ready||disposed||active&&!revealed)return;
+  document.body.classList.remove('birthday--home');window.scrollTo(0,0);
   const now=performance.now(),token=++generation;
   audio.pause();clock.reset();particles.reset();active=true;revealed=false;buffering=false;manualPaused=false;backgroundResume=false;
   audio.muted=false;$('sound').disabled=false;$('sound').setAttribute('aria-pressed','false');$('sound').setAttribute('aria-label','Mute music');
@@ -124,6 +124,7 @@ function returnHome() {
   loadingSince=performance.now();lastVisual=0;lastSecond=-1;lastPhase=-1;welcomeFade=0;
   $('celebration').hidden=true;$('replay').hidden=true;$('return-home').hidden=true;
   $('album-return').hidden=true;$('progress-panel').hidden=true;$('controls').hidden=true;$('chrome-star').hidden=false;
+  document.body.classList.add('birthday--home');window.scrollTo(0,0);
   hideContinue();setStatus();$('welcome').hidden=false;$('welcome').classList.remove('is-leaving');
   $('welcome').scrollTop=0;$('celebration').parentElement.scrollTop=0;
   $('announcement').textContent='back home — your album and Compendium are here 🌸';
@@ -267,7 +268,8 @@ addEventListener('pagehide',event=>{
 addEventListener('pageshow',event=>{if(event.persisted){if(backgroundResume&&!manualPaused)resumeExperience(false);if(revealed&&!ambientRunning)startAmbient(performance.now());backgroundResume=false;lastFrame=0;schedule();}},options);
 
 if(!bouquet.c||!grove.c||!particles.c){
-  $('welcome').hidden=true;$('bouquet').hidden=true;$('halo').hidden=true;$('static-fallback').hidden=false;$('signature').hidden=true;
+  document.body.classList.remove('birthday--home');
+  $('welcome').hidden=true;$('bouquet').hidden=true;$('halo').hidden=true;$('static-fallback').hidden=false;
 }else{
   resize();audio.load();schedule();
 }

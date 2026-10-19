@@ -1,0 +1,29 @@
+/* Only the welcome view uses document scrolling. START keeps its scene layout. */
+.birthday.birthday--home{overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain}
+.birthday--home .birthday__viewport{height:auto;min-height:100vh;min-height:100dvh;justify-content:flex-start}
+.birthday--home .birthday__window{height:auto;min-height:0;flex:none}
+.birthday--home .birthday__scene{flex:none;overflow:visible;margin-right:0}
+.birthday--home .birthday__welcome{position:relative;inset:auto;overflow:visible;justify-content:flex-start;padding:32px 22px 0;transform:none}
+.birthday--home .birthday__welcome-flower{display:block}
+.birthday--home .birthday__caption{display:none}
+.birthday--home .birthday__album-entry{margin:20px auto 12px;flex:none}
+.birthday--home .birthday__compendium-entry{margin:14px auto 0;flex:none;isolation:isolate}
+.birthday--home .birthday__welcome.is-leaving{opacity:0}
+.birthday-blossom{position:relative;display:none;width:100%;max-width:680px;height:clamp(620px,95svh,820px);margin:32px auto 0;flex:none;isolation:isolate;pointer-events:none}
+.birthday--home .birthday-blossom{display:block}
+.birthday-blossom__art{position:sticky;top:clamp(25px,12dvh,120px);display:block;width:100%;height:auto;aspect-ratio:680 / 480;overflow:visible}
+.birthday-blossom__branches{filter:drop-shadow(0 2px 0 #fff4f5)}
+.birthday-blossom__trunk{stroke:#a77583}
+.birthday-blossom__letter{stroke:#92586f}
+.birthday-blossom.is-growing .birthday-blossom__grow{stroke-dasharray:1;transition:stroke-dashoffset .14s linear}
+.birthday-blossom__bloom use{transform-box:fill-box;transform-origin:center;transition:scale .18s}
+.birthday-blossom.is-growing .birthday-blossom__bloom{transition:opacity .18s,scale .18s;transform-box:fill-box;transform-origin:center}
+.birthday-blossom__atmosphere{opacity:0;transition:opacity .3s}
+.birthday-blossom.is-visible.is-blooming .birthday-blossom__atmosphere{opacity:.6}
+.birthday-blossom__petal{animation:sakura-fall var(--duration,12s) linear infinite;animation-delay:var(--delay);animation-play-state:paused}
+.birthday-blossom__sparkle{animation:sakura-shimmer 5s ease-in-out infinite;animation-delay:var(--delay);animation-play-state:paused}
+.birthday-blossom.is-visible.is-blooming .birthday-blossom__petal,.birthday-blossom.is-visible.is-blooming .birthday-blossom__sparkle{animation-play-state:running}
+@keyframes sakura-fall{0%{opacity:0;translate:0 0;rotate:0deg}12%{opacity:.7}85%{opacity:.4}100%{opacity:0;translate:30px 150px;rotate:130deg}}
+@keyframes sakura-shimmer{0%,100%{opacity:.15}50%{opacity:.8}}
+@media(max-width:600px){.birthday--home .birthday__welcome{padding:26px 18px 0}.birthday-blossom{width:calc(100% + 16px);max-width:none;margin-left:-8px;margin-right:-8px;margin-top:32px}.birthday--home .birthday__compendium-entry{margin-top:16px}}
+@media(prefers-reduced-motion:reduce){.birthday-blossom{height:auto;padding-bottom:35px}.birthday-blossom__art{position:static}.birthday-blossom__grow,.birthday-blossom__bloom,.birthday-blossom__bloom use{transition:none!important}.birthday-blossom__petal,.birthday-blossom__sparkle{animation:none!important}.birthday-blossom__atmosphere{opacity:.2!important}.birthday-blossom__petal{opacity:.4}}
