@@ -75,3 +75,8 @@
 @media(max-height:420px) and (max-width:600px){.birthday{overflow:auto}.birthday__viewport{min-height:560px;height:auto}.birthday__window{height:490px}.birthday__scene{margin-right:0}.birthday__caption{position:relative;width:100%;top:auto;bottom:auto}.birthday__welcome{position:absolute;inset:0}}
 @media(prefers-reduced-motion:reduce){.birthday__start,.birthday__dialog{animation:none}.birthday__welcome,.birthday__pixel-button{transition:none}.birthday__halo{will-change:auto}}
 .birthday__welcome h1,.birthday__dialog h1,.birthday__static h1,.birthday__pixel-button{font-family:BirthdayPixel,BirthdayEmoji,monospace!important}
+
+/* Preserve the birthday letter’s paragraphs in the finale and static fallback. */
+.birthday #wish,.birthday__static-wish{white-space:pre-line;overflow-wrap:anywhere}
+.birthday__static{overflow-y:auto;justify-content:safe center}
+.birthday__static img{flex-shrink:0;height:30%;max-height:230px}
