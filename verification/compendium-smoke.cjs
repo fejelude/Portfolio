@@ -22,7 +22,6 @@ const { startServer } = require('./birthday-server.cjs');
           await page.locator('.compendium__card').last().waitFor();
           assert.equal(await page.locator('.compendium__card').count(), 9);
           await page.waitForFunction(() => [...document.querySelectorAll('.compendium__card img')].slice(0, 3).every(i => i.complete && i.naturalWidth > 0));
-          assert.equal(await page.locator('#compendium-total').textContent(), '09 little worlds');
           const canvas = () => page.$eval('#compendium-sky', e => e.toDataURL());
           await activate('#compendium-motion');
           assert.equal(await page.locator('#compendium-motion').getAttribute('aria-pressed'), 'true');

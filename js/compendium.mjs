@@ -12,7 +12,6 @@ const previousButton = document.getElementById('compendium-prev');
 const nextButton = document.getElementById('compendium-next');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const scene = createScrapbookScene(document.getElementById('compendium-sky'), document.getElementById('compendium-motion'), dialog);
-document.getElementById('compendium-total').textContent = `${String(COMPENDIUM_ITEMS.length).padStart(2, '0')} little worlds`;
 let activeIndex = 0;
 let trigger = null;
 let closingTimer = 0;

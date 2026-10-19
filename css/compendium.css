@@ -64,15 +64,11 @@
 .compendium__header::before{inset:11px;border:1px dashed #dbadc5}
 .compendium__header::after{content:'';position:absolute;width:85px;height:25px;left:calc(50% - 42px);top:-13px;background:repeating-linear-gradient(90deg,#ecd6ba8c 0 3px,#f1ddc98c 3px 6px);border:1px solid #ddbf9e70;transform:rotate(-3deg);box-shadow:0 1px 2px #89647c0d}
 .compendium__heading h1{color:#9b537a;text-shadow:2px 2px #fff,3px 3px #eed8e4}
-.compendium__intro{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:30px 7px 25px}
-.compendium__eyebrow{font-size:.66rem;line-height:1.6;letter-spacing:.13em;color:#94667e;margin:0 0 7px}
-.compendium__subtitle{font-size:clamp(.9rem,2.3vw,1.13rem);margin:0;color:#9a6682;line-height:1.6}
+.compendium__intro{display:flex;align-items:center;justify-content:flex-end;padding:20px 7px}
 .compendium__motion{flex:none;border:1px solid #c797b0;border-radius:30px;background:#fff9f5c9;color:#88536f;padding:10px 14px;font-size:.75rem;min-height:44px;box-shadow:0 3px 9px #925b7a0a}
 .compendium__motion:hover{background:#fff4fa;border-color:#a66b8c}
 .compendium__motion:disabled{cursor:default;opacity:.8}
-.compendium__gallery{position:relative;padding:0 17px 24px;border:1px solid #d6b5cb88;border-radius:3px;background:linear-gradient(90deg,#fffaf026 0 19px,#c591ae17 19px 20px,transparent 20px),repeating-linear-gradient(0deg,transparent 0 31px,#c091ac0b 31px 32px);box-shadow:0 14px 50px #90648208}
-.compendium__collection-label{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:18px 2px 31px;color:#9c6a85;font-size:.73rem;letter-spacing:.04em}
-.compendium__collection-label span:last-child{font-size:.66rem;color:#a47b90}
+.compendium__gallery{position:relative;padding:24px 17px;border:1px solid #d6b5cb88;border-radius:3px;background:linear-gradient(90deg,#fffaf026 0 19px,#c591ae17 19px 20px,transparent 20px),repeating-linear-gradient(0deg,transparent 0 31px,#c091ac0b 31px 32px);box-shadow:0 14px 50px #90648208}
 .compendium__grid{gap:clamp(30px,4vw,47px);padding:0 4px 6px;perspective:1100px}
 .compendium__card{padding:11px 11px 20px;border:1px solid #dcc3cf;background:linear-gradient(135deg,#fffdf8,#fff8f8);box-shadow:1px 2px 0 #f5e6eb,2px 3px 0 #d7b9c93d,0 10px 18px #85546c16;transform:rotate(var(--tilt,0deg));transform-style:preserve-3d;transition:transform .3s ease,box-shadow .3s ease}
 .compendium__card::before{content:'';position:absolute;z-index:1;top:-11px;left:calc(50% - 32px);width:64px;height:23px;background:repeating-linear-gradient(45deg,#e0c6d899 0 5px,#f4e4edaa 5px 10px);border:1px solid #c9a8c54d;transform:rotate(calc(var(--tilt,0deg) * -2));box-shadow:0 1px 3px #9c6a8c0a;pointer-events:none}
@@ -88,10 +84,9 @@
 .compendium__ornaments span{position:absolute;font-size:110px;line-height:1;color:#d6b4cd;opacity:.2;transform:rotate(-15deg)}
 .compendium__ornaments span:nth-child(1){left:-25px;top:130px}.compendium__ornaments span:nth-child(2){right:-36px;top:330px;font-size:150px}.compendium__ornaments span:nth-child(3){left:4%;top:580px;font-size:60px}
 .compendium__footer{padding-top:45px;font-size:.9rem;color:#b1849d;letter-spacing:12px}
-.compendium__footer p{font-size:.76rem;letter-spacing:.02em;line-height:1.7;margin:15px 0 0;color:#9f7b91}
 @keyframes compendium-unfold{from{opacity:.25;translate:0 22px}to{opacity:1;translate:0 0}}
 @media(hover:none){.compendium__card:hover{transform:rotate(var(--tilt,0deg))}}
-@media(max-width:550px){.compendium__page{padding-top:26px}.compendium__header{min-height:132px}.compendium__intro{align-items:flex-start;flex-direction:column;gap:13px;padding:24px 2px}.compendium__motion{font-size:.71rem;padding:9px 13px}.compendium__eyebrow{font-size:.6rem;letter-spacing:.08em}.compendium__gallery{padding:0 12px 19px}.compendium__collection-label{padding-bottom:26px;font-size:.67rem}.compendium__collection-label span:last-child{font-size:.62rem}.compendium__grid{gap:34px;padding:0 1px 6px}.compendium__card{transform:rotate(calc(var(--tilt,0deg) * .45))}.compendium__ornaments span{font-size:75px}}
+@media(max-width:550px){.compendium__page{padding-top:26px}.compendium__header{min-height:132px}.compendium__intro{align-items:flex-start;flex-direction:column;padding:18px 2px}.compendium__motion{font-size:.71rem;padding:9px 13px}.compendium__gallery{padding:22px 12px 19px}.compendium__grid{gap:34px;padding:0 1px 6px}.compendium__card{transform:rotate(calc(var(--tilt,0deg) * .45))}.compendium__ornaments span{font-size:75px}}
 .compendium--still .compendium__card,.compendium--still .compendium__page{animation:none!important;transition:none!important}
 .compendium--still .compendium__card:hover{transform:rotate(var(--tilt,0deg))}
 @media(prefers-reduced-motion:reduce){.compendium__card.is-revealed{animation:none!important}.compendium__card:hover{transform:none}}

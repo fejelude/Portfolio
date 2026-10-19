@@ -17,7 +17,7 @@ $('greeting').replaceChildren(document.createTextNode(CONFIG.greeting),document.
 const name=document.createElement('span');name.textContent=CONFIG.name;
 const flower=document.createElement('span');flower.className='birthday__emoji';flower.textContent=' 🌸';
 $('greeting').append(name,flower);
-$('birthday-message').replaceChildren(document.createTextNode(CONFIG.message),document.createElement('br'),document.createTextNode(`${CONFIG.name} 💖`));
+$('birthday-message').textContent=CONFIG.message;
 $('wish').textContent=CONFIG.wish;$('date').textContent=CONFIG.date;
 $('signature').textContent=`${CONFIG.signature} 💗`;
 document.title=`a little something for ${CONFIG.name} 🌸`;
@@ -138,7 +138,7 @@ function celebrate(now) {
   hideContinue();$('progress-panel').hidden=true;$('celebration').hidden=false;
   $('progress').setAttribute('aria-valuenow',String(CONFIG.duration));$('progress-fill').style.transform='scaleX(1)';$('time').firstChild.textContent='1:00 ';
   $('pause').disabled=true;$('pause').setAttribute('aria-label','Bouquet complete');
-  $('announcement').textContent=`${CONFIG.message} ${CONFIG.name}! ${CONFIG.wish}`;
+  $('announcement').textContent=`${CONFIG.message}. ${CONFIG.wish}`;
   particles.burst(motion.matches);
   resize();
   // The scene stays up indefinitely. Only a new explicit Replay restarts it.

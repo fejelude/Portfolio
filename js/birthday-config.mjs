@@ -2,8 +2,8 @@
 export const CONFIG = Object.freeze({
   name: 'Sofhia',
   greeting: 'hiii,',
-  message: 'Happy 16th Birthday,',
-  wish: 'i hope you have a really, really good birthday. you deserve a good day today, may ibibigay din ako sayo na something 🤫',
+  message: "sofhia franchesca, happy birthdayy",
+  wish: "i genuinely hope dis made you happy, i know i can’t really put everything i wanna say into one little message, so i kinda made this whole website instead HAHAHA \n\ni just wanted to give you something a little different this year, something you can look back on whenever you want hehe\n\nanywayyy, i hope being 16 treats you well, sofiii. enjoy your day, okay? you deserve it, classmate & friend :3",
   date: '21 • 10 • 2026',
   signature: '-fejee',
   audio: '/assets/birthday/song.mp3',
