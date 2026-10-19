@@ -1,0 +1,8 @@
+/* Isolated entry styling; START, album and lily are unchanged. */
+.birthday__compendium-entry{display:block;width:fit-content;max-width:100%;margin:9px auto 0;padding:8px 16px;min-height:44px;text-align:center;text-decoration:none;font-size:.9rem!important;line-height:1.35;background:#fff0f7;border-color:#c7799c;box-shadow:inset 3px 3px #fffafa,inset -3px -3px #efb4d0,0 4px #c7799c,0 7px #f0cada;position:relative;animation:compendium-link-in .65s both}
+.birthday__compendium-entry:hover{background:#ffe3f0}
+.birthday__compendium-entry::after{content:'✿';position:absolute;right:-9px;top:-12px;color:#c26896;font-size:1rem;background:#fff1f8;padding:1px 3px;pointer-events:none}
+.birthday__compendium-entry:focus-visible{outline:3px solid #823a87;outline-offset:5px}
+@keyframes compendium-link-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@media(max-height:640px){.birthday__compendium-entry{margin-top:8px;padding:5px 10px;font-size:.8rem!important}}
+@media(prefers-reduced-motion:reduce){.birthday__compendium-entry{animation:none}}
