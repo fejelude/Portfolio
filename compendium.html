@@ -30,7 +30,8 @@
       <path d="M36 36l-6-14m6 14 8-16m-8 16 15-2" stroke="#c68d63" stroke-width="1.8"/>
     </symbol>
   </svg>
-  <div class="compendium__petals" aria-hidden="true"><span>✿</span><span>✦</span><span>✿</span><span>✧</span><span>✿</span><span>✦</span></div>
+  <canvas class="compendium__sky" id="compendium-sky" aria-hidden="true"></canvas>
+  <div class="compendium__ornaments" aria-hidden="true"><span>✧</span><span>✿</span><span>♡</span></div>
   <main class="compendium__page">
     <header class="compendium__header">
       <a class="compendium__back" href="/sofhia-franchesca-16" aria-label="Back to the birthday page">← back</a>
@@ -41,11 +42,16 @@
       </div>
       <span class="compendium__header-star" aria-hidden="true">✦</span>
     </header>
+    <div class="compendium__intro">
+      <div><p class="compendium__eyebrow">THE LITTLE THINGS, KEPT FOREVER</p><p class="compendium__subtitle">a little collection of worlds & wonders ♡</p></div>
+      <button class="compendium__motion" id="compendium-motion" type="button" aria-pressed="false" hidden>pause animations</button>
+    </div>
     <section class="compendium__gallery" aria-label="Creations gallery">
+      <div class="compendium__collection-label"><span>✦ the collection</span><span id="compendium-total"></span></div>
       <div class="compendium__grid" id="compendium-grid"></div>
       <p class="compendium__empty" id="compendium-empty" hidden>No images here yet. 🌸</p>
     </section>
-    <footer class="compendium__footer" aria-hidden="true">✦  ✿  ✦</footer>
+    <footer class="compendium__footer"><span aria-hidden="true">✦  ✿  ✦</span><p>little pieces of my world, for you.</p></footer>
   </main>
   <dialog class="compendium__lightbox" id="compendium-lightbox" aria-label="Enlarged gallery image">
     <div class="compendium__viewer">
