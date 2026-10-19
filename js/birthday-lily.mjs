@@ -54,7 +54,7 @@ function initLily(){
     cakeDetails.style.opacity=String(ease((t-5.8)/.5));
     $('[data-lily-flame]').style.opacity=String(ease((t-6.25)/.6));
     glow.style.opacity=String(.45+Math.sin(clamp((t-4)/2)*Math.PI)*.4);
-    orbit.forEach((star,i)=>{const angle=i*Math.PI/5+t*(t<4?.25:1.1),r=62+Math.sin(t*1.2+i)*8;star.setAttribute('transform',`translate(${100+Math.cos(angle)*r} ${95+Math.sin(angle)*r*.8}) scale(${.45+(1+Math.sin(t*2+i))*.24})`);star.style.opacity=String((t<6?ease((t-1)/2):1-ease((t-7)/2))*.8);});
+    orbit.forEach((star,i)=>{const angle=i*Math.PI/5+t*.25+Math.max(0,t-4)*.85,r=62+Math.sin(t*1.2+i)*8;star.setAttribute('transform',`translate(${100+Math.cos(angle)*r} ${95+Math.sin(angle)*r*.8}) scale(${.45+(1+Math.sin(t*2+i))*.24})`);star.style.opacity=String((t<6?ease((t-1)/2):1-ease((t-7)/2))*.8);});
     button.dataset.phase=t<2.2?'bud':t<4?'bloom':t<6.1?'transform':t<7?'candle':'celebrate';
   }
   function finish(){ready=true;button.disabled=false;button.dataset.ready='true';button.dataset.phase='cake';button.setAttribute('aria-label','Celebrate Sofhia’s birthday — tap the pink cake');}
