@@ -53,24 +53,33 @@ test('unknown duration never renders NaN; times are stable on long songs', () =>
   assert.equal(timeLabel(undefined),'—:—'); assert.equal(timeLabel(NaN),'—:—');
   assert.equal(timeLabel(Infinity),'—:—'); assert.equal(timeLabel(8.04),'0:08'); assert.equal(timeLabel(3725),'62:05');
 });
-test('songs one through three are connected and all 18 tracks have existing audio and covers', () => {
+test('songs one through five are connected and all 18 tracks have existing audio and covers', () => {
   assert.equal(ALBUM.tracks.length,18); assert.equal(new Set(ALBUM.tracks.map(t => t.id)).size,18);
   for (const t of ALBUM.tracks) {
     if (t.id === 'song-01') assert.equal(t.title, 'Love Me');
     else if (t.id === 'song-02') assert.equal(t.title, 'Made in Camella');
     else if (t.id === 'song-03') assert.equal(t.title, 'Daisies');
     else if (t.id === 'song-04') assert.equal(t.title, 'One Less Lonely Girl');
+    else if (t.id === 'song-05') assert.equal(t.title, 'Photograph');
     else assert.match(t.title,/Song \d{2}/);
     for (const p of [t.audio,t.fallbackAudio,t.cover].filter(Boolean)) assert.ok(existsSync(new URL(`..${p}`, import.meta.url)),p);
   }
   assert.equal(ALBUM.tracks[0].placeholder,false);
   assert.equal(ALBUM.tracks[0].coverShape,'square');
   assert.ok(ALBUM.tracks[0].duration>175&&ALBUM.tracks[0].duration<176);
-  assert.ok(ALBUM.tracks.slice(4).every(t=>t.placeholder));
+  assert.ok(ALBUM.tracks.slice(5).every(t=>t.placeholder));
   assert.deepEqual(ALBUM.tracks.filter(t=>t.deluxe).map(t=>t.id), ['song-04']);
   assert.equal(ALBUM.tracks[3].audio, '/assets/album/song-04.mp3');
   assert.equal(ALBUM.tracks[3].fallbackAudio, '/assets/album/song-04.m4a');
   assert.equal(ALBUM.tracks[3].coverShape, 'square');
+  const photograph = ALBUM.tracks[4];
+  assert.equal(photograph.placeholder, false);
+  assert.equal(photograph.originalArtist, 'Ed Sheeran');
+  assert.equal(photograph.dateMade, '2026-07-24');
+  assert.equal(photograph.coverShape, 'square');
+  assert.equal(photograph.mediaCover, photograph.cover);
+  assert.ok(photograph.duration > 148 && photograph.duration < 149);
+  assert.equal(photograph.note.split('\n\n').length, 6);
   for (const p of [ALBUM.backgroundMusic,ALBUM.cover,ALBUM.mediaCover,ALBUM.unlockAudio]) assert.ok(existsSync(new URL(`..${p}`,import.meta.url)));
 });
 test('updated album labels are consistent in config, markup, and player code', () => {
