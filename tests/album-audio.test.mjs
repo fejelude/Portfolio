@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { setTimeout as delay } from 'node:timers/promises';
 import { AlbumPlayer } from '../js/album-audio.mjs';
+import { collectionPlayback } from '../js/album-collections.mjs';
+import { discoverTracks } from '../js/album-discover-config.mjs';
 
 // Exercise the actual controller with deterministic platform doubles. Browser
 // smoke tests separately use native decoding/audio, never this fake platform.
@@ -52,10 +54,10 @@ globalThis.window = { AudioContext: Context, MediaMetadata: class { constructor(
 globalThis.MediaMetadata = window.MediaMetadata;
 globalThis.document = { baseURI: 'https://album.test/' };
 
-function fixture() {
+function fixture(extraTracks = []) {
   const audio = new Media(), next = new Media(); let bursts = 0;
   const config = { title: 'Test album', artist: 'Feje', backgroundMusic: '', backgroundVolume: .4, unlockAudio: '/sample.mp3',
-    tracks: [{ id: 'a', title: 'A', audio: '/a.mp3' },{ id: 'locked', title: 'Locked', audio: '' },{ id: 'b', title: 'B', audio: '/b.mp3', fallbackAudio: '/b.m4a' },{ id: 'c', title: 'C', audio: '/c.mp3' }] };
+    tracks: [{ id: 'a', title: 'A', audio: '/a.mp3' },{ id: 'locked', title: 'Locked', audio: '' },{ id: 'b', title: 'B', audio: '/b.mp3', fallbackAudio: '/b.m4a' },{ id: 'c', title: 'C', audio: '/c.mp3' }].concat(extraTracks) };
   const p = new AlbumPlayer(audio, next, config, () => {
     assert.ok(!(p.mixer.songAudible && p.mixer.ambientValue() > .001), 'audible song and background must never overlap');
   }, () => bursts++);
@@ -164,4 +166,31 @@ test('Media Session play/pause/seek/next work and exit releases handlers, source
   p.dispose(); assert.equal(audio.src,''); assert.equal(next.src,''); assert.equal(p.life.signal.aborted,true); assert.equal(p.mixer.context,null);
   assert.equal(mediaSession.handlers.get('play'),null); assert.equal(mediaSession.metadata,null);
   audio.dispatchEvent(new Event('playing')); audio.dispatchEvent(new Event('ended')); assert.equal(p.disposed,true);
+});
+
+test('ranked audio uses the same exclusive player with a separate queue and correct metadata', async () => {
+  const ranked = discoverTracks(), { p, audio, next } = fixture(ranked);
+  const originals = p.config.tracks.slice(0, -ranked.length);
+  const collections = collectionPlayback(originals, ranked); p.queue = collections.initialQueue;
+  p.open(); await delay(5);
+  collections.select(p, 'a'); await settled(p);
+  collections.select(p, 'discover-01'); await settled(p);
+  assert.equal(p.current.title, 'Beauty And A Beat');
+  assert.equal(audio.src, '/assets/album/discover-01.mp3');
+  assert.equal(p.mixer.ambientValue(), 0); assert.equal(p.mixer.songAudible, true);
+  assert.equal(next.paused, true); assert.equal(next.playCount, 0);
+  assert.deepEqual(p.queue.order, ['discover-01']); assert.equal(p.queue.next('discover-01'), null);
+  assert.equal(mediaSession.metadata.artist, 'Justin Bieber ft. Nicki Minaj');
+  assert.equal(mediaSession.metadata.album, 'More to Discover ♡');
+  p.pause(); assert.equal(audio.paused, true); p.seek(3); assert.equal(audio.currentTime, 3);
+  p.play(); await settled(p); assert.equal(audio.currentTime, 3);
+  audio.end(); assert.equal(p.state, 'finished');
+  collections.select(p, 'c'); await settled(p);
+  assert.equal(p.queue, collections.initialQueue); assert.equal(p.current.id, 'c');
+  assert.equal(p.queue.next('c'), null); audio.end(); assert.equal(p.state, 'finished');
+  assert.equal(p.current.id, 'c', 'the original album cannot advance into the ranking');
+  assert.equal(collections.select(p, 'discover-02'), false, 'placeholders cannot be selected');
+  collections.select(p, 'discover-01'); await settled(p); p.queue.repeat = 'all'; p.setShuffle(true);
+  collections.select(p, 'a'); await settled(p); assert.equal(p.queue.repeat, 'all'); assert.equal(p.queue.shuffle, true);
+  p.dispose();
 });

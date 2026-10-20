@@ -1,11 +1,8 @@
-// This is a separate collection; never add these slots to ALBUM.tracks.
-// Fill the fields for each rank when the real content is supplied. All seven
-// stay empty for now. description preserves blank lines. Artwork is a real
-// image URL/path; link is the song's destination. audio may be a direct audio
-// URL, opened as a song link when no other link is supplied. No audio is fetched
-// or played by this template. Inline playback can be added with the recordings.
+// A separate ranking, never appended to ALBUM.tracks. Fill each rank only with
+// supplied content. Descriptions preserve blank lines; links are optional.
+// Configured audio uses the existing album player and its exclusive audio gate.
 export const DISCOVER = Object.freeze([
-  { rank: 1, title: '', artist: '', artwork: '', audio: '', link: '', description: '' },
+  { rank: 1, title: 'Beauty And A Beat', artist: 'Justin Bieber ft. Nicki Minaj', artwork: '/assets/album/discover-01-cover.jpg', audio: '/assets/album/discover-01.mp3', fallbackAudio: '/assets/album/discover-01.m4a', duration: 64.27, link: '', description: '' },
   { rank: 2, title: '', artist: '', artwork: '', audio: '', link: '', description: '' },
   { rank: 3, title: '', artist: '', artwork: '', audio: '', link: '', description: '' },
   { rank: 4, title: '', artist: '', artwork: '', audio: '', link: '', description: '' },
@@ -20,4 +17,15 @@ export function songDestination(value, base = 'https://fejelude.xyz') {
     const url = new URL(value, base);
     return ['https:', 'http:'].includes(url.protocol) ? url.href : null;
   } catch { return null; }
+}
+
+export function discoverTracks(slots = DISCOVER) {
+  return slots.filter(slot => slot.audio).map(slot => ({
+    id: `discover-${String(slot.rank).padStart(2, '0')}`,
+    title: slot.title, artist: slot.artist, audio: slot.audio,
+    fallbackAudio: slot.fallbackAudio, duration: slot.duration,
+    cover: slot.artwork, mediaCover: slot.artwork, coverShape: 'square',
+    note: slot.description, discoveryRank: slot.rank,
+    collectionTitle: 'More to Discover ♡',
+  }));
 }

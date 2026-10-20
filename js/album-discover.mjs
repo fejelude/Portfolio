@@ -43,12 +43,18 @@ function cardFor(slot) {
   summary.append(rank, art, info, expand);
   const body = element('div', 'discover__body');
   const media = element('div', 'discover__media');
-  const destination = songDestination(slot.link || slot.audio, document.baseURI);
-  if (destination) {
+  const destination = songDestination(slot.link, document.baseURI);
+  if (slot.audio && songDestination(slot.audio, document.baseURI)) {
+    const play = element('button', 'discover__listen', 'play in player ♫');
+    play.type = 'button'; play.dataset.discoveryId = `discover-${String(slot.rank).padStart(2, '0')}`;
+    play.setAttribute('aria-pressed', 'false');
+    play.addEventListener('click', () => document.dispatchEvent(new CustomEvent('album:select-discovery', { detail: { id: play.dataset.discoveryId } })));
+    media.append(play);
+  } else if (destination) {
     const link = element('a', 'discover__song-link', 'open song ↗'); link.href = destination; link.target = '_blank'; link.rel = 'noopener noreferrer'; media.append(link);
   } else media.append(element('p', 'discover__pending', 'audio / song link — to be added'));
   body.append(media, element('h3', 'discover__note-heading', 'why this song ♡'),
-    element('p', 'discover__description', slot.description || 'description to be added'));
+    element('p', 'discover__description', slot.description || (slot.title ? 'coming soon ♡' : 'description to be added')));
   card.append(summary, body); item.append(card); return item;
 }
 
@@ -76,6 +82,15 @@ if (typeof document !== 'undefined') {
   const list = document.getElementById('discover-list');
   if (list) {
     list.replaceChildren(...DISCOVER.map(cardFor));
+    document.addEventListener('album:playback', event => {
+      for (const button of list.querySelectorAll('.discover__listen')) {
+        const selected = event.detail.id === button.dataset.discoveryId;
+        const playing = selected && event.detail.playing;
+        button.setAttribute('aria-pressed', String(playing));
+        button.textContent = playing ? 'pause ♫' : selected ? 'play ♫' : 'play in player ♫';
+        button.disabled = event.detail.failed.includes(button.dataset.discoveryId);
+      }
+    });
     if ('IntersectionObserver' in window) {
       const observer = new IntersectionObserver(entries => {
         for (const entry of entries) entry.target.classList.toggle('is-in-view', entry.isIntersecting && !document.hidden);

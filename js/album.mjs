@@ -1,4 +1,6 @@
 import { ALBUM } from './album-config.mjs';
+import { discoverTracks } from './album-discover-config.mjs';
+import { collectionPlayback } from './album-collections.mjs';
 import { AlbumPlayer } from './album-audio.mjs';
 import { clamp, timeLabel } from './album-core.mjs';
 import { GroveRenderer, ParticleGarden } from './birthday-art.mjs';
@@ -8,9 +10,11 @@ const life = new AbortController(), opts = { signal: life.signal };
 const motion = matchMedia('(prefers-reduced-motion: reduce)');
 const grove = new GroveRenderer($('album-grove')), particles = new ParticleGarden($('album-particles'));
 const rows = new Map(), probes = new Set(), metadataCache = new Map();
+const collections = collectionPlayback(ALBUM.tracks, discoverTracks());
 let player, disposed = false, opened = false, raf = 0, lastFrame = 0, lastGrove = 0, heartAt = 0, transitionTimer;
 let pointer = { x: 0, y: 0 }, parallax = { x: 0, y: 0 }, tiltAttached = false;
 let activeView = '', currentView = '', scrubbing = false, previousFocus = null;
+let discoveryState = '';
 
 // Recipient content is text, never interpolated HTML. Changing just the config
 // updates both screens, the footer, birthday entry copy, and Media Session.
@@ -58,7 +62,7 @@ function noteFor(track, origin) {
   if (!track.note && !track.lyrics) return;
   previousFocus = origin || document.activeElement;
   $('note-title').textContent = track.title;
-  $('note-number').textContent = `TRACK ${String(ALBUM.tracks.indexOf(track) + 1).padStart(2, '0')}`;
+  $('note-number').textContent = track.discoveryRank ? `MORE TO DISCOVER · TOP ${track.discoveryRank}` : `TRACK ${String(ALBUM.tracks.indexOf(track) + 1).padStart(2, '0')}`;
   $('note-copy').textContent = track.note || ''; $('note-copy').hidden = !track.note;
   $('note-lyrics').textContent = track.lyrics || ''; $('note-lyrics').hidden = !track.lyrics;
   $('note-dialog').showModal(); $('close-note').focus({ preventScroll: true });
@@ -84,7 +88,7 @@ for (const [index, track] of ALBUM.tracks.entries()) {
     note.className = 'album__track-note'; note.setAttribute('aria-label', `Read ${track.lyrics ? 'lyrics' : 'note'} for ${track.title}`);
     note.append(icon('heart')); note.addEventListener('click', () => noteFor(track, note), opts); row.append(note);
   }
-  button.addEventListener('click', () => player.select(track.id), opts);
+  button.addEventListener('click', () => collections.select(player, track.id), opts);
   rows.set(track.id, { row, button, meta, track }); $('tracklist').append(row);
 }
 
@@ -109,8 +113,8 @@ function render(p) {
   if (track && track.id !== currentView) {
     currentView = track.id;
     $('player-title').textContent = track.title;
-    $('player-number').textContent = `TRACK ${String(ALBUM.tracks.indexOf(track) + 1).padStart(2, '0')} / ${String(ALBUM.tracks.length).padStart(2, '0')}`;
-    $('player-detail').textContent = track.originalArtist ? `${ALBUM.artist} · ${track.originalArtist} cover` : ALBUM.artist;
+    $('player-number').textContent = track.discoveryRank ? `MORE TO DISCOVER · TOP ${track.discoveryRank}${track.discoveryRank === 1 ? ' — GOLD' : ''}` : `TRACK ${String(ALBUM.tracks.indexOf(track) + 1).padStart(2, '0')} / ${String(ALBUM.tracks.length).padStart(2, '0')}`;
+    $('player-detail').textContent = track.artist || (track.originalArtist ? `${ALBUM.artist} · ${track.originalArtist} cover` : ALBUM.artist);
     if (track.deluxe) $('player-detail').append(' ', deluxeBadge());
     $('player-cover').style.visibility = ''; delete $('player-cover').dataset.fallback;
     $('player-cover').src = track.cover || ALBUM.cover;
@@ -140,8 +144,13 @@ function render(p) {
     $('song-seek').value = current; $('song-seek').style.setProperty('--progress', `${valid ? clamp(current / p.audio.duration) * 100 : 0}%`);
     $('song-seek').setAttribute('aria-valuetext', `${timeLabel(current)} of ${timeLabel(duration)}`);
   }
+  const state = `${track?.id}|${p.wantsPlaying}|${p.state}|${p.failed.size}`;
+  if (state !== discoveryState) {
+    discoveryState = state;
+    document.dispatchEvent(new CustomEvent('album:playback', { detail: { id: track?.id, playing: p.wantsPlaying, failed: [...p.failed] } }));
+  }
 }
-player = new AlbumPlayer($('song-audio'), $('next-audio'), ALBUM, render, () => {
+player = new AlbumPlayer($('song-audio'), $('next-audio'), { ...ALBUM, tracks: collections.tracks }, render, () => {
   if (!motion.matches) {
     const rect = $('now-playing').getBoundingClientRect();
     for (let i = 0; i < 16; i++) {
@@ -151,12 +160,20 @@ player = new AlbumPlayer($('song-audio'), $('next-audio'), ALBUM, render, () => 
     }
   }
 });
+player.queue = collections.initialQueue;
 render(player);
+document.addEventListener('album:select-discovery', event => {
+  const id = event.detail?.id;
+  if (!collections.tracks.some(track => track.id === id && track.discoveryRank)) return;
+  if (player.current?.id === id) player.toggle();
+  else collections.select(player, id);
+  $('now-playing').scrollIntoView({ behavior: motion.matches ? 'auto' : 'smooth', block: 'center' });
+}, opts);
 
 // Read missing durations with metadata-only probes. Shared sample files are
 // decoded once; no list audio can play, and only current/next preload in full.
 async function readDurations() {
-  for (const track of ALBUM.tracks) {
+  for (const track of collections.tracks) {
     if (disposed || !track.audio || Number.isFinite(track.duration)) continue;
     if (metadataCache.has(track.audio)) { player.metadata.set(track.id, metadataCache.get(track.audio)); render(player); continue; }
     const result = await new Promise(resolve => {
