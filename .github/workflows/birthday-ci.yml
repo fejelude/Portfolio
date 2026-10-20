@@ -43,7 +43,7 @@ jobs:
           pulseaudio --start --exit-idle-time=-1
           pactl load-module module-null-sink sink_name=ci_audio
           pactl set-default-sink ci_audio
-      - run: ffmpeg -nostdin -v error -xerror -i assets/birthday/song.mp3 -f null -
+      - run: ffmpeg -nostdin -v error -xerror -i assets/birthday/bouquet-20261020.mp3 -f null -
         if: runner.os == 'Linux'
       - run: node verification/birthday-lily-smoke.cjs
         env:
