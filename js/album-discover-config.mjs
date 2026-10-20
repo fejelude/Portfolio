@@ -4,7 +4,7 @@
 export const DISCOVER = Object.freeze([
   { rank: 1, title: 'Beauty And A Beat', artist: 'Justin Bieber ft. Nicki Minaj', artwork: '/assets/album/discover-01-cover.jpg', audio: '/assets/album/discover-01.mp3', fallbackAudio: '/assets/album/discover-01.m4a', duration: 64.27, link: '', description: '' },
   { rank: 2, title: 'One Less Lonely Girl', artist: 'Justin Bieber', artwork: '/assets/album/discover-02-cover.jpg', audio: '/assets/album/discover-02.mp3', fallbackAudio: '/assets/album/discover-02.m4a', duration: 67.428345, link: '', description: '' },
-  { rank: 3, title: '', artist: '', artwork: '', audio: '', link: '', description: '' },
+  { rank: 3, title: 'Eenie Meenie', artist: 'Sean Kingston & Justin Bieber', artwork: '/assets/album/discover-03-cover.jpg', audio: '/assets/album/discover-03.mp3', fallbackAudio: '/assets/album/discover-03.m4a', duration: 36.313333, link: '', description: '' },
   { rank: 4, title: '', artist: '', artwork: '', audio: '', link: '', description: '' },
   { rank: 5, title: '', artist: '', artwork: '', audio: '', link: '', description: '' },
   { rank: 6, title: '', artist: '', artwork: '', audio: '', link: '', description: '' },
