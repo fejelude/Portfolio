@@ -69,7 +69,8 @@ test('static route has noindex, accessible zoom, typed real audio, and isolated 
   assert.match(html,/preload="auto"/);assert.match(html,/type="audio\/mpeg"/);assert.match(html,/<noscript>/);
   assert.match(html,/#static-fallback\{display:flex!important\}/);
   assert.equal(CONFIG.duration,60);assert.deepEqual(CONFIG.stages,[10,32,47,57,60]);
-  assert.ok(existsSync(new URL('../assets/birthday/song.mp3',import.meta.url)));
+  assert.ok(existsSync(new URL('..'+CONFIG.audio,import.meta.url)));
+  assert.ok(html.includes(`src="${CONFIG.audio}"`));
   for(const file of ['index.html','Gallery.html','Sofra.html','SofraPanel.html'])assert.doesNotMatch(readFileSync(new URL(`../${file}`,import.meta.url),'utf8'),/sofhia-franchesca-16/);
   const vercel=JSON.parse(readFileSync(new URL('../vercel.json',import.meta.url),'utf8'));
   for(const route of ['/sofhia-franchesca-16','/sofhia-franchesca-16.html'])assert.ok(vercel.headers.find(h=>h.source===route).headers.some(h=>h.key==='X-Robots-Tag'&&h.value==='noindex, nofollow'));

@@ -95,7 +95,7 @@ async function simulated(browser,name,url){
  await page.screenshot({path:path.join(out,`${name}-reduced-motion.png`)});await context.close();
  const nojs=await browser.newContext({javaScriptEnabled:false,viewport:{width:390,height:844}});const staticPage=await nojs.newPage();await staticPage.goto(url+'/sofhia-franchesca-16');assert.equal(await staticPage.locator('#static-fallback').isVisible(),true);assert.equal(await staticPage.locator('button:visible').count(),0);await staticPage.screenshot({path:path.join(out,`${name}-nojs.png`)});await nojs.close();
  const optional=await browser.newContext({viewport:{width:390,height:844}});const optionalPage=await optional.newPage();await optionalPage.addInitScript(()=>HTMLCanvasElement.prototype.getContext=()=>null);await optionalPage.goto(url+'/sofhia-franchesca-16');assert.equal(await optionalPage.locator('#static-fallback').isVisible(),true);assert.equal(await optionalPage.locator('button:visible').count(),0);await optional.close();
- const missing=await browser.newContext({viewport:{width:390,height:844}});const missingPage=await missing.newPage();await missingPage.addInitScript(controlledTime);await missingPage.route('**/assets/birthday/song.mp3',route=>route.fulfill({status:404,body:''}));await missingPage.goto(url+'/sofhia-franchesca-16');await tick(missingPage,3100);await missingPage.click('#start');await missingPage.waitForFunction(()=>document.getElementById('sound').getAttribute('aria-label')==='Music unavailable');await tick(missingPage,100);await tick(missingPage,59000);assert.equal(await revealed(missingPage),false);await tick(missingPage,1100);assert.equal(await revealed(missingPage),true);await missing.close();
+ const missing=await browser.newContext({viewport:{width:390,height:844}});const missingPage=await missing.newPage();await missingPage.addInitScript(controlledTime);await missingPage.route('**/assets/birthday/bouquet-20261020.mp3',route=>route.fulfill({status:404,body:''}));await missingPage.goto(url+'/sofhia-franchesca-16');await tick(missingPage,3100);await missingPage.click('#start');await missingPage.waitForFunction(()=>document.getElementById('sound').getAttribute('aria-label')==='Music unavailable');await tick(missingPage,100);await tick(missingPage,59000);assert.equal(await revealed(missingPage),false);await tick(missingPage,1100);assert.equal(await revealed(missingPage),true);await missing.close();
  console.log(name+': simulated chapter boundaries, coda, buffering, background/blocked resume, three replays, reduced motion, responsive layouts, no-JS passed');
 }
 
@@ -103,7 +103,7 @@ async function welcomeEntry(browser,name,url){
  for(const viewport of [{width:390,height:844},{width:320,height:568},{width:844,height:390}]){
   const context=await browser.newContext({viewport,hasTouch:true});const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
   // The album remains reachable even while the birthday audio is still loading.
-  await page.route('**/assets/birthday/song.mp3',route=>route.abort());
+  await page.route('**/assets/birthday/bouquet-20261020.mp3',route=>route.abort());
   await page.goto(url+'/sofhia-franchesca-16');await page.waitForTimeout(700);await layout(page);
   assert.equal(await page.locator('#album-entry').isVisible(),true);assert.equal(await page.locator('#celebration').isVisible(),false);
   const fit=await page.$eval('#welcome',e=>({height:e.clientHeight,content:e.scrollHeight}));assert.ok(fit.content<=fit.height+1,JSON.stringify({viewport,fit}));
@@ -167,7 +167,7 @@ async function nativeMinute(browser,url){
   for(const name of (process.env.BIRTHDAY_ENGINES||'chromium,firefox,webkit').split(',')){
    const browser=await pw[name].launch({headless:true});try{console.log(name+' '+browser.version());await welcomeEntry(browser,name,url);await simulated(browser,name,url);if(name==='chromium'&&process.env.BIRTHDAY_SKIP_NATIVE!=='1')await nativeMinute(browser,url);}finally{await browser.close();}
   }
-  const audio=await fetch(url+'/assets/birthday/song.mp3',{headers:{Range:'bytes=0-255'}});assert.equal(audio.status,206);assert.equal(audio.headers.get('content-type'),'audio/mpeg');assert.match(audio.headers.get('content-range'),/^bytes 0-255\//);
+  const audio=await fetch(url+'/assets/birthday/bouquet-20261020.mp3',{headers:{Range:'bytes=0-255'}});assert.equal(audio.status,206);assert.equal(audio.headers.get('content-type'),'audio/mpeg');assert.match(audio.headers.get('content-range'),/^bytes 0-255\//);
   for(const route of ['/','/Gallery','/sofra/about','/sofra'])assert.equal((await fetch(url+route)).status,200);
   assert.equal((await fetch(url+'/arcade',{redirect:'manual'})).headers.get('location'),'/#surprise');console.log('Local HTTP range, MIME, clean route, and existing static-route checks passed');
  }finally{server.close();}
