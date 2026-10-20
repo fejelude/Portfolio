@@ -113,7 +113,7 @@ function render(p) {
   if (track && track.id !== currentView) {
     currentView = track.id;
     $('player-title').textContent = track.title;
-    $('player-number').textContent = track.discoveryRank ? `MORE TO DISCOVER · TOP ${track.discoveryRank}${track.discoveryRank === 1 ? ' — GOLD' : ''}` : `TRACK ${String(ALBUM.tracks.indexOf(track) + 1).padStart(2, '0')} / ${String(ALBUM.tracks.length).padStart(2, '0')}`;
+    $('player-number').textContent = track.discoveryRank ? `MORE TO DISCOVER · TOP ${track.discoveryRank}${track.discoveryRank < 4 ? ` — ${['GOLD', 'SILVER', 'BRONZE'][track.discoveryRank - 1]}` : ''}` : `TRACK ${String(ALBUM.tracks.indexOf(track) + 1).padStart(2, '0')} / ${String(ALBUM.tracks.length).padStart(2, '0')}`;
     $('player-detail').textContent = track.artist || (track.originalArtist ? `${ALBUM.artist} · ${track.originalArtist} cover` : ALBUM.artist);
     if (track.deluxe) $('player-detail').append(' ', deluxeBadge());
     $('player-cover').style.visibility = ''; delete $('player-cover').dataset.fallback;

@@ -5,16 +5,21 @@ import { DISCOVER, songDestination, discoverTracks } from '../js/album-discover-
 import { ALBUM } from '../js/album-config.mjs';
 import { installSixSeven } from '../js/album-discover.mjs';
 
-test('only Gold #1 is populated and the ranking stays separate from the five recordings', () => {
+test('only Gold #1 and Silver #2 are populated and the ranking stays separate from the five recordings', () => {
   assert.deepEqual(DISCOVER.map(slot => slot.rank), [1, 2, 3, 4, 5, 6, 7]);
-  for (const slot of DISCOVER.slice(1)) for (const field of ['title', 'artist', 'artwork', 'audio', 'link', 'description']) assert.equal(slot[field], '');
+  for (const slot of DISCOVER.slice(2)) for (const field of ['title', 'artist', 'artwork', 'audio', 'link', 'description']) assert.equal(slot[field], '');
   assert.equal(DISCOVER[0].title, 'Beauty And A Beat');
   assert.equal(DISCOVER[0].artist, 'Justin Bieber ft. Nicki Minaj');
   assert.equal(DISCOVER[0].description, '');
   const ranked = discoverTracks();
-  assert.equal(ranked.length, 1); assert.equal(ranked[0].id, 'discover-01');
+  assert.equal(ranked.length, 2); assert.equal(ranked[0].id, 'discover-01');
+  assert.equal(ranked[1].title, 'One Less Lonely Girl');
+  assert.equal(ranked[1].artist, 'Justin Bieber');
+  assert.equal(ranked[1].id, 'discover-02');
+  assert.equal(ranked[1].duration, 67.428345);
+  assert.equal(ranked[1].note, '');
   assert.equal(ranked[0].duration, 64.27); assert.equal(ranked[0].coverShape, 'square');
-  for (const path of [ranked[0].cover, ranked[0].audio, ranked[0].fallbackAudio]) assert.ok(readFileSync(new URL('..' + path, import.meta.url)).length > 0);
+  for (const path of ranked.flatMap(t => [t.cover, t.audio, t.fallbackAudio])) assert.ok(readFileSync(new URL('..' + path, import.meta.url)).length > 0);
   assert.deepEqual(ALBUM.tracks.map(t => t.title), ['Love Me', 'Made in Camella', 'Daisies', 'One Less Lonely Girl', 'Photograph']);
   assert.deepEqual(ALBUM.tracks.filter(t => t.deluxe).map(t => t.id), ['song-04']);
   const html = readFileSync(new URL('../sofhias-songs-67.html', import.meta.url), 'utf8');

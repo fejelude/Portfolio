@@ -343,12 +343,12 @@ async function discoverControls(browser,name,url,mobile) {
   assert.equal(await page.locator('#tracklist .album__track').count(),5);
   assert.equal(await page.locator('#track-count').textContent(),'05 tracks ♡');
   assert.equal(await page.locator('.discover__card').count(),7);
-  assert.deepEqual(await page.locator('.discover__title').allTextContents(),['Beauty And A Beat',...Array.from({length:6},(_,i)=>`Top ${i+2} — Coming Soon`)]);
+  assert.deepEqual(await page.locator('.discover__title').allTextContents(),['Beauty And A Beat','One Less Lonely Girl',...Array.from({length:5},(_,i)=>`Top ${i+3} — Coming Soon`)]);
   for(const [index,tier] of ['gold','silver','bronze'].entries())assert.equal(await page.locator(`.discover__card--${tier}[data-rank="${index+1}"]`).count(),1);
   assert.equal(await page.locator('.discover__rank svg').count(),3);
   assert.equal(await page.locator('.discover audio,.discover__song-link').count(),0);
-  assert.equal(await page.locator('.discover img').count(),1);
-  assert.equal(await page.locator('.discover__listen').count(),1);
+  assert.equal(await page.locator('.discover img').count(),2);
+  assert.equal(await page.locator('.discover__listen').count(),2);
   assert.equal(await page.locator('#discover-meme').isVisible(),false);
   await activate('.discover__card[data-rank="1"] summary');
   assert.equal(await page.locator('.discover__card[data-rank="1"] .discover__description').textContent(),'coming soon ♡');
@@ -369,7 +369,7 @@ async function discoverControls(browser,name,url,mobile) {
   assert.equal(await page.$eval('.discover__hand',e=>getComputedStyle(e).animationName),'none');
   await page.locator('#discover-meme').waitFor({state:'hidden',timeout:6000});
   await activate('.discover__card[data-rank="1"] summary');
-  await activate('.discover__listen');await playing(page);
+  await activate('.discover__listen[data-discovery-id="discover-01"]');await playing(page);
   await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>.1);
   assert.equal(await page.locator('#player-title').textContent(),'Beauty And A Beat');
   assert.equal(await page.locator('#player-detail').textContent(),'Justin Bieber ft. Nicki Minaj');
@@ -385,17 +385,36 @@ async function discoverControls(browser,name,url,mobile) {
   await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>30.1);
   await activate('[data-track-id="song-04"] .album__track-button');await playing(page);
   assert.equal(await page.locator('#now-playing.is-deluxe').count(),1);
-  assert.equal(await page.locator('.discover__listen').getAttribute('aria-pressed'),'false');
-  await activate('.discover__listen');await playing(page);
+  assert.equal(await page.locator('.discover__listen[data-discovery-id="discover-01"]').getAttribute('aria-pressed'),'false');
+  await activate('.discover__listen[data-discovery-id="discover-02"]');await playing(page);
+  assert.equal(await page.$eval('#song-audio',a=>new URL(a.currentSrc).pathname),'/assets/album/discover-02.mp3');
+  assert.equal(await page.locator('#player-detail').textContent(),'Justin Bieber');
+  assert.equal(await page.locator('#now-playing.is-deluxe').count(),0);
+  await activate('.discover__listen[data-discovery-id="discover-01"]');await playing(page);
   assert.equal(await page.locator('#now-playing.is-deluxe').count(),0);
   await page.evaluate(()=>{const a=document.getElementById('song-audio');a.currentTime=a.duration-.1;});
+  await page.waitForFunction(()=>document.getElementById('player-title').textContent==='One Less Lonely Girl');
+  await playing(page);
+  assert.equal(await page.locator('#player-detail').textContent(),'Justin Bieber');
+  assert.match(await page.locator('#player-number').textContent(),/TOP 2 — SILVER/);
+  assert.equal(await page.$eval('#player-cover',e=>new URL(e.src).pathname),'/assets/album/discover-02-cover.jpg');
+  assert.equal(await page.$eval('#song-audio',a=>new URL(a.currentSrc).pathname),'/assets/album/discover-02.mp3');
+  assert.ok(await page.$eval('#song-audio',a=>a.duration>67&&a.duration<68));
+  assert.equal(await page.locator('#now-playing.is-deluxe').count(),0);
+  await activate('#play-pause');
+  await page.locator('#song-seek').evaluate(e=>{e.value='20';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
+  await activate('#play-pause');await playing(page);
+  await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>20.1);
+  assert.equal(await page.$eval('#next-audio',a=>a.paused),true);
+  await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-silver-player.png`)});
+  await page.evaluate(()=>{const a=document.getElementById('song-audio');a.currentTime=a.duration-.1;});
   await page.locator('#play-again').waitFor({state:'visible'});
-  assert.equal(await page.locator('#player-title').textContent(),'Beauty And A Beat');
+  assert.equal(await page.locator('#player-title').textContent(),'One Less Lonely Girl');
   assert.equal(await page.$eval('#song-audio',a=>a.paused),true);
   await activate('[data-track-id="song-01"] .album__track-button');await playing(page);
   if(mobile){await page.setViewportSize({width:320,height:740});await assertLayout(page);await page.screenshot({path:path.join(out,`${name}-discover-320.png`),fullPage:true});}
   await activate('#play-pause');assert.deepEqual(errors,[]);await context.close();
-  console.log(name+' discover '+(mobile?'mobile':'desktop')+': Gold recording, six placeholders, shared playback/seek/switch/finish, silent meme and reduced motion passed');
+  console.log(name+' discover '+(mobile?'mobile':'desktop')+': Gold/Silver recordings, five placeholders, shared playback/seek/switch/finish, silent meme and reduced motion passed');
 }
 (async()=>{
   await fs.mkdir(out,{recursive:true});const {server,url}=await startServer();
