@@ -5,6 +5,7 @@ on:
       - 'sofhias-songs-67.html'
       - 'sofhia-franchesca-16.html'
       - 'css/album.css'
+      - 'css/album-discover.css'
       - 'css/birthday-album-entry.css'
       - 'js/album*.mjs'
       - 'js/birthday-album-entry.mjs'
@@ -61,6 +62,20 @@ jobs:
           ffmpeg -nostdin -v error -xerror -i assets/album/song-04.m4a -f null -
           ffmpeg -nostdin -v error -xerror -i assets/album/song-05.mp3 -f null -
           ffmpeg -nostdin -v error -xerror -i assets/album/song-05.m4a -f null -
+          ffmpeg -nostdin -v error -xerror -i assets/album/discover-01.mp3 -f null -
+          ffmpeg -nostdin -v error -xerror -i assets/album/discover-01.m4a -f null -
+          ffmpeg -nostdin -v error -xerror -i assets/album/discover-02.mp3 -f null -
+          ffmpeg -nostdin -v error -xerror -i assets/album/discover-02.m4a -f null -
+          ffmpeg -nostdin -v error -xerror -i assets/album/discover-03.mp3 -f null -
+          ffmpeg -nostdin -v error -xerror -i assets/album/discover-03.m4a -f null -
+          ffmpeg -nostdin -v error -xerror -i assets/album/discover-04.mp3 -f null -
+          ffmpeg -nostdin -v error -xerror -i assets/album/discover-04.m4a -f null -
+          ffmpeg -nostdin -v error -xerror -i assets/album/discover-05.mp3 -f null -
+          ffmpeg -nostdin -v error -xerror -i assets/album/discover-05.m4a -f null -
+          ffmpeg -nostdin -v error -xerror -i assets/album/discover-06.mp3 -f null -
+          ffmpeg -nostdin -v error -xerror -i assets/album/discover-06.m4a -f null -
+          ffmpeg -nostdin -v error -xerror -i assets/album/discover-07.mp3 -f null -
+          ffmpeg -nostdin -v error -xerror -i assets/album/discover-07.m4a -f null -
       - run: node verification/album-smoke.cjs
         env:
           ALBUM_ENGINES: ${{ matrix.engines }}

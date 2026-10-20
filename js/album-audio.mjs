@@ -352,8 +352,8 @@ export class AlbumPlayer {
     if (!('mediaSession' in navigator) || !('MediaMetadata' in window) || !this.current) return;
     const cover = this.current.mediaCover || (this.current.cover && !this.current.cover.endsWith('.svg') ? this.current.cover : this.config.mediaCover);
     try {
-      navigator.mediaSession.metadata = new MediaMetadata({ title: this.current.title, artist: this.config.artist,
-        album: this.config.title, artwork: cover ? [{ src: cover, sizes: '512x512' }] : [] });
+      navigator.mediaSession.metadata = new MediaMetadata({ title: this.current.title, artist: this.current.artist || this.config.artist,
+        album: this.current.collectionTitle || this.config.title, artwork: cover ? [{ src: cover, sizes: '512x512' }] : [] });
     } catch { /* Song playback does not depend on lock-screen artwork support. */ }
   }
   mediaPlaybackState() {
