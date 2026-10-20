@@ -5,14 +5,14 @@ import { DISCOVER, songDestination, discoverTracks } from '../js/album-discover-
 import { ALBUM } from '../js/album-config.mjs';
 import { installSixSeven } from '../js/album-discover.mjs';
 
-test('only the first five ranks are populated and the ranking stays separate from the five recordings', () => {
+test('only the first six ranks are populated and the ranking stays separate from the five recordings', () => {
   assert.deepEqual(DISCOVER.map(slot => slot.rank), [1, 2, 3, 4, 5, 6, 7]);
-  for (const slot of DISCOVER.slice(5)) for (const field of ['title', 'artist', 'artwork', 'audio', 'link', 'description']) assert.equal(slot[field], '');
+  for (const slot of DISCOVER.slice(6)) for (const field of ['title', 'artist', 'artwork', 'audio', 'link', 'description']) assert.equal(slot[field], '');
   assert.equal(DISCOVER[0].title, 'Beauty And A Beat');
   assert.equal(DISCOVER[0].artist, 'Justin Bieber ft. Nicki Minaj');
   assert.equal(DISCOVER[0].description, '');
   const ranked = discoverTracks();
-  assert.equal(ranked.length, 5); assert.equal(ranked[0].id, 'discover-01');
+  assert.equal(ranked.length, 6); assert.equal(ranked[0].id, 'discover-01');
   assert.equal(ranked[1].title, 'One Less Lonely Girl');
   assert.equal(ranked[1].artist, 'Justin Bieber');
   assert.equal(ranked[1].id, 'discover-02');
@@ -33,6 +33,11 @@ test('only the first five ranks are populated and the ranking stays separate fro
   assert.equal(ranked[4].artist, 'Carly Rae Jepsen');
   assert.equal(ranked[4].duration, 51.848345);
   assert.equal(ranked[4].note, '');
+  assert.equal(ranked[5].id, 'discover-06');
+  assert.equal(ranked[5].title, 'Paraluman');
+  assert.equal(ranked[5].artist, 'Adie');
+  assert.equal(ranked[5].duration, 88.768345);
+  assert.equal(ranked[5].note, '');
   assert.equal(ranked[0].duration, 64.27); assert.equal(ranked[0].coverShape, 'square');
   for (const path of ranked.flatMap(t => [t.cover, t.audio, t.fallbackAudio])) assert.ok(readFileSync(new URL('..' + path, import.meta.url)).length > 0);
   assert.deepEqual(ALBUM.tracks.map(t => t.title), ['Love Me', 'Made in Camella', 'Daisies', 'One Less Lonely Girl', 'Photograph']);

@@ -7,7 +7,7 @@ export const DISCOVER = Object.freeze([
   { rank: 3, title: 'Eenie Meenie', artist: 'Sean Kingston & Justin Bieber', artwork: '/assets/album/discover-03-cover.jpg', audio: '/assets/album/discover-03.mp3', fallbackAudio: '/assets/album/discover-03.m4a', duration: 36.313333, link: '', description: '' },
   { rank: 4, title: 'Perfect', artist: 'Ed Sheeran', artwork: '/assets/album/discover-04-cover.jpg', audio: '/assets/album/discover-04.mp3', fallbackAudio: '/assets/album/discover-04.m4a', duration: 54.75, link: '', description: '' },
   { rank: 5, title: 'I Really Like You', artist: 'Carly Rae Jepsen', artwork: '/assets/album/discover-05-cover.jpg', audio: '/assets/album/discover-05.mp3', fallbackAudio: '/assets/album/discover-05.m4a', duration: 51.848345, link: '', description: '' },
-  { rank: 6, title: '', artist: '', artwork: '', audio: '', link: '', description: '' },
+  { rank: 6, title: 'Paraluman', artist: 'Adie', artwork: '/assets/album/discover-06-cover.jpg', audio: '/assets/album/discover-06.mp3', fallbackAudio: '/assets/album/discover-06.m4a', duration: 88.768345, link: '', description: '' },
   { rank: 7, title: '', artist: '', artwork: '', audio: '', link: '', description: '' },
 ].map(slot => Object.freeze(slot)));
 
