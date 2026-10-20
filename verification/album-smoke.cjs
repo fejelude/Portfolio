@@ -335,6 +335,7 @@ async function deluxeControls(browser,name,url,mobile){
   console.log(name+' Deluxe '+(mobile?'mobile':'desktop')+': actual recording playback, badge isolation, artwork, controls, bounds and reduced motion passed');
 }
 async function discoverControls(browser,name,url,mobile) {
+  const { DISCOVER } = await import('../js/album-discover-config.mjs');
   const context=await browser.newContext({viewport:{width:mobile?390:1440,height:mobile?844:1000},hasTouch:mobile});
   const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.addInitScript(observeNativeMixer);
@@ -354,12 +355,12 @@ async function discoverControls(browser,name,url,mobile) {
   assert.equal(await page.locator('.discover__card[data-rank="7"] .discover__rank svg').count(),0);
   assert.doesNotMatch(await page.locator('.discover__card[data-rank="7"]').getAttribute('class'),/discover__card--(?:gold|silver|bronze)/);
   await activate('.discover__card[data-rank="7"] summary');
-  assert.equal(await page.locator('.discover__card[data-rank="7"] .discover__description').textContent(),'coming soon ♡');
+  assert.equal(await page.locator('.discover__card[data-rank="7"] .discover__description').textContent(),DISCOVER[6].description);
   await activate('.discover__card[data-rank="7"] summary');
   assert.equal(await page.locator('.discover__card[data-rank="6"] .discover__rank svg').count(),0);
   assert.doesNotMatch(await page.locator('.discover__card[data-rank="6"]').getAttribute('class'),/discover__card--(?:gold|silver|bronze)/);
   await activate('.discover__card[data-rank="6"] summary');
-  assert.equal(await page.locator('.discover__card[data-rank="6"] .discover__description').textContent(),'coming soon ♡');
+  assert.equal(await page.locator('.discover__card[data-rank="6"] .discover__description').textContent(),DISCOVER[5].description);
   await activate('.discover__card[data-rank="6"] summary');
   assert.equal(await page.locator('.discover__card[data-rank="5"] .discover__rank svg').count(),0);
   assert.doesNotMatch(await page.locator('.discover__card[data-rank="5"]').getAttribute('class'),/discover__card--(?:gold|silver|bronze)/);
@@ -367,7 +368,7 @@ async function discoverControls(browser,name,url,mobile) {
   assert.doesNotMatch(await page.locator('.discover__card[data-rank="4"]').getAttribute('class'),/discover__card--(?:gold|silver|bronze)/);
   assert.equal(await page.locator('#discover-meme').isVisible(),false);
   await activate('.discover__card[data-rank="1"] summary');
-  assert.equal(await page.locator('.discover__card[data-rank="1"] .discover__description').textContent(),'coming soon ♡');
+  assert.equal(await page.locator('.discover__card[data-rank="1"] .discover__description').textContent(),DISCOVER[0].description);
   await activate('.discover__card[data-rank="1"] summary');
   await activate('[data-track-id="song-01"] .album__track-button');await playing(page);
   const before=await page.$eval('#song-audio',a=>({time:a.currentTime,src:a.currentSrc}));
