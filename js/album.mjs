@@ -45,6 +45,14 @@ function icon(name) {
   const use = document.createElementNS(svg.namespaceURI, 'use');
   svg.setAttribute('aria-hidden', 'true'); use.setAttribute('href', `#icon-${name}`); svg.append(use); return svg;
 }
+function updateIcon(button, name) {
+  // Keep the pointer target mounted when a seek/blur renders between press
+  // and release. Replacing the SVG can otherwise swallow the button click.
+  const use = button.querySelector('use');
+  if (use) {
+    if (use.getAttribute('href') !== `#icon-${name}`) use.setAttribute('href', `#icon-${name}`);
+  } else button.replaceChildren(icon(name));
+}
 function deluxeBadge() {
   const badge = document.createElement('span'); badge.className = 'album__deluxe-badge';
   badge.textContent = '🔥 DELUXE'; return badge;
@@ -125,7 +133,7 @@ function render(p) {
   $('player-state').textContent = { idle: ALBUM.playerInvitation, loading: 'GETTING YOUR SONG', buffering: 'A LITTLE MOMENT…', playing: 'NOW PLAYING ♫', paused: 'SAVED YOUR PLACE ♡', finished: 'THANK YOU FOR LISTENING ♡' }[p.state];
   $('buffering').hidden = !loading; $('status-copy').textContent = p.message || (loading ? 'finding your song…' : '');
   $('tap-continue').hidden = !p.needsTap; $('play-again').hidden = p.state !== 'finished';
-  $('play-pause').replaceChildren(icon(p.wantsPlaying ? 'pause' : 'play'));
+  updateIcon($('play-pause'), p.wantsPlaying ? 'pause' : 'play');
   $('play-pause').setAttribute('aria-label', p.wantsPlaying ? 'Pause song' : track ? 'Play song' : 'Play first song');
   for (const id of ['play-pause', 'next', 'previous']) $(id).disabled = !p.queue.first(p.failed);
   $('shuffle').setAttribute('aria-pressed', String(p.queue.shuffle)); $('shuffle').setAttribute('aria-label', `Turn shuffle ${p.queue.shuffle ? 'off' : 'on'}`);
@@ -134,7 +142,7 @@ function render(p) {
   $('repeat-one').hidden = p.queue.repeat !== 'one';
   $('ambient-toggle').setAttribute('aria-pressed', String(p.mixer.muted));
   $('ambient-toggle').setAttribute('aria-label', `${p.mixer.muted ? 'Unmute' : 'Mute'} background music`);
-  $('ambient-toggle').replaceChildren(icon(p.mixer.muted ? 'muted' : 'speaker'));
+  updateIcon($('ambient-toggle'), p.mixer.muted ? 'muted' : 'speaker');
   const duration = track && (p.metadata.get(track.id) ?? track.duration), current = track ? p.audio.currentTime || 0 : 0;
   $('duration').textContent = timeLabel(duration); $('elapsed').textContent = timeLabel(current);
   const valid = track && p.matches() && Number.isFinite(p.audio.duration) && p.audio.duration > 0;
