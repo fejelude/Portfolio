@@ -198,7 +198,9 @@ async function nativeControls(browser,name,url,mobile) {
   const artwork=await page.$eval('#player-cover',e=>{const r=e.getBoundingClientRect();return {width:r.width,height:r.height,fit:getComputedStyle(e).objectFit};});
   assert.equal(artwork.width,artwork.height);assert.equal(artwork.fit,'contain');
   assert.equal(await page.$eval('#next-audio',a=>a.paused),true);
-  await activate('#play-pause');const songTwoPaused=await page.$eval('#song-audio',a=>a.currentTime);
+  await activate('#play-pause');
+  await page.waitForFunction(()=>{const a=document.getElementById('song-audio');return a.paused&&!a.seeking;});
+  const songTwoPaused=await page.$eval('#song-audio',a=>a.currentTime);
   await sleep(250);assert.equal(await page.$eval('#song-audio',a=>a.currentTime),songTwoPaused);
   await activate('#player-note');assert.equal(await page.locator('#note-copy').textContent(),ALBUM.tracks[1].note);
   assert.equal(await page.$eval('#note-copy',e=>getComputedStyle(e).whiteSpace),'pre-wrap');await assertLayout(page);await activate('#note-ok');
@@ -343,12 +345,17 @@ async function discoverControls(browser,name,url,mobile) {
   assert.equal(await page.locator('#tracklist .album__track').count(),5);
   assert.equal(await page.locator('#track-count').textContent(),'05 tracks ♡');
   assert.equal(await page.locator('.discover__card').count(),7);
-  assert.deepEqual(await page.locator('.discover__title').allTextContents(),['Beauty And A Beat','One Less Lonely Girl','Eenie Meenie','Perfect','I Really Like You','Paraluman','Top 7 — Coming Soon']);
+  assert.deepEqual(await page.locator('.discover__title').allTextContents(),['Beauty And A Beat','One Less Lonely Girl','Eenie Meenie','Perfect','I Really Like You','Paraluman','Mundo']);
   for(const [index,tier] of ['gold','silver','bronze'].entries())assert.equal(await page.locator(`.discover__card--${tier}[data-rank="${index+1}"]`).count(),1);
   assert.equal(await page.locator('.discover__rank svg').count(),3);
   assert.equal(await page.locator('.discover audio,.discover__song-link').count(),0);
-  assert.equal(await page.locator('.discover img').count(),6);
-  assert.equal(await page.locator('.discover__listen').count(),6);
+  assert.equal(await page.locator('.discover img').count(),7);
+  assert.equal(await page.locator('.discover__listen').count(),7);
+  assert.equal(await page.locator('.discover__card[data-rank="7"] .discover__rank svg').count(),0);
+  assert.doesNotMatch(await page.locator('.discover__card[data-rank="7"]').getAttribute('class'),/discover__card--(?:gold|silver|bronze)/);
+  await activate('.discover__card[data-rank="7"] summary');
+  assert.equal(await page.locator('.discover__card[data-rank="7"] .discover__description').textContent(),'coming soon ♡');
+  await activate('.discover__card[data-rank="7"] summary');
   assert.equal(await page.locator('.discover__card[data-rank="6"] .discover__rank svg').count(),0);
   assert.doesNotMatch(await page.locator('.discover__card[data-rank="6"]').getAttribute('class'),/discover__card--(?:gold|silver|bronze)/);
   await activate('.discover__card[data-rank="6"] summary');
@@ -395,6 +402,7 @@ async function discoverControls(browser,name,url,mobile) {
   await activate('[data-track-id="song-04"] .album__track-button');await playing(page);
   assert.equal(await page.locator('#now-playing.is-deluxe').count(),1);
   assert.equal(await page.locator('.discover__listen[data-discovery-id="discover-01"]').getAttribute('aria-pressed'),'false');
+  await activate('.discover__card[data-rank="2"] summary');
   await activate('.discover__listen[data-discovery-id="discover-02"]');await playing(page);
   assert.equal(await page.$eval('#song-audio',a=>new URL(a.currentSrc).pathname),'/assets/album/discover-02.mp3');
   assert.equal(await page.locator('#player-detail').textContent(),'Justin Bieber');
@@ -474,13 +482,28 @@ async function discoverControls(browser,name,url,mobile) {
   assert.equal(await page.$eval('#next-audio',a=>a.paused),true);
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-paraluman-player.png`)});
   await page.evaluate(()=>{const a=document.getElementById('song-audio');a.currentTime=a.duration-.1;});
+  await page.waitForFunction(()=>document.getElementById('player-title').textContent==='Mundo');await playing(page);
+  assert.match(await page.locator('#player-number').textContent(),/TOP 7/);
+  assert.doesNotMatch(await page.locator('#player-number').textContent(),/GOLD|SILVER|BRONZE/);
+  assert.equal(await page.locator('#player-detail').textContent(),'IV of Spades');
+  assert.equal(await page.$eval('#song-audio',a=>new URL(a.currentSrc).pathname),'/assets/album/discover-07.mp3');
+  assert.equal(await page.$eval('#player-cover',e=>new URL(e.src).pathname),'/assets/album/discover-07-cover.jpg');
+  assert.ok(await page.$eval('#song-audio',a=>a.duration>108&&a.duration<110));
+  assert.equal(await page.locator('#now-playing.is-deluxe').count(),0);
+  await activate('#play-pause');
+  await page.locator('#song-seek').evaluate(e=>{e.value='30';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
+  await activate('#play-pause');await playing(page);
+  await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>30.1);
+  assert.equal(await page.$eval('#next-audio',a=>a.paused),true);
+  await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-mundo-player.png`)});
+  await page.evaluate(()=>{const a=document.getElementById('song-audio');a.currentTime=a.duration-.1;});
   await page.locator('#play-again').waitFor({state:'visible'});
-  assert.equal(await page.locator('#player-title').textContent(),'Paraluman');
+  assert.equal(await page.locator('#player-title').textContent(),'Mundo');
   assert.equal(await page.$eval('#song-audio',a=>a.paused),true);
   await activate('[data-track-id="song-01"] .album__track-button');await playing(page);
   if(mobile){await page.setViewportSize({width:320,height:740});await assertLayout(page);await page.screenshot({path:path.join(out,`${name}-discover-320.png`),fullPage:true});}
   await activate('#play-pause');assert.deepEqual(errors,[]);await context.close();
-  console.log(name+' discover '+(mobile?'mobile':'desktop')+': six ranked recordings, one placeholder, shared playback/seek/switch/finish, silent meme and reduced motion passed');
+  console.log(name+' discover '+(mobile?'mobile':'desktop')+': seven ranked recordings, no placeholders, shared playback/seek/switch/finish, silent meme and reduced motion passed');
 }
 (async()=>{
   await fs.mkdir(out,{recursive:true});const {server,url}=await startServer();

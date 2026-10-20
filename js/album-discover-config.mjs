@@ -8,7 +8,7 @@ export const DISCOVER = Object.freeze([
   { rank: 4, title: 'Perfect', artist: 'Ed Sheeran', artwork: '/assets/album/discover-04-cover.jpg', audio: '/assets/album/discover-04.mp3', fallbackAudio: '/assets/album/discover-04.m4a', duration: 54.75, link: '', description: '' },
   { rank: 5, title: 'I Really Like You', artist: 'Carly Rae Jepsen', artwork: '/assets/album/discover-05-cover.jpg', audio: '/assets/album/discover-05.mp3', fallbackAudio: '/assets/album/discover-05.m4a', duration: 51.848345, link: '', description: '' },
   { rank: 6, title: 'Paraluman', artist: 'Adie', artwork: '/assets/album/discover-06-cover.jpg', audio: '/assets/album/discover-06.mp3', fallbackAudio: '/assets/album/discover-06.m4a', duration: 88.768345, link: '', description: '' },
-  { rank: 7, title: '', artist: '', artwork: '', audio: '', link: '', description: '' },
+  { rank: 7, title: 'Mundo', artist: 'IV of Spades', artwork: '/assets/album/discover-07-cover.jpg', audio: '/assets/album/discover-07.mp3', fallbackAudio: '/assets/album/discover-07.m4a', duration: 108.760816, link: '', description: '' },
 ].map(slot => Object.freeze(slot)));
 
 export function songDestination(value, base = 'https://fejelude.xyz') {
