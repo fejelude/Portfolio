@@ -1,0 +1,62 @@
+/* An independent collection. Existing album/player selectors stay untouched. */
+.discover{margin:40px auto 0;padding:30px 0 0;max-width:760px;border-top:2px solid #e9bfd3;color:#854261}
+.discover__heading{margin:0 0 26px}
+.discover__eyebrow{font:500 .75rem BirthdayPixel,BirthdayEmoji,monospace;letter-spacing:.35em;color:#bc829f;margin:0 0 12px}
+.discover h2{font:600 clamp(1.45rem,4vw,2rem)/1.2 BirthdayPixel,BirthdayEmoji,monospace;margin:0;color:#a34b76;overflow-wrap:anywhere}
+.discover__intro{font-size:.875rem;line-height:1.8;color:#985570;margin:15px 0 0;max-width:66ch}
+.discover__list{list-style:none;margin:0;padding:0;display:grid;gap:17px}
+.discover__item{list-style:none;min-width:0}
+.discover__card{--medal-fill:#ffe7f1;--medal-ink:#a45c80;--rank-border:#d895b5;position:relative;border:2px solid var(--rank-border);background:linear-gradient(135deg,#fff9fc,#ffe5f0);box-shadow:inset 3px 3px #fffafc,0 4px #dba6c0,0 7px #f4d8e6;min-width:0}
+.discover__card--gold{--medal-fill:#ffedb5;--medal-ink:#a87936;--rank-border:#d2ac6a;box-shadow:inset 3px 3px #fff9df,0 4px #cfad79,0 0 0 4px #f6e7c488,0 0 18px #edc47724;background:linear-gradient(115deg,#fff7e9,#ffedf5 70%)}
+.discover__card--silver{--medal-fill:#f1edf9;--medal-ink:#817b98;--rank-border:#b3abc2;background:linear-gradient(115deg,#faf8ff,#ffedf5 75%);box-shadow:inset 3px 3px #fff,0 4px #bfb3cb,0 0 12px #bdb4d022}
+.discover__card--bronze{--medal-fill:#f5d6bf;--medal-ink:#a46c4b;--rank-border:#c9977e;background:linear-gradient(115deg,#fff1e9,#ffedf5 75%);box-shadow:inset 3px 3px #fff8ef,0 4px #c99a84,0 0 9px #e3b49122}
+.discover__summary{list-style:none;display:grid;grid-template-columns:38px 64px minmax(0,1fr) 20px;gap:13px;align-items:center;padding:18px 17px;cursor:pointer;touch-action:manipulation;min-height:106px;-webkit-tap-highlight-color:transparent}
+.discover__summary::-webkit-details-marker{display:none}
+.discover__summary:focus-visible,.discover__meme-button:focus-visible,.discover__song-link:focus-visible{outline:3px solid #823a87;outline-offset:5px}
+.discover__summary:hover{background:#fff9fc66}
+.discover__rank{font:600 .9rem BirthdayPixel,monospace;text-align:center;color:var(--medal-ink)}
+.discover__rank svg{display:block;width:36px;height:44px;overflow:visible;font:600 20px BirthdayPixel,monospace}
+.discover__card--gold .discover__rank{filter:drop-shadow(0 0 5px #e6ba7044)}
+.discover__card--silver .discover__rank{animation:discover-silver 5s ease-in-out infinite;animation-play-state:paused}
+.discover__card--gold::after{content:'✦';position:absolute;right:12px;top:-12px;padding:0 3px;color:#bd934e;background:#fff2ef;font-size:1rem;pointer-events:none;animation:discover-gold 4s ease-in-out infinite;animation-play-state:paused}
+.discover__card.is-in-view::after,.discover__card.is-in-view .discover__rank{animation-play-state:running}
+.discover__art{width:64px;height:64px;display:grid;place-items:center;background:#fff5fa;border:2px solid #e6b5ce;box-shadow:2px 2px #edcadb}
+.discover__art img{display:block;width:100%;height:100%;object-fit:cover}
+.discover__art--empty{color:#d598b4;background:repeating-linear-gradient(0deg,#fff4fa 0 9px,#fbe9f2 9px 10px);font:500 1.75rem BirthdayPixel,BirthdayEmoji,monospace}
+.discover__card--gold .discover__art{border-color:#e0c08d}
+.discover__card--silver .discover__art{border-color:#c8bfd6}
+.discover__card--bronze .discover__art{border-color:#d7ad95}
+.discover__info{display:grid;gap:5px;min-width:0}
+.discover__position{font:500 .65rem/1.4 BirthdayPixel,monospace;letter-spacing:.08em;color:var(--medal-ink)}
+.discover__title{font:600 clamp(1rem,2.7vw,1.2rem)/1.35 BirthdayPixel,BirthdayEmoji,monospace;color:#944b70;overflow-wrap:anywhere}
+.discover__artist{font-size:.74rem;line-height:1.4;color:#a2738d;overflow-wrap:anywhere}
+.discover__expand{font:400 1.4rem BirthdayPixel,monospace;color:#ad7292;text-align:center;transition:rotate .2s}
+.discover__card[open] .discover__expand{rotate:45deg}
+.discover__body{border-top:1px dashed var(--rank-border);padding:18px 23px 24px;background:#fff9fc66}
+.discover__pending{font-size:.76rem;line-height:1.6;color:#a7768e;margin:0 0 20px}
+.discover__note-heading{font:500 .9rem/1.5 BirthdayPixel,BirthdayEmoji,monospace;color:#9a5e7e;margin:0 0 9px}
+.discover__description{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.875rem;line-height:1.85;margin:0;color:#97667f}
+.discover__song-link{display:inline-block;margin-bottom:20px;color:#914c73;text-underline-offset:4px;font:500 .9rem/1.5 BirthdayPixel,monospace}
+.discover__joke{text-align:center;margin-top:36px;padding-top:24px;border-top:1px dashed #e3bad0}
+.discover__meme-button{font:600 1rem/1.3 BirthdayPixel,BirthdayEmoji,monospace!important;color:#9e557e!important;background:#fff2f9;border:2px solid #d4a0ba;box-shadow:inset 2px 2px #fff,0 3px #d4a0ba;padding:10px 20px;min-height:44px;max-width:100%;transition:background .15s,transform .15s;touch-action:manipulation}
+.discover__meme-button:hover{background:#ffe4f1;transform:translateY(-1px)}
+.discover__meme-button:active{transform:translateY(2px)}
+.discover__joke-caption{font-size:.75rem;line-height:1.75;color:#aa7892;max-width:38ch;margin:14px auto 0;padding:0 6px}
+.discover__stage-wrap{position:relative;width:min(100%,360px);aspect-ratio:360 / 160;margin:12px auto 0;isolation:isolate}
+.discover__stage-wrap::before{content:'✧  ♡  ✧';position:absolute;inset:0;display:grid;place-items:center;color:#dbb2c8;font:500 .8rem BirthdayPixel,monospace;letter-spacing:.6em;opacity:.5}
+.discover__stage-wrap:has(.discover__stage:not([hidden]))::before{opacity:0}
+.discover__stage{position:absolute;inset:0}
+.discover__stage svg{display:block;width:100%;height:100%;image-rendering:pixelated}
+.discover__big-number{position:absolute;top:25%;left:35%;width:30%;font:700 clamp(1.65rem,7vw,2.5rem)/1 BirthdayPixel,monospace;color:#ad507f;text-shadow:2px 2px #fff3fb,4px 4px #edb5cf}
+.discover__stage.is-running .discover__hand--left{animation:discover-weigh-left .7s ease-in-out 4}
+.discover__stage.is-running .discover__hand--right{animation:discover-weigh-right .7s ease-in-out 4}
+.discover__stage.is-running .discover__big-number{animation:discover-pop .35s cubic-bezier(.2,.9,.3,1.3) both}
+.discover__stage.is-running .discover__meme-sparkles{animation:discover-silly .5s ease-in-out 6 alternate}
+@keyframes discover-gold{0%,100%{opacity:.45}50%{opacity:1;text-shadow:0 0 7px #e8bf72}}
+@keyframes discover-silver{0%,100%{filter:brightness(1)}50%{filter:brightness(1.12)}}
+@keyframes discover-weigh-left{0%,100%{translate:0 9px}50%{translate:0 -9px}}
+@keyframes discover-weigh-right{0%,100%{translate:0 -9px}50%{translate:0 9px}}
+@keyframes discover-pop{from{opacity:0;scale:.65}to{opacity:1;scale:1}}
+@keyframes discover-silly{from{opacity:.2}to{opacity:.85}}
+@media(max-width:550px){.discover{margin-top:32px;padding-top:24px}.discover__summary{grid-template-columns:26px 44px minmax(0,1fr) 14px;gap:8px;padding:15px 10px;min-height:94px}.discover__rank svg{width:26px;height:34px}.discover__art{width:44px;height:44px}.discover__art--empty{font-size:1.3rem}.discover__title{font-size:1rem}.discover__position{font-size:.59rem;letter-spacing:.03em}.discover__artist{font-size:.68rem}.discover__body{padding:16px 16px 21px}.discover__intro{font-size:.82rem}.discover__joke{margin-top:28px}}
+@media(prefers-reduced-motion:reduce){.discover *,.discover *::after{animation:none!important;transition:none!important}.discover__meme-button:hover{transform:none}.discover__big-number{opacity:1;scale:1}}

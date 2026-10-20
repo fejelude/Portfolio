@@ -332,10 +332,48 @@ async function deluxeControls(browser,name,url,mobile){
   await assertLayout(page);assert.deepEqual(errors,[]);await context.close();
   console.log(name+' Deluxe '+(mobile?'mobile':'desktop')+': actual recording playback, badge isolation, artwork, controls, bounds and reduced motion passed');
 }
+async function discoverControls(browser,name,url,mobile) {
+  const context=await browser.newContext({viewport:{width:mobile?390:1440,height:mobile?844:1000},hasTouch:mobile});
+  const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.addInitScript(observeNativeMixer);
+  const activate=selector=>mobile?page.tap(selector):page.click(selector);
+  await page.goto(url+'/sofhias-songs-67');
+  await page.waitForFunction(()=>!document.getElementById('open-album').disabled);
+  await activate('#open-album');await page.locator('#album-inside').waitFor({state:'visible'});
+  assert.equal(await page.locator('#tracklist .album__track').count(),5);
+  assert.equal(await page.locator('#track-count').textContent(),'05 tracks ♡');
+  assert.equal(await page.locator('.discover__card').count(),7);
+  assert.deepEqual(await page.locator('.discover__title').allTextContents(),Array.from({length:7},(_,i)=>`Top ${i+1} — Coming Soon`));
+  for(const [index,tier] of ['gold','silver','bronze'].entries())assert.equal(await page.locator(`.discover__card--${tier}[data-rank="${index+1}"]`).count(),1);
+  assert.equal(await page.locator('.discover__rank svg').count(),3);
+  assert.equal(await page.locator('.discover audio,.discover img,.discover__song-link').count(),0);
+  assert.equal(await page.locator('#discover-meme').isVisible(),false);
+  await activate('.discover__card[data-rank="1"] summary');
+  assert.equal(await page.locator('.discover__card[data-rank="1"] .discover__description').textContent(),'description to be added');
+  await activate('.discover__card[data-rank="1"] summary');
+  await activate('[data-track-id="song-01"] .album__track-button');await playing(page);
+  const before=await page.$eval('#song-audio',a=>({time:a.currentTime,src:a.currentSrc}));
+  await activate('#discover-six-seven');await page.waitForTimeout(150);
+  assert.equal(await page.locator('#discover-meme').isVisible(),true);
+  assert.equal(await page.locator('#discover-six-seven').getAttribute('aria-expanded'),'true');
+  assert.equal(await page.locator('.discover__hand').count(),2);
+  assert.equal(await page.$eval('#song-audio',a=>a.paused),false);
+  await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-discover-meme.png`),fullPage:true});
+  await page.locator('#discover-meme').waitFor({state:'hidden',timeout:6000});
+  assert.ok(await page.$eval('#song-audio',(a,before)=>!a.paused&&a.currentSrc===before.src&&a.currentTime>before.time,before),'meme never interrupts the original recording');
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await activate('#discover-six-seven');
+  assert.equal(await page.locator('#discover-meme').isVisible(),true);
+  assert.equal(await page.$eval('.discover__hand',e=>getComputedStyle(e).animationName),'none');
+  await page.locator('#discover-meme').waitFor({state:'hidden',timeout:6000});
+  if(mobile){await page.setViewportSize({width:320,height:740});await assertLayout(page);await page.screenshot({path:path.join(out,`${name}-discover-320.png`),fullPage:true});}
+  await activate('#play-pause');assert.deepEqual(errors,[]);await context.close();
+  console.log(name+' discover '+(mobile?'mobile':'desktop')+': seven empty expandable slots, medals, silent finite meme, uninterrupted native audio and reduced motion passed');
+}
 (async()=>{
   await fs.mkdir(out,{recursive:true});const {server,url}=await startServer();
   try{for(const name of (process.env.ALBUM_ENGINES||'chromium,firefox,webkit').split(',')){
     const browser=await pw[name].launch({headless:true});
-    try{console.log(name+' '+browser.version());await nativeControls(browser,name,url,false);if(name!=='firefox')await nativeControls(browser,name,url,true);await variants(browser,name,url);await deluxeControls(browser,name,url,false);if(name!=='firefox')await deluxeControls(browser,name,url,true);}finally{await browser.close();}
+    try{console.log(name+' '+browser.version());await nativeControls(browser,name,url,false);if(name!=='firefox')await nativeControls(browser,name,url,true);await variants(browser,name,url);await deluxeControls(browser,name,url,false);if(name!=='firefox')await deluxeControls(browser,name,url,true);await discoverControls(browser,name,url,false);if(name!=='firefox')await discoverControls(browser,name,url,true);}finally{await browser.close();}
   }}finally{server.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -5,6 +5,7 @@ on:
       - 'sofhias-songs-67.html'
       - 'sofhia-franchesca-16.html'
       - 'css/album.css'
+      - 'css/album-discover.css'
       - 'css/birthday-album-entry.css'
       - 'js/album*.mjs'
       - 'js/birthday-album-entry.mjs'

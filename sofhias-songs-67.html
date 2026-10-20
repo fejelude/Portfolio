@@ -13,6 +13,8 @@
   <link rel="stylesheet" href="/css/birthday.css">
   <link rel="stylesheet" href="/css/album.css">
   <script type="module" src="/js/album.mjs"></script>
+  <link rel="stylesheet" href="/css/album-discover.css">
+  <script type="module" src="/js/album-discover.mjs"></script>
 </head>
 <body class="birthday album">
   <svg class="album__symbols" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -98,6 +100,38 @@
             <p class="album__empty" id="empty-album" hidden>the first little song is on its way ♡</p>
           </section>
         </div>
+        <section class="discover" aria-labelledby="discover-title">
+          <header class="discover__heading">
+            <p class="discover__eyebrow" aria-hidden="true">✦ ♡ ✦</p>
+            <h2 id="discover-title">more to discover ♡</h2>
+            <p class="discover__intro">some songs i really love, mostly because they remind me of you. idk how to explain it, but whenever these play, you’re somehow the first person that comes to mind HAHAHA ♡</p>
+          </header>
+          <ol class="discover__list" id="discover-list" aria-label="Top seven songs to discover"></ol>
+          <div class="discover__joke">
+            <button class="discover__meme-button" id="discover-six-seven" type="button" aria-controls="discover-meme" aria-expanded="false">6-7 😭</button>
+            <p class="discover__joke-caption">i couldn’t put 6 and 7 next to each other without doing this 😭</p>
+            <div class="discover__stage-wrap">
+              <div class="discover__stage" id="discover-meme" hidden role="img" aria-label="Two pixel hands, palms up, alternately lift and lower around a big 6-7.">
+                <svg viewBox="0 0 360 160" aria-hidden="true">
+                  <defs>
+                    <g id="discover-palm" stroke="#ae6e83" stroke-width="2" stroke-linejoin="miter">
+                      <path d="M48 104H75V150H48Z" fill="#f0bdd0"/>
+                      <path d="M48 124H75V150H48Z" fill="#f9dce9"/>
+                      <path d="M28 96V84H38V78H54V72H70V68H105V72H120V78H130V86H125V94H114V101H86V109H48V104H36V100H28Z" fill="#f9d7c9"/>
+                      <path d="M39 87H59V82H83V79H112V85H119V89H108V95H84V101H53V97H41Z" fill="#fff0df" stroke="none"/>
+                      <path d="M48 90H71V85H95M58 101H79M95 78H112" fill="none" stroke="#d5a29e"/>
+                      <path d="M31 85V75H37V67H44V72H49V82" fill="#f9d7c9"/>
+                    </g>
+                  </defs>
+                  <g class="discover__hand discover__hand--left"><use href="#discover-palm"/></g>
+                  <g transform="translate(360 0) scale(-1 1)"><g class="discover__hand discover__hand--right"><use href="#discover-palm"/></g></g>
+                  <g class="discover__meme-sparkles" fill="#dba959"><path d="M143 26H147V30H151V34H147V38H143V34H139V30H143Z"/><path d="M215 112H219V116H223V120H219V124H215V120H211V116H215Z"/><path d="M88 32H92V36H96V40H92V44H88V40H84V36H88Z"/><path d="M270 32H274V36H278V40H274V44H270V40H266V36H270Z"/></g>
+                </svg>
+                <span class="discover__big-number" aria-hidden="true">6-7</span>
+              </div>
+            </div>
+          </div>
+        </section>
         <footer class="album__footer">
           <div class="birthday__dialog album__closing" hidden><span class="birthday__dialog-star" aria-hidden="true">✦</span><p id="closing-message"></p></div>
           <a class="album__back" id="birthday-back" href="/sofhia-franchesca-16">← back to your birthday flowers</a>
