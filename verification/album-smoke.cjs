@@ -343,12 +343,14 @@ async function discoverControls(browser,name,url,mobile) {
   assert.equal(await page.locator('#tracklist .album__track').count(),5);
   assert.equal(await page.locator('#track-count').textContent(),'05 tracks ♡');
   assert.equal(await page.locator('.discover__card').count(),7);
-  assert.deepEqual(await page.locator('.discover__title').allTextContents(),['Beauty And A Beat','One Less Lonely Girl','Eenie Meenie',...Array.from({length:4},(_,i)=>`Top ${i+4} — Coming Soon`)]);
+  assert.deepEqual(await page.locator('.discover__title').allTextContents(),['Beauty And A Beat','One Less Lonely Girl','Eenie Meenie','Perfect',...Array.from({length:3},(_,i)=>`Top ${i+5} — Coming Soon`)]);
   for(const [index,tier] of ['gold','silver','bronze'].entries())assert.equal(await page.locator(`.discover__card--${tier}[data-rank="${index+1}"]`).count(),1);
   assert.equal(await page.locator('.discover__rank svg').count(),3);
   assert.equal(await page.locator('.discover audio,.discover__song-link').count(),0);
-  assert.equal(await page.locator('.discover img').count(),3);
-  assert.equal(await page.locator('.discover__listen').count(),3);
+  assert.equal(await page.locator('.discover img').count(),4);
+  assert.equal(await page.locator('.discover__listen').count(),4);
+  assert.equal(await page.locator('.discover__card[data-rank="4"] .discover__rank svg').count(),0);
+  assert.doesNotMatch(await page.locator('.discover__card[data-rank="4"]').getAttribute('class'),/discover__card--(?:gold|silver|bronze)/);
   assert.equal(await page.locator('#discover-meme').isVisible(),false);
   await activate('.discover__card[data-rank="1"] summary');
   assert.equal(await page.locator('.discover__card[data-rank="1"] .discover__description').textContent(),'coming soon ♡');
@@ -421,13 +423,27 @@ async function discoverControls(browser,name,url,mobile) {
   assert.equal(await page.$eval('#next-audio',a=>a.paused),true);
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-bronze-player.png`)});
   await page.evaluate(()=>{const a=document.getElementById('song-audio');a.currentTime=a.duration-.1;});
+  await page.waitForFunction(()=>document.getElementById('player-title').textContent==='Perfect');await playing(page);
+  assert.match(await page.locator('#player-number').textContent(),/TOP 4/);
+  assert.doesNotMatch(await page.locator('#player-number').textContent(),/GOLD|SILVER|BRONZE/);
+  assert.equal(await page.locator('#player-detail').textContent(),'Ed Sheeran');
+  assert.equal(await page.$eval('#song-audio',a=>new URL(a.currentSrc).pathname),'/assets/album/discover-04.mp3');
+  assert.equal(await page.$eval('#player-cover',e=>new URL(e.src).pathname),'/assets/album/discover-04-cover.jpg');
+  assert.ok(await page.$eval('#song-audio',a=>a.duration>54&&a.duration<56));
+  await activate('#play-pause');
+  await page.locator('#song-seek').evaluate(e=>{e.value='15';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
+  await activate('#play-pause');await playing(page);
+  await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>15.1);
+  assert.equal(await page.$eval('#next-audio',a=>a.paused),true);
+  await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-perfect-player.png`)});
+  await page.evaluate(()=>{const a=document.getElementById('song-audio');a.currentTime=a.duration-.1;});
   await page.locator('#play-again').waitFor({state:'visible'});
-  assert.equal(await page.locator('#player-title').textContent(),'Eenie Meenie');
+  assert.equal(await page.locator('#player-title').textContent(),'Perfect');
   assert.equal(await page.$eval('#song-audio',a=>a.paused),true);
   await activate('[data-track-id="song-01"] .album__track-button');await playing(page);
   if(mobile){await page.setViewportSize({width:320,height:740});await assertLayout(page);await page.screenshot({path:path.join(out,`${name}-discover-320.png`),fullPage:true});}
   await activate('#play-pause');assert.deepEqual(errors,[]);await context.close();
-  console.log(name+' discover '+(mobile?'mobile':'desktop')+': Gold/Silver/Bronze recordings, four placeholders, shared playback/seek/switch/finish, silent meme and reduced motion passed');
+  console.log(name+' discover '+(mobile?'mobile':'desktop')+': four ranked recordings, three placeholders, shared playback/seek/switch/finish, silent meme and reduced motion passed');
 }
 (async()=>{
   await fs.mkdir(out,{recursive:true});const {server,url}=await startServer();
