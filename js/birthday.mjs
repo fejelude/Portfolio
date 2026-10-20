@@ -36,7 +36,7 @@ function readAmbient(now) { return ambient+(ambientRunning?(now-ambientAnchor)/1
 function pauseAmbient(now) { ambient=readAmbient(now);ambientRunning=false; }
 function schedule() { if(!raf&&!disposed&&!document.hidden)raf=requestAnimationFrame(frame); }
 function isPaused() { return active&&!revealed&&!clock.running&&!buffering&&!playPending; }
-function showContinue(copy='your flowers are still here 🌸') {
+function showContinue(copy='Its not done blooming yet, sofii') {
   $('continue-copy').textContent=copy;$('continue-panel').hidden=false;
   $('pause').setAttribute('aria-label','Continue experience');
 }
