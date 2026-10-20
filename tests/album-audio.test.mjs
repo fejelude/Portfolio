@@ -187,7 +187,7 @@ test('ranked audio uses the same exclusive player with a separate queue and corr
   assert.equal(p.queue.next('discover-06'), 'discover-07');
   assert.equal(p.queue.next('discover-07'), null);
   assert.equal(mediaSession.metadata.artist, 'Justin Bieber ft. Nicki Minaj');
-  assert.equal(mediaSession.metadata.album, 'More to Discover ♡');
+  assert.equal(mediaSession.metadata.album, 'MORE TO KNOWW');
   p.pause(); assert.equal(audio.paused, true); p.seek(3); assert.equal(audio.currentTime, 3);
   p.play(); await settled(p); assert.equal(audio.currentTime, 3);
   audio.end(); await settled(p);
