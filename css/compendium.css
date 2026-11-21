@@ -20,7 +20,7 @@
 .compendium__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:start;gap:clamp(22px,3vw,35px)}
 .compendium__card{min-width:0;display:block;width:100%;padding:12px 12px 29px;border:3px solid #d391b1;border-radius:0;background:#fffafc;box-shadow:inset 3px 3px #fff,5px 5px #e7a9c5,9px 10px 0 #f4d6e5;transform:rotate(var(--tilt,0deg));transition:transform .25s ease,box-shadow .25s ease;position:relative;text-align:left;color:#954c71}
 .compendium__card::after{content:'✦';position:absolute;right:9px;bottom:5px;color:#e29dbe;font-size:1.05rem}
-.compendium__card:hover,.compendium__card:focus-visible{transform:rotate(0deg) translateY(-5px) scale(1.015);box-shadow:inset 3px 3px #fff,5px 7px #d88dad,10px 13px 0 #f4d6e5}
+.compendium__card:hover{transform:rotate(0deg) translateY(-5px) scale(1.015);box-shadow:inset 3px 3px #fff,5px 7px #d88dad,10px 13px 0 #f4d6e5}
 .compendium__card:active{transform:rotate(0) scale(.99)}
 .compendium__frame{display:block;border:2px solid #edbdd1;background:#ffeaf4;aspect-ratio:16/9;overflow:hidden}
 .compendium__frame img{display:block;width:100%;height:100%;object-fit:contain;image-rendering:auto}
@@ -76,9 +76,9 @@
 .compendium__card:nth-child(3n)::before{background:repeating-linear-gradient(45deg,#c7d7cd99 0 5px,#e5eee5bb 5px 10px);border-color:#a7c1ae44}
 .compendium__card::after{content:'✧';right:13px;bottom:11px;font-size:1rem;color:#b487a3}
 .compendium__card-footer{padding-top:13px;min-height:27px}
-.compendium__card-index{margin-left:0;font-size:.68rem;letter-spacing:.12em;color:#9d7b90}
+.compendium__card-index{margin-left:0;font-size:.68rem;letter-spacing:.12em;color:#775369}
 .compendium__frame{border:1px solid #e6cfd8;background:#f9eef2}
-.compendium__card:hover,.compendium__card:focus-visible{transform:translateY(-7px) rotateX(var(--lean-x,0deg)) rotateY(var(--lean-y,0deg)) rotate(0deg);box-shadow:0 3px 0 #f5e6eb,0 17px 30px #85546c26;border-color:#c89eb8}
+.compendium__card:hover{transform:translateY(-7px) rotateX(var(--lean-x,0deg)) rotateY(var(--lean-y,0deg)) rotate(0deg);box-shadow:0 3px 0 #f5e6eb,0 17px 30px #85546c26;border-color:#c89eb8}
 .compendium__card.is-revealed{animation:compendium-unfold .75s cubic-bezier(.2,.65,.25,1) both;animation-delay:calc(var(--card-order) * 65ms)}
 .compendium__ornaments{position:absolute;inset:0 0 auto;pointer-events:none;overflow:hidden;height:680px;z-index:0}
 .compendium__ornaments span{position:absolute;font-size:110px;line-height:1;color:#d6b4cd;opacity:.2;transform:rotate(-15deg)}

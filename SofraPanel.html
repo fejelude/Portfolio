@@ -6,42 +6,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#171620" />
   <title>Sofra Panel | Itsmefeje</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="sofra-panel.css" />
+  <link rel="stylesheet" href="/sofra-panel.css" />
 </head>
 <body>
-  <a href="#content" class="skip-link">Skip to settings</a>
-  <div class="ambient ambient-a"></div>
-  <div class="ambient ambient-b"></div>
+  <a href="#auth-gate" id="panel-skip" class="skip-link">Skip to content</a>
 
-  <div id="boot-screen" class="boot-screen">
-    <div class="sofra-orb">S</div>
+  <div id="boot-screen" class="boot-screen" role="status">
     <span>Loading Sofra Panel…</span>
   </div>
 
-  <main id="auth-gate" class="auth-gate hidden">
-    <a class="back-home" href="/">← Back to portfolio</a>
+  <main id="auth-gate" class="auth-gate hidden" tabindex="-1">
+    <a class="back-home" href="/">Back to portfolio</a>
     <section class="auth-card">
-      <div class="auth-mark">S</div>
-      <div class="eyebrow">SOFRA CONTROL CENTER</div>
-      <h1>Everything Sofra, in one soft little corner.</h1>
-      <p>Sign in with Discord to manage the servers you control, customize Sofra, and keep every module tidy from desktop, tablet, or mobile.</p>
+      <div class="auth-mark"><img src="/assets/sofra/brand-poster.webp" width="96" height="96" alt=""></div>
+      <h1>Sofra dashboard</h1>
+      <p>Sign in with Discord, then choose a server to manage Sofra’s welcome messages, moderation, and other settings.</p>
       <a class="discord-login" href="/api/sofra/auth/login">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.5 5.3A16.4 16.4 0 0 0 15.4 4l-.5 1a15.2 15.2 0 0 0-5.8 0l-.5-1a16.6 16.6 0 0 0-4.1 1.3C1.9 9.1 1.2 12.8 1.5 16.4a16.8 16.8 0 0 0 5 2.5l1.2-1.7a10.6 10.6 0 0 1-1.9-.9l.5-.4c3.6 1.7 7.6 1.7 11.2 0l.6.4c-.7.4-1.3.7-2 .9l1.3 1.7a16.6 16.6 0 0 0 5-2.5c.4-4.2-.8-7.8-2.9-11.1ZM8.4 14.4c-1.1 0-2-1-2-2.2s.9-2.2 2-2.2 2 1 2 2.2-.9 2.2-2 2.2Zm7.2 0c-1.1 0-2-1-2-2.2s.9-2.2 2-2.2 2 1 2 2.2-.9 2.2-2 2.2Z"/></svg>
         Continue with Discord
       </a>
       <a class="discord-login discord-reauth hidden" href="/api/sofra/auth/logout?reauth=1">
         <span aria-hidden="true">↻</span>
-        Log-in again :)
+        Sign in again
       </a>
-      <div class="security-note"><span>♡</span> Discord access is checked on the server. Sofra never exposes your bot token or Discord client secret to this page.</div>
+      <div class="security-note">You can manage servers you own or have permission to manage. <a href="/sofra/about">Learn about Sofra</a>.</div>
     </section>
   </main>
+  <noscript><p class="no-script">Enable JavaScript to use the Sofra dashboard. <a href="/sofra/about">Read about Sofra</a>.</p></noscript>
 
   <div id="app-shell" class="app-shell hidden">
-    <aside class="sidebar" id="sidebar">
+    <aside class="sidebar" id="sidebar" aria-label="Dashboard sections">
+      <button class="sidebar-close btn ghost" id="sidebar-close" type="button">Close sections</button>
       <a class="panel-brand" href="/">
         <span class="brand-orb media-slot" data-icon-key="brand">S</span>
         <span><strong>Sofra</strong><small>Control Panel</small></span>
@@ -54,24 +49,25 @@
 
       <nav class="panel-nav" aria-label="Sofra settings">
         <div class="nav-group-title">HOME</div>
-        <button class="nav-item active" data-panel="overview"><span class="nav-icon media-slot" data-icon-key="overview">⌂</span><span>Overview</span></button>
+        <button class="nav-item active" data-panel="overview"><span class="nav-icon media-slot" aria-hidden="true" data-icon-key="overview">⌂</span><span>Overview</span></button>
 
         <div class="nav-group-title">ESSENTIALS</div>
-        <button class="nav-item" data-panel="welcome"><span class="nav-icon media-slot" data-icon-key="welcome">♡</span><span>Welcome</span></button>
-        <button class="nav-item" data-panel="tickets"><span class="nav-icon media-slot" data-icon-key="tickets">▣</span><span>Tickets</span></button>
-        <button class="nav-item" data-panel="levels"><span class="nav-icon media-slot" data-icon-key="levels">↗</span><span>Levels / XP</span></button>
-        <button class="nav-item" data-panel="boosters"><span class="nav-icon media-slot" data-icon-key="boosters">✦</span><span>Boosters</span></button>
+        <button class="nav-item" data-panel="welcome"><span class="nav-icon media-slot" aria-hidden="true" data-icon-key="welcome">♡</span><span>Welcome</span></button>
+        <button class="nav-item" data-panel="tickets"><span class="nav-icon media-slot" aria-hidden="true" data-icon-key="tickets">▣</span><span>Tickets</span></button>
+        <button class="nav-item" data-panel="levels"><span class="nav-icon media-slot" aria-hidden="true" data-icon-key="levels">↗</span><span>Levels / XP</span></button>
+        <button class="nav-item" data-panel="boosters"><span class="nav-icon media-slot" aria-hidden="true" data-icon-key="boosters">✦</span><span>Boosters</span></button>
 
         <div class="nav-group-title">SERVER MANAGEMENT</div>
-        <button class="nav-item" data-panel="moderation"><span class="nav-icon media-slot" data-icon-key="moderation">◇</span><span>Moderation</span></button>
-        <button class="nav-item" data-panel="logs"><span class="nav-icon media-slot" data-icon-key="logs">≡</span><span>Logs</span></button>
-        <button class="nav-item" data-panel="autorole"><span class="nav-icon media-slot" data-icon-key="autorole">＋</span><span>Auto Role</span></button>
+        <button class="nav-item" data-panel="moderation"><span class="nav-icon media-slot" aria-hidden="true" data-icon-key="moderation">◇</span><span>Moderation</span></button>
+        <button class="nav-item" data-panel="logs"><span class="nav-icon media-slot" aria-hidden="true" data-icon-key="logs">≡</span><span>Logs</span></button>
+        <button class="nav-item" data-panel="autorole"><span class="nav-icon media-slot" aria-hidden="true" data-icon-key="autorole">＋</span><span>Auto Role</span></button>
 
         <div class="nav-group-title">CUSTOMIZE</div>
-        <button class="nav-item" data-panel="appearance"><span class="nav-icon media-slot" data-icon-key="appearance">✿</span><span>Appearance</span></button>
+        <button class="nav-item" data-panel="appearance"><span class="nav-icon media-slot" aria-hidden="true" data-icon-key="appearance">✿</span><span>Appearance</span></button>
       </nav>
 
       <div class="sidebar-footer">
+        <label class="icon-motion"><input id="icon-motion" type="checkbox"> Animate Sofra icons</label>
         <div class="user-chip">
           <div id="user-avatar" class="avatar"></div>
           <div><strong id="user-name">Discord user</strong><small>Authenticated</small></div>
@@ -80,14 +76,13 @@
       </div>
     </aside>
 
-    <button id="sidebar-scrim" class="sidebar-scrim" aria-label="Close navigation"></button>
+    <button id="sidebar-scrim" class="sidebar-scrim" aria-label="Close navigation" tabindex="-1"></button>
 
-    <section class="workspace">
+    <main class="workspace" id="workspace" tabindex="-1">
       <header class="workspace-header">
         <div class="header-left">
-          <button id="mobile-menu" class="mobile-menu" aria-label="Open menu" aria-expanded="false">☰</button>
+          <button id="mobile-menu" class="mobile-menu" aria-controls="sidebar" aria-expanded="false">Sections</button>
           <div>
-            <div class="eyebrow">SOFRA PANEL</div>
             <h1 id="page-title">Overview</h1>
           </div>
         </div>
@@ -107,9 +102,8 @@
       <section id="server-picker" class="server-picker hidden" aria-labelledby="server-picker-title">
         <div class="picker-heading">
           <div>
-            <div class="eyebrow">YOUR DISCORD SERVERS</div>
-            <h2 id="server-picker-title">Where are we managing Sofra?</h2>
-            <p>Only servers you can manage are shown. Sofra must be installed before its settings can open.</p>
+            <h2 id="server-picker-title">Choose where Sofra works</h2>
+            <p>Select a server to open its settings or add Sofra to a server you manage.</p>
           </div>
           <button id="refresh-guilds" class="btn ghost">Refresh</button>
         </div>
@@ -135,7 +129,7 @@
           </div>
 
           <section class="card setup-card" aria-labelledby="setup-title">
-            <div><span class="eyebrow">A GOOD PLACE TO START</span><h2 id="setup-title">Your server, ready for Sofra.</h2><p>Start with welcome messages and private staff logs. Enable other modules when you need them.</p></div>
+            <div><h2 id="setup-title">Set up your server</h2><p>Start with welcome messages and private staff logs. Enable other modules when you need them.</p></div>
             <div id="setup-checklist" class="setup-checklist"></div>
             <p id="sync-summary" role="status">Checking configuration sync…</p>
             <button id="refresh-settings" class="btn ghost" type="button">Refresh settings & sync status</button>
@@ -143,14 +137,14 @@
           </section>
 
           <div class="section-heading compact-heading">
-            <div><span class="eyebrow">PLUGINS</span><h2>Manage modules</h2><p>Open a module to configure only what matters for that feature.</p></div>
+            <div><h2>Manage modules</h2><p>Open a module to configure only what matters for that feature.</p></div>
           </div>
           <div id="module-grid" class="module-grid"></div>
         </section>
 
         <section class="panel-page" data-page="welcome" data-section="welcome">
           <div class="section-heading">
-            <div><span class="eyebrow">WELCOME SYSTEM</span><h2>First impressions, handled.</h2><p>Pick the destination, choose Sofra’s random greetings or your own message, then preview it before saving.</p></div>
+            <div><h2>Welcome messages</h2><p>Pick the destination, choose Sofra’s random greetings or your own message, then preview it before saving.</p></div>
             <label class="switch-row"><span>Enabled</span><input type="checkbox" id="welcome-enabled"><i></i></label>
           </div>
           <div class="two-column welcome-layout">
@@ -176,7 +170,7 @@
 
         <section class="panel-page" data-page="moderation" data-section="automod">
           <div class="section-heading">
-            <div><span class="eyebrow">AUTOMOD</span><h2>Moderation without the clutter.</h2><p>Core protection first, advanced exceptions below.</p></div>
+            <div><h2>Moderation</h2><p>Core protection first, advanced exceptions below.</p></div>
             <label class="switch-row"><span>Enabled</span><input type="checkbox" id="automod-enabled"><i></i></label>
           </div>
 
@@ -222,7 +216,7 @@
 
         <section class="panel-page" data-page="tickets" data-section="tickets">
           <div class="section-heading">
-            <div><span class="eyebrow">SUPPORT</span><h2>Tickets, configured visually.</h2><p>Saving creates or updates Sofra’s real ticket panel in Discord.</p></div>
+            <div><h2>Support tickets</h2><p>Saving creates or updates Sofra’s real ticket panel in Discord.</p></div>
             <label class="switch-row"><span>Enabled</span><input type="checkbox" id="tickets-enabled"><i></i></label>
           </div>
           <div class="two-column">
@@ -245,7 +239,7 @@
 
         <section class="panel-page" data-page="levels" data-section="levels">
           <div class="section-heading">
-            <div><span class="eyebrow">LEVELS / XP</span><h2>Shape the progression loop.</h2><p>Keep XP rules simple, then add role rewards only when you need them.</p></div>
+            <div><h2>Shape the progression loop.</h2><p>Keep XP rules simple, then add role rewards only when you need them.</p></div>
             <label class="switch-row"><span>Enabled</span><input type="checkbox" id="levels-enabled"><i></i></label>
           </div>
           <div class="card form-card">
@@ -267,7 +261,7 @@
 
         <section class="panel-page" data-page="boosters" data-section="booster">
           <div class="section-heading">
-            <div><span class="eyebrow">SERVER BOOSTERS</span><h2>Make boosts feel special.</h2><p>Choose the role and thank-you destination. Sofra handles the rest.</p></div>
+            <div><h2>Server boosts</h2><p>Choose the role and thank-you destination. Sofra handles the rest.</p></div>
             <label class="switch-row"><span>Enabled</span><input type="checkbox" id="booster-enabled"><i></i></label>
           </div>
           <div class="card form-card narrow-form">
@@ -280,7 +274,7 @@
 
         <section class="panel-page" data-page="logs" data-section="modlog">
           <div class="section-heading">
-            <div><span class="eyebrow">STAFF LOGS</span><h2>Keep moderation visible.</h2><p>Route moderation and ticket activity into one staff-facing log channel.</p></div>
+            <div><h2>Staff logs</h2><p>Route moderation and ticket activity into one staff-facing log channel.</p></div>
             <label class="switch-row"><span>Enabled</span><input type="checkbox" id="modlog-enabled"><i></i></label>
           </div>
           <div class="card form-card narrow-form">
@@ -292,7 +286,7 @@
 
         <section class="panel-page" data-page="autorole" data-section="autorole">
           <div class="section-heading">
-            <div><span class="eyebrow">AUTO ROLE</span><h2>Onboarding, automatically.</h2><p>Assign one default role when a member joins your server.</p></div>
+            <div><h2>Automatic roles</h2><p>Assign one default role when a member joins your server.</p></div>
             <label class="switch-row"><span>Enabled</span><input type="checkbox" id="autorole-enabled"><i></i></label>
           </div>
           <div class="card form-card narrow-form">
@@ -304,7 +298,7 @@
 
         <section class="panel-page" data-page="appearance" data-section="panel">
           <div class="section-heading">
-            <div><span class="eyebrow">APPEARANCE</span><h2>Make Sofra feel like yours.</h2><p>Replace the panel’s simple symbols with your own image, GIF, or Giphy links. Blank fields keep Sofra’s defaults.</p></div>
+            <div><h2>Make Sofra feel like yours.</h2><p>Replace the panel’s simple symbols with your own image, GIF, or Giphy links. Blank fields keep Sofra’s defaults.</p></div>
           </div>
           <div class="card form-card appearance-card">
             <div class="form-section-title">Panel media</div>
@@ -324,7 +318,7 @@
           </div>
         </section>
       </div>
-    </section>
+    </main>
   </div>
 
   <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
@@ -340,7 +334,7 @@
     </div>
   </div>
 
-  <script src="sofra-panel-core.js" defer></script>
-  <script src="sofra-panel.js" defer></script>
+  <script src="/sofra-panel-core.js" defer></script>
+  <script src="/sofra-panel.js" defer></script>
 </body>
 </html>

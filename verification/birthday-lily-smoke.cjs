@@ -9,9 +9,10 @@ async function shot(page,name,stage){
  await page.screenshot({path:path.join(out,`${name}-lily-${stage}.png`),clip:{x:Math.max(0,b.x+b.width/2-85),y:Math.max(0,b.y+b.height/2-80),width:170,height:160}});
 }
 async function layoutUnchanged(page){
- const result=await page.evaluate(()=>{
+ const result=await page.evaluate(async()=>{
+  await document.fonts.ready;
   const ids=['greeting','start','album-entry'];
-  const rects=()=>ids.map(id=>{const r=document.getElementById(id).getBoundingClientRect();return [r.x,r.y,r.width,r.height];});
+  const rects=()=>ids.map(id=>{const r=document.getElementById(id).getBoundingClientRect();return [r.x+window.scrollX,r.y+window.scrollY,r.width,r.height];});
   const after=rects(),button=document.getElementById('lily-cake'),old=document.createElement('span');old.className='birthday__welcome-flower';old.textContent='✿';
   button.replaceWith(old);const before=rects();old.replaceWith(button);
   return {before,after,overflow:document.documentElement.scrollWidth>innerWidth};

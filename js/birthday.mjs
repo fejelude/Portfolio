@@ -4,11 +4,13 @@ import { BouquetRenderer, GroveRenderer, ParticleGarden } from './birthday-art.m
 
 const $ = id => document.getElementById(id);
 const audio=$('birthday-audio'),clock=new StoryClock(CONFIG.duration);
+const PLAYBACK_START_TIMEOUT_MS=8000;
 const motion=matchMedia('(prefers-reduced-motion: reduce)');
 const bouquet=new BouquetRenderer($('bouquet')),grove=new GroveRenderer($('grove')),particles=new ParticleGarden($('particles'));
 const lifetime=new AbortController(),options={signal:lifetime.signal};
 let active=false,revealed=false,ready=false,buffering=false,manualPaused=false,backgroundResume=false;
 let generation=0,playAttempt=0,raf=0,lastFrame=0,lastVisual=0,lastSecond=-1,lastPhase=-1,playPending=false,disposed=false,audioUnavailable=false;
+let playPendingSince=0;
 let ambient=0,ambientAnchor=0,ambientRunning=false,welcomeFade=0,loadingSince=performance.now();
 let pointer={x:0,y:0},parallax={x:0,y:0},tiltAttached=false,tiltAvailable=false;
 
@@ -102,7 +104,7 @@ function begin() {
   const now=performance.now(),token=++generation;
   audio.pause();clock.reset();particles.reset();active=true;revealed=false;buffering=false;manualPaused=false;backgroundResume=false;
   audio.muted=false;$('sound').disabled=false;$('sound').setAttribute('aria-pressed','false');$('sound').setAttribute('aria-label','Mute music');
-  lastVisual=0;lastSecond=-1;lastPhase=-1;ambient=0;ambientRunning=false;playPending=true;welcomeFade=now;
+  lastVisual=0;lastSecond=-1;lastPhase=-1;ambient=0;ambientRunning=false;playPending=true;playPendingSince=now;welcomeFade=now;
   $('welcome').classList.add('is-leaving');$('progress-panel').hidden=false;$('celebration').hidden=true;$('replay').hidden=true;
   $('return-home').hidden=true;
   $('controls').hidden=false;$('chrome-star').hidden=true;$('announcement').textContent='okayyy, here we go 🌸';
@@ -143,7 +145,7 @@ function resumeExperience(fromGesture=true) {
   manualPaused=false;hideContinue();
   if(clock.mode!=='media'){clock.start(performance.now());setStatus(clock.mode==='silent'?'no sound rn, but keep going 💗':'');schedule();return;}
   if(audio.ended){clock.ended(performance.now(),audio.currentTime);clock.start(performance.now());schedule();return;}
-  playPending=true;setStatus('finding the song again… 🌸');
+  playPending=true;playPendingSince=performance.now();setStatus('finding the song again… 🌸');
   try { const promise=audio.play();if(fromGesture)requestMotion();settlePlay(promise,generation,fromGesture); }
   catch { useSilent(); }
   schedule();
@@ -170,6 +172,9 @@ function frame(now) {
   raf=0;if(disposed||document.hidden)return;
   const frameMs=lastFrame?now-lastFrame:16;lastFrame=now;
   if(!ready&&(audio.readyState>=2||audio.error||now-loadingSince>=3000))setReady();
+  // A native play promise can remain pending when an unavailable source
+  // never sends an error. Start the silent clock after a bounded wait.
+  if(playPending&&now-playPendingSince>=PLAYBACK_START_TIMEOUT_MS)useSilent();
   const t=active?clock.read(now,audio.currentTime):0;
   if(active&&!revealed&&t>=CONFIG.duration)celebrate(now);
   const finalTime=revealed?readAmbient(now):0;

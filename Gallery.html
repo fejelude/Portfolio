@@ -1,203 +1,217 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gallery | Itsmefeje</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Game Gallery | Itsmefeje</title>
+  <meta name="description" content="Fejelude’s game memories from Breath of the Wild and The Hive in Minecraft: Bedrock Edition.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/css/gallery.css">
+  <script src="/main.js" defer></script>
+  <script src="/js/activity-logger.js" defer></script>
+  <script src="/gallery.js" defer></script>
 </head>
 <body>
-
-  <div id="liquid-ether-bg"></div>
-
-  <header class="glass-nav">
-    <div class="container nav-container">
-      <div class="logo">
-        <a href="index.html" style="text-decoration: none; color: inherit; display: flex; align-items: center;"><span id="nav-logo-text">Itsmefeje</span></a>
-      </div>
-
-      <button class="mobile-toggle" aria-label="Toggle Menu">
-        <span></span><span></span><span></span>
-      </button>
-
-      <nav class="nav-links">
-        <a href="index.html#about">About</a>
-        <a href="index.html#learning">Learning</a>
-        <a href="index.html#goals">Goals</a>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap site-header-inner">
+      <a class="wordmark" href="/">Itsmefeje<span aria-hidden="true">.</span></a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" hidden>Menu</button>
+      <nav id="site-nav" class="site-nav" aria-label="Main navigation">
+        <a href="/#sofra-project">Work</a>
+        <a href="/Gallery.html" aria-current="page">Gallery</a>
+        <a href="/#about">About</a>
         <a href="/#surprise">Click me ♡</a>
-        <a href="Gallery.html" style="color: white; font-weight: 600;">Gallery</a>
-        <a href="index.html#contact" class="btn-primary">Contact</a>
+        <a href="/#contact">Contact</a>
+        <a class="nav-panel" href="/sofra">Sofra Panel</a>
       </nav>
     </div>
   </header>
-
-  <main>
-    <section id="gallery" class="section-padding" style="padding-top: 150px; min-height: 80vh;">
-      <div class="container">
-        
-        <div class="section-header reveal">
-          <h2>Game Gallery</h2>
-          <p>A collection of captured memories from <span class="highlight-game">The Legend of Zelda: Breath of the Wild</span>. This is one of my all-time favorite games. I originally played it on the Nintendo Switch alongside <span class="highlight-name">Mark Dhansen</span>, and I currently enjoy playing it on my laptop emulator. — <span class="highlight-date">February 24, 2026</span></p>
-        </div>
-
-        <div class="gallery-grid">
-           <div class="gallery-item reveal">
-             <img src="/assets/zelda-memories/subdued-ceremony.jpg" alt="Subdued Ceremony" class="gallery-img" loading="eager" fetchpriority="high">
-             <div class="gallery-caption">Subdued Ceremony</div>
-           </div>
-           <div class="gallery-item reveal">
-             <img src="/assets/zelda-memories/resolve-and-grief.jpg" alt="Resolve and Grief" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">Resolve and Grief</div>
-           </div>
-           <div class="gallery-item reveal">
-             <img src="/assets/zelda-memories/zeldas-resentment.jpg" alt="Zelda's Resentment" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">Zelda's Resentment</div>
-           </div>
-           <div class="gallery-item reveal">
-             <img src="/assets/zelda-memories/blades-of-the-yiga.jpg" alt="Blades of the Yiga" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">Blades of the Yiga</div>
-           </div>
-           <div class="gallery-item reveal">
-             <img src="/assets/zelda-memories/a-premonition.jpg" alt="A Premonition" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">A Premonition</div>
-           </div>
-           <div class="gallery-item reveal">
-             <img src="/assets/zelda-memories/silent-princess.jpg" alt="Silent Princess" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">Silent Princess</div>
-           </div>
-           <div class="gallery-item reveal">
-             <img src="/assets/zelda-memories/shelter-from-the-storm.jpg" alt="Shelter from the Storm" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">Shelter from the Storm</div>
-           </div>
-           <div class="gallery-item reveal">
-             <img src="/assets/zelda-memories/father-and-daughter.jpg" alt="Father and Daughter" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">Father and Daughter</div>
-           </div>
-           <div class="gallery-item reveal">
-             <img src="/assets/zelda-memories/slumbering-power.jpg" alt="Slumbering Power" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">Slumbering Power</div>
-           </div>
-           <div class="gallery-item reveal">
-             <img src="/assets/zelda-memories/to-mount-lanayru.jpg" alt="To Mount Lanayru" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">To Mount Lanayru</div>
-           </div>
-           <div class="gallery-item reveal">
-             <img src="/assets/zelda-memories/return-of-calamity-ganon.jpg" alt="Return of Calamity Ganon" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">Return of Calamity Ganon</div>
-           </div>
-           <div class="gallery-item reveal">
-             <img src="/assets/zelda-memories/despair.jpg" alt="Despair" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">Despair</div>
-           </div>
-           <div class="gallery-item reveal">
-             <img src="/assets/zelda-memories/zeldas-awakening.jpg" alt="Zelda's Awakening" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">Zelda's Awakening</div>
-           </div>
-        </div>
-
-        <div class="section-header reveal" style="margin-top: 100px;">
-          <h2>The Hive Minecraft: Bedrock Edition</h2>
-          <p><span class="highlight-game">The Hive</span> is a Minecraft server I still actively play today. Spanning from <span class="highlight-date">2021</span> to the present, it holds countless great memories for me across all of its unique minigames.</p>
-        </div>
-
-        <div class="gallery-grid">
-           <div class="gallery-item reveal">
-             <img src="https://playhive.com/content/images/size/w600/2024/08/skywars_classic_release.png" alt="SkyWars" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">SkyWars</div>
-           </div>
-           <div class="gallery-item reveal">
-             <img src="https://playhive.com/content/images/size/w600/2025/12/KeyArtV2.png" alt="BedWars" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">BedWars</div>
-           </div>
-           <div class="gallery-item reveal">
-             <img src="https://playhive.com/content/images/size/w600/2019/06/ghost-header-1.jpg" alt="Survival Games" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">Survival Games</div>
-           </div>
-           <div class="gallery-item reveal">
-             <img src="https://playhive.com/content/images/size/w600/2021/11/map.jpg" alt="Treasure Wars" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">Treasure Wars</div>
-           </div>
-           <div class="gallery-item reveal">
-             <img src="https://playhive.com/content/images/size/w600/2024/10/2024-10-04-17-50-08.png" alt="Murder Mystery" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">Murder Mystery</div>
-           </div>
-           <div class="gallery-item reveal">
-             <img src="https://playhive.com/content/images/size/w600/2025/05/build-battle-header.jpg" alt="Just Build" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">Just Build</div>
-           </div>
-           <div class="gallery-item reveal">
-             <img src="https://playhive.com/content/images/size/w600/2023/08/hide-and-seek-summer.jpg" alt="Hide and Seek" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">Hide and Seek</div>
-           </div>
-           <div class="gallery-item reveal">
-             <img src="https://playhive.com/content/images/size/w600/2023/06/image--1-.png" alt="Gravity" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">Gravity</div>
-           </div>
-           <div class="gallery-item reveal">
-             <img src="https://playhive.com/content/images/size/w600/2023/01/npc.jpg" alt="Block Party" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">Block Party</div>
-           </div>
-           <div class="gallery-item reveal">
-             <img src="https://playhive.com/content/images/size/w600/2023/03/hub-2.jpg" alt="The Hive Hub" class="gallery-img" loading="lazy">
-             <div class="gallery-caption">The Hive Hub</div>
-           </div>
-        </div>
+  <main id="main-content" tabindex="-1" class="wrap">
+    <div class="gallery-masthead">
+      <h1>Game gallery</h1>
+      <nav aria-label="Collections"><a class="text-link" href="#zelda">Breath of the Wild</a><a class="text-link" href="#hive">The Hive</a></nav>
+    </div>
+    <section class="collection" id="zelda" aria-labelledby="zelda-title">
+      <div class="collection-intro">
+        <h2 id="zelda-title">Breath of the Wild</h2>
+        <p>A collection of captured memories from one of my all-time favorite games. I originally played it on the Nintendo Switch alongside Mark Dhansen, and I currently enjoy playing it on my laptop emulator.<time datetime="2026-02-24">February 24, 2026</time></p>
       </div>
+      <ul class="gallery-grid gallery-zelda">
+          <li id="subdued-ceremony">
+            <a class="gallery-item" href="/assets/zelda-memories/subdued-ceremony.jpg">
+              <span class="gallery-media"><img src="/assets/zelda-memories/subdued-ceremony.webp" width="640" height="360" alt="" decoding="async" fetchpriority="high"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">Subdued Ceremony</span>
+            </a>
+          </li>
+          <li id="resolve-and-grief">
+            <a class="gallery-item" href="/assets/zelda-memories/resolve-and-grief.jpg">
+              <span class="gallery-media"><img src="/assets/zelda-memories/resolve-and-grief.webp" width="640" height="360" alt="" decoding="async" loading="lazy"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">Resolve and Grief</span>
+            </a>
+          </li>
+          <li id="zeldas-resentment">
+            <a class="gallery-item" href="/assets/zelda-memories/zeldas-resentment.jpg">
+              <span class="gallery-media"><img src="/assets/zelda-memories/zeldas-resentment.webp" width="640" height="360" alt="" decoding="async" loading="lazy"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">Zelda's Resentment</span>
+            </a>
+          </li>
+          <li id="blades-of-the-yiga">
+            <a class="gallery-item" href="/assets/zelda-memories/blades-of-the-yiga.jpg">
+              <span class="gallery-media"><img src="/assets/zelda-memories/blades-of-the-yiga.webp" width="640" height="360" alt="" decoding="async" loading="lazy"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">Blades of the Yiga</span>
+            </a>
+          </li>
+          <li id="a-premonition">
+            <a class="gallery-item" href="/assets/zelda-memories/a-premonition.jpg">
+              <span class="gallery-media"><img src="/assets/zelda-memories/a-premonition.webp" width="640" height="360" alt="" decoding="async" loading="lazy"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">A Premonition</span>
+            </a>
+          </li>
+          <li id="silent-princess">
+            <a class="gallery-item" href="/assets/zelda-memories/silent-princess.jpg">
+              <span class="gallery-media"><img src="/assets/zelda-memories/silent-princess.webp" width="640" height="360" alt="" decoding="async" loading="lazy"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">Silent Princess</span>
+            </a>
+          </li>
+          <li id="shelter-from-the-storm">
+            <a class="gallery-item" href="/assets/zelda-memories/shelter-from-the-storm.jpg">
+              <span class="gallery-media"><img src="/assets/zelda-memories/shelter-from-the-storm.webp" width="640" height="360" alt="" decoding="async" loading="lazy"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">Shelter from the Storm</span>
+            </a>
+          </li>
+          <li id="father-and-daughter">
+            <a class="gallery-item" href="/assets/zelda-memories/father-and-daughter.jpg">
+              <span class="gallery-media"><img src="/assets/zelda-memories/father-and-daughter.webp" width="640" height="360" alt="" decoding="async" loading="lazy"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">Father and Daughter</span>
+            </a>
+          </li>
+          <li id="slumbering-power">
+            <a class="gallery-item" href="/assets/zelda-memories/slumbering-power.jpg">
+              <span class="gallery-media"><img src="/assets/zelda-memories/slumbering-power.webp" width="640" height="360" alt="" decoding="async" loading="lazy"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">Slumbering Power</span>
+            </a>
+          </li>
+          <li id="to-mount-lanayru">
+            <a class="gallery-item" href="/assets/zelda-memories/to-mount-lanayru.jpg">
+              <span class="gallery-media"><img src="/assets/zelda-memories/to-mount-lanayru.webp" width="640" height="360" alt="" decoding="async" loading="lazy"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">To Mount Lanayru</span>
+            </a>
+          </li>
+          <li id="return-of-calamity-ganon">
+            <a class="gallery-item" href="/assets/zelda-memories/return-of-calamity-ganon.jpg">
+              <span class="gallery-media"><img src="/assets/zelda-memories/return-of-calamity-ganon.webp" width="640" height="360" alt="" decoding="async" loading="lazy"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">Return of Calamity Ganon</span>
+            </a>
+          </li>
+          <li id="despair">
+            <a class="gallery-item" href="/assets/zelda-memories/despair.jpg">
+              <span class="gallery-media"><img src="/assets/zelda-memories/despair.webp" width="640" height="360" alt="" decoding="async" loading="lazy"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">Despair</span>
+            </a>
+          </li>
+          <li id="zeldas-awakening">
+            <a class="gallery-item" href="/assets/zelda-memories/zeldas-awakening.jpg">
+              <span class="gallery-media"><img src="/assets/zelda-memories/zeldas-awakening.webp" width="640" height="360" alt="" decoding="async" loading="lazy"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">Zelda's Awakening</span>
+            </a>
+          </li>
+      </ul>
+    </section>
+    <section class="collection" id="hive" aria-labelledby="hive-title">
+      <div class="collection-intro">
+        <h2 id="hive-title">The Hive</h2>
+        <p>I’ve been playing The Hive on Minecraft: Bedrock Edition since 2021. It holds countless great memories across all of its unique minigames.</p>
+      </div>
+      <ul class="gallery-grid">
+          <li>
+            <a class="gallery-item" href="https://playhive.com/content/images/size/w600/2024/08/skywars_classic_release.png">
+              <span class="gallery-media"><img src="https://playhive.com/content/images/size/w600/2024/08/skywars_classic_release.png" width="640" height="360" alt="" decoding="async" loading="lazy" referrerpolicy="no-referrer"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">SkyWars</span>
+            </a>
+          </li>
+          <li>
+            <a class="gallery-item" href="https://playhive.com/content/images/size/w600/2025/12/KeyArtV2.png">
+              <span class="gallery-media"><img src="https://playhive.com/content/images/size/w600/2025/12/KeyArtV2.png" width="640" height="360" alt="" decoding="async" loading="lazy" referrerpolicy="no-referrer"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">BedWars</span>
+            </a>
+          </li>
+          <li>
+            <a class="gallery-item" href="https://playhive.com/content/images/size/w600/2019/06/ghost-header-1.jpg">
+              <span class="gallery-media"><img src="https://playhive.com/content/images/size/w600/2019/06/ghost-header-1.jpg" width="640" height="360" alt="" decoding="async" loading="lazy" referrerpolicy="no-referrer"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">Survival Games</span>
+            </a>
+          </li>
+          <li>
+            <a class="gallery-item" href="https://playhive.com/content/images/size/w600/2021/11/map.jpg">
+              <span class="gallery-media"><img src="https://playhive.com/content/images/size/w600/2021/11/map.jpg" width="640" height="360" alt="" decoding="async" loading="lazy" referrerpolicy="no-referrer"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">Treasure Wars</span>
+            </a>
+          </li>
+          <li>
+            <a class="gallery-item" href="https://playhive.com/content/images/size/w600/2024/10/2024-10-04-17-50-08.png">
+              <span class="gallery-media"><img src="https://playhive.com/content/images/size/w600/2024/10/2024-10-04-17-50-08.png" width="640" height="360" alt="" decoding="async" loading="lazy" referrerpolicy="no-referrer"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">Murder Mystery</span>
+            </a>
+          </li>
+          <li>
+            <a class="gallery-item" href="https://playhive.com/content/images/size/w600/2025/05/build-battle-header.jpg">
+              <span class="gallery-media"><img src="https://playhive.com/content/images/size/w600/2025/05/build-battle-header.jpg" width="640" height="360" alt="" decoding="async" loading="lazy" referrerpolicy="no-referrer"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">Just Build</span>
+            </a>
+          </li>
+          <li>
+            <a class="gallery-item" href="https://playhive.com/content/images/size/w600/2023/08/hide-and-seek-summer.jpg">
+              <span class="gallery-media"><img src="https://playhive.com/content/images/size/w600/2023/08/hide-and-seek-summer.jpg" width="640" height="360" alt="" decoding="async" loading="lazy" referrerpolicy="no-referrer"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">Hide and Seek</span>
+            </a>
+          </li>
+          <li>
+            <a class="gallery-item" href="https://playhive.com/content/images/size/w600/2023/06/image--1-.png">
+              <span class="gallery-media"><img src="https://playhive.com/content/images/size/w600/2023/06/image--1-.png" width="640" height="360" alt="" decoding="async" loading="lazy" referrerpolicy="no-referrer"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">Gravity</span>
+            </a>
+          </li>
+          <li>
+            <a class="gallery-item" href="https://playhive.com/content/images/size/w600/2023/01/npc.jpg">
+              <span class="gallery-media"><img src="https://playhive.com/content/images/size/w600/2023/01/npc.jpg" width="640" height="360" alt="" decoding="async" loading="lazy" referrerpolicy="no-referrer"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">Block Party</span>
+            </a>
+          </li>
+          <li>
+            <a class="gallery-item" href="https://playhive.com/content/images/size/w600/2023/03/hub-2.jpg">
+              <span class="gallery-media"><img src="https://playhive.com/content/images/size/w600/2023/03/hub-2.jpg" width="640" height="360" alt="" decoding="async" loading="lazy" referrerpolicy="no-referrer"><span class="gallery-failure">Image unavailable</span></span>
+              <span class="gallery-caption">The Hive Hub</span>
+            </a>
+          </li>
+      </ul>
     </section>
   </main>
-
-  <footer>
-    <div class="container">
-        <div class="footer-bottom">
-        <p>&copy; <span id="year"></span> Fejelude Von O. Laxamana. Personal Website.</p>
-        <div class="footer-links">
-            <a href="https://www.fejelude.xyz/" target="_blank">Website Updated Recently on February 24, 2026 </a>
-        </div>
-        </div>
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <p>© <span id="year"></span> Fejelude Von O. Laxamana</p>
+      <nav aria-label="Footer">
+        <a href="https://github.com/fejelude">GitHub</a>
+        <a href="https://www.roblox.com/users/5512860740/profile">Roblox</a>
+        <a href="/admin">Admin</a>
+      </nav>
     </div>
   </footer>
 
-  <div id="lightbox" class="lightbox">
-    <button class="lightbox-close" aria-label="Close lightbox">&times;</button>
-    <button class="lightbox-prev" aria-label="Previous image">&#10094;</button>
-    <div class="lightbox-content-wrapper">
-      <img src="" alt="" class="lightbox-content">
-      <div class="lightbox-caption"></div>
+  <dialog id="lightbox" class="lightbox" aria-labelledby="lightbox-caption">
+    <div class="lightbox-top">
+      <h2 id="lightbox-caption" aria-live="polite"></h2>
+      <form method="dialog"><button class="quiet-button" autofocus>Close</button></form>
     </div>
-    <button class="lightbox-next" aria-label="Next image">&#10095;</button>
-  </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-
-  <script src="liquid-ether.js"></script>
-  <script src="shiny-text.js"></script>
-  <script src="react-bits-vanilla.js"></script>
-  <script src="js/activity-logger.js"></script>
-  <script src="main.js"></script>
-  <script src="gallery.js"></script>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Initialize Background
-      if (typeof LiquidEther !== 'undefined') {
-        new LiquidEther(document.getElementById('liquid-ether-bg'), {
-          colors: ['#000000', '#0f172a', '#3b82f6', '#1d4ed8'], 
-          mouseForce: 25,
-          cursorSize: 80,
-          autoDemo: true
-        });
-      }
-
-    });
-  </script>
+    <div class="lightbox-scene">
+      <p class="lightbox-error" role="status" hidden>Image unavailable. You can still browse the collection.</p>
+    </div>
+    <div class="lightbox-nav">
+      <button type="button" class="quiet-button lightbox-prev">Previous</button>
+      <span class="lightbox-count"></span>
+      <button type="button" class="quiet-button lightbox-next">Next</button>
+    </div>
+  </dialog>
 </body>
 </html>
-

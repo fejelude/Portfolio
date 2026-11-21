@@ -27,7 +27,7 @@ const { startServer } = require('./birthday-server.cjs');
           assert.equal(await page.locator('#compendium-motion').getAttribute('aria-pressed'), 'true');
           const still = await canvas(); await page.waitForTimeout(250); assert.equal(await canvas(), still);
           await activate('#compendium-motion');
-          await page.waitForTimeout(120); assert.notEqual(await canvas(), still);
+          await page.waitForFunction(frame => document.getElementById('compendium-sky').toDataURL() !== frame, still, { timeout: 5000 });
           await activate('.compendium__card');
           await page.locator('#compendium-lightbox').waitFor({ state: 'visible' });
           const source = await page.locator('#compendium-large').getAttribute('src');

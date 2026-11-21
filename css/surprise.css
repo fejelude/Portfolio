@@ -1,11 +1,4 @@
-/* Scoped, temporary party layers. The resting card stays deliberately quiet. */
-.surprise-card{margin:56px auto 0;padding:32px 24px;max-width:440px;border:1px solid #a78bfa2e;border-radius:24px;background:#0e0c18a6;scroll-margin-top:110px}
-.surprise-card h3{color:#eee9ff;font:600 1.65rem var(--font-display,sans-serif);margin:0 0 10px}
-.surprise-card p{font-size:.95rem;color:#aaa3ba}
-.surprise-trigger{appearance:none;margin-top:22px;padding:13px 28px;border:1px solid #8b6fba;border-radius:99px;background:#38234f;color:#f6efff;font:500 1rem system-ui,sans-serif;cursor:pointer;transition:background .2s,box-shadow .2s;touch-action:manipulation}
-.surprise-trigger:hover{background:#4a2d69;box-shadow:0 0 24px #bb8aff22}
-.surprise-trigger:focus-visible,.kawaii-controls button:focus-visible{outline:3px solid #ffc6e8;outline-offset:5px}
-.surprise-trigger[aria-disabled="true"]{cursor:default}
+/* Temporary overlay for the user-triggered surprise. */
 .surprise-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .kawaii-world{--intensity:0;--fade:1;position:fixed;inset:0;z-index:2147483000;pointer-events:none;isolation:isolate;overflow:hidden;font-family:'Space Grotesk',system-ui,sans-serif}
 .kawaii-canvas,.kawaii-stickers{opacity:var(--fade)}
@@ -26,12 +19,11 @@
 .kawaii-controls{position:absolute;top:max(18px,env(safe-area-inset-top));right:max(16px,env(safe-area-inset-right));display:flex;align-items:center;gap:8px;pointer-events:auto}
 .kawaii-controls button{appearance:none;border:1px solid #e6bbdf55;border-radius:99px;min-height:44px;padding:9px 15px;background:#1c122bed;color:#ffe9f9;font:500 12px system-ui,sans-serif;cursor:pointer}
 .kawaii-time{font:11px system-ui,sans-serif;color:#ebd6f5;background:#1c122bed;padding:8px 10px;border-radius:99px}
-body.kawaii-active .glass-nav,body.kawaii-active .surprise-card{box-shadow:0 0 28px #df83ff30;border-color:#d9a0ef88}
 .kawaii-world[data-reduced="true"] .kawaii-light,.kawaii-world[data-reduced="true"] .kawaii-light::after{animation:none}
 @keyframes kawaii-light{from{transform:translate(-3%,-2%)}to{transform:translate(3%,2%)}}
 @keyframes kawaii-orbit{to{transform:rotate(360deg)}}
 @media(max-height:520px) and (orientation:landscape){.kawaii-reveal{flex-direction:row;flex-wrap:wrap;align-content:center;gap:16px}.kawaii-hero-wrap{width:140px;height:177px}.kawaii-reveal h2{font-size:32px}.kawaii-reveal p{flex-basis:100%;text-align:center}}
-@media(prefers-reduced-motion:reduce){.surprise-trigger{transition:none}.kawaii-light,.kawaii-light::after{animation:none}}
+@media(prefers-reduced-motion:reduce){.kawaii-light,.kawaii-light::after{animation:none}}
 
 .kawaii-world[data-variant="1"]{--party-accent:#67dfff50}
 .kawaii-world[data-variant="2"]{--party-accent:#ffc36b50}

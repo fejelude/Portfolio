@@ -5,13 +5,14 @@ const {readFile}=require('node:fs/promises');
 const path=require('node:path');
 const root=path.resolve(__dirname,'..');
 const mime={'.html':'text/html; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.webp':'image/webp','.png':'image/png','.mp3':'audio/mpeg','.m4a':'audio/mp4','.mp4':'audio/mp4','.jpg':'image/jpeg','.jpeg':'image/jpeg','.woff2':'font/woff2','.svg':'image/svg+xml','.json':'application/json'};
-async function startServer(port=0){
+async function startServer(port=0,{missingPaths=[]}={}){
  const server=createServer(async(req,res)=>{
   try{
    const url=new URL(req.url,'http://localhost');let route=decodeURIComponent(url.pathname);
    if(['/arcade','/Arcade','/Arcade.html'].includes(route)){res.writeHead(307,{Location:'/#surprise'});res.end();return;}
    if(route==='/sofra/about')route='/Sofra.html';if(route==='/sofra')route='/SofraPanel.html';
    if(route==='/')route='/index.html';else if(!path.extname(route))route+='.html';
+   if(missingPaths.includes(route))throw Error('fixture asset unavailable');
    const file=path.resolve(root,'.'+route);if(!file.startsWith(root+path.sep))throw Error('path');
    const body=await readFile(file),headers={'Content-Type':mime[path.extname(file)]||'application/octet-stream','Content-Length':body.length,'Accept-Ranges':'bytes'};
    if(['/sofhia-franchesca-16.html','/sofhias-songs-67.html'].includes(route)||route.startsWith('/assets/album/'))headers['X-Robots-Tag']='noindex, nofollow';

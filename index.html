@@ -1,345 +1,143 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Itsmefeje | Developer Journey</title>
-  <meta name="description" content="Explore itsmefeje Studios: games, creative experiments, and Sofra, a friendly Discord community bot with moderation, tickets, and a shared dashboard." />
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="css/surprise.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171c20">
+  <title>Itsmefeje | Fejelude Laxamana</title>
+  <meta name="description" content="Fejelude Laxamana’s personal site, home to Sofra, game memories, and notes on learning to build games.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/css/surprise.css">
+  <script src="/main.js" defer></script>
+  <script src="/js/activity-logger.js" defer></script>
+  <script src="/js/surprise-assets.js" defer></script>
+  <script src="/js/surprise.js" defer></script>
 </head>
 <body>
-  <div id="liquid-ether-bg"></div>
-
-  <header class="glass-nav premium-nav">
-    <div class="container nav-container">
-      <div class="logo nav-brand">
-        <a href="/">
-          <span class="brand-mark"></span>
-          <span id="nav-logo-text">Itsmefeje</span>
-        </a>
-      </div>
-      
-      <button class="mobile-toggle" aria-label="Toggle Menu" aria-expanded="false">
-        <span></span><span></span><span></span>
-      </button>
-
-      <nav class="nav-links">
-        <a href="#about">About</a>
-        <a href="/sofra/about">Sofra</a>
-        <a href="#learning">Learning</a>
-        <a href="#goals">Goals</a>
-        <a href="#surprise">Click me ♡</a>
-        <a href="Gallery.html">Gallery</a>
-        <a href="#contact" class="btn-primary">Contact</a>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap site-header-inner">
+      <a class="wordmark" href="/" aria-current="page">Itsmefeje<span aria-hidden="true">.</span></a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" hidden>Menu</button>
+      <nav id="site-nav" class="site-nav" aria-label="Main navigation">
+        <a href="/#sofra-project">Work</a>
+        <a href="/Gallery.html">Gallery</a>
+        <a href="/#about">About</a>
+        <a href="/#surprise">Click me ♡</a>
+        <a href="/#contact">Contact</a>
+        <a class="nav-panel" href="/sofra">Sofra Panel</a>
       </nav>
     </div>
   </header>
-
-  <main id="main-content">
-    <section id="home" class="hero-section">
-      <div class="hero-content reveal scroll-reveal" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
-        <h1 class="shiny-text special-header-effect" style="margin-bottom: 0;"><span class="blur-text">Fejelude</span> <span class="mobile-break"></span> <span class="blur-text">Laxamana</span></h1>
-        <p style="color: #888; font-size: 1.2rem; margin-bottom: 2rem;">16, Developer, Digital Artist, & Engineer</p>
-
-        <div class="action-buttons">
-          <div class="primary-action-stack">
-            <a href="/sofra/about" class="star-border sofra-hero-cta">
-              <span class="star-border-glow star-1"></span>
-              <span class="star-border-glow star-2"></span>
-              <span class="star-border-inner">
-                <span class="sofra-hero-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none">
-                    <path d="M7.4 7.1a7.8 7.8 0 0 1 9.2 0c1.1 1.7 1.8 3.6 2 5.7-1.3 1.6-3 2.6-4.8 3l-.7-1.1c.7-.2 1.3-.5 1.9-.9a7.5 7.5 0 0 1-6 0c.6.4 1.2.7 1.9.9l-.7 1.1a9.3 9.3 0 0 1-4.8-3c.2-2.1.9-4 2-5.7Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
-                    <path d="M9.5 11.7h.01M14.5 11.7h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-                  </svg>
-                </span>
-                <span>Meet Sofra</span>
-                <span class="sofra-hero-arrow" aria-hidden="true">&#8599;</span>
-              </span>
-            </a>
-
-            <a href="#about" class="star-border">
-              <span class="star-border-glow star-1"></span>
-              <span class="star-border-glow star-2"></span>
-              <span class="star-border-inner">Get to know me XD</span>
-            </a>
-
-            <a href="Gallery.html" class="star-border">
-              <span class="star-border-glow star-1"></span>
-              <span class="star-border-glow star-2"></span>
-              <span class="star-border-inner">Go to my game Gallery</span>
-            </a>
-          </div>
-
-          <div class="profile-action-cluster" aria-label="Profile and admin links">
-            <a href="https://www.roblox.com/users/5512860740/profile" target="_blank" class="magnet-btn roblox-icon-btn" aria-label="Roblox Profile" style="display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); padding: 0.8rem; border-radius: 0px; border: 1px solid rgba(255,255,255,0.1);">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5.426 3.064L1.144 18.232L16.312 22.514L20.594 7.346L5.426 3.064ZM11.968 15.656C10.222 15.161 9.198 13.335 9.693 11.589C10.188 9.843 12.014 8.819 13.76 9.314C15.506 9.809 16.53 11.635 16.035 13.381C15.54 15.127 13.714 16.151 11.968 15.656Z"/>
-              </svg>
-            </a>
-
-            <a href="/admin" class="magnet-btn admin-icon-btn" aria-label="Admin Panel">
-              <svg width="23" height="23" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M7 10V8a5 5 0 0 1 10 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                <path d="M6.5 10h11A1.5 1.5 0 0 1 19 11.5v6A1.5 1.5 0 0 1 17.5 19h-11A1.5 1.5 0 0 1 5 17.5v-6A1.5 1.5 0 0 1 6.5 10Z" stroke="currentColor" stroke-width="1.8"/>
-                <path d="M12 14v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-              </svg>
-            </a>
-          </div>
+  <main id="main-content" tabindex="-1">
+    <section id="home" class="wrap home-hero" aria-labelledby="name">
+      <div class="hero-intro">
+        <h1 id="name">Fejelude<br>Laxamana</h1>
+        <p class="hero-role">16, developer, digital artist &amp; engineer</p>
+        <p>I’m learning to build games and making things I’d love to use, like Sofra, my free Discord bot.</p>
+        <div class="action-row">
+          <a class="button" href="/sofra/about">Meet Sofra</a>
+          <a class="text-link" href="#about">Get to know me XD</a>
         </div>
       </div>
+      <figure class="hero-frame">
+        <a class="hero-capture" href="/Gallery.html#a-premonition" aria-labelledby="hero-gallery-label hero-gallery-title">
+          <img src="/assets/zelda-memories/hero.webp" width="705" height="396" alt="A sunlit canyon in Hyrule" fetchpriority="high">
+        </a>
+        <figcaption>
+          <span id="hero-gallery-title">A Premonition <small>Breath of the Wild</small></span>
+          <a id="hero-gallery-label" href="/Gallery.html">Game gallery</a>
+        </figcaption>
+      </figure>
     </section>
-      
-    <section id="sofra-project" class="section-padding">
-      <div class="container narrow">
-        <article class="glass-panel sofra-project-card">
-          <span class="project-kicker"> fejes new / FEATURED PROJECT</span>
-          <div
-            role="status"
-            aria-label="Current Sofra status: experiencing a problem"
-            style="display:inline-flex;align-items:center;gap:9px;margin:0 0 20px;padding:8px 13px;border:1px solid rgba(251,113,133,.44);border-radius:999px;background:linear-gradient(135deg,rgba(244,63,94,.18),rgba(236,72,153,.12));color:#ffe4e6;box-shadow:0 0 0 1px rgba(255,255,255,.025) inset,0 8px 26px rgba(244,63,94,.13),0 0 22px rgba(236,72,153,.12);font-size:11px;font-weight:700;line-height:1.2;letter-spacing:.075em;text-transform:uppercase;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);"
-          >
-            <span
-              aria-hidden="true"
-              style="display:inline-block;width:9px;height:9px;flex:0 0 9px;border-radius:50%;background:linear-gradient(135deg,#fda4af,#fb7185 50%,#ec4899);box-shadow:0 0 0 4px rgba(251,113,133,.12),0 0 15px rgba(251,113,133,.72);"
-            ></span>
-            Currently experiencing a problem
+
+    <section id="sofra-project" class="project-section" aria-labelledby="project-title">
+      <div class="wrap">
+        <h2 id="project-title">What I’m building</h2>
+        <article class="project-feature">
+          <a class="project-art" href="/sofra/about" aria-label="Meet Sofra">
+            <img src="/assets/sofra/brand-portrait.webp" width="520" height="656" loading="lazy" decoding="async" alt="">
+          </a>
+          <div class="project-copy">
+            <h3>Sofra</h3>
+            <p>Her name is Sofra. She’s a free Discord bot that welcomes members, keeps your server organized, and makes managing a community way less of a headache. She has a dashboard that brings everything together :3</p>
+            <p class="project-status">Service note. Sofra is currently experiencing a problem.</p>
+            <div class="action-row">
+              <a class="button" href="/sofra/about">Explore Sofra</a>
+              <a class="text-link" href="/sofra">Open dashboard</a>
+            </div>
           </div>
-          <h2> The Best Free Discord Bot.</h2>
-          <p> Her name is Sofra. She helps welcome members, keep your server organized, and makes managing a community way less of a headache. it has alot of functions it also has a dashboard that brings everything together :3</p>
-          <div class="action-buttons"><a href="/sofra/about" class="btn-primary">Explore Sofra ↗</a><a href="/sofra" class="sofra-dashboard-link">Already using Sofra? Open your dashboard →</a></div>
         </article>
       </div>
     </section>
 
-    <section id="about" class="section-padding scroll-reveal">
-      <div class="container narrow">
-        <div class="glass-panel profile-panel reveal spotlight-card">
-          <div class="profile-header">
-            <h2 style="background: linear-gradient(to right, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 2.5rem; letter-spacing: -0.02em;">
-              About My Journey & Myself
-            </h2>
-            <p style="margin-top: 16px; font-size: 1.1rem; color: #e2e8f0; font-weight: 400;">
-              "The best way to predict the future is to create it"
-              <br>
-              <span style="display: inline-block; margin-top: 8px; font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem; font-weight: 700; color: #ff4d4d; text-shadow: 0 0 20px rgba(255, 77, 77, 0.4);">
-                 — IS MY MOTTO
-              </span>
-            </p>
-          </div>
-
-          <div class="profile-body" style="text-align: left; margin-top: 40px; font-size: 1.05rem; line-height: 1.8; color: #cbd5e1;">
-            <p style="margin-bottom: 24px;">
-              <span style="color: #a78bfa; font-weight: 600;">I am a developer focused on love.</span> hehe, (not literal love like in a relationship like how she forgot me) 
-              I mean developing something I love and want to create that others might love too. 
-            </p>
-
-            <p style="margin-bottom: 24px;">
-              I am currently in the <strong style="color: white;">learning phase</strong>, dedicating my time to understand the fundamentals and logic of Software and Game Development. 
-              And, honestly, it's more understandable than understanding a girl. LOL, and of course I'm also understanding the core principles of programming before rushing into building massive projects. xD
-            </p>
-            
-            <div style="background: rgba(255,255,255,0.03); border-left: 3px solid #ff4d4d; padding: 20px 24px; border-radius: 0 12px 12px 0; margin: 32px 0;">
-              <p style="margin: 0; font-style: italic; color: #e2e8f0;">
-                "My philosophy is to build small stuff at these moments, and understand every line of code I write. AI exists but understanding it makes me even more handsome."
-              </p>
-            </div>
-            
-            <div class="stats-row">
-              <div class="stat">
-                <strong>LuaU</strong>
-                <span>MY FOCUS</span>
-              </div>
-            <div class="stat">
-                <strong>Creative</strong>
-                <span>EXPERIMENTS</span>
-            </div>
-              <div class="stat">
-                <strong>Systems</strong>
-                <span>WHAT I'M LEARNING</span>
-              </div>
-            </div>
-          </div>
-        </div>
+    <section id="about" class="wrap home-section about-section" aria-labelledby="about-title">
+      <div>
+        <h2 id="about-title">About my journey</h2>
+        <blockquote>“The best way to predict the future is to create it.”<footer>My motto</footer></blockquote>
+      </div>
+      <div class="prose">
+        <p><strong>I am a developer focused on love.</strong> Hehe, I mean developing something I love and want to create that others might love too.</p>
+        <p>I’m currently in the learning phase, taking time to understand the fundamentals of software and game development. Honestly, it’s more understandable than understanding a girl. LOL.</p>
+        <p>My philosophy is to build small stuff and understand every line of code I write. AI exists but understanding it makes me even more handsome.</p>
+        <div class="action-row"><a class="text-link" href="#learning">What I’m learning</a><a class="text-link" href="#goals">My roadmap</a></div>
       </div>
     </section>
 
-    <section id="learning" class="section-padding scroll-reveal">
-      <div class="container">
-        <div class="section-header reveal">
-          <h2>Current Curriculum</h2>
-          <p>The technologies and concepts I am currently Learning.
-            I might as well Read and Learn books in terms of understanding a girl.</p>
-        </div>
-
-        <div class="bento-grid reveal">
-          <div class="tilted-card">
-          <article class="bento-card spotlight-card tilted-card-inner">
-            <div class="card-bg" style="background: linear-gradient(45deg, #1a1a1a, #2a2a2a);"></div>
-            <div class="card-content tilted-card-content">
-              <div class="card-tags">
-                <span>Core Language</span>
-                <span>Backend</span>
-              </div>
-              <h3>About LuaU</h3>
-              <p>I'm studying coding in this language so I can be good at it and truly know what I am doing. I'm learning to write clean, modular scripts.</p>
-            </div>
-            <div class="card-icon">
-              <img src="https://cdn.simpleicons.org/lua/white" width="40" height="40" alt="Lua">
-            </div>
-          </article>
-          </div>
-
-          <div class="tilted-card">
-          <article class="bento-card spotlight-card tilted-card-inner">
-            <div class="card-content tilted-card-content">
-              <div class="card-tags"><span>Workflow</span><span>Tools</span></div>
-              <h3>Professional Workflow</h3>
-              <p>I am gonna use professional tools soon, particularly <strong>VS Code</strong>, <strong>Rojo</strong>, and a more understanding of <strong>GitHub</strong>.</p>
-            </div>
-            <div class="card-icon">
-              <img src="https://cdn.simpleicons.org/git/white" width="30" height="30" alt="Git">
-            </div>
-          </article>
-          </div>
-
-          <div class="tilted-card">
-          <article class="bento-card spotlight-card tilted-card-inner">
-            <div class="card-content tilted-card-content">
-              <div class="card-tags"><span>User Interface</span><span>Design</span></div>
-              <h3>UI Architecture</h3>
-              <p>I'm upgrading my skills in <strong>UI</strong> and making it even better.</p>
-            </div>
-            <div class="card-icon">
-               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-            </div>
-          </article>
-          </div>
-        </div>
+    <section id="learning" class="wrap home-section study-section" aria-labelledby="learning-title">
+      <div class="section-intro">
+        <h2 id="learning-title">Current curriculum</h2>
+        <p>The tools and ideas I’m working through right now.</p>
+      </div>
+      <div class="study-topics">
+        <article><h3>Luau</h3><p>I’m learning to write clean, modular scripts and understand what each one does.</p></article>
+        <article><h3>Professional workflow</h3><p>I’m getting to know VS Code, Rojo, and GitHub so I can work on games with a better setup.</p></article>
+        <article><h3>UI architecture</h3><p>I’m upgrading my skills in UI and making it even better.</p></article>
       </div>
     </section>
 
-    <section id="goals" class="section-padding scroll-reveal">
-      <div class="container">
-        <div class="section-header reveal">
-          <h2>The Roadmap</h2>
-          <p>My Goals for the next upcoming Months / Years.</p>
+    <section id="goals" class="wrap home-section roadmap-section" aria-labelledby="goals-title">
+      <div class="section-intro">
+        <h2 id="goals-title">The roadmap</h2>
+        <p>My goals for the coming months and years.</p>
+      </div>
+      <ol class="roadmap-list">
+        <li><h3>Fully learn Luau</h3><p>Get to the point where I can make epic games alone.</p></li>
+        <li><h3>Build a game prototype</h3><p><strong>In progress.</strong> I’m making my own game, starting with a working prototype and a few passion projects.</p></li>
+        <li><h3>Contribute to other developers</h3><p>Take on my first commission and help other developers do their job.</p></li>
+      </ol>
+    </section>
+
+    <section id="contact" class="contact-section" aria-labelledby="contact-title">
+      <div class="wrap home-section contact-layout">
+        <div>
+          <h2 id="contact-title">Let’s talk</h2>
+          <p>I’m always open to making some cool developer friends too, hehe.</p>
+          <ul class="contact-list">
+            <li><span>Email</span><a href="mailto:itsmefeje@gmail.com">itsmefeje@gmail.com</a></li>
+            <li><span>Discord</span><span>@itsmefeje</span><button type="button" class="quiet-button" id="copy-discord" hidden>Copy username</button></li>
+          </ul>
+          <p class="copy-status" id="copy-status" role="status"></p>
         </div>
-
-        <div class="goals-wrapper reveal">
-          <div class="goal-item spotlight-card">
-            <div class="goal-icon pending"></div>
-            <div class="goal-content">
-              <h3>Fully Learn LuaU</h3>
-              <p>Fully Learn LuaU so it's possible for me to make epic games ALONE.</p>
-            </div>
-          </div>
-
-          <div class="goal-item spotlight-card">
-            <div class="goal-icon" style="background: #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.4);"></div>
-            <div class="goal-content">
-              <h3>
-                Build a Game Prototype 
-                <span style="color: #22c55e; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; margin-left: 8px; vertical-align: middle;">
-                  • Ongoing
-                </span>
-              </h3>
-              <p>I am currently making my own game! Creating a basic functional prototype and working on passion projects.</p>
-            </div>
-          </div>
-
-          <div class="goal-item spotlight-card">
-            <div class="goal-icon pending"></div>
-            <div class="goal-content">
-              <h3>Contribute to other Developers</h3>
-              <p>One of my Goals is to do my First Commission and help other developers do their job.</p>
-            </div>
-          </div>
+        <div id="surprise" class="surprise-note">
+          <h3>Click me ♡</h3>
+          <p>Nothing, just click me hehe.</p>
+          <button type="button" class="button surprise-button" id="surprise-trigger">Play surprise</button>
+          <p class="surprise-sr" id="surprise-status" role="status"></p>
         </div>
       </div>
     </section>
-
-    <section id="contact" class="section-padding footer-section scroll-reveal">
-      <div class="container">
-        <div class="contact-box reveal spotlight-card">
-          <h2>Contact and Connect with me</h2>
-          <p>If you want to talk to me go ahead, it is okay. I am always open to make some cool developer friends too. hehe</p>
-          
-          <div class="contact-methods">
-            <a href="mailto:itsmefeje@gmail.com" class="method-card">
-              <div class="icon-circle">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-              </div>
-              <div>
-                <span class="label">Email</span>
-                <span class="value">itsmefeje@gmail.com</span>
-              </div>
-            </a>
-            
-            <button class="method-card" id="copy-discord" aria-label="Copy Discord username">
-              <div class="icon-circle">
-                <img src="https://cdn.simpleicons.org/discord/white" width="24" height="24" alt="Discord">
-              </div>
-              <div>
-                <span class="label">Discord</span>
-                <span class="value" id="discord-val">@ itsmefeje</span>
-              </div>
-            </button>
-          </div>
-
-          <div id="surprise" class="surprise-card">
-            <h3>Click me</h3>
-            <p>nothing, just click me hehe.</p>
-            <button type="button" class="surprise-trigger" id="surprise-trigger">Click me ♡</button>
-            <p class="surprise-sr" id="surprise-status" role="status" aria-live="polite"></p>
-          </div>
-
-        </div>
-
-        <footer>
-          <div class="footer-bottom">
-            <p>&copy; <span id="year"></span> Fejelude Von O. Laxamana. Personal Website.</p>
-            <div class="footer-links">
-              <a href=" https://www.fejelude.xyz/ " target="_blank">Website Updated Recently on September 22 , 2026 </a>
-            </div>
-          </div>
-        </footer>
-      </div>
-    </section>
-
   </main>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-
-  <script src="liquid-ether.js"></script>
-  <script src="shiny-text.js"></script>
-  <script src="react-bits-vanilla.js"></script>
-  <script src="js/activity-logger.js"></script>
-  <script src="main.js"></script>
-  <script src="js/surprise-assets.js"></script>
-  <script src="js/surprise.js"></script>
-  
-  <script>
-    // Initialize the background
-    document.addEventListener('DOMContentLoaded', () => {
-      new LiquidEther(document.getElementById('liquid-ether-bg'), {
-        colors: ['#000000', '#1a1a1a', '#4338ca', '#3b0764'], // Dark/Purple Palette
-        mouseForce: 25,
-        cursorSize: 80,
-        autoDemo: true
-      });
-    });
-  </script>
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <p>© <span id="year"></span> Fejelude Von O. Laxamana</p>
+      <nav aria-label="Footer">
+        <a href="https://github.com/fejelude">GitHub</a>
+        <a href="https://www.roblox.com/users/5512860740/profile">Roblox</a>
+        <a href="/admin">Admin</a>
+      </nav>
+    </div>
+  </footer>
 </body>
 </html>
-

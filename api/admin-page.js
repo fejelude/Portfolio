@@ -1,6 +1,6 @@
 const { getHeader, isAuthorized, isConfigured } = require('./admin-session');
 
-function shell(title, body, { extra = '', bodyClass = '' } = {}) {
+function shell(title, body, { extra = '' } = {}) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,15 +8,10 @@ function shell(title, body, { extra = '', bodyClass = '' } = {}) {
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${title} | Itsmefeje</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/css/admin.css">
 </head>
-<body class="admin-page ${bodyClass}">
-  <div class="admin-grid-bg" aria-hidden="true"></div>
-  <div class="admin-scanline" aria-hidden="true"></div>
+<body class="admin-page">
   ${body}
   ${extra}
 </body>
@@ -51,37 +46,24 @@ function authMessage(url) {
 
 function loginPage(url) {
   const message = authMessage(url);
-  const alert = message ? `<p class="admin-alert ${message.tone}" role="alert">${message.text}</p>` : '';
+  const alert = message ? `<p class="admin-alert ${message.tone}" id="admin-alert" role="alert">${message.text}</p>` : '';
   return shell('Admin Access', `
-  <main class="admin-auth-shell">
-    <section class="admin-auth-card admin-access-card ${message?.tone === 'danger' ? 'has-error' : ''}">
-      <div class="admin-orbit" aria-hidden="true">
-        <span></span><span></span><span></span>
-      </div>
+  <main class="admin-auth-shell wrap">
+    <section class="admin-auth-card">
       <div class="admin-auth-copy">
         <a class="admin-back-link" href="/">Main Website</a>
-        <span class="admin-kicker">Restricted Access</span>
+
         <h1>Admin Panel</h1>
-        <p class="admin-muted">Enter the private access password to unlock website activity monitoring.</p>
+        <p class="admin-muted">Sign in to view website activity.</p>
         ${alert}
       </div>
       <div class="admin-auth-access">
         <form class="admin-login-form" method="post" action="/api/admin-auth" data-admin-pad-form>
-          <label class="admin-pad-label" id="admin-password-label">Access Code</label>
-          <input id="admin-password" class="admin-pad-native" name="password" type="password" autocomplete="off" inputmode="numeric" aria-labelledby="admin-password-label" tabindex="-1" />
-          <div class="admin-pad" data-code-length="8">
-            <div class="admin-code-display" aria-hidden="true">
-              <span class="code-slot" data-code-slot></span>
-              <span class="code-slot" data-code-slot></span>
-              <span class="code-slot" data-code-slot></span>
-              <span class="code-slot" data-code-slot></span>
-              <span class="code-slot" data-code-slot></span>
-              <span class="code-slot" data-code-slot></span>
-              <span class="code-slot" data-code-slot></span>
-              <span class="code-slot" data-code-slot></span>
-            </div>
-            <p class="pad-status" data-pad-status role="status" aria-live="polite">AWAITING ACCESS CODE</p>
-            <div class="admin-keypad" aria-label="Password keypad">
+          <label for="admin-password">Access code</label>
+          <input id="admin-password" name="password" type="password" autocomplete="current-password" required${message ? ' aria-describedby="admin-alert"' : ''} />
+          <details class="admin-pad" hidden>
+            <summary>Use the numeric keypad</summary>
+            <div class="admin-keypad" role="group" aria-label="Password keypad">
               <button class="pad-key" type="button" data-pad-key="1">1</button>
               <button class="pad-key" type="button" data-pad-key="2">2</button>
               <button class="pad-key" type="button" data-pad-key="3">3</button>
@@ -91,14 +73,13 @@ function loginPage(url) {
               <button class="pad-key" type="button" data-pad-key="7">7</button>
               <button class="pad-key" type="button" data-pad-key="8">8</button>
               <button class="pad-key" type="button" data-pad-key="9">9</button>
-              <button class="pad-key pad-action" type="button" data-pad-action="clear">CLR</button>
+              <button class="pad-key pad-action" type="button" data-pad-action="clear">Clear</button>
               <button class="pad-key" type="button" data-pad-key="0">0</button>
-              <button class="pad-key pad-action" type="button" data-pad-action="backspace">DEL</button>
+              <button class="pad-key pad-action" type="button" data-pad-action="backspace">Delete</button>
             </div>
-            <button class="pad-submit" type="submit" data-pad-submit disabled>Unlock Console</button>
-          </div>
+          </details>
+          <button class="pad-submit" type="submit">Sign in</button>
         </form>
-        <p class="admin-microcopy">Server-side validation. Signed session. Private logs.</p>
       </div>
     </section>
   </main>`, {
@@ -108,23 +89,23 @@ function loginPage(url) {
 
 function setupPage() {
   return shell('Admin Setup', `
-  <main class="admin-auth-shell">
+  <main class="admin-auth-shell wrap">
     <section class="admin-auth-card">
       <a class="admin-back-link" href="/">Main Website</a>
-      <span class="admin-kicker">Access Ready</span>
+
       <h1>Admin Panel</h1>
       <p class="admin-muted">The built-in website password pad is active. Optional environment overrides can still be added later for a different password or signing key.</p>
     </section>
   </main>`);
 }
 
-function dashboardPage({ unlocked = false } = {}) {
+function dashboardPage() {
   return shell('Admin Panel', `
-  <main class="admin-shell">
+  <main class="admin-shell wrap">
     <header class="admin-header">
       <div>
         <a class="admin-back-link" href="/">Main Website</a>
-        <span class="admin-kicker">Secure Console</span>
+
         <h1>Admin Panel</h1>
       </div>
       <div class="admin-actions">
@@ -148,10 +129,10 @@ function dashboardPage({ unlocked = false } = {}) {
       <article class="admin-panel activity-panel">
         <div class="panel-heading">
           <div>
-            <span class="admin-kicker">Live Logger</span>
+
             <h2>Recent Activity</h2>
           </div>
-          <input id="log-search" type="search" placeholder="Search logs" />
+          <label class="log-search-label">Search logs<input id="log-search" type="search" /></label>
         </div>
 
         <div class="filter-grid" aria-label="Activity filters">
@@ -163,18 +144,18 @@ function dashboardPage({ unlocked = false } = {}) {
           <label>Activity <input id="filter-type" type="search" placeholder="page_view" /></label>
         </div>
 
-        <div id="logs-state" class="state-text">Loading logs...</div>
-        <div class="table-wrap">
+        <div id="logs-state" class="state-text" role="status">Loading logs…</div>
+        <div class="table-wrap" role="region" aria-label="Recent activity table" tabindex="0">
           <table>
             <thead>
               <tr>
-                <th>Time</th>
-                <th>Page</th>
-                <th>IP</th>
-                <th>Location</th>
-                <th>Device</th>
-                <th>Browser</th>
-                <th>Event</th>
+                <th scope="col">Time</th>
+                <th scope="col">Page</th>
+                <th scope="col">IP</th>
+                <th scope="col">Location</th>
+                <th scope="col">Device</th>
+                <th scope="col">Browser</th>
+                <th scope="col">Event</th>
               </tr>
             </thead>
             <tbody id="logs-body"></tbody>
@@ -189,26 +170,24 @@ function dashboardPage({ unlocked = false } = {}) {
 
       <aside class="breakdown-stack">
         <article class="admin-panel">
-          <span class="admin-kicker">Visitors</span>
+
           <h2>Devices</h2>
           <div id="device-breakdown" class="breakdown-list"></div>
         </article>
         <article class="admin-panel">
-          <span class="admin-kicker">Geo</span>
+
           <h2>Locations</h2>
           <div id="location-breakdown" class="breakdown-list"></div>
         </article>
         <article class="admin-panel">
-          <span class="admin-kicker">Traffic</span>
+
           <h2>Pages</h2>
           <div id="page-breakdown" class="breakdown-list"></div>
         </article>
       </aside>
     </section>
-  </main>
-  ${unlocked ? '<div class="unlock-flash" aria-hidden="true"><span>ACCESS GRANTED</span></div>' : ''}`, {
-    extra: '<script src="/js/admin-dashboard.js"></script>',
-    bodyClass: unlocked ? 'admin-unlocked' : ''
+  </main>`, {
+    extra: '<script src="/js/admin-dashboard.js"></script>'
   });
 }
 
@@ -220,5 +199,5 @@ module.exports = async (request, response) => {
   if (!isConfigured()) return response.status(503).send(setupPage());
   if (!isAuthorized(request)) return response.status(401).send(loginPage(url));
 
-  return response.status(200).send(dashboardPage({ unlocked: url.searchParams.has('unlocked') }));
+  return response.status(200).send(dashboardPage());
 };

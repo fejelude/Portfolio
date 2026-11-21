@@ -14,6 +14,7 @@
     security: document.getElementById('stat-security'),
     source: document.getElementById('stat-source'),
     logsBody: document.getElementById('logs-body'),
+    logsTable: document.querySelector('.table-wrap'),
     logsState: document.getElementById('logs-state'),
     search: document.getElementById('log-search'),
     prev: document.getElementById('prev-page'),
@@ -162,6 +163,7 @@
   function renderTable() {
     if (!els.logsBody) return;
     els.logsBody.innerHTML = '';
+    els.logsTable.scrollTop = 0;
 
     const totalPages = Math.max(1, Math.ceil(state.filtered.length / state.perPage));
     state.page = Math.min(state.page, totalPages);

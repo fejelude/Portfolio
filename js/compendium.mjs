@@ -52,7 +52,8 @@ COMPENDIUM_ITEMS.forEach((item, index) => {
   card.className = 'compendium__card';
   card.style.setProperty('--card-order', index % 3);
   card.style.setProperty('--tilt', `${[-1.2, .9, -.5, 1, -1, .6][index % 6]}deg`);
-  card.setAttribute('aria-label', `Open image ${index + 1} of ${COMPENDIUM_ITEMS.length}${item.caption ? `: ${item.caption}` : ''}`);
+  const labelNumber = String(index + 1).padStart(2, '0');
+  card.setAttribute('aria-label', `Open image ${labelNumber} of ${COMPENDIUM_ITEMS.length}${item.caption ? `: ${item.caption}` : ''}`);
   const frame = document.createElement('span');
   frame.className = 'compendium__frame';
   const image = document.createElement('img');
@@ -73,7 +74,8 @@ COMPENDIUM_ITEMS.forEach((item, index) => {
   }
   const number = document.createElement('span');
   number.className = 'compendium__card-index';
-  number.textContent = String(index + 1).padStart(2, '0');
+  number.textContent = labelNumber;
+  number.setAttribute('aria-hidden', 'true');
   footer.append(number);
   card.append(frame, footer);
   card.addEventListener('click', () => openImage(index, card));

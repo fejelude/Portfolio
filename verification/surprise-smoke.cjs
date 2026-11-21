@@ -12,13 +12,14 @@ const server=createServer(async(req,res)=>{
 (async()=>{
  await new Promise(resolve=>server.listen(8765,'127.0.0.1',resolve));
  await mkdir(path.join(__dirname,'surprise-results'),{recursive:true});
+ const engines=(process.env.SURPRISE_ENGINES || 'chromium,firefox,webkit').split(',');
  for(const [name,type] of Object.entries({chromium,firefox,webkit})){
+  if(!engines.includes(name))continue;
   const browser=await type.launch({headless:true});
   try {
    for(const mobile of [false,true]){
     const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1440,height:900},hasTouch:mobile,deviceScaleFactor:mobile?3:1});
     const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
-    // Load the existing site's graphics dependencies as a normal visitor would.
     await page.addInitScript(()=>{const NativeAudio=window.Audio;window.Audio=function(...args){const a=new NativeAudio(...args);window.__testAudio=a;return a;};});
     await page.goto('http://127.0.0.1:8765');
     await page.locator('#surprise-trigger').scrollIntoViewIfNeeded();
@@ -42,7 +43,9 @@ const server=createServer(async(req,res)=>{
     const bounds=await page.locator('.kawaii-hero').boundingBox();assert.ok(bounds.x>=0&&bounds.y>=0);
     await page.screenshot({path:path.join(__dirname,`surprise-results/${name}-${mobile?'mobile':'desktop'}-peak.png`)});
     if(mobile){await page.setViewportSize({width:844,height:390});await page.waitForTimeout(100);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);}
-    await page.waitForSelector('.kawaii-world',{state:'detached',timeout:13000});
+    const remaining = await page.evaluate(() => window.__testAudio.duration - window.__testAudio.currentTime);
+    assert.ok(Number.isFinite(remaining));
+    await page.waitForSelector('.kawaii-world', {state:'detached',timeout:Math.max(8000, Math.ceil(remaining * 1000) + 6000)});
     assert.equal(await page.evaluate(()=>window.__testAudio.paused),true);
     assert.equal(await page.locator('#surprise-trigger').getAttribute('aria-disabled'),null);
     await page.locator('#surprise-trigger').click();assert.notEqual(await page.evaluate(()=>window.__testAudio.src),track);
