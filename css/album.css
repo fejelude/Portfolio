@@ -27,7 +27,7 @@
 .album__sticker small{font-size:1rem}
 .album__title{font:600 clamp(2.5rem,7.4vw,4.25rem)/1.05 BirthdayPixel,BirthdayEmoji,monospace;color:#ab4777;letter-spacing:-.035em;text-shadow:2px 2px #fff7fc,4px 4px #f6b6d3,5px 5px #d987ab;margin:0;text-wrap:balance;overflow-wrap:anywhere;outline:none}
 .album__subtitle{font-size:.9rem;line-height:1.5;margin:15px 0 0;color:#97516f;text-wrap:balance}
-.album__open{margin-top:26px;min-width:225px;padding:13px 26px;font-size:1.3rem!important;animation:album-button-pulse 3s ease-in-out infinite}
+.album__open{margin-top:26px;min-width:225px;padding:13px 26px;font-size:1.3rem!important}
 .album__tiny{font-size:.75rem;line-height:1.45;color:#97516f;margin:0}
 #cover-hint{margin-top:20px;min-height:1.5em}
 .album__signature{text-align:center;margin:23px 0 0;font:500 .8rem BirthdayPixel,BirthdayEmoji,monospace;letter-spacing:.045em;color:#954c71}
@@ -72,7 +72,7 @@
 .album__play svg{width:22px;height:22px;fill:currentColor}
 .album__toggle[aria-pressed=true]{color:#a64176;background:#ffdbeb;box-shadow:inset 0 -3px #e7a9c5}
 #repeat-one{position:absolute;top:0;right:3px;background:#fff1cc;color:#884c63;font:600 .7rem BirthdayPixel,monospace;padding:1px 3px}
-.album__text-button{background:none;border:0;padding:10px 6px 2px;font:500 .82rem BirthdayPixel,monospace!important;color:#a54874!important;text-decoration:underline;text-underline-offset:3px;min-height:35px}
+.album__text-button{background:none;border:0;padding:10px 6px 2px;font:500 .82rem BirthdayPixel,monospace!important;color:#a54874!important;text-decoration:underline;text-underline-offset:3px;min-height:44px}
 .album__status{min-height:1.4em;margin:10px 0 0;font-size:.75rem;line-height:1.4;color:#934c6d}
 .album__loading{display:inline-block;width:9px;height:9px;background:#b55181;margin-right:6px;animation:album-loading 1s steps(3) infinite}
 .album__resume{font-size:.82rem!important;padding:7px 12px;margin-top:12px;min-height:44px;max-width:100%}
@@ -102,7 +102,7 @@
 .album__equalizer i:nth-child(2){animation-delay:-.4s}.album__equalizer i:nth-child(3){animation-delay:-.2s}
 .album__track.is-active .album__equalizer{display:flex}
 .album.is-playing .album__equalizer i{animation-play-state:running}
-.album__track.is-locked .album__track-button{background:#f6e8f0;color:#9d788b!important;box-shadow:inset 2px 2px #fff9fc,0 4px #d4aabc;cursor:default}
+.album__track.is-locked .album__track-button{background:#f6e8f0;color:#765566!important;box-shadow:inset 2px 2px #fff9fc,0 4px #d4aabc;cursor:default}
 .album__track.is-locked .album__track-art{opacity:.6}
 .album__footer{text-align:center;margin-top:32px;padding-top:20px;border-top:2px solid #f0c8da}
 .album__closing{animation:none;max-width:510px;padding:17px}
@@ -118,7 +118,6 @@
 .album__dialog-body .birthday__pixel-button{font-size:.93rem!important;padding:9px 16px}
 .album__nojs{position:relative;text-align:center;padding:20px;font-size:.9rem}
 @keyframes album-spin{to{transform:rotate(360deg)}}
-@keyframes album-button-pulse{0%,100%{opacity:1}50%{opacity:.88}}
 @keyframes album-screen-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes album-track-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 @keyframes album-equalizer{to{transform:scaleY(1)}}
