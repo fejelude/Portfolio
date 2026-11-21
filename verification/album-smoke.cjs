@@ -56,6 +56,20 @@ async function seekWithSlider(page, seconds) {
   }, seconds);
 }
 
+async function assertPausedClock(page, observationMs = 250) {
+  const audio = page.locator('#song-audio');
+  await page.waitForFunction(() => {
+    const media = document.getElementById('song-audio');
+    return media.paused && !media.seeking;
+  });
+  const position = await audio.evaluate(media => media.currentTime);
+  await sleep(observationMs);
+  assert.deepEqual(await audio.evaluate(media => ({
+    paused: media.paused,
+    position: media.currentTime,
+  })), { paused: true, position });
+}
+
 async function playing(page) {
   try {
     await page.waitForFunction(() => document.body.classList.contains('is-playing') || !document.getElementById('tap-continue').hidden, {}, {timeout:15000});
@@ -154,9 +168,7 @@ async function nativeControls(browser,name,url,mobile) {
   assert.equal(await page.$eval('#next-audio', a => a.paused), true);
   assert.equal(await page.evaluate(() => window.__albumAudit.gains[0].gain.value), 0);
   await activate('#play-pause');
-  const photographPaused = await page.$eval('#song-audio', a => a.currentTime);
-  await sleep(250);
-  assert.equal(await page.$eval('#song-audio', a => a.currentTime), photographPaused);
+  await assertPausedClock(page);
   await page.locator('#song-seek').focus(); await page.keyboard.press('Home');
   await page.keyboard.press('ArrowRight');
   await page.waitForFunction(() => document.getElementById('song-audio').currentTime < 1);
@@ -196,12 +208,7 @@ async function nativeControls(browser,name,url,mobile) {
   assert.equal(gates[0],0); assert.equal(gates[1],1);
   assert.equal(await page.$eval('#next-audio',a=>a.paused),true);
   await activate('#play-pause');
-  await page.waitForFunction(() => {
-    const audio=document.getElementById('song-audio');
-    return audio.paused&&!audio.seeking;
-  });
-  const paused = await page.$eval('#song-audio',a=>a.currentTime);
-  await sleep(750); assert.equal(await page.$eval('#song-audio',a=>a.currentTime),paused);
+  await assertPausedClock(page, 750);
   const pausedGates = await page.evaluate(() => window.__albumAudit.gains.slice(0,2).map(g=>g.gain.value));
   assert.equal(pausedGates[1],0); assert.ok(pausedGates[0]>.35&&pausedGates[0]<=.41);
   await activate('#ambient-toggle'); await sleep(650); assert.equal(await page.evaluate(()=>window.__albumAudit.gains[0].gain.value),0);
@@ -224,9 +231,7 @@ async function nativeControls(browser,name,url,mobile) {
   assert.equal(artwork.width,artwork.height);assert.equal(artwork.fit,'contain');
   assert.equal(await page.$eval('#next-audio',a=>a.paused),true);
   await activate('#play-pause');
-  await page.waitForFunction(()=>{const a=document.getElementById('song-audio');return a.paused&&!a.seeking;});
-  const songTwoPaused=await page.$eval('#song-audio',a=>a.currentTime);
-  await sleep(250);assert.equal(await page.$eval('#song-audio',a=>a.currentTime),songTwoPaused);
+  await assertPausedClock(page);
   await activate('#player-note');assert.equal(await page.locator('#note-copy').textContent(),ALBUM.tracks[1].note);
   assert.equal(await page.$eval('#note-copy',e=>getComputedStyle(e).whiteSpace),'pre-wrap');await assertLayout(page);await activate('#note-ok');
   await activate('#play-pause');await playing(page);
@@ -258,8 +263,8 @@ async function nativeControls(browser,name,url,mobile) {
   assert.equal(await page.locator('#note-copy').textContent(),ALBUM.tracks[2].note);
   assert.equal(await page.$eval('#note-copy',e=>getComputedStyle(e).whiteSpace),'pre-wrap');
   await assertLayout(page); await activate('#note-ok');
-  await activate('#play-pause'); const songThreePaused=await page.$eval('#song-audio',a=>a.currentTime);
-  await sleep(250); assert.equal(await page.$eval('#song-audio',a=>a.currentTime),songThreePaused);
+  await activate('#play-pause');
+  await assertPausedClock(page);
   await activate('#play-pause'); await playing(page);
   await seekWithSlider(page, 45);
   await playing(page);await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>45.1);
@@ -345,12 +350,7 @@ async function deluxeControls(browser,name,url,mobile){
   assert.equal(await page.$eval('#now-playing',e=>getComputedStyle(e,'::after').pointerEvents),'none');
   assert.equal(await page.$eval('#now-playing',e=>getComputedStyle(e,'::after').animationName),'album-deluxe-embers');
   await activate('#play-pause');
-  await page.waitForFunction(() => {
-    const audio=document.getElementById('song-audio');
-    return audio.paused&&!audio.seeking;
-  });
-  const pausedAt=await page.$eval('#song-audio',a=>a.currentTime);
-  await sleep(250);assert.equal(await page.$eval('#song-audio',a=>a.currentTime),pausedAt);
+  await assertPausedClock(page);
   await activate('#player-note');assert.equal(await page.locator('#note-copy').textContent(),ALBUM.tracks[3].note);
   await assertLayout(page);await activate('#note-ok');
   await page.locator('#now-playing').scrollIntoViewIfNeeded();
