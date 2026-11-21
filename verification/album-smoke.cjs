@@ -36,7 +36,7 @@ async function assertLayout(page) {
   assert.equal(data.overflow,false,'horizontal scroll');
   for (const e of data.controls) assert.ok(e.x >= -1 && e.right <= data.width + 1,`${e.id} horizontal bounds`);
 }
-async function seekWithSlider(page, seconds) {
+async function waitForSeekRange(page, seconds) {
   // Safari can report playback before the requested range is available.
   await page.waitForFunction(target => {
     const audio=document.getElementById('song-audio');
@@ -46,6 +46,9 @@ async function seekWithSlider(page, seconds) {
     }
     return false;
   }, seconds);
+}
+
+async function seekWithSlider(page, seconds) {
   await page.locator('#song-seek').evaluate((input, value) => {
     input.value=String(value);
     input.dispatchEvent(new Event('input',{bubbles:true}));
@@ -307,6 +310,7 @@ async function variants(browser,name,url){
     console.log(name+': forced MP3 failure recovery '+JSON.stringify(fallback));
     if(fallback.codec){
       assert.ok(fallback.src.endsWith('/song-01.mp4')&&fallback.duration>175);
+      await waitForSeekRange(aacPage, 90);
       await seekWithSlider(aacPage, 90);
       await playing(aacPage);await aacPage.waitForFunction(()=>document.getElementById('song-audio').currentTime>90.1);
     }else{
@@ -352,6 +356,7 @@ async function deluxeControls(browser,name,url,mobile){
   await page.locator('#now-playing').scrollIntoViewIfNeeded();
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-deluxe.png`),fullPage:true});
   await activate('#play-pause');await playing(page);
+  await waitForSeekRange(page, 100);
   await seekWithSlider(page, 100);
   await playing(page);await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>100.1);
   for(const id of ['song-01','song-02','song-03']){
