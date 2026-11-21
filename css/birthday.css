@@ -30,7 +30,7 @@
 .birthday__welcome{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;justify-content:safe center;overflow-y:auto;text-align:center;padding:18px 18px 8px;z-index:3;background:radial-gradient(ellipse at center,#fff3f8dd,transparent 72%);transition:opacity .5s,transform .5s}
 .birthday__welcome>*{flex-shrink:0}
 .birthday__welcome.is-leaving{opacity:0;transform:translateY(-12px);pointer-events:none}
-.birthday__welcome-flower{font-size:3.2rem;color:#e889ac;text-shadow:3px 3px #ffccdf,-2px -2px #fff;line-height:1;margin-bottom:20px}
+.birthday__welcome-flower{block-size:1em;flex:none;font-size:3.2rem;color:#e889ac;text-shadow:3px 3px #ffccdf,-2px -2px #fff;line-height:1;margin-bottom:20px}
 .birthday__eyebrow{font-family:BirthdayPixel,monospace;font-size:1rem;letter-spacing:.055em;margin:0 0 14px;color:#a24d75}
 .birthday__welcome h1{font-family:BirthdayPixel,monospace;font-size:clamp(2.3rem,5.5vw,3.7rem);font-weight:600;line-height:1.15;letter-spacing:-.025em;margin:0;text-shadow:3px 3px #fff,4px 5px #ffd0e2;color:#8e4166}
 .birthday__welcome h1>span:first-child{color:#bf4a80}
