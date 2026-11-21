@@ -65,306 +65,53 @@
     return response;
   };
 
-  function addOfficialMediaStyles() {
-    if (document.getElementById('sofra-official-media-styles')) return;
-    const style = document.createElement('style');
-    style.id = 'sofra-official-media-styles';
-    style.textContent = `
-      [data-panel="appearance"], [data-page="appearance"] { display: none !important; }
-      .guild-select-wrap { display: none !important; }
-      .media-slot, .sofra-orb, .auth-mark { overflow: hidden; }
-      .media-slot > video, .sofra-orb > video, .auth-mark > video {
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: center;
-        pointer-events: none;
-      }
-      .nav-icon > video, .module-icon > video { border-radius: inherit; }
-      .auth-gate.connection-retry-mode .security-note { border-color: rgba(244,167,194,.18); }
-      .security-note.sofra-security-note .security-note-heart {
-        display: block;
-        margin-bottom: 3px;
-        font-size: 15px;
-      }
-      .security-note.sofra-security-note strong,
-      .security-note.sofra-security-note small { display: block; }
-      .security-note.sofra-security-note strong {
-        color: #ded6e1;
-        font-size: 12px;
-        font-weight: 700;
-      }
-      .security-note.sofra-security-note small {
-        margin-top: 2px;
-        color: #948d9b;
-        font-size: 11px;
-      }
-
-      .server-manager-launch {
-        width: calc(100% - 16px);
-        min-width: 0;
-        display: grid;
-        grid-template-columns: 42px minmax(0,1fr) 24px;
-        align-items: center;
-        gap: 11px;
-        margin: 12px 8px 6px;
-        padding: 11px;
-        border: 1px solid rgba(242,166,202,.14);
-        border-radius: 13px;
-        background:
-          radial-gradient(circle at 12% 0%, rgba(242,166,202,.11), transparent 38%),
-          linear-gradient(135deg, rgba(255,255,255,.035), rgba(201,168,255,.025));
-        color: #eee9f0;
-        text-align: left;
-        cursor: pointer;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
-        transition: border-color .16s ease, background .16s ease, transform .16s ease;
-      }
-      .server-manager-launch:hover,
-      .server-manager-launch.is-active {
-        border-color: rgba(242,166,202,.28);
-        background:
-          radial-gradient(circle at 12% 0%, rgba(242,166,202,.16), transparent 40%),
-          linear-gradient(135deg, rgba(242,166,202,.07), rgba(201,168,255,.05));
-      }
-      .server-manager-launch:hover { transform: translateY(-1px); }
-      .server-manager-mark {
-        width: 42px;
-        height: 42px;
-        display: grid;
-        place-items: center;
-        overflow: hidden;
-        border-radius: 12px;
-        background-color: rgba(242,166,202,.07);
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        color: var(--pink);
-        font-weight: 800;
-      }
-      .hero-logo.server-guild-icon {
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-      }
-      .server-manager-copy { min-width: 0; }
-      .server-manager-copy strong,
-      .server-manager-copy small {
-        display: block;
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      .server-manager-copy strong { font-size: 12px; color: #f4eef5; }
-      .server-manager-copy small { margin-top: 3px; color: #8f8796; font-size: 9px; }
-      .server-manager-arrow {
-        display: grid;
-        place-items: center;
-        width: 24px;
-        height: 24px;
-        border-radius: 8px;
-        color: #ad9eae;
-        background: rgba(255,255,255,.025);
-        font-size: 15px;
-      }
-      .server-manager-nav .nav-icon { font-size: 16px; }
-      .server-manager-nav.active .nav-icon { color: var(--pink); }
-      body.server-manager-mode #header-actions { display: none !important; }
-
-      #server-picker.server-manager-surface .picker-heading {
-        position: relative;
-        overflow: hidden;
-        padding: 23px;
-        border: 1px solid rgba(242,166,202,.12);
-        border-radius: 18px;
-        background:
-          radial-gradient(circle at 8% 0%, rgba(242,166,202,.11), transparent 34%),
-          radial-gradient(circle at 88% 15%, rgba(201,168,255,.08), transparent 30%),
-          rgba(33,33,43,.72);
-      }
-      #server-picker.server-manager-surface .picker-heading::after {
-        content: '♡';
-        position: absolute;
-        right: 22px;
-        top: 13px;
-        color: rgba(242,166,202,.08);
-        font-size: 68px;
-        pointer-events: none;
-      }
-      #server-picker.server-manager-surface .server-grid { margin-top: 13px; }
-      #server-picker.server-manager-surface .server-card {
-        position: relative;
-        overflow: hidden;
-        transition: transform .16s ease, border-color .16s ease, background .16s ease;
-      }
-      #server-picker.server-manager-surface .server-card:hover {
-        transform: translateY(-2px);
-        border-color: rgba(242,166,202,.18);
-        background: rgba(38,37,48,.97);
-      }
-      #server-picker.server-manager-surface .server-card.current-server {
-        border-color: rgba(242,166,202,.32);
-        background:
-          linear-gradient(135deg, rgba(242,166,202,.07), rgba(201,168,255,.035)),
-          var(--surface);
-        box-shadow: inset 3px 0 0 rgba(242,166,202,.55), 0 14px 36px rgba(0,0,0,.12);
-      }
-      #server-picker.server-manager-surface .server-card.current-server::before {
-        content: '';
-        position: absolute;
-        right: 12px;
-        top: 12px;
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: #9ce6bd;
-        box-shadow: 0 0 12px rgba(126,220,169,.5);
-      }
-
-      @media (max-width: 760px) {
-        /* backdrop-filter can create a containing block for fixed descendants
-           on mobile browsers. Removing it here keeps Save/Reset at the actual
-           viewport bottom instead of covering the sticky navigation header. */
-        .workspace-header {
-          backdrop-filter: none !important;
-          -webkit-backdrop-filter: none !important;
-          background: rgba(23,22,32,.98) !important;
-        }
-        .mobile-menu {
-          width: auto !important;
-          min-width: 94px;
-          padding: 0 10px !important;
-          display: inline-flex !important;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          border: 1px solid rgba(255,255,255,.06) !important;
-          background: rgba(255,255,255,.025) !important;
-          font-size: 17px !important;
-        }
-        .mobile-menu::after {
-          content: 'Sections';
-          font-size: 11px;
-          font-weight: 800;
-          letter-spacing: .01em;
-        }
-        .header-actions.active {
-          position: fixed !important;
-          left: 12px !important;
-          right: 12px !important;
-          bottom: max(12px, env(safe-area-inset-bottom)) !important;
-          top: auto !important;
-        }
-        .server-manager-launch { margin-top: 9px; }
-        #server-picker.server-manager-surface .picker-heading {
-          display: grid;
-          padding: 18px;
-        }
-        #server-picker.server-manager-surface .picker-heading::after {
-          right: 12px;
-          top: 10px;
-          font-size: 54px;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  function fallbackMedia(element, key) {
-    if (!element) return;
-    element.replaceChildren();
-    element.textContent = SOFRA_MEDIA_FALLBACK[key] || '•';
-    element.classList.remove('has-media', 'official-media', 'media-loading');
-    delete element.dataset.sofraMediaLoading;
-  }
-
-  function buildVideo(key, url) {
-    const video = document.createElement('video');
-    video.src = url;
-    video.autoplay = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    video.loop = true;
-    video.muted = true;
-    video.defaultMuted = true;
-    video.playsInline = true;
-    video.preload = 'auto';
-    video.disablePictureInPicture = true;
-    video.setAttribute('playsinline', '');
-    video.setAttribute('webkit-playsinline', '');
-    video.setAttribute('aria-hidden', 'true');
-    video.setAttribute('tabindex', '-1');
-    video.dataset.sofraOfficialKey = key;
-    return video;
-  }
-
-  function playOfficialVideo(video) {
-    if (!video || video.tagName !== 'VIDEO') return;
-    if (document.hidden || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { video.pause(); return; }
-    video.muted = true;
-    video.defaultMuted = true;
-    const promise = video.play();
-    if (promise?.catch) promise.catch(() => undefined);
-  }
-
-  function updateVideoMotion() {
-    document.querySelectorAll('video[data-sofra-official-key]').forEach(playOfficialVideo);
-  }
-  document.addEventListener('visibilitychange', updateVideoMotion);
-  window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', updateVideoMotion);
-
-  function loadOfficialMedia(element, key) {
-    const url = SOFRA_OFFICIAL_MEDIA[key];
-    if (!element || !url) {
-      fallbackMedia(element, key);
-      return;
-    }
-
-    const video = buildVideo(key, url);
-    let settled = false;
-    const timeout = setTimeout(fail, 5000);
-
-    function succeed() {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timeout);
-      video.dataset.sofraReady = '1';
-      element.replaceChildren(video);
-      element.classList.add('has-media', 'official-media');
-      element.classList.remove('media-loading');
-      delete element.dataset.sofraMediaLoading;
-      playOfficialVideo(video);
-    }
-
-    function fail() {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timeout);
-      video.removeAttribute('src');
-      video.load();
-      fallbackMedia(element, key);
-    }
-
-    video.addEventListener('loadeddata', succeed, { once: true });
-    video.addEventListener('canplay', succeed, { once: true });
-    video.addEventListener('error', fail, { once: true });
-    video.load();
-  }
+  const iconMotion = document.getElementById('icon-motion');
+  const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   function renderOfficialMedia(element, key) {
-    if (!element || !SOFRA_OFFICIAL_MEDIA[key]) return;
-    const child = element.firstElementChild;
-    if (child?.dataset?.sofraOfficialKey === key && child.dataset.sofraReady === '1') {
-      playOfficialVideo(child);
-      return;
-    }
-    if (element.dataset.sofraMediaLoading === key) return;
+    if (!SOFRA_OFFICIAL_MEDIA[key] || element.closest('.hidden, [hidden]')) return;
+    const mode = iconMotion.checked ? 'video' : 'img';
+    const current = element.firstElementChild;
+    if (current?.localName === mode && current.dataset.sofraKey === key) return;
+    if (current?.dataset.sofraFailed === mode) return;
 
-    // Always keep a visible symbol while the local animation is loading.
-    if (!element.textContent.trim() && !child) element.textContent = SOFRA_MEDIA_FALLBACK[key] || '•';
-    element.dataset.sofraMediaLoading = key;
-    element.classList.add('media-loading');
-    loadOfficialMedia(element, key);
+    current?.pause?.();
+    const media = document.createElement(mode);
+    const poster = '/assets/sofra/' + key + '-poster.webp';
+    media.dataset.sofraKey = key;
+    media.setAttribute('aria-hidden', 'true');
+
+    if (mode === 'video') {
+      media.poster = poster;
+      media.src = SOFRA_OFFICIAL_MEDIA[key];
+      media.muted = true;
+      media.defaultMuted = true;
+      media.playsInline = true;
+      media.loop = true;
+      media.preload = 'none';
+    } else {
+      media.src = poster;
+      media.alt = '';
+      media.decoding = 'async';
+    }
+
+    media.addEventListener('error', () => {
+      if (element.firstElementChild !== media) return;
+      const fallback = document.createElement('span');
+      fallback.dataset.sofraFailed = mode;
+      fallback.textContent = SOFRA_MEDIA_FALLBACK[key];
+      element.replaceChildren(fallback);
+      element.classList.remove('has-media');
+    }, { once: true });
+    element.replaceChildren(media);
+    element.classList.add('has-media');
+  }
+
+  function updateIconPlayback() {
+    document.querySelectorAll('video[data-sofra-key]').forEach((video) => {
+      if (document.hidden || !iconMotion.checked || video.closest('.hidden, [hidden]')) video.pause();
+      else if (video.paused) video.play().catch(() => {});
+    });
   }
 
   function hideAppearanceSection() {
@@ -373,32 +120,6 @@
     button.hidden = true;
     const title = button.previousElementSibling;
     if (title?.classList.contains('nav-group-title')) title.hidden = true;
-  }
-
-  function applyAuthCopy() {
-    const gate = document.getElementById('auth-gate');
-    if (!gate || gate.classList.contains('connection-retry-mode')) return;
-    const heading = gate.querySelector('.auth-card h1');
-    const copy = gate.querySelector('.auth-card > p');
-    const note = gate.querySelector('.security-note');
-
-    if (heading && heading.dataset.sofraCopy !== '1') {
-      heading.innerHTML = 'A softer space.<br>A stronger community.';
-      heading.dataset.sofraCopy = '1';
-    }
-    const authCopy = 'Sign in with Discord and pick your server. Sofra will keep everything cute, organized, and easy to manage. ♡';
-    if (copy && copy.textContent !== authCopy) copy.textContent = authCopy;
-    if (note && !note.classList.contains('sofra-security-note')) {
-      note.classList.add('sofra-security-note');
-      note.innerHTML = '<span class="security-note-heart" aria-hidden="true">♡</span><strong>Secure Discord authentication</strong><small>Your credentials stay private.</small>';
-    }
-  }
-
-  function closeSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const mobileMenu = document.getElementById('mobile-menu');
-    sidebar?.classList.remove('open');
-    mobileMenu?.setAttribute('aria-expanded', 'false');
   }
 
   function selectedGuildName() {
@@ -434,19 +155,6 @@
     paintGuildIcon(document.querySelector('.hero-card .hero-logo'), backgroundImage, guildName);
   }
 
-  function customizeServerPickerHeading() {
-    const picker = document.getElementById('server-picker');
-    if (!picker) return;
-    picker.classList.add('server-manager-surface');
-    const eyebrow = picker.querySelector('.picker-heading .eyebrow');
-    const title = picker.querySelector('.picker-heading h2');
-    const copy = picker.querySelector('.picker-heading p');
-    if (eyebrow && eyebrow.textContent !== 'SERVER MANAGER') eyebrow.textContent = 'SERVER MANAGER';
-    if (title && title.textContent !== 'Choose where Sofra works.') title.textContent = 'Choose where Sofra works.';
-    const pickerCopy = 'Open an installed server to manage Sofra, or add her to another server you control. No dropdowns — everything stays visible and easy to scan.';
-    if (copy && copy.textContent !== pickerCopy) copy.textContent = pickerCopy;
-  }
-
   function ensureServerManagerUI() {
     const selectWrap = document.querySelector('.guild-select-wrap');
     const select = document.getElementById('guild-select');
@@ -469,7 +177,7 @@
           <small id="server-manager-status">Manage or install Sofra</small>
         </span>
         <span class="server-manager-arrow" aria-hidden="true">›</span>`;
-      launch.setAttribute('aria-label', 'Open server manager');
+      launch.setAttribute('aria-controls', 'server-picker');
       launch.addEventListener('click', openServerManager);
       selectWrap.insertAdjacentElement('afterend', launch);
     }
@@ -477,6 +185,7 @@
     if (!document.getElementById('server-manager-nav')) {
       const serverNav = document.createElement('button');
       serverNav.type = 'button';
+      serverNav.setAttribute('aria-controls', 'server-picker');
       serverNav.id = 'server-manager-nav';
       serverNav.className = 'nav-item server-manager-nav';
       serverNav.innerHTML = '<span class="nav-icon" aria-hidden="true">▦</span><span>Servers</span>';
@@ -533,7 +242,6 @@
       }, true);
     }
 
-    customizeServerPickerHeading();
     syncServerManagerUI();
   }
 
@@ -558,7 +266,6 @@
     document.getElementById('server-manager-nav')?.classList.add('active');
     document.getElementById('server-manager-launch')?.classList.add('is-active');
     closeSidebar();
-    customizeServerPickerHeading();
     syncServerManagerUI();
     window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   }
@@ -592,7 +299,6 @@
     if (status && status.textContent !== nextStatus) status.textContent = nextStatus;
     if (name) name.title = nextName;
     if (status) status.title = nextStatus;
-    launch.setAttribute('aria-label', guildName ? `Open server manager. Current server: ${guildName}` : 'Open server manager');
 
     const cards = [...document.querySelectorAll('#server-grid .server-card')];
     const options = [...select.options].filter((option) => option.value);
@@ -655,7 +361,7 @@
       location.reload();
     };
     if (reauthButton) reauthButton.classList.remove('hidden');
-    if (note) note.innerHTML = '<span>♡</span> Temporary connection errors never sign you out of Sofra.';
+    if (note) note.textContent = 'You can retry with your current session.';
   }
 
   function applyOfficialMedia() {
@@ -663,12 +369,9 @@
       if (element.classList.contains('hero-logo')) return;
       renderOfficialMedia(element, element.dataset.iconKey);
     });
-    document.querySelectorAll('.sofra-orb, .auth-mark').forEach((element) => {
-      renderOfficialMedia(element, 'brand');
-    });
-    applyAuthCopy();
     hideAppearanceSection();
     showConnectionRetryState();
+    updateIconPlayback();
   }
 
   function scheduleOfficialMedia() {
@@ -681,17 +384,6 @@
       syncServerManagerUI();
     });
   }
-
-  function resumeOfficialMedia() {
-    document.querySelectorAll('video[data-sofra-official-key]').forEach(playOfficialVideo);
-  }
-
-  addOfficialMediaStyles();
-  ensureServerManagerUI();
-  applyOfficialMedia();
-
-  const mobileMenu = document.getElementById('mobile-menu');
-  if (mobileMenu) mobileMenu.setAttribute('aria-label', 'Open Sofra sections');
 
   document.addEventListener('DOMContentLoaded', () => {
     ensureServerManagerUI();
@@ -706,14 +398,10 @@
     });
   });
 
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-      resumeOfficialMedia();
-      syncServerManagerUI();
-    }
+  iconMotion.addEventListener('change', scheduleOfficialMedia);
+  motionPreference.addEventListener('change', () => {
+    if (motionPreference.matches) iconMotion.checked = false;
+    scheduleOfficialMedia();
   });
-
-  ['pointerdown', 'touchstart', 'keydown'].forEach((eventName) => {
-    document.addEventListener(eventName, resumeOfficialMedia, { passive: true });
-  });
+  document.addEventListener('visibilitychange', updateIconPlayback);
 })();

@@ -104,10 +104,12 @@ async function api(url, options={}) {
 }
 
 function showAuth() {
+  $('panel-skip').href = '#auth-gate';
   $('auth-gate').classList.remove('hidden');
   $('app-shell').classList.add('hidden');
 }
 function showApp() {
+  $('panel-skip').href = '#workspace';
   $('auth-gate').classList.add('hidden');
   $('app-shell').classList.remove('hidden');
 }
@@ -512,7 +514,7 @@ function buildCategoryCards() {
   for (const [name,[label,emoji]] of Object.entries(CATEGORY_META)) {
     const card = document.createElement('div');
     card.className = 'category-card';
-    card.innerHTML = `<div class="category-top"><label><input type="checkbox" data-category-enabled="${name}"><span>${emoji} ${escapeHtml(label)}</span></label></div><select data-category-action="${name}">${CATEGORY_ACTIONS.map((action) => `<option value="${action}">${action.replaceAll('_',' ')}</option>`).join('')}</select>`;
+    card.innerHTML = `<div class="category-top"><label><input type="checkbox" data-category-enabled="${name}"><span>${emoji} ${escapeHtml(label)}</span></label></div><select data-category-action="${name}" aria-label="Action for ${escapeHtml(label)}">${CATEGORY_ACTIONS.map((action) => `<option value="${action}">${action.replaceAll('_',' ')}</option>`).join('')}</select>`;
     grid.appendChild(card);
   }
 }
@@ -584,7 +586,7 @@ function addRoleRewardRow(reward={roleId:'',requiredLevel:1}) {
   if (root.children.length === 1 && root.firstElementChild?.classList.contains('info-box')) root.innerHTML = '';
   const row = document.createElement('div');
   row.className = 'reward-row';
-  row.innerHTML = `<label>Reward role<select class="reward-role"></select></label><label>Level<input class="reward-level" type="number" min="1" max="1000" value="${Number(reward.requiredLevel || 1)}"></label><button class="remove-reward" title="Remove reward">×</button>`;
+  row.innerHTML = `<label>Reward role<select class="reward-role"></select></label><label>Level<input class="reward-level" type="number" min="1" max="1000" value="${Number(reward.requiredLevel || 1)}"></label><button class="remove-reward" type="button" aria-label="Remove reward">×</button>`;
   root.appendChild(row);
   setOptions(row.querySelector('.reward-role'), assignableRoleItems(), reward.roleId, 'Choose role');
   row.querySelectorAll('select,input').forEach((el) => el.addEventListener('change', () => markDirty('levels')));
@@ -794,13 +796,37 @@ function resetCurrent() {
 }
 
 function closeSidebar() {
+  if (!$('sidebar').classList.contains('open')) return;
   $('sidebar').classList.remove('open');
   $('mobile-menu').setAttribute('aria-expanded', 'false');
+  if (window.matchMedia('(max-width: 760px)').matches) $('mobile-menu').focus();
 }
+
 function toggleSidebar() {
-  const open = !$('sidebar').classList.contains('open');
-  $('sidebar').classList.toggle('open', open);
-  $('mobile-menu').setAttribute('aria-expanded', String(open));
+  if ($('sidebar').classList.contains('open')) return closeSidebar();
+  $('sidebar').classList.add('open');
+  $('mobile-menu').setAttribute('aria-expanded', 'true');
+  requestAnimationFrame(() => {
+    if ($('sidebar').classList.contains('open')) $('sidebar-close').focus({ preventScroll: true });
+  });
+}
+
+function handleSidebarKeys(event) {
+  const sidebar = $('sidebar');
+  if (!sidebar.classList.contains('open') || !$('confirm-modal').classList.contains('hidden')) return;
+  if (event.key === 'Escape') {
+    closeSidebar();
+    return;
+  }
+  if (event.key !== 'Tab') return;
+  const menuItems = [...sidebar.querySelectorAll('a[href], button:not(:disabled), input:not(:disabled)')]
+    .filter(element => element.tabIndex >= 0 && element.getClientRects().length);
+  const first = menuItems[0];
+  const last = menuItems.at(-1);
+  if (event.shiftKey ? document.activeElement === first : document.activeElement === last) {
+    event.preventDefault();
+    (event.shiftKey ? last : first).focus();
+  }
 }
 
 function navigate(page) {
@@ -822,7 +848,9 @@ function bindStaticEvents() {
   document.querySelectorAll('.nav-item').forEach((button) => button.addEventListener('click', () => navigate(button.dataset.panel)));
   $('mobile-menu').addEventListener('click', toggleSidebar);
   $('sidebar-scrim').addEventListener('click', closeSidebar);
-  document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeSidebar(); });
+  $('sidebar-close').addEventListener('click', closeSidebar);
+  window.matchMedia('(max-width: 760px)').addEventListener('change', closeSidebar);
+  document.addEventListener('keydown', handleSidebarKeys);
 
   $('save-button').addEventListener('click', saveCurrent);
   $('reset-button').addEventListener('click', resetCurrent);
