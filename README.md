@@ -1,5 +1,13 @@
 # itsmefeje-portfolio
-Roblox Developer Portfolio
+Roblox developer portfolio and home of the Sofra dashboard.
+
+[Design reference](DESIGN.md)
+
+The public site uses HTML, CSS, and JavaScript without a compile step. Run
+`node verification/birthday-server.cjs` for a local static preview with the clean
+URLs. With Playwright and its browsers installed, run
+`node verification/portfolio-smoke.cjs` to check navigation, the gallery viewer,
+the copy control, Sofra’s public page, and narrow layouts.
 
 ## Sofra
 
@@ -15,7 +23,7 @@ Old arcade URLs redirect to `/#surprise`; the button itself never navigates.
 
 - `js/surprise.js`: isolated controller, native audio clock, canvas particles,
   bounded sticker animations, mute/end controls, and cleanup.
-- `css/surprise.css`: resting card and temporary overlay styles.
+- `css/surprise.css`: temporary overlay styles.
 - `assets/surprise/manifest.json`: all 32 supplied images and four full-length tracks.
 - `js/surprise-assets.js`: the same manifest embedded for synchronous click startup.
   Update both manifests together when replacing assets.

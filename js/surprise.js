@@ -8,10 +8,10 @@
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   const touch = matchMedia('(pointer: coarse)');
   const effect = new Audio();
-  effect.preload = 'auto';
+  effect.preload = 'none';
   effect.src = assets.effect.src;
   const audio = new Audio();
-  audio.preload = 'auto';
+  audio.preload = 'none';
   let active = null;
   let previousTrack = -1;
   let nextTrack = 0;
@@ -45,6 +45,7 @@
   function warm() {
     if (warmed) return;
     warmed = true;
+    audio.preload = effect.preload = 'auto';
     audio.load();
     effect.load();
     warmImage(assets.hero);
@@ -75,14 +76,14 @@
     animation.onfinish = () => run.animations.delete(animation);
     return animation;
   }
-  function finish(announce = true) {
+  function finish(announce = true, returnToTrigger = false) {
     const run = active;
     if (!run) return;
     active = null;
     cancelAnimationFrame(run.raf);
     run.abort.abort();
     run.animations.forEach(a => a.cancel());
-    const returnFocus = run.controls.contains(document.activeElement);
+    const returnFocus = returnToTrigger || run.controls.contains(document.activeElement);
     run.overlay.remove();
     document.body.classList.remove('kawaii-active');
     audio.pause();
@@ -206,7 +207,7 @@
       mute.textContent = run.userMuted ? 'Unmute' : 'Mute';
       mute.setAttribute('aria-pressed', String(run.userMuted));
     }, { signal });
-    close.addEventListener('click', () => finish(), { signal });
+    close.addEventListener('click', () => finish(true, true), { signal });
     controls.addEventListener('focusin', () => { run.hadControlFocus = true; }, { signal });
     controls.addEventListener('focusout', () => { run.hadControlFocus = false; }, { signal });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') finish(); }, { signal });
@@ -462,7 +463,7 @@
   if ('IntersectionObserver' in window) {
     const observer = new IntersectionObserver(entries => {
       if (entries.some(e => e.isIntersecting)) { warm(); observer.disconnect(); }
-    }, { rootMargin: '600px' });
+    }, { rootMargin: '280px' });
     observer.observe(trigger);
   }
   const onMotionChange = () => { if (active) finish(); };
