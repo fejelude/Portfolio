@@ -103,8 +103,11 @@ async function simulated(browser,name,url){
   await missingPage.goto(missingHost.url+'/sofhia-franchesca-16');
   await tick(missingPage,3100);
   await missingPage.click('#start');
+  await tick(missingPage,8100);
   await missingPage.waitForFunction(()=>document.getElementById('sound').getAttribute('aria-label')==='Music unavailable');
-  await tick(missingPage,100);await tick(missingPage,59000);assert.equal(await revealed(missingPage),false);
+  await tick(missingPage,100);
+  const elapsed=Number(await missingPage.locator('#progress').getAttribute('aria-valuenow'));
+  await tick(missingPage,(59-elapsed)*1000);assert.equal(await revealed(missingPage),false);
   await tick(missingPage,1100);assert.equal(await revealed(missingPage),true);
  } finally { await missing.close();missingHost.server.close(); }
  console.log(name+': simulated chapter boundaries, coda, buffering, background/blocked resume, three replays, reduced motion, responsive layouts, no-JS passed');

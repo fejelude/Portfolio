@@ -81,36 +81,34 @@
 .birthday__static img{flex-shrink:0;height:30%;max-height:230px}
 .birthday__home-return{display:block;width:fit-content;max-width:100%;margin:15px auto 8px;padding:6px 12px;font-size:.8rem!important;line-height:1.3}
 
-@media (max-height: 640px) {
-  .birthday__caption:has(.birthday__celebration:not([hidden])) {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    justify-content: flex-start;
-    height: 65%;
-  }
-
-  .birthday__caption .birthday__celebration:not([hidden]) {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex: 1;
-    min-height: 0;
-  }
-
-  .birthday__celebration .birthday__dialog {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-  }
-
-  .birthday__celebration :is(.birthday__replay,.birthday__album-return,.birthday__home-return) {
-    flex: none;
-    min-height: 44px;
-    margin: 6px 0 0;
-  }
+.birthday__caption:has(.birthday__celebration:not([hidden])) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  justify-content: flex-start;
 }
 
-@media (orientation: landscape) and (max-height: 580px) and (min-width: 601px) {
-  .birthday__caption:has(.birthday__celebration:not([hidden])) { height: auto; }
+.birthday__caption .birthday__celebration:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 0 1 auto;
+  min-height: 0;
+}
+
+.birthday__celebration .birthday__dialog {
+  flex: 0 1 auto;
+  width: 100%;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.birthday__celebration :is(.birthday__replay,.birthday__album-return,.birthday__home-return) {
+  flex: none;
+  min-height: 44px;
+  margin: 6px 0 0;
+}
+
+@media (max-height: 640px) and (orientation: portrait) {
+  .birthday__caption:has(.birthday__celebration:not([hidden])) { height: 65%; }
 }
