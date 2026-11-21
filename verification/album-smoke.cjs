@@ -36,6 +36,23 @@ async function assertLayout(page) {
   assert.equal(data.overflow,false,'horizontal scroll');
   for (const e of data.controls) assert.ok(e.x >= -1 && e.right <= data.width + 1,`${e.id} horizontal bounds`);
 }
+async function seekWithSlider(page, seconds) {
+  // Safari can report playback before the requested range is available.
+  await page.waitForFunction(target => {
+    const audio=document.getElementById('song-audio');
+    if (audio.seeking || audio.currentTime <= .1) return false;
+    for (let i=0;i<audio.seekable.length;i++) {
+      if (audio.seekable.start(i)<=target&&audio.seekable.end(i)>target) return true;
+    }
+    return false;
+  }, seconds);
+  await page.locator('#song-seek').evaluate((input, value) => {
+    input.value=String(value);
+    input.dispatchEvent(new Event('input',{bubbles:true}));
+    input.dispatchEvent(new Event('change',{bubbles:true}));
+  }, seconds);
+}
+
 async function playing(page) {
   try {
     await page.waitForFunction(() => document.body.classList.contains('is-playing') || !document.getElementById('tap-continue').hidden, {}, {timeout:15000});
@@ -205,7 +222,7 @@ async function nativeControls(browser,name,url,mobile) {
   await activate('#player-note');assert.equal(await page.locator('#note-copy').textContent(),ALBUM.tracks[1].note);
   assert.equal(await page.$eval('#note-copy',e=>getComputedStyle(e).whiteSpace),'pre-wrap');await assertLayout(page);await activate('#note-ok');
   await activate('#play-pause');await playing(page);
-  await page.locator('#song-seek').evaluate(e=>{e.value='20';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
+  await seekWithSlider(page, 20);
   await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>20.1);
   assert.equal(await page.locator('#duration').textContent(),'0:40');
   await page.locator('#now-playing').scrollIntoViewIfNeeded();
@@ -236,7 +253,7 @@ async function nativeControls(browser,name,url,mobile) {
   await activate('#play-pause'); const songThreePaused=await page.$eval('#song-audio',a=>a.currentTime);
   await sleep(250); assert.equal(await page.$eval('#song-audio',a=>a.currentTime),songThreePaused);
   await activate('#play-pause'); await playing(page);
-  await page.locator('#song-seek').evaluate(e=>{e.value='45';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
+  await seekWithSlider(page, 45);
   await playing(page);await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>45.1);
   await page.locator('#now-playing').scrollIntoViewIfNeeded();
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-song-three.png`)});
@@ -283,12 +300,7 @@ async function variants(browser,name,url){
   console.log(name+': forced MP3 failure recovery '+JSON.stringify(fallback));
   if(fallback.codec){
     assert.ok(fallback.src.endsWith('/song-01.mp4')&&fallback.duration>175);
-    await aacPage.waitForFunction(() => {
-      const audio=document.getElementById('song-audio');
-      return audio.currentTime>.1 && Array.from({length:audio.seekable.length},(_,i)=>i)
-        .some(i=>audio.seekable.start(i)<=90&&audio.seekable.end(i)>90.1);
-    });
-    await aacPage.locator('#song-seek').evaluate(e=>{e.value='90';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
+    await seekWithSlider(aacPage, 90);
     await playing(aacPage);await aacPage.waitForFunction(()=>document.getElementById('song-audio').currentTime>90.1);
   }else{
     assert.equal(fallback.title,'Made in Camella','a browser without AAC skips the failed track gracefully');
@@ -325,7 +337,7 @@ async function deluxeControls(browser,name,url,mobile){
   await page.locator('#now-playing').scrollIntoViewIfNeeded();
   await page.screenshot({path:path.join(out,`${name}-${mobile?'mobile':'desktop'}-deluxe.png`),fullPage:true});
   await activate('#play-pause');await playing(page);
-  await page.locator('#song-seek').evaluate(e=>{e.value='100';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
+  await seekWithSlider(page, 100);
   await playing(page);await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>100.1);
   for(const id of ['song-01','song-02','song-03']){
     await activate(`[data-track-id="${id}"] .album__track-button`);await playing(page);
@@ -401,7 +413,7 @@ async function discoverControls(browser,name,url,mobile) {
   assert.equal(await page.$eval('#next-audio',a=>a.paused),true);
   assert.equal(await page.evaluate(()=>window.__albumAudit.gains[0].gain.value),0);
   await activate('#play-pause');assert.equal(await page.$eval('#song-audio',a=>a.paused),true);
-  await page.locator('#song-seek').evaluate(e=>{e.value='30';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
+  await seekWithSlider(page, 30);
   await activate('#play-pause');await playing(page);
   await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>30.1);
   await activate('[data-track-id="song-04"] .album__track-button');await playing(page);
@@ -424,7 +436,7 @@ async function discoverControls(browser,name,url,mobile) {
   assert.ok(await page.$eval('#song-audio',a=>a.duration>67&&a.duration<68));
   assert.equal(await page.locator('#now-playing.is-deluxe').count(),0);
   await activate('#play-pause');
-  await page.locator('#song-seek').evaluate(e=>{e.value='20';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
+  await seekWithSlider(page, 20);
   await activate('#play-pause');await playing(page);
   await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>20.1);
   assert.equal(await page.$eval('#next-audio',a=>a.paused),true);
@@ -437,7 +449,7 @@ async function discoverControls(browser,name,url,mobile) {
   assert.equal(await page.$eval('#player-cover',e=>new URL(e.src).pathname),'/assets/album/discover-03-cover.jpg');
   assert.ok(await page.$eval('#song-audio',a=>a.duration>36&&a.duration<37));
   await activate('#play-pause');
-  await page.locator('#song-seek').evaluate(e=>{e.value='10';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
+  await seekWithSlider(page, 10);
   await activate('#play-pause');await playing(page);
   await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>10.1);
   assert.equal(await page.$eval('#next-audio',a=>a.paused),true);
@@ -451,7 +463,7 @@ async function discoverControls(browser,name,url,mobile) {
   assert.equal(await page.$eval('#player-cover',e=>new URL(e.src).pathname),'/assets/album/discover-04-cover.jpg');
   assert.ok(await page.$eval('#song-audio',a=>a.duration>54&&a.duration<56));
   await activate('#play-pause');
-  await page.locator('#song-seek').evaluate(e=>{e.value='15';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
+  await seekWithSlider(page, 15);
   await activate('#play-pause');await playing(page);
   await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>15.1);
   assert.equal(await page.$eval('#next-audio',a=>a.paused),true);
@@ -466,7 +478,7 @@ async function discoverControls(browser,name,url,mobile) {
   assert.ok(await page.$eval('#song-audio',a=>a.duration>51&&a.duration<53));
   assert.equal(await page.locator('#now-playing.is-deluxe').count(),0);
   await activate('#play-pause');
-  await page.locator('#song-seek').evaluate(e=>{e.value='12';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
+  await seekWithSlider(page, 12);
   await activate('#play-pause');await playing(page);
   await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>12.1);
   assert.equal(await page.$eval('#next-audio',a=>a.paused),true);
@@ -481,7 +493,7 @@ async function discoverControls(browser,name,url,mobile) {
   assert.ok(await page.$eval('#song-audio',a=>a.duration>88&&a.duration<90));
   assert.equal(await page.locator('#now-playing.is-deluxe').count(),0);
   await activate('#play-pause');
-  await page.locator('#song-seek').evaluate(e=>{e.value='25';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
+  await seekWithSlider(page, 25);
   await activate('#play-pause');await playing(page);
   await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>25.1);
   assert.equal(await page.$eval('#next-audio',a=>a.paused),true);
@@ -496,7 +508,7 @@ async function discoverControls(browser,name,url,mobile) {
   assert.ok(await page.$eval('#song-audio',a=>a.duration>108&&a.duration<110));
   assert.equal(await page.locator('#now-playing.is-deluxe').count(),0);
   await activate('#play-pause');
-  await page.locator('#song-seek').evaluate(e=>{e.value='30';e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});
+  await seekWithSlider(page, 30);
   await activate('#play-pause');await playing(page);
   await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>30.1);
   assert.equal(await page.$eval('#next-audio',a=>a.paused),true);
