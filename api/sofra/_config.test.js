@@ -7,7 +7,7 @@ const test = require('node:test');
 const transactions = [];
 const originalLoad = Module._load;
 Module._load = function load(request, parent, isMain) {
-  if (request === './_redis' && parent?.filename?.endsWith('/api/sofra/_config.js')) {
+  if (request === './_redis' && parent?.filename === require.resolve('./_config')) {
     return {
       hgetall: async () => ({}),
       transaction: async (commands) => { transactions.push(commands); return ['OK', 1]; }

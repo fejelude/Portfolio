@@ -121,9 +121,9 @@ async function welcomeEntry(browser,name,url){
   assert.ok(compendium.gap>=10);assert.equal(compendium.uncovered,true);
   await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
   await page.waitForFunction(()=>Number(document.getElementById('birthday-blossom').dataset.progress)>.99);
-  await page.waitForTimeout(300);
+  await page.waitForFunction(() => [...document.querySelectorAll('.birthday-blossom__letter')]
+    .every(node => Math.abs(parseFloat(node.style.strokeDashoffset)) < .0001));
   const final=Number(await tree.getAttribute('data-progress'));assert.ok(final>=initial);
-  assert.ok(await page.locator('.birthday-blossom__letter').evaluateAll(nodes=>nodes.every(n=>Number(n.style.strokeDashoffset)===0)));
   assert.equal(await page.locator('.birthday-blossom__letter').count(),6);
   assert.equal(await page.locator('#birthday-blossom text').count(),0,'name is drawn as branches');
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
