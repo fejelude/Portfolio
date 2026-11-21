@@ -56,8 +56,14 @@ async function seekWithSlider(page, seconds) {
   }, seconds);
 }
 
-async function assertPausedClock(page, observationMs = 250) {
+async function pauseAndAssertClock(page, activate, observationMs = 250) {
   const audio = page.locator('#song-audio');
+  // Let the switch's initial silent rewind settle before sampling a pause.
+  await page.waitForFunction(() => {
+    const media = document.getElementById('song-audio');
+    return !media.paused && !media.seeking && media.currentTime >= 1;
+  });
+  await activate('#play-pause');
   await page.waitForFunction(() => {
     const media = document.getElementById('song-audio');
     return media.paused && !media.seeking;
@@ -167,8 +173,7 @@ async function nativeControls(browser,name,url,mobile) {
   assert.equal(await page.locator('#player-number').textContent(), 'TRACK 05 / 05');
   assert.equal(await page.$eval('#next-audio', a => a.paused), true);
   assert.equal(await page.evaluate(() => window.__albumAudit.gains[0].gain.value), 0);
-  await activate('#play-pause');
-  await assertPausedClock(page);
+  await pauseAndAssertClock(page, activate);
   await page.locator('#song-seek').focus(); await page.keyboard.press('Home');
   await page.keyboard.press('ArrowRight');
   await page.waitForFunction(() => document.getElementById('song-audio').currentTime < 1);
@@ -207,8 +212,7 @@ async function nativeControls(browser,name,url,mobile) {
   })));
   assert.equal(gates[0],0); assert.equal(gates[1],1);
   assert.equal(await page.$eval('#next-audio',a=>a.paused),true);
-  await activate('#play-pause');
-  await assertPausedClock(page, 750);
+  await pauseAndAssertClock(page, activate, 750);
   const pausedGates = await page.evaluate(() => window.__albumAudit.gains.slice(0,2).map(g=>g.gain.value));
   assert.equal(pausedGates[1],0); assert.ok(pausedGates[0]>.35&&pausedGates[0]<=.41);
   await activate('#ambient-toggle'); await sleep(650); assert.equal(await page.evaluate(()=>window.__albumAudit.gains[0].gain.value),0);
@@ -230,8 +234,7 @@ async function nativeControls(browser,name,url,mobile) {
   const artwork=await page.$eval('#player-cover',e=>{const r=e.getBoundingClientRect();return {width:r.width,height:r.height,fit:getComputedStyle(e).objectFit};});
   assert.equal(artwork.width,artwork.height);assert.equal(artwork.fit,'contain');
   assert.equal(await page.$eval('#next-audio',a=>a.paused),true);
-  await activate('#play-pause');
-  await assertPausedClock(page);
+  await pauseAndAssertClock(page, activate);
   await activate('#player-note');assert.equal(await page.locator('#note-copy').textContent(),ALBUM.tracks[1].note);
   assert.equal(await page.$eval('#note-copy',e=>getComputedStyle(e).whiteSpace),'pre-wrap');await assertLayout(page);await activate('#note-ok');
   await activate('#play-pause');await playing(page);
@@ -263,8 +266,7 @@ async function nativeControls(browser,name,url,mobile) {
   assert.equal(await page.locator('#note-copy').textContent(),ALBUM.tracks[2].note);
   assert.equal(await page.$eval('#note-copy',e=>getComputedStyle(e).whiteSpace),'pre-wrap');
   await assertLayout(page); await activate('#note-ok');
-  await activate('#play-pause');
-  await assertPausedClock(page);
+  await pauseAndAssertClock(page, activate);
   await activate('#play-pause'); await playing(page);
   await seekWithSlider(page, 45);
   await playing(page);await page.waitForFunction(()=>document.getElementById('song-audio').currentTime>45.1);
@@ -349,8 +351,7 @@ async function deluxeControls(browser,name,url,mobile){
   assert.equal(await page.$eval('#player-cover',e=>getComputedStyle(e).objectFit),'contain');
   assert.equal(await page.$eval('#now-playing',e=>getComputedStyle(e,'::after').pointerEvents),'none');
   assert.equal(await page.$eval('#now-playing',e=>getComputedStyle(e,'::after').animationName),'album-deluxe-embers');
-  await activate('#play-pause');
-  await assertPausedClock(page);
+  await pauseAndAssertClock(page, activate);
   await activate('#player-note');assert.equal(await page.locator('#note-copy').textContent(),ALBUM.tracks[3].note);
   await assertLayout(page);await activate('#note-ok');
   await page.locator('#now-playing').scrollIntoViewIfNeeded();
