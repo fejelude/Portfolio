@@ -52,23 +52,53 @@ const server=createServer(async(req,res)=>{
           assert.ok(layout.primary.height>=44&&layout.secondary.height>=44);
           if(width<=900)assert.ok(layout.description.top>=Math.max(layout.heading.bottom,layout.kitty.bottom)-1);
           if(width<=480)assert.ok(layout.secondary.top>=layout.primary.bottom);
-          if(!noJS&&!reduced)await page.waitForFunction(()=>document.querySelector('#sofra-feature-mascot').classList.contains('is-greeting'));
-          assert.equal(await kitty.locator('button, [role="button"]').count(),0);
-          assert.equal(await kitty.locator('.sofra-pixel-frame').count(),6);
+          assert.deepEqual(await kitty.locator('[data-kitty-mood]').evaluateAll(els=>els.map(el=>el.dataset.kittyMood)),['robot','love','sad','angry','flowers']);
+          assert.equal(await card.locator('button').count(),1);
+          const goals=page.locator('#goals .goal-achieved');
+          assert.deepEqual(await goals.locator('.goal-achievement').allTextContents(),['MASTERED','COMPLETE','COMPLETE']);
+          assert.deepEqual(await goals.evaluateAll(els=>els.map(el=>el.dataset.goalStatus)),['mastered','complete','complete']);
+          const goalLayout=await goals.evaluateAll(els=>els.map(el=>{
+            const row=el.querySelector('.goal-title-row'),badge=el.querySelector('.goal-achievement');
+            const r=row.getBoundingClientRect(),b=badge.getBoundingClientRect();
+            return {fits:b.left>=r.left-1&&b.right<=r.right+1,border:getComputedStyle(badge).borderTopColor};
+          }));
+          assert.ok(goalLayout.every(r=>r.fits),JSON.stringify(goalLayout));
+          assert.notEqual(goalLayout[0].border,goalLayout[1].border);
+          assert.equal(goalLayout[1].border,goalLayout[2].border);
           if(reduced||noJS){
-            assert.equal(await kitty.locator('.sofra-pixel-frame-0').evaluate(el=>getComputedStyle(el).animationName),'none');
-            assert.equal(await kitty.locator('.sofra-pixel-wrap').evaluate(el=>getComputedStyle(el).opacity),'1');
+            assert.equal(await kitty.isDisabled(),true);
+            assert.equal(await kitty.locator('.sf-mood-flowers').evaluate(el=>getComputedStyle(el).opacity),'1');
+            assert.equal(await kitty.locator('.sf-mood-robot').evaluate(el=>getComputedStyle(el).opacity),'0');
+            assert.equal(await kitty.locator('.sf-bouquet-wrap').evaluate(el=>getComputedStyle(el).opacity),'1');
           }else{
-            const dance=await kitty.locator('.sofra-pixel-frame-0').evaluate(el=>({name:getComputedStyle(el).animationName,count:getComputedStyle(el).animationIterationCount,duration:getComputedStyle(el).animationDuration}));
-            assert.deepEqual(dance,{name:'sf-pixel-pose-0',count:'4',duration:'1.2s'});
-            // At least two actual poses must be visible over successive samples.
-            const seen=new Set();
-            for(let i=0;i<7;i++){
-              const visible=await kitty.locator('.sofra-pixel-frame').evaluateAll(els=>els.findIndex(el=>getComputedStyle(el).opacity==='1'));
-              assert.ok(visible>=0,'no visible dance pose');seen.add(visible);
-              await page.waitForTimeout(180);
+            await kitty.scrollIntoViewIfNeeded();
+            await page.waitForFunction(()=>document.querySelector('#sofra-feature-mascot').classList.contains('is-running'));
+            assert.equal(await kitty.isEnabled(),true);
+            await kitty.click();
+            assert.equal(await kitty.getAttribute('aria-pressed'),'true');
+            const sequence=await kitty.evaluate(el=>{
+              const scenes=[...el.querySelectorAll('[data-kitty-mood]')];
+              const animations=scenes.map(s=>s.getAnimations()[0]);
+              const sample=t=>{animations.forEach(a=>a.currentTime=t);return scenes.map(s=>Number(getComputedStyle(s).opacity));};
+              return {slots:[1000,3000,5000,7000,9000].map(sample),cross:sample(1900),end:sample(9900),wrap:sample(11000)};
+            });
+            sequence.slots.forEach((s,i)=>{assert.ok(s[i]>.99&&s.filter(v=>v>.01).length===1,JSON.stringify(sequence));});
+            assert.ok(sequence.cross[0]>.05&&sequence.cross[0]<.95&&sequence.cross[1]>.05&&sequence.cross[1]<.95);
+            assert.ok(sequence.end[4]>.05&&sequence.end[4]<.95&&sequence.end[0]>.05&&sequence.end[0]<.95);
+            assert.ok(sequence.wrap[0]>.99);
+            assert.equal(await kitty.locator('.sf-mood-robot').evaluate(el=>getComputedStyle(el).animationDuration),'10s');
+            assert.equal(await kitty.locator('.sf-mood-robot').evaluate(el=>getComputedStyle(el).animationPlayState),'paused');
+            if(width===390||width===1440){
+              for(let i=0;i<5;i++){
+                await kitty.evaluate((el,slot)=>{
+                  for(const animation of el.querySelector('svg').getAnimations({subtree:true}))animation.currentTime=slot*2000+(slot===4?1600:1000);
+                },i);
+                await card.screenshot({path:path.join(out,'sofra-'+suffix+'-mood-'+i+'.png')});
+              }
             }
-            assert.ok(seen.size>=2,'pixel poses did not change');
+            await kitty.focus();await page.keyboard.press('Space');
+            assert.equal(await kitty.getAttribute('aria-pressed'),'false');
+            assert.equal(await kitty.locator('.sf-mood-robot').evaluate(el=>getComputedStyle(el).animationPlayState),'running');
           }
           if(!noJS){
             await card.locator('.sofra-feature-primary').focus();
@@ -78,6 +108,7 @@ const server=createServer(async(req,res)=>{
             await card.locator('.sofra-feature-secondary').blur();
           }
           await card.screenshot({path:path.join(out,'sofra-'+suffix+'.png'),animations:'disabled'});
+          if(width===390||width===1440)await page.locator('#goals .goals-wrapper').screenshot({path:path.join(out,'goals-'+suffix+'.png'),animations:'disabled'});
           assert.deepEqual(errors,[]);
           console.log('Sofra feature:',suffix,'passed');
         }finally{await context.close();}

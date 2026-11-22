@@ -102,35 +102,62 @@
   .feje-world-home .sofra-feature-primary:hover { background: #b43c6c; box-shadow: 0 5px 22px #ff6ea155; }
   .feje-world-home .sofra-feature-secondary:hover > span { color: #fff1f7; }
 }
-/* Real stepped pixel poses, not a smoothed transform. A 4.8s recital runs
-   automatically on entry; staying in view never starts an endless distraction.
-   The completed bouquet is the default, including reduced motion/no JS. */
-.feje-world-home .sofra-pixel-frame { opacity: 0; }
-.feje-world-home .sofra-pixel-frame-0 { opacity: 1; }
-.feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-frame-0 { animation: sf-pixel-pose-0 1.2s steps(1,end) 4; }
-.feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-frame-1 { animation: sf-pixel-pose-1 1.2s steps(1,end) 4; }
-.feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-frame-2 { animation: sf-pixel-pose-2 1.2s steps(1,end) 4; }
-.feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-frame-3 { animation: sf-pixel-pose-3 1.2s steps(1,end) 4; }
-.feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-frame-4 { animation: sf-pixel-pose-4 1.2s steps(1,end) 4; }
-.feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-frame-5 { animation: sf-pixel-pose-5 1.2s steps(1,end) 4; }
-@keyframes sf-pixel-pose-0 { 0% { opacity: 1; } 16.667% { opacity: 0; } 100% { opacity: 0; } }
-@keyframes sf-pixel-pose-1 { 0% { opacity: 0; } 16.667% { opacity: 1; } 33.333% { opacity: 0; } 100% { opacity: 0; } }
-@keyframes sf-pixel-pose-2 { 0% { opacity: 0; } 33.333% { opacity: 1; } 50.000% { opacity: 0; } 100% { opacity: 0; } }
-@keyframes sf-pixel-pose-3 { 0% { opacity: 0; } 50.000% { opacity: 1; } 66.667% { opacity: 0; } 100% { opacity: 0; } }
-@keyframes sf-pixel-pose-4 { 0% { opacity: 0; } 66.667% { opacity: 1; } 83.333% { opacity: 0; } 100% { opacity: 0; } }
-@keyframes sf-pixel-pose-5 { 0% { opacity: 0; } 83.333% { opacity: 1; } 100% { opacity: 1; } }
-.feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-stems { animation: sf-pixel-grow 4.8s steps(1,end) both; }
-.feje-world-home .sofra-feature-mascot.is-greeting .sofra-flower-one { animation: sf-flower-one 4.8s steps(1,end) both; }
-.feje-world-home .sofra-feature-mascot.is-greeting .sofra-flower-two { animation: sf-flower-two 4.8s steps(1,end) both; }
-.feje-world-home .sofra-feature-mascot.is-greeting .sofra-flower-three { animation: sf-flower-three 4.8s steps(1,end) both; }
-.feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-wrap { animation: sf-flower-wrap 4.8s steps(1,end) both; }
-.feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-heart { animation: sf-flower-heart 4.8s steps(1,end) both; }
-@keyframes sf-pixel-grow { 0% { opacity: 0; } 15%,100% { opacity: 1; } }
-@keyframes sf-flower-one { 0% { opacity: 0; } 28%,100% { opacity: 1; } }
-@keyframes sf-flower-two { 0% { opacity: 0; } 46%,100% { opacity: 1; } }
-@keyframes sf-flower-three { 0% { opacity: 0; } 63%,100% { opacity: 1; } }
-@keyframes sf-flower-wrap { 0% { opacity: 0; } 80%,100% { opacity: 1; } }
-@keyframes sf-flower-heart { 0% { opacity: 0; } 90%,100% { opacity: 1; } }
+/* Five 2-second moods with a 200ms overlap. The last flower pose is the
+   no-JS/reduced-motion default. Each scene uses crisp pixel shapes. */
+.feje-world-home #sofra-project .sofra-feature-mascot {
+  display: block; appearance: none; border: 0; background: transparent;
+  box-shadow: none; color: inherit; line-height: 0; cursor: pointer;
+  pointer-events: auto; -webkit-tap-highlight-color: transparent;
+}
+.feje-world-home #sofra-project .sofra-feature-mascot:disabled { opacity: 1; cursor: default; }
+.feje-world-home #sofra-project .sofra-feature-mascot:focus-visible { outline: 2px solid #ffb8d4; outline-offset: 4px; }
+.feje-world-home .sf-mood-scene { opacity: 0; }
+.feje-world-home .sf-mood-flowers { opacity: 1; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-mood-scene { animation: sf-mood-cycle 10s linear infinite both; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-mood-robot { animation-delay: 0s; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-mood-love { animation-delay: -8s; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-mood-sad { animation-delay: -6s; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-mood-angry { animation-delay: -4s; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-mood-flowers { animation-delay: -2s; }
+@keyframes sf-mood-cycle { 0%,18% { opacity: 1; } 20%,98% { opacity: 0; } 100% { opacity: 1; } }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-mood-bob { animation: sf-mood-bob .5s steps(2,end) infinite; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-mood-scan { animation: sf-mood-scan 1s steps(2,end) infinite; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-mood-signal { animation: sf-mood-twinkle .65s steps(2,end) infinite; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-love-heart-big { animation: sf-mood-bob .5s steps(2,end) infinite; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-love-heart-one { animation: sf-love-float 1s steps(4,end) infinite; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-love-heart-two { animation: sf-love-float 1s -.33s steps(4,end) infinite; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-love-heart-three { animation: sf-love-float 1s -.66s steps(4,end) infinite; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-mood-cloud { animation: sf-mood-cloud 1s steps(2,end) infinite; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-mood-sad-bob { animation: sf-mood-sad 1s steps(2,end) infinite; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-mood-tears,
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-mood-rain { animation: sf-mood-tears .65s steps(3,end) infinite; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-mood-stomp { animation: sf-mood-stomp .5s steps(2,end) infinite; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-mood-angry-mark { animation: sf-mood-twinkle .5s steps(2,end) infinite; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-mood-steam { animation: sf-love-float .65s steps(3,end) infinite; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-bouquet-stems { animation: sf-bouquet-stems 10s steps(1,end) infinite both; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-bloom-one { animation: sf-bloom-one 10s steps(1,end) infinite both; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-bloom-two { animation: sf-bloom-two 10s steps(1,end) infinite both; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-bloom-three { animation: sf-bloom-three 10s steps(1,end) infinite both; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-bloom-four { animation: sf-bloom-four 10s steps(1,end) infinite both; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-bouquet-wrap { animation: sf-bouquet-wrap 10s steps(1,end) infinite both; }
+.feje-world-home .sofra-feature-mascot.is-enhanced .sf-bouquet-heart { animation: sf-bouquet-heart 10s steps(1,end) infinite both; }
+.feje-world-home .sofra-feature-mascot:not(.is-running) .sofra-kitty * { animation-play-state: paused!important; }
+@keyframes sf-mood-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes sf-mood-scan { 0%,100% { opacity: 1; } 50% { opacity: .65; } }
+@keyframes sf-mood-twinkle { 0%,100% { opacity: .65; } 50% { opacity: 1; } }
+@keyframes sf-love-float { 0%,100% { opacity: .8; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+@keyframes sf-mood-cloud { 0%,100% { transform: translateX(0); } 50% { transform: translateX(2px); } }
+@keyframes sf-mood-sad { 0%,100% { transform: translateY(0); } 50% { transform: translateY(1px); } }
+@keyframes sf-mood-tears { 0% { opacity: .8; transform: translateY(0); } 100% { opacity: .25; transform: translateY(3px); } }
+@keyframes sf-mood-stomp { 0%,100% { transform: translateX(0); } 25% { transform: translate(-1px,-1px); } 75% { transform: translate(1px,-1px); } }
+/* Bouquet is assembled within the last slot, then remains intact through the wrap fade. */
+@keyframes sf-bouquet-stems { 0%,80% { opacity: 0; } 81%,100% { opacity: 1; } }
+@keyframes sf-bloom-one { 0%,82% { opacity: 0; } 83%,100% { opacity: 1; } }
+@keyframes sf-bloom-two { 0%,84% { opacity: 0; } 85%,100% { opacity: 1; } }
+@keyframes sf-bloom-three { 0%,86% { opacity: 0; } 87%,100% { opacity: 1; } }
+@keyframes sf-bloom-four { 0%,88% { opacity: 0; } 89%,100% { opacity: 1; } }
+@keyframes sf-bouquet-wrap { 0%,90% { opacity: 0; } 91%,100% { opacity: 1; } }
+@keyframes sf-bouquet-heart { 0%,93% { opacity: 0; } 94%,100% { opacity: 1; } }
 @media (max-width: 900px) {
   .feje-world-home #sofra-project { padding-block: 48px; }
   .feje-world-home #sofra-project > .container { padding-inline: clamp(12px, 4vw, 24px); }
@@ -152,10 +179,8 @@
   .feje-world-home #sofra-project .sofra-feature h2 { font-size: 1.65rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-frame,
-  .feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-stems,
-  .feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-flower,
-  .feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-wrap,
-  .feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-heart { animation: none; }
+  .feje-world-home .sofra-feature-mascot .sofra-kitty * { animation: none!important; }
+  .feje-world-home .sf-mood-scene { opacity: 0; }
+  .feje-world-home .sf-mood-flowers { opacity: 1; }
   .feje-world-home .sofra-feature-primary { transition: none; }
 }

@@ -1,20 +1,32 @@
-// Replay the short dance each time the mascot enters view. No user controls.
+// Autoplay while in view, with no visible extra motion UI. The art itself
+// is a keyboard/touch pause control for the indefinite decorative loop.
 const mascot = document.getElementById('sofra-feature-mascot');
 if (mascot) {
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
-  let inView = !('IntersectionObserver' in window);
-  const sync = () => mascot.classList.toggle('is-greeting', inView && !document.hidden && !motion.matches);
+  let visible = !('IntersectionObserver' in window);
+  let paused = false;
+  const controller = new AbortController();
+  const { signal } = controller;
+  const sync = () => {
+    mascot.disabled = motion.matches;
+    mascot.setAttribute('aria-pressed', String(paused));
+    mascot.classList.toggle('is-enhanced', !motion.matches);
+    mascot.classList.toggle('is-running', !motion.matches && visible && !paused && !document.hidden);
+  };
+  mascot.addEventListener('click', () => { paused = !paused; sync(); }, { signal });
+  document.addEventListener('visibilitychange', sync, { signal });
+  motion.addEventListener('change', sync, { signal });
+  let observer;
   if ('IntersectionObserver' in window) {
-    const observer = new IntersectionObserver(entries => {
-      inView = entries[0].isIntersecting;
+    observer = new IntersectionObserver(entries => {
+      visible = entries[0].isIntersecting;
       sync();
-    }, { threshold: 0.25 });
+    }, { threshold: .15 });
     observer.observe(mascot);
-    window.addEventListener('pagehide', event => {
-      if (!event.persisted) observer.disconnect();
-    });
   }
-  document.addEventListener('visibilitychange', sync);
-  motion.addEventListener('change', sync);
+  window.addEventListener('pagehide', event => {
+    if (!event.persisted) { observer?.disconnect(); controller.abort(); }
+  }, { signal });
+  window.addEventListener('pageshow', sync, { signal });
   sync();
 }
