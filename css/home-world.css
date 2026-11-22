@@ -87,3 +87,35 @@
 .feje-world-home .world-title .blur-text{will-change:auto!important}
 .feje-world-home #main-content{scroll-margin-top:var(--nav-height)}
 @media(max-width:600px){.feje-world-home .world-marker{font-size:.54rem;padding:2px 3px}}
+
+/* Achievement states are scoped to public homepage goals. */
+.feje-world-home #goals .goal-achieved {
+  --achievement-ink: #a3efb9;
+  --achievement-edge: #32764c;
+  --achievement-background: #13251d;
+  --achievement-glow: #22c55e20;
+}
+.feje-world-home #goals .goal-mastered {
+  --achievement-ink: #ffafbf;
+  --achievement-edge: #e66a82;
+  --achievement-background: #331822;
+  --achievement-glow: #ff456a38;
+}
+.feje-world-home #goals .goal-title-row {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 9px 14px;
+  margin-bottom: 10px;
+}
+.feje-world-home #goals .goal-title-row h3 { margin: 0; min-width: 0; line-height: 1.35; }
+.feje-world-home #goals .goal-achievement {
+  display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto;
+  color: var(--achievement-ink); background: var(--achievement-background);
+  border: 1px solid var(--achievement-edge); border-radius: 6px;
+  padding: 5px 8px; font: 700 .67rem/1.25 'Space Grotesk', sans-serif;
+  letter-spacing: .07em; white-space: nowrap;
+  box-shadow: 0 0 12px var(--achievement-glow);
+}
+.feje-world-home #goals .goal-achievement svg { display: block; width: 14px; height: 14px; flex-shrink: 0; }
+.feje-world-home #goals .goal-mastered .goal-achievement {
+  box-shadow: 0 0 14px var(--achievement-glow), inset 0 0 8px #e65a7824;
+}
+.feje-world-home #goals .goal-achieved .goal-content p { margin: 0; }
