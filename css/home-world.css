@@ -1,0 +1,74 @@
+/* Violet Terminal. Loaded only by index.html; shared styles stay unchanged. */
+.feje-world-home{--world-ink:#0c0a12;--world-muted:#c1b8d1;--world-line:#332b40;--world-accent:#c7a9ff;background:#0c0a12;color:#f4effa}
+.feje-world-home .skip-link{z-index:3000}
+.feje-world-home .premium-nav{background:#100e18;border-bottom:1px solid var(--world-line)}
+.feje-world-home .brand-mark{border-radius:1px;background:#b99aff;box-shadow:none;transform:rotate(45deg)}
+.feje-world-home #home{position:relative;display:grid;grid-template-columns:minmax(285px,.74fr) minmax(0,1.4fr);align-items:center;gap:clamp(24px,4vw,76px);width:min(100%,1600px);margin:auto;padding:calc(var(--nav-height) + 52px) clamp(22px,5vw,82px) 64px;text-align:left;min-height:100svh}
+.feje-world-home #home .hero-content{width:100%;min-width:0;align-items:flex-start;text-align:left;display:flex;flex-direction:column;position:relative;z-index:1}
+.feje-world-home .world-kicker{font:600 .69rem/1.5 'Space Grotesk',sans-serif;letter-spacing:.2em;color:#c7a9ff;margin-bottom:28px;display:flex;align-items:center;gap:9px}
+.feje-world-home .world-kicker span{width:6px;height:6px;background:#c7a9ff;transform:rotate(45deg)}
+.feje-world-home .world-title{font-size:clamp(2.8rem,5.3vw,6.7rem);line-height:.92;letter-spacing:-.07em;color:#f6f1fd;margin:0 0 25px!important;word-break:normal}
+.feje-world-home .world-title .blur-text{display:block;opacity:1;filter:none;transform:none;animation:none;will-change:auto}
+.feje-world-home .world-title .mobile-break{display:none}
+.feje-world-home .world-subtitle{font-size:clamp(.94rem,1.4vw,1.15rem);line-height:1.55;color:#ddd2e9;margin-bottom:22px}
+.feje-world-home .world-intro{max-width:36ch;color:var(--world-muted);line-height:1.7;font-size:.94rem}
+.feje-world-home #home .action-buttons{width:min(100%,345px);align-items:stretch;margin-top:26px;gap:14px}
+.feje-world-home #home .primary-action-stack{gap:0}
+.feje-world-home #home .star-border{background:transparent;box-shadow:none;border-radius:0;border:0;border-top:1px solid var(--world-line);padding:0;overflow:visible;text-decoration:none}
+.feje-world-home #home .star-border:last-child{border-bottom:1px solid var(--world-line)}
+.feje-world-home #home .star-border-glow{display:none}
+.feje-world-home #home .star-border-inner{background:none;box-shadow:none;border:0;border-radius:0;color:#efe9f8;min-height:48px;justify-content:flex-start;padding:10px 3px;font-size:.9rem;gap:9px}
+.feje-world-home #home .star-border:hover{box-shadow:none!important;transform:none}
+.feje-world-home #home .star-border:hover .star-border-inner{color:var(--world-accent)}
+.feje-world-home #home .star-border-inner::after{content:'↗';margin-left:auto;color:#a897bd}
+.feje-world-home #home .sofra-hero-arrow{display:none}
+.feje-world-home #home .sofra-hero-icon{filter:none;color:#c7a9ff}
+.feje-world-home #home .profile-action-cluster{justify-content:flex-start}
+.feje-world-home .world-stage{min-width:0;width:100%;align-self:center;position:relative;font-family:'Space Grotesk',sans-serif}
+.feje-world-home .world-viewport{position:relative;height:clamp(340px,50vw,650px);max-height:72svh;min-height:350px;isolation:isolate;overflow:hidden;background:#171222;border:1px solid #54465c;clip-path:polygon(0 0,calc(100% - 21px) 0,100% 21px,100% 100%,21px 100%,0 calc(100% - 21px))}
+.feje-world-home .world-poster,.feje-world-home .world-canvas-host{position:absolute;inset:0}
+.feje-world-home .world-poster{background:#191325 url('../assets/home-world/terminal.svg') center center/cover no-repeat}
+.feje-world-home .world-canvas-host{opacity:0;transition:opacity .4s}
+.feje-world-home .world-stage[data-state="live"] .world-canvas-host{opacity:1}
+.feje-world-home .world-canvas-host canvas{width:100%;height:100%;display:block;touch-action:pan-y;cursor:grab;outline-offset:-4px}
+.feje-world-home .world-canvas-host canvas:active{cursor:grabbing}
+.feje-world-home .world-canvas-host canvas:focus-visible{outline:2px solid #eedbff}
+.feje-world-home .world-view-label{position:absolute;inset:18px 20px auto;display:flex;justify-content:space-between;gap:8px;color:#f1e5ff;font-size:.65rem;letter-spacing:.15em;text-shadow:0 1px 7px #09060d;pointer-events:none}
+.feje-world-home .world-instructions{position:absolute;bottom:15px;left:15px;right:15px;text-align:center;color:#eee6f8;font:500 .7rem/1.5 Inter,sans-serif;text-shadow:0 1px 5px #050407;pointer-events:none}
+.feje-world-home .world-launch{position:absolute;bottom:20px;left:20px;color:#f9f4ff;background:#171020;border:1px solid #9a80bf;padding:12px 14px;font:600 .82rem 'Space Grotesk',sans-serif;cursor:pointer}
+.feje-world-home .world-launch span{margin-left:8px}
+.feje-world-home [hidden]{display:none!important}
+.feje-world-home .world-console{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid var(--world-line)}
+.feje-world-home .world-caption{min-width:0}
+.feje-world-home .world-caption span{color:#cbb3f5;font-size:.7rem;letter-spacing:.14em;font-weight:700}
+.feje-world-home .world-caption p{color:#bfb3ce;font:400 .83rem/1.5 Inter,sans-serif;margin-top:5px}
+.feje-world-home .world-console a{color:#f3e8ff;font-size:.8rem;line-height:1.5;text-underline-offset:5px;white-space:nowrap}
+.feje-world-home .world-controls{display:flex;flex-wrap:wrap;gap:7px;justify-content:space-between;padding-top:10px}
+.feje-world-home .world-stations,.feje-world-home .world-tools{display:flex;flex-wrap:wrap;gap:4px}
+.feje-world-home .world-controls button{background:transparent;border:1px solid transparent;color:#baaecb;padding:9px 8px;min-height:44px;font:500 .72rem 'Space Grotesk',sans-serif;cursor:pointer;border-radius:0}
+.feje-world-home .world-controls button:hover,.feje-world-home .world-controls button[aria-pressed="true"]{color:#f4eaff;border-color:#5c4a73;background:#21182d}
+.feje-world-home .world-controls button:focus-visible,.feje-world-home .world-launch:focus-visible{outline:2px solid #d9c3ff;outline-offset:2px}
+.feje-world-home main>.section-padding{scroll-margin-top:var(--nav-height);border-top:1px solid var(--world-line);padding:clamp(64px,8vw,120px) 0}
+.feje-world-home main>.section-padding>.container{max-width:1120px}
+.feje-world-home main>.section-padding .reveal,.feje-world-home .scroll-reveal{opacity:1!important;transform:none!important;filter:none!important;animation:none!important;will-change:auto!important}
+.feje-world-home .section-header{text-align:left;margin-bottom:32px}
+.feje-world-home .section-header h2,.feje-world-home .profile-header h2,.feje-world-home .contact-box h2,.feje-world-home .sofra-project-card h2{font-family:'Space Grotesk',sans-serif;letter-spacing:-.045em;color:#f2ecfa;font-size:clamp(2rem,4.5vw,3.8rem)!important}
+.feje-world-home .glass-panel,.feje-world-home .bento-card,.feje-world-home .goal-item,.feje-world-home .contact-box{border:0;border-radius:0;background:transparent;box-shadow:none;will-change:auto;overflow:visible}
+.feje-world-home .glass-panel,.feje-world-home .contact-box{padding:0;text-align:left;max-width:none}
+.feje-world-home .profile-header{text-align:left}
+.feje-world-home .spotlight-card::before,.feje-world-home .card-bg{display:none}
+.feje-world-home .bento-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border-top:1px solid var(--world-line);border-bottom:1px solid var(--world-line)}
+.feje-world-home .bento-grid .tilted-card{width:auto;min-width:0;border-inline-end:1px solid var(--world-line);will-change:auto;transform:none!important}
+.feje-world-home .bento-grid .tilted-card:last-child{border-inline-end:0}
+.feje-world-home .bento-grid .bento-card{height:100%;min-height:255px;padding:26px;transform:none!important}
+.feje-world-home .bento-grid .card-content{padding:0;position:relative;transform:none!important}
+.feje-world-home .bento-grid .card-icon{opacity:.7}
+.feje-world-home .goals-wrapper{max-width:none;gap:0;border-top:1px solid var(--world-line)}
+.feje-world-home .goal-item{border-bottom:1px solid var(--world-line);padding:26px 0}
+.feje-world-home .project-kicker{display:block;color:var(--world-accent);letter-spacing:.12em}
+.feje-world-home .contact-box .method-card,.feje-world-home .sofra-project-card .btn-primary{border-radius:0;background:#17121f;border:1px solid var(--world-line)}
+.feje-world-home #surprise{scroll-margin-top:calc(var(--nav-height) + 20px)}
+@media(max-width:1100px){.feje-world-home #home{grid-template-columns:minmax(240px,.78fr) minmax(0,1.2fr);padding-inline:28px;gap:24px}.feje-world-home .world-title{font-size:clamp(2.8rem,5.5vw,5rem)}}
+@media(max-width:900px){.feje-world-home #home{display:flex;flex-direction:column;align-items:stretch;padding:calc(var(--nav-height) + 32px) 20px 40px;gap:28px;min-height:0}.feje-world-home .world-kicker{margin-bottom:16px}.feje-world-home .world-title{font-size:clamp(3rem,9vw,5.1rem);line-height:.95}.feje-world-home .world-title .blur-text{display:inline}.feje-world-home .world-title .mobile-break{display:block}.feje-world-home .world-subtitle{margin-bottom:10px}.feje-world-home #home .action-buttons{margin-top:18px}.feje-world-home .world-viewport{height:clamp(340px,78vw,560px);max-height:none;min-height:300px}.feje-world-home .world-controls{gap:3px}.feje-world-home .world-stations{gap:2px}.feje-world-home .bento-grid{grid-template-columns:1fr}.feje-world-home .bento-grid .tilted-card{border:0;border-bottom:1px solid var(--world-line)}.feje-world-home .bento-grid .tilted-card:last-child{border-bottom:0}.feje-world-home .bento-grid .bento-card{min-height:170px;padding:22px 0}}
+@media(max-width:390px){.feje-world-home .world-console{align-items:flex-start;flex-direction:column;gap:7px}.feje-world-home .world-view-label{font-size:.59rem;inset:12px 13px auto}}
+@media(prefers-reduced-motion:reduce){.feje-world-home *, .feje-world-home *::before,.feje-world-home *::after{scroll-behavior:auto!important}.feje-world-home .world-canvas-host{transition:none}}

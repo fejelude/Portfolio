@@ -14,9 +14,10 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="css/desktop-nav.css">
   <link rel="stylesheet" href="css/surprise.css">
+  <link rel="stylesheet" href="css/home-world.css">
 </head>
-<body>
-  <div id="liquid-ether-bg"></div>
+<body class="feje-world-home">
+  <a class="skip-link" href="#main-content">Skip to content</a>
 
   <header class="glass-nav premium-nav has-desktop-nav">
     <div class="container nav-container">
@@ -74,10 +75,12 @@
 
   <main id="main-content">
     <section id="home" class="hero-section">
-      <div class="hero-content reveal scroll-reveal" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
-        <h1 class="shiny-text special-header-effect" style="margin-bottom: 0;"><span class="blur-text">Fejelude</span> <span class="mobile-break"></span> <span class="blur-text">Laxamana</span></h1>
-        <p style="color: #888; font-size: 1.2rem; margin-bottom: 2rem;">16, Developer, Digital Artist, & Engineer</p>
+      <div class="hero-content reveal scroll-reveal">
+        <p class="world-kicker"><span></span> ITSMEFEJE / PERSONAL TRANSMISSION</p>
+        <h1 class="world-title"><span class="blur-text">Fejelude</span> <span class="mobile-break"></span> <span class="blur-text">Laxamana</span></h1>
+        <p class="world-subtitle">16, Developer, Digital Artist, & Engineer</p>
 
+        <p class="world-intro">A small corner of the future, made by hand. Explore my world, or follow the links below.</p>
         <div class="action-buttons">
           <div class="primary-action-stack">
             <a href="/sofra/about" class="star-border sofra-hero-cta">
@@ -123,6 +126,29 @@
               </svg>
             </a>
           </div>
+        </div>
+      </div>
+      <div class="world-stage" id="world-stage" aria-label="Interactive rooftop observatory">
+        <div class="world-viewport" id="world-viewport">
+          <div class="world-poster" role="img" aria-label="A violet concept car on a futuristic rooftop at dusk"></div>
+          <div class="world-canvas-host" id="world-canvas-host"></div>
+          <div class="world-view-label" aria-hidden="true"><span>FJ / 01</span><span>VIOLET TERMINAL</span></div>
+          <button class="world-launch" id="world-launch" type="button" hidden>Enable interactive scene <span aria-hidden="true">↗</span></button>
+          <span class="world-instructions" id="world-instructions" hidden>Drag to orbit · arrow keys when focused · select a landmark</span>
+        </div>
+        <div class="world-console">
+          <div class="world-caption"><span id="world-status" role="status">01 / ARRIVAL</span><p id="world-description">A quiet overlook above the city.</p></div>
+          <a id="world-destination" href="#about">Read my story ↗</a>
+        </div>
+        <div class="world-controls" id="world-controls" hidden aria-label="Scene controls">
+          <div class="world-stations" role="group" aria-label="Camera destinations">
+            <button type="button" data-world-view="arrival" aria-pressed="true">01 Arrival</button>
+            <button type="button" data-world-view="sofra" aria-pressed="false">02 Sofra</button>
+            <button type="button" data-world-view="workshop" aria-pressed="false">03 Lab</button>
+            <button type="button" data-world-view="roadmap" aria-pressed="false">04 Roadmap</button>
+            <button type="button" data-world-view="relay" aria-pressed="false">05 Relay</button>
+          </div>
+          <div class="world-tools"><button type="button" id="world-lights" aria-pressed="true">Lights</button><button type="button" id="world-motion" aria-pressed="false">Pause motion</button></div>
         </div>
       </div>
     </section>
@@ -346,30 +372,12 @@
 
   </main>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-
-  <script src="liquid-ether.js"></script>
-  <script src="shiny-text.js"></script>
-  <script src="react-bits-vanilla.js"></script>
   <script src="js/activity-logger.js"></script>
   <script src="main.js"></script>
   <script src="js/surprise-assets.js"></script>
   <script src="js/surprise.js"></script>
   
-  <script>
-    // Initialize the background
-    document.addEventListener('DOMContentLoaded', () => {
-      new LiquidEther(document.getElementById('liquid-ether-bg'), {
-        colors: ['#000000', '#1a1a1a', '#4338ca', '#3b0764'], // Dark/Purple Palette
-        mouseForce: 25,
-        cursorSize: 80,
-        autoDemo: true
-      });
-    });
-  </script>
+  <script type="module" src="js/home-world.mjs"></script>
 </body>
 </html>
 
