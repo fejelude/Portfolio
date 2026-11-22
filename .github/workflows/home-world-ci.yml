@@ -9,6 +9,8 @@ on:
       - tests/roblox-creations.test.cjs
       - verification/roblox-creations-smoke.cjs
       - css/home-world.css
+      - js/hero-terminal.mjs
+      - tests/hero-terminal.test.mjs
       - css/hero-pixels.css
       - js/hero-pixels.mjs
       - verification/hero-pixels-smoke.cjs
@@ -33,6 +35,7 @@ jobs:
         with:
           node-version: '24'
       - run: node --check js/hero-pixels.mjs && node --check js/sofra-feature.mjs && node --check js/home-collectibles.mjs && node --check js/home-world.mjs && node --check js/home-world-renderer.mjs && node --test tests/home-world.test.mjs
+      - run: node --check js/hero-terminal.mjs && node --test tests/hero-terminal.test.mjs
       - run: node --check js/roblox-creations.mjs && node --test tests/roblox-creations.test.cjs
       - run: npm install --no-save --package-lock=false playwright@1.62.1
       - run: npx playwright install --with-deps chromium firefox webkit
