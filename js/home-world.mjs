@@ -24,7 +24,7 @@ if(stage){
       if(show){const x=Math.round(p[0]),y=Math.round(p[1]);if(x!==m.x||y!==m.y){m.node.style.left=x+'px';m.node.style.top=y+'px';m.x=x;m.y=y;}}
     }
   }
-  const showLaunch=(label='Enable interactive scene ↗')=>{launch.textContent=label;launch.hidden=false;};
+  const showLaunch=(label='Explore my world XD ↗')=>{launch.textContent=label;launch.hidden=false;};
   const updateMotion=()=>{const b=$('world-motion');b.textContent=paused?'Resume motion':'Pause motion';b.setAttribute('aria-pressed',String(paused));};
   const select=key=>{
     if(!api||!api.STATIONS[key])return;
@@ -53,7 +53,7 @@ if(stage){
   }
   async function start(){
     if(loading||renderer||signal.aborted)return;
-    loading=true;launch.hidden=false;launch.disabled=true;launch.textContent='Preparing the observatory…';
+    loading=true;launch.hidden=false;launch.disabled=true;launch.textContent='Loading my world…';
     try{
       api=await import('./home-world-renderer.mjs');
       if(signal.aborted)return;
@@ -64,7 +64,7 @@ if(stage){
       renderer.draw(current,lights,time);
       makeMarkers();updateMarkers();stage.dataset.state='live';launch.hidden=true;controls.hidden=false;instructions.hidden=false;updateMotion();select(active);
       if('ResizeObserver' in window){sizeObserver=new ResizeObserver(request);sizeObserver.observe(host);}
-      sceneListen(canvas,'webglcontextlost',e=>{e.preventDefault();fallback('Graphics interrupted · retry ↗');});
+      sceneListen(canvas,'webglcontextlost',e=>{e.preventDefault();fallback('Oops, graphics stopped. Try again ↗');});
       sceneListen(canvas,'pointerdown',e=>{if(e.button!==0)return;drag={x:e.clientX,y:e.clientY,originX:e.clientX,originY:e.clientY,id:e.pointerId,moved:false};canvas.setPointerCapture?.(e.pointerId);});
       sceneListen(canvas,'pointermove',e=>{
         if(!drag||drag.id!==e.pointerId)return;
@@ -90,7 +90,7 @@ if(stage){
         if(!dirs[e.key])return;e.preventDefault();goal.yaw+=dirs[e.key][0];goal.pitch=Math.max(.09,Math.min(.72,goal.pitch+dirs[e.key][1]));request();
       });
       request();
-    }catch(error){fallback('Interactive graphics unavailable · retry ↗');}
+    }catch(error){fallback('Graphics are not available rn. Try again ↗');}
     finally{loading=false;launch.disabled=false;}
   }
   // Markers have equivalent keyboard-operable destination buttons.
