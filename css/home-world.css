@@ -1,6 +1,14 @@
 /* Violet Terminal. Loaded only by index.html; shared styles stay unchanged. */
 .feje-world-home{--world-ink:#0c0a12;--world-muted:#c1b8d1;--world-line:#332b40;--world-accent:#c7a9ff;background:#0c0a12;color:#f4effa}
-.feje-world-home .skip-link{z-index:3000}
+/* Keep the bypass link available to keyboard users without exposing it
+   during touch scrolling, Safari rubber-banding or pointer focus. */
+.feje-world-home .skip-link{
+  position:fixed;top:0;left:50%;z-index:3000;
+  clip-path:inset(50%);opacity:0;pointer-events:none;transition:none;
+}
+.feje-world-home .skip-link:focus-visible{
+  clip-path:none;opacity:1;pointer-events:auto;
+}
 .feje-world-home .premium-nav{background:#100e18;border-bottom:1px solid var(--world-line)}
 .feje-world-home .brand-mark{display:inline-flex;align-items:center;justify-content:center;flex:0 0 26px;width:26px;height:22px;border-radius:0;background:none;box-shadow:none;transform:none;color:#fff}
 .feje-world-home .brand-mark svg{display:block;width:100%;height:100%;overflow:visible;stroke:currentColor;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}

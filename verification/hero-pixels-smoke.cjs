@@ -29,6 +29,32 @@ const server=createServer(async(req,res)=>{
           // This isolated layout test does not need a GPU or remote icon/font assets.
           await page.route('**/*',route=>route.request().url().startsWith(url)?route.continue():route.abort());
           await page.goto(url,{waitUntil:'domcontentloaded'});
+          const skip=page.locator('a.skip-link');
+          const skipStyle=()=>skip.evaluate(el=>{
+            const s=getComputedStyle(el);
+            return {opacity:s.opacity,clip:s.clipPath,pointer:s.pointerEvents};
+          });
+          assert.equal(await skip.getAttribute('href'),'#main-content');
+          const expectHidden=async()=>{
+            const s=await skipStyle();
+            assert.equal(s.opacity,'0');assert.equal(s.pointer,'none');assert.notEqual(s.clip,'none');
+          };
+          await expectHidden();
+          // Scrolling up and down must not bring the offscreen link into view.
+          await page.evaluate(()=>window.scrollTo(0,400));
+          await page.evaluate(()=>window.scrollTo(0,0));
+          await expectHidden();
+          if(width>=900){
+            // Real keyboard navigation still exposes and activates the link.
+            await page.keyboard.press('Tab');
+            assert.equal(await skip.evaluate(el=>el===document.activeElement),true);
+            const visible=await skipStyle();
+            assert.equal(visible.opacity,'1');assert.equal(visible.clip,'none');
+            await page.keyboard.press('Enter');
+            await page.waitForFunction(()=>document.activeElement.id==='main-content');
+            await expectHidden();
+            await page.goto(url,{waitUntil:'domcontentloaded'});
+          }
           const row=page.locator('.feje-title-row'),sprite=page.locator('#feje-pixel-companion');
           await row.scrollIntoViewIfNeeded();
           const terminal=page.locator('#hero-terminal');
