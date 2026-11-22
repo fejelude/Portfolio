@@ -5,10 +5,25 @@ if(stage){
   const host=$('world-canvas-host'), launch=$('world-launch'), controls=$('world-controls'), instructions=$('world-instructions');
   const motionQuery=matchMedia('(prefers-reduced-motion: reduce)'), coarse=matchMedia('(pointer: coarse)');
   const low=coarse.matches||innerWidth<=900||(navigator.deviceMemory&&navigator.deviceMemory<=4)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=4)||navigator.connection?.saveData;
-  let renderer=null,canvas=null,api=null,loading=false,visible=true,paused=motionQuery.matches,lights=true,frame=0,last=0,time=0,goal,current,drag,active='arrival',sizeObserver,slowFrames=0;
+  let sceneEvents=null,markerNodes=[],renderer=null,canvas=null,api=null,loading=false,visible=true,paused=motionQuery.matches,lights=true,frame=0,last=0,time=0,goal,current,drag,active='arrival',sizeObserver,slowFrames=0;
   const cleanup=new AbortController(),signal=cleanup.signal;
   const buttons=[...controls.querySelectorAll('[data-world-view]')];
   const listen=(target,event,handler,opts={})=>target.addEventListener(event,handler,{...opts,signal});
+  const sceneListen=(target,event,handler)=>target.addEventListener(event,handler,{signal:sceneEvents.signal});
+  function makeMarkers(){
+    const layer=$('world-markers');layer.replaceChildren();
+    markerNodes=Object.entries(api.STATIONS).map(([key,v])=>{
+      const node=document.createElement('span');node.className='world-marker';node.textContent=v.label;node.hidden=true;layer.append(node);return {node,v,key,x:null,y:null};
+    });
+  }
+  function updateMarkers(){
+    for(const m of markerNodes){
+      const p=renderer.project(m.v.marker);
+      const show=p&&p[0]>38&&p[0]<canvas.clientWidth-38&&p[1]>38&&p[1]<canvas.clientHeight-40&&m.key!==active;
+      m.node.hidden=!show;
+      if(show){const x=Math.round(p[0]),y=Math.round(p[1]);if(x!==m.x||y!==m.y){m.node.style.left=x+'px';m.node.style.top=y+'px';m.x=x;m.y=y;}}
+    }
+  }
   const showLaunch=(label='Enable interactive scene ↗')=>{launch.textContent=label;launch.hidden=false;};
   const updateMotion=()=>{const b=$('world-motion');b.textContent=paused?'Resume motion':'Pause motion';b.setAttribute('aria-pressed',String(paused));};
   const select=key=>{
@@ -26,13 +41,13 @@ if(stage){
     const dt=last?Math.min(.1,(now-last)/1000):1/60;last=now;
     const distance=api.blendView(current,goal,dt,paused||motionQuery.matches);
     if(!paused)time+=dt;
-    renderer.draw(current,lights,time);
+    renderer.draw(current,lights,time);updateMarkers();
     if(dt>.035&&!paused){if(++slowFrames>=24){renderer.ratio=Math.max(.7,renderer.ratio-.15);slowFrames=0;}}
     else slowFrames=Math.max(0,slowFrames-1);
     if(!paused||distance>.002)request();else last=0;
   }
   function fallback(message){
-    stop();sizeObserver?.disconnect();renderer?.dispose();renderer=null;
+    stop();sizeObserver?.disconnect();sceneEvents?.abort();renderer?.dispose();renderer=null;drag=null;markerNodes=[];$('world-markers').replaceChildren();
     canvas?.remove();canvas=null;stage.dataset.state='fallback';controls.hidden=true;instructions.hidden=true;
     showLaunch(message);loading=false;
   }
@@ -42,22 +57,23 @@ if(stage){
     try{
       api=await import('./home-world-renderer.mjs');
       if(signal.aborted)return;
+      sceneEvents=new AbortController();
       canvas=document.createElement('canvas');canvas.tabIndex=0;canvas.setAttribute('aria-label','Rooftop scene. Drag or use arrow keys to orbit. Destination buttons below.');
       host.append(canvas);renderer=new api.TerminalRenderer(canvas,!!low);
       current=api.copyView(api.STATIONS[active]);goal=api.copyView(current);
       renderer.draw(current,lights,time);
-      stage.dataset.state='live';launch.hidden=true;controls.hidden=false;instructions.hidden=false;updateMotion();select(active);
+      makeMarkers();updateMarkers();stage.dataset.state='live';launch.hidden=true;controls.hidden=false;instructions.hidden=false;updateMotion();select(active);
       if('ResizeObserver' in window){sizeObserver=new ResizeObserver(request);sizeObserver.observe(host);}
-      listen(canvas,'webglcontextlost',e=>{e.preventDefault();fallback('Graphics interrupted · retry ↗');});
-      listen(canvas,'pointerdown',e=>{if(e.button!==0)return;drag={x:e.clientX,y:e.clientY,originX:e.clientX,originY:e.clientY,id:e.pointerId,moved:false};canvas.setPointerCapture?.(e.pointerId);});
-      listen(canvas,'pointermove',e=>{
+      sceneListen(canvas,'webglcontextlost',e=>{e.preventDefault();fallback('Graphics interrupted · retry ↗');});
+      sceneListen(canvas,'pointerdown',e=>{if(e.button!==0)return;drag={x:e.clientX,y:e.clientY,originX:e.clientX,originY:e.clientY,id:e.pointerId,moved:false};canvas.setPointerCapture?.(e.pointerId);});
+      sceneListen(canvas,'pointermove',e=>{
         if(!drag||drag.id!==e.pointerId)return;
         const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
         if(Math.hypot(e.clientX-drag.originX,e.clientY-drag.originY)>5)drag.moved=true;
         if(drag.moved){goal.yaw-=dx*.008;goal.pitch=Math.max(.09,Math.min(.72,goal.pitch+dy*.005));request();}
         drag.x=e.clientX;drag.y=e.clientY;
       });
-      listen(canvas,'pointerup',e=>{
+      sceneListen(canvas,'pointerup',e=>{
         if(!drag||drag.id!==e.pointerId)return;
         if(!drag.moved){
           const rect=canvas.getBoundingClientRect();let best=null,d=42;
@@ -66,9 +82,9 @@ if(stage){
         }
         drag=null;
       });
-      listen(canvas,'pointercancel',()=>{drag=null;});
-      listen(canvas,'lostpointercapture',()=>{drag=null;});
-      listen(canvas,'keydown',e=>{
+      sceneListen(canvas,'pointercancel',()=>{drag=null;});
+      sceneListen(canvas,'lostpointercapture',()=>{drag=null;});
+      sceneListen(canvas,'keydown',e=>{
         const dirs={ArrowLeft:[.18,0],ArrowRight:[-.18,0],ArrowUp:[0,-.08],ArrowDown:[0,.08]};
         if(e.key==='Home'){e.preventDefault();select('arrival');return;}
         if(!dirs[e.key])return;e.preventDefault();goal.yaw+=dirs[e.key][0];goal.pitch=Math.max(.09,Math.min(.72,goal.pitch+dirs[e.key][1]));request();
@@ -93,7 +109,7 @@ if(stage){
   });
   let observer;
   if('IntersectionObserver' in window){observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(visible)request();else stop();});observer.observe(stage);}
-  listen(window,'pagehide',e=>{stop();if(!e.persisted){observer?.disconnect();sizeObserver?.disconnect();renderer?.dispose();cleanup.abort();}});
+  listen(window,'pagehide',e=>{stop();if(!e.persisted){observer?.disconnect();sizeObserver?.disconnect();sceneEvents?.abort();renderer?.dispose();cleanup.abort();}});
   listen(window,'pageshow',()=>request());
   showLaunch();
   // On touch, data saver, lower-end devices and reduced motion, users opt in.

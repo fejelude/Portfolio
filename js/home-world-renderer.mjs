@@ -25,7 +25,8 @@ export const STATIONS = Object.freeze({
   sofra:{label:"02 / SOFRA",description:"A home for better Discord communities.",link:"#sofra-project",action:"Explore Sofra ↗",target:[-6,1.4,-3.4],yaw:.43,pitch:.17,radius:7.3,marker:[-6,3.1,-3.4]},
   workshop:{label:"03 / WORKSHOP",description:"LuaU, tools and interface experiments.",link:"#learning",action:"View curriculum ↗",target:[6,1.4,-3.4],yaw:-.43,pitch:.17,radius:7.3,marker:[6,3.1,-3.4]},
   roadmap:{label:"04 / ROADMAP",description:"Every journey starts somewhere.",link:"#goals",action:"View my goals ↗",target:[0,1.5,-8],yaw:.26,pitch:.16,radius:8,marker:[0,4,-8]},
-  relay:{label:"05 / RELAY",description:"An open channel for new ideas.",link:"#contact",action:"Get in touch ↗",target:[7,1.4,4.5],yaw:.9,pitch:.24,radius:7.6,marker:[7,3,4.5]}
+  relay:{label:"05 / RELAY",description:"An open channel for new ideas.",link:"#contact",action:"Get in touch ↗",target:[7,1.4,4.5],yaw:.9,pitch:.24,radius:7.6,marker:[7,3,4.5]},
+  gallery:{label:"06 / GALLERY",description:"A display of games and creative experiments.",link:"Gallery.html",action:"Open my gallery ↗",target:[-7,1.4,4.5],yaw:-.9,pitch:.24,radius:7.6,marker:[-7,3,4.5]}
 });
 const makeBatch=()=>{
   const data=[];
@@ -96,7 +97,7 @@ export function buildWorld(low=false){
     }
   }
   // Two distinct exhibits. Their portal shapes and colours distinguish destinations.
-  for(const [x,z,c] of [[-6,-3.4,hex(0xe5aecb)],[6,-3.4,violet],[7,4.5,hex(0xb2c9d9)]]){
+  for(const [x,z,c] of [[-6,-3.4,hex(0xe5aecb)],[6,-3.4,violet],[7,4.5,hex(0xb2c9d9)],[-7,4.5,hex(0xd4c3ab)]]){
     box(x,.14,z,2.5,.28,2.2,dark);box(x,.32,z,2.35,.08,2.07,metal);
     for(const sign of [-1,1]){
       box(x+sign*1.02,1.53,z,.22,2.6,.42,concrete);
@@ -152,7 +153,7 @@ export function buildWorld(low=false){
 const VERT='attribute vec3 aPosition,aNormal,aColor;attribute float aMaterial;uniform mat4 uVP;uniform vec3 uOffset;varying vec3 vPosition,vNormal,vColor;varying float vMaterial;void main(){vPosition=aPosition+uOffset;vNormal=aNormal;vColor=aColor;vMaterial=aMaterial;gl_Position=uVP*vec4(vPosition,1.0);}';
 const FRAG=[
 'precision mediump float;varying vec3 vPosition,vNormal,vColor;varying float vMaterial;uniform vec3 uEye;uniform float uLights;',
-'float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}',
+'float hash(vec2 p){p=mod(p,64.);return fract(sin(dot(p,vec2(1.271,3.117)))*437.585); }',
 'void main(){vec3 n=normalize(vNormal);if(!gl_FrontFacing)n=-n;vec3 view=normalize(uEye-vPosition);float sun=max(dot(n,normalize(vec3(-.5,.7,.4))),0.);float rim=pow(1.-max(dot(n,view),0.),3.);',
 'vec3 col=vColor*(.43+.65*sun)+vec3(.075,.045,.12)*rim;',
 'if(vMaterial>3.5){vec3 r=reflect(-view,n);float stripe=smoothstep(.1,.9,abs(r.y));float glint=pow(max(dot(r,normalize(vec3(-.5,.6,.6))),0.),15.);col=vColor*(.27+.57*stripe)+vec3(.48,.32,.57)*glint+rim*vec3(.15,.10,.19);}',
@@ -190,7 +191,8 @@ export class TerminalRenderer{
   }
   resize(){
     const c=this.canvas,ratio=Math.min(this.ratio,window.devicePixelRatio||1);
-    const w=Math.max(1,Math.min(1800,Math.round(c.clientWidth*ratio))),h=Math.max(1,Math.min(1400,Math.round(c.clientHeight*ratio)));
+    const resolution=Math.min(ratio,1800/Math.max(1,c.clientWidth),1400/Math.max(1,c.clientHeight));
+    const w=Math.max(1,Math.round(c.clientWidth*resolution)),h=Math.max(1,Math.round(c.clientHeight*resolution));
     if(c.width!==w||c.height!==h){c.width=w;c.height=h;}
     this.gl.viewport(0,0,c.width,c.height);
   }

@@ -72,3 +72,18 @@
 @media(max-width:900px){.feje-world-home #home{display:flex;flex-direction:column;align-items:stretch;padding:calc(var(--nav-height) + 32px) 20px 40px;gap:28px;min-height:0}.feje-world-home .world-kicker{margin-bottom:16px}.feje-world-home .world-title{font-size:clamp(3rem,9vw,5.1rem);line-height:.95}.feje-world-home .world-title .blur-text{display:inline}.feje-world-home .world-title .mobile-break{display:block}.feje-world-home .world-subtitle{margin-bottom:10px}.feje-world-home #home .action-buttons{margin-top:18px}.feje-world-home .world-viewport{height:clamp(340px,78vw,560px);max-height:none;min-height:300px}.feje-world-home .world-controls{gap:3px}.feje-world-home .world-stations{gap:2px}.feje-world-home .bento-grid{grid-template-columns:1fr}.feje-world-home .bento-grid .tilted-card{border:0;border-bottom:1px solid var(--world-line)}.feje-world-home .bento-grid .tilted-card:last-child{border-bottom:0}.feje-world-home .bento-grid .bento-card{min-height:170px;padding:22px 0}}
 @media(max-width:390px){.feje-world-home .world-console{align-items:flex-start;flex-direction:column;gap:7px}.feje-world-home .world-view-label{font-size:.59rem;inset:12px 13px auto}}
 @media(prefers-reduced-motion:reduce){.feje-world-home *, .feje-world-home *::before,.feje-world-home *::after{scroll-behavior:auto!important}.feje-world-home .world-canvas-host{transition:none}}
+
+/* A world-space landmark is projected to the viewport; the button row is its
+   keyboard and screen-reader equivalent. Labels never intercept scrolling. */
+.feje-world-home .world-markers{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.feje-world-home .world-marker{position:absolute;top:0;left:0;display:flex;align-items:center;gap:5px;padding:3px 5px;color:#fff4ff;background:#171020e0;border:1px solid #9e8ab9;font:500 .61rem/1.25 'Space Grotesk',sans-serif;letter-spacing:.07em;white-space:nowrap;pointer-events:none;transform:translate(-50%,-100%)}
+.feje-world-home .world-marker::before{content:'';width:5px;height:5px;background:#d9b9ff;transform:rotate(45deg)}
+.feje-world-home .world-stage:not([data-state="live"]) .world-markers{display:none}
+.feje-world-home .sofra-project-card::before,.feje-world-home .sofra-project-card::after{display:none}
+.feje-world-home .sofra-project-card:hover{transform:none;box-shadow:none}
+.feje-world-home .profile-panel{backdrop-filter:none}
+.feje-world-home .goals-wrapper{grid-template-columns:1fr}
+.feje-world-home .goal-item:hover,.feje-world-home .bento-card:hover,.feje-world-home .contact-box .method-card:hover{transform:none}
+.feje-world-home .world-title .blur-text{will-change:auto!important}
+.feje-world-home #main-content{scroll-margin-top:var(--nav-height)}
+@media(max-width:600px){.feje-world-home .world-marker{font-size:.54rem;padding:2px 3px}}
