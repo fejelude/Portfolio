@@ -1,0 +1,122 @@
+/* Feje's six little pixel worlds. Only the homepage title row is affected. */
+.feje-world-home #home .feje-title-row {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 2vw, 15px);
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 25px;
+  container-type: inline-size;
+}
+.feje-world-home #home .feje-title-row .world-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0!important;
+  font-size: clamp(2rem, 6.9vw, 5rem);
+  font-size: clamp(1.85rem, 13cqw, min(5.3vw, 6.7rem));
+}
+.feje-world-home #home .feje-title-row .world-title .blur-text { white-space: nowrap; }
+.feje-world-home #home .feje-pixel-companion {
+  --pixel-size: 84px;
+  --pixel-size: clamp(64px, 25cqw, 124px);
+  flex: 0 0 var(--pixel-size);
+  width: var(--pixel-size);
+  height: var(--pixel-size);
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  box-shadow: none;
+  appearance: none;
+  cursor: pointer;
+  line-height: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.feje-world-home #home .feje-pixel-companion:disabled { opacity: 1; cursor: default; }
+.feje-world-home #home .feje-pixel-companion:focus-visible {
+  outline: 2px solid #caa9ff; outline-offset: 4px;
+}
+.feje-world-home #home .feje-pixel-art {
+  display: block; width: 100%; height: 100%; overflow: hidden;
+  image-rendering: pixelated;
+}
+.feje-world-home .feje-pixel-scene { opacity: 0; }
+.feje-world-home .feje-pixel-developer { opacity: 1; }
+/* All six phases share one 12-second clock. At the end of each two-second
+   slot, a 240ms overlap crossfades into the next scene, including the wrap. */
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-scene {
+  animation: feje-pixel-scene 12s linear infinite both;
+}
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-developer { animation-delay: 0s; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-cat { animation-delay: -10s; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-robot { animation-delay: -8s; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-dragon { animation-delay: -6s; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-computer { animation-delay: -4s; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-astronaut { animation-delay: -2s; }
+@keyframes feje-pixel-scene {
+  0%, 14.667% { opacity: 1; }
+  16.667%, 98% { opacity: 0; }
+  100% { opacity: 1; }
+}
+/* Stepped movement within each 8-bit vignette. Scene transitions are smooth,
+   but the characters retain pixel-art motion rather than vector tweening. */
+.feje-world-home .feje-pixel-error,
+.feje-world-home .feje-pixel-wave,
+.feje-world-home .feje-pixel-terminal-error,
+.feje-world-home .feje-pixel-terminal-face { opacity: 0; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-bob { animation: feje-pixel-bob .5s steps(2,end) infinite; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-type { animation: feje-pixel-type .4s steps(1,end) infinite; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-error { animation: feje-pixel-error 2s steps(1,end) infinite; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-fixed { animation: feje-pixel-fixed 2s steps(1,end) infinite; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-tail { animation: feje-pixel-tail .7s steps(2,end) infinite; transform-box: fill-box; transform-origin: left bottom; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-paw { animation: feje-pixel-paw .6s steps(2,end) infinite; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-heart-float { animation: feje-pixel-heart 1s steps(4,end) infinite; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-hover { animation: feje-pixel-hover 1s steps(4,end) infinite; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-eyes { animation: feje-pixel-blink 2s steps(1,end) infinite; transform-box: fill-box; transform-origin: center; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-thrust { animation: feje-pixel-type .3s steps(1,end) infinite; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-dragon-wing { animation: feje-pixel-wing .5s steps(2,end) infinite; transform-box: fill-box; transform-origin: right bottom; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-spark-stream { animation: feje-pixel-spark .8s steps(4,end) infinite; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-terminal { animation: feje-pixel-terminal 2s steps(1,end) infinite; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-terminal-face { animation: feje-pixel-face 2s steps(1,end) infinite; }
+.feje-world-home .feje-pixel-companion:not(.is-running) .feje-pixel-art * { animation-play-state: paused!important; }
+@keyframes feje-pixel-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-1px); } }
+@keyframes feje-pixel-type { 0%,100% { opacity: 1; } 50% { opacity: .65; } }
+@keyframes feje-pixel-error { 0%,100% { opacity: 0; } 35% { opacity: 1; } 65% { opacity: 0; } }
+@keyframes feje-pixel-fixed { 0%,100% { opacity: 0; } 65% { opacity: 1; } }
+@keyframes feje-pixel-tail { 0%,100% { transform: rotate(0); } 50% { transform: rotate(-9deg); } }
+@keyframes feje-pixel-paw { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-1px,-3px); } }
+@keyframes feje-pixel-heart { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes feje-pixel-hover { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes feje-pixel-blink { 0%,100% { transform: scaleY(1); } 45% { transform: scaleY(.2); } 55% { transform: scaleY(1); } }
+@keyframes feje-pixel-wing { 0%,100% { transform: rotate(0); } 50% { transform: rotate(13deg); } }
+@keyframes feje-pixel-spark { 0%,100% { opacity: .8; transform: translate(0); } 50% { opacity: 1; transform: translate(-2px,-2px); } }
+@keyframes feje-pixel-terminal { 0%,100% { opacity: 1; } 40% { opacity: 0; } }
+@keyframes feje-pixel-face { 0%,100% { opacity: 0; } 65% { opacity: 1; } }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-wave { animation: feje-pixel-wave 2s steps(1,end) infinite; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-terminal-error { animation: feje-pixel-terminal-error 2s steps(1,end) infinite; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-flame { animation: feje-pixel-flame .7s steps(3,end) infinite; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-astronaut .feje-pixel-hover { animation: feje-pixel-space-drift 2s steps(6,end) infinite; }
+@keyframes feje-pixel-wave { 0%,100% { opacity: 0; transform: translateY(0); } 65% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; transform: translate(-1px,-2px); } }
+@keyframes feje-pixel-terminal-error { 0%,100% { opacity: 0; } 40% { opacity: 1; } 65% { opacity: 0; } }
+@keyframes feje-pixel-flame { 0%,100% { opacity: .45; transform: translateX(1px); } 50% { opacity: 1; transform: translateX(-2px); } }
+@keyframes feje-pixel-space-drift { 0%,100% { transform: translate(0,0); } 25% { transform: translate(2px,-3px); } 50% { transform: translate(4px,0); } 75% { transform: translate(2px,3px); } }
+@media (max-width: 900px) {
+  .feje-world-home #home .feje-title-row .world-title {
+    font-size: clamp(1.85rem, 12vw, 4.4rem);
+    font-size: clamp(1.85rem, 13cqw, min(9vw, 5.1rem));
+  }
+}
+@media (max-width: 480px) {
+  .feje-world-home #home .feje-title-row .world-title {
+    font-size: clamp(1.85rem, 11vw, 3.25rem);
+    font-size: clamp(1.85rem, 13.7cqw, 3.25rem);
+  }
+  .feje-world-home #home .feje-pixel-companion { --pixel-size: 78px; --pixel-size: clamp(60px, 25cqw, 104px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .feje-world-home .feje-pixel-companion .feje-pixel-art * { animation: none!important; }
+  .feje-world-home .feje-pixel-scene { opacity: 0; }
+  .feje-world-home .feje-pixel-developer { opacity: 1; }
+}
