@@ -21,12 +21,12 @@ const matrix = (eye,target,aspect) => {
   return out;
 };
 export const STATIONS = Object.freeze({
-  arrival:{label:"01 / ARRIVAL",description:"A quiet overlook above the city.",link:"#about",action:"Read my story ↗",target:[0,.65,0],yaw:.66,pitch:.25,radius:10.6,marker:[0,1.8,0]},
-  sofra:{label:"02 / SOFRA",description:"A home for better Discord communities.",link:"#sofra-project",action:"Explore Sofra ↗",target:[-6,1.4,-3.4],yaw:.43,pitch:.17,radius:7.3,marker:[-6,3.1,-3.4]},
-  workshop:{label:"03 / WORKSHOP",description:"LuaU, tools and interface experiments.",link:"#learning",action:"View curriculum ↗",target:[6,1.4,-3.4],yaw:-.43,pitch:.17,radius:7.3,marker:[6,3.1,-3.4]},
-  roadmap:{label:"04 / ROADMAP",description:"Every journey starts somewhere.",link:"#goals",action:"View my goals ↗",target:[0,1.5,-8],yaw:.26,pitch:.16,radius:8,marker:[0,4,-8]},
-  relay:{label:"05 / RELAY",description:"An open channel for new ideas.",link:"#contact",action:"Get in touch ↗",target:[7,1.4,4.5],yaw:.9,pitch:.24,radius:7.6,marker:[7,3,4.5]},
-  gallery:{label:"06 / GALLERY",description:"A display of games and creative experiments.",link:"Gallery.html",action:"Open my gallery ↗",target:[-7,1.4,4.5],yaw:-.9,pitch:.24,radius:7.6,marker:[-7,3,4.5]}
+  arrival:{label:"01 / MY CAR",description:"hehe, look at my car XD",link:"#about",action:"Get to know me XD ↗",target:[0,.65,0],yaw:.66,pitch:.25,radius:10.6,marker:[0,1.8,0]},
+  sofra:{label:"02 / SOFRA",description:"Her name is Sofra, my Discord Bot :3",link:"#sofra-project",action:"Meet Sofra ↗",target:[-6,1.4,-3.4],yaw:.43,pitch:.17,radius:7.3,marker:[-6,3.1,-3.4]},
+  workshop:{label:"03 / LEARNING",description:"Things I am currently learning, mostly LuaU hehe.",link:"#learning",action:"What I'm learning ↗",target:[6,1.4,-3.4],yaw:-.43,pitch:.17,radius:7.3,marker:[6,3.1,-3.4]},
+  roadmap:{label:"04 / MY GOALS",description:"My Goals for the next upcoming Months / Years.",link:"#goals",action:"See my Goals ↗",target:[0,1.5,-8],yaw:.26,pitch:.16,radius:8,marker:[0,4,-8]},
+  relay:{label:"05 / CONTACT",description:"If you wanna talk to me go ahead hehe.",link:"#contact",action:"Contact me ↗",target:[7,1.4,4.5],yaw:.9,pitch:.24,radius:7.6,marker:[7,3,4.5]},
+  gallery:{label:"06 / GALLERY",description:"Here are some of the games and stuff I've made xD",link:"Gallery.html",action:"My game Gallery ↗",target:[-7,1.4,4.5],yaw:-.9,pitch:.24,radius:7.6,marker:[-7,3,4.5]}
 });
 const makeBatch=()=>{
   const data=[];

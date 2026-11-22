@@ -55,7 +55,7 @@ const server=createServer(async(req,res)=>{
           await canvas.focus();await page.keyboard.press('ArrowLeft');
           if(mode==='reduced')assert.equal(await page.locator('#world-motion').getAttribute('aria-pressed'),'true');
           await page.locator('[data-world-view="workshop"]').click();
-          assert.equal(await page.locator('#world-status').textContent(),'03 / WORKSHOP');
+          assert.equal(await page.locator('#world-status').textContent(),'03 / LEARNING');
           assert.equal(await page.locator('#world-destination').getAttribute('href'),'#learning');
           await page.locator('#world-lights').click();
           assert.equal(await page.locator('#world-lights').getAttribute('aria-pressed'),'false');

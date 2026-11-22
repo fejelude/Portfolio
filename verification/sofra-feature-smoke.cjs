@@ -53,7 +53,23 @@ const server=createServer(async(req,res)=>{
           if(width<=900)assert.ok(layout.description.top>=Math.max(layout.heading.bottom,layout.kitty.bottom)-1);
           if(width<=480)assert.ok(layout.secondary.top>=layout.primary.bottom);
           if(!noJS&&!reduced)await page.waitForFunction(()=>document.querySelector('#sofra-feature-mascot').classList.contains('is-greeting'));
-          if(reduced)assert.equal(await kitty.locator('.sofra-kitty-body').evaluate(el=>getComputedStyle(el).animationName),'none');
+          assert.equal(await kitty.locator('button, [role="button"]').count(),0);
+          assert.equal(await kitty.locator('.sofra-pixel-frame').count(),6);
+          if(reduced||noJS){
+            assert.equal(await kitty.locator('.sofra-pixel-frame-0').evaluate(el=>getComputedStyle(el).animationName),'none');
+            assert.equal(await kitty.locator('.sofra-pixel-wrap').evaluate(el=>getComputedStyle(el).opacity),'1');
+          }else{
+            const dance=await kitty.locator('.sofra-pixel-frame-0').evaluate(el=>({name:getComputedStyle(el).animationName,count:getComputedStyle(el).animationIterationCount,duration:getComputedStyle(el).animationDuration}));
+            assert.deepEqual(dance,{name:'sf-pixel-pose-0',count:'4',duration:'1.2s'});
+            // At least two actual poses must be visible over successive samples.
+            const seen=new Set();
+            for(let i=0;i<7;i++){
+              const visible=await kitty.locator('.sofra-pixel-frame').evaluateAll(els=>els.findIndex(el=>getComputedStyle(el).opacity==='1'));
+              assert.ok(visible>=0,'no visible dance pose');seen.add(visible);
+              await page.waitForTimeout(180);
+            }
+            assert.ok(seen.size>=2,'pixel poses did not change');
+          }
           if(!noJS){
             await card.locator('.sofra-feature-primary').focus();
             assert.equal(await page.evaluate(()=>document.activeElement.getAttribute('href')),'/sofra/about');

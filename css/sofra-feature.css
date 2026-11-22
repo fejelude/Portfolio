@@ -77,20 +77,9 @@
 .feje-world-home .sofra-feature-mascot {
   grid-area: mascot; align-self: center; justify-self: center;
   width: 100%; max-width: 300px; min-width: 0;
-  position: relative; padding: 0 0 22px; pointer-events: none;
+  position: relative; padding: 0; pointer-events: none;
 }
-.feje-world-home .sofra-kitty { display: block; width: 100%; height: auto; overflow: visible; }
-.feje-world-home .sofra-kitty-body { transform-box: view-box; transform-origin: 124px 185px; }
-.feje-world-home .sofra-kitty-wave { transform-box: view-box; transform-origin: 92px 142px; }
-.feje-world-home .sofra-kitty-eyes { transform-box: fill-box; transform-origin: center; }
-.feje-world-home .sofra-feature-hello {
-  position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-  color: #ffc9df; font: 600 clamp(.65rem, 1.3vw, .88rem)/1.2 'Space Grotesk', sans-serif;
-  letter-spacing: .05em; white-space: nowrap;
-  background: #361b2c; border: 1px solid #8a4164; border-radius: 99px;
-  padding: 5px 10px;
-}
-.feje-world-home .sofra-feature-hello span { color: #ff8fba; }
+.feje-world-home .sofra-kitty { display: block; width: 100%; height: auto; overflow: visible; image-rendering: pixelated; }
 .feje-world-home .sofra-feature-actions { grid-area: actions; display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; min-width: 0; }
 .feje-world-home .sofra-feature-primary {
   display: inline-flex; align-items: center; justify-content: center; gap: 14px;
@@ -113,14 +102,35 @@
   .feje-world-home .sofra-feature-primary:hover { background: #b43c6c; box-shadow: 0 5px 22px #ff6ea155; }
   .feje-world-home .sofra-feature-secondary:hover > span { color: #fff1f7; }
 }
-/* A short greeting plays when the exhibit enters view. No continuous pulse,
-   full-card animation, timers or external animation library. */
-.feje-world-home .sofra-feature-mascot.is-greeting .sofra-kitty-body { animation: sf-kitty-hop 1.15s ease-in-out 2; }
-.feje-world-home .sofra-feature-mascot.is-greeting .sofra-kitty-wave { animation: sf-kitty-wave .55s ease-in-out 4; }
-.feje-world-home .sofra-feature-mascot.is-greeting .sofra-kitty-eyes { animation: sf-kitty-blink 2.3s ease-in-out 1; }
-@keyframes sf-kitty-hop { 0%,100% { transform: translateY(0); } 48% { transform: translateY(-5px) rotate(-2deg); } }
-@keyframes sf-kitty-wave { 0%,100% { transform: rotate(0); } 48% { transform: rotate(19deg); } }
-@keyframes sf-kitty-blink { 0%, 45%, 56%, 100% { transform: scaleY(1); } 50% { transform: scaleY(.15); } }
+/* Real stepped pixel poses, not a smoothed transform. A 4.8s recital runs
+   automatically on entry; staying in view never starts an endless distraction.
+   The completed bouquet is the default, including reduced motion/no JS. */
+.feje-world-home .sofra-pixel-frame { opacity: 0; }
+.feje-world-home .sofra-pixel-frame-0 { opacity: 1; }
+.feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-frame-0 { animation: sf-pixel-pose-0 1.2s steps(1,end) 4; }
+.feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-frame-1 { animation: sf-pixel-pose-1 1.2s steps(1,end) 4; }
+.feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-frame-2 { animation: sf-pixel-pose-2 1.2s steps(1,end) 4; }
+.feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-frame-3 { animation: sf-pixel-pose-3 1.2s steps(1,end) 4; }
+.feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-frame-4 { animation: sf-pixel-pose-4 1.2s steps(1,end) 4; }
+.feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-frame-5 { animation: sf-pixel-pose-5 1.2s steps(1,end) 4; }
+@keyframes sf-pixel-pose-0 { 0% { opacity: 1; } 16.667% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes sf-pixel-pose-1 { 0% { opacity: 0; } 16.667% { opacity: 1; } 33.333% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes sf-pixel-pose-2 { 0% { opacity: 0; } 33.333% { opacity: 1; } 50.000% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes sf-pixel-pose-3 { 0% { opacity: 0; } 50.000% { opacity: 1; } 66.667% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes sf-pixel-pose-4 { 0% { opacity: 0; } 66.667% { opacity: 1; } 83.333% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes sf-pixel-pose-5 { 0% { opacity: 0; } 83.333% { opacity: 1; } 100% { opacity: 1; } }
+.feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-stems { animation: sf-pixel-grow 4.8s steps(1,end) both; }
+.feje-world-home .sofra-feature-mascot.is-greeting .sofra-flower-one { animation: sf-flower-one 4.8s steps(1,end) both; }
+.feje-world-home .sofra-feature-mascot.is-greeting .sofra-flower-two { animation: sf-flower-two 4.8s steps(1,end) both; }
+.feje-world-home .sofra-feature-mascot.is-greeting .sofra-flower-three { animation: sf-flower-three 4.8s steps(1,end) both; }
+.feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-wrap { animation: sf-flower-wrap 4.8s steps(1,end) both; }
+.feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-heart { animation: sf-flower-heart 4.8s steps(1,end) both; }
+@keyframes sf-pixel-grow { 0% { opacity: 0; } 15%,100% { opacity: 1; } }
+@keyframes sf-flower-one { 0% { opacity: 0; } 28%,100% { opacity: 1; } }
+@keyframes sf-flower-two { 0% { opacity: 0; } 46%,100% { opacity: 1; } }
+@keyframes sf-flower-three { 0% { opacity: 0; } 63%,100% { opacity: 1; } }
+@keyframes sf-flower-wrap { 0% { opacity: 0; } 80%,100% { opacity: 1; } }
+@keyframes sf-flower-heart { 0% { opacity: 0; } 90%,100% { opacity: 1; } }
 @media (max-width: 900px) {
   .feje-world-home #sofra-project { padding-block: 48px; }
   .feje-world-home #sofra-project > .container { padding-inline: clamp(12px, 4vw, 24px); }
@@ -130,7 +140,6 @@
     gap: 18px 8px; padding: clamp(18px, 5vw, 36px); border-radius: 18px;
   }
   .feje-world-home #sofra-project .sofra-feature h2 { font-size: clamp(1.75rem, 6.4vw, 3.25rem); }
-  .feje-world-home .sofra-feature-mascot { padding-bottom: 20px; }
   .feje-world-home .sofra-feature-actions { gap: 10px 18px; }
 }
 @media (max-width: 480px) {
@@ -141,11 +150,12 @@
 @media (max-width: 350px) {
   .feje-world-home #sofra-project .sofra-feature { grid-template-columns: minmax(0, 1fr) 88px; padding: 16px; }
   .feje-world-home #sofra-project .sofra-feature h2 { font-size: 1.65rem; }
-  .feje-world-home .sofra-feature-hello { padding-inline: 7px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .feje-world-home .sofra-feature-mascot.is-greeting .sofra-kitty-body,
-  .feje-world-home .sofra-feature-mascot.is-greeting .sofra-kitty-wave,
-  .feje-world-home .sofra-feature-mascot.is-greeting .sofra-kitty-eyes { animation: none; }
+  .feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-frame,
+  .feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-stems,
+  .feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-flower,
+  .feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-wrap,
+  .feje-world-home .sofra-feature-mascot.is-greeting .sofra-pixel-heart { animation: none; }
   .feje-world-home .sofra-feature-primary { transition: none; }
 }
