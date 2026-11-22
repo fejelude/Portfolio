@@ -24,10 +24,10 @@ test('dashboard validates new safety settings and keeps defaults opt-in', () => 
   assert.equal(value.messageLimit, 3); assert.equal(value.mentionLimit, 20);
   assert.equal(DEFAULTS.automod.spamEnabled, false);
 });
-test('public Sofra page and existing dashboard have distinct routes', () => {
+test('both public Sofra routes show maintenance while preserving the original dashboard', () => {
   const routes = require('../vercel.json').rewrites;
   assert.equal(routes.find((r) => r.source === '/sofra').destination, '/SofraMaintenance');
-  assert.equal(routes.find((r) => r.source === '/sofra/about').destination, '/Sofra');
+  assert.equal(routes.find((r) => r.source === '/sofra/about').destination, '/SofraMaintenance');
   const html = fs.readFileSync(path.join(__dirname, '../SofraPanel.html'), 'utf8');
   const css = fs.readFileSync(path.join(__dirname, '../sofra-panel.css'), 'utf8');
   const enhancement = fs.readFileSync(path.join(__dirname, '../sofra-panel.js'), 'utf8');

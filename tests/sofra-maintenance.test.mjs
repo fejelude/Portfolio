@@ -3,16 +3,20 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {mountMascot} from '../js/sofra-maintenance.mjs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
-test('maintenance takes over public panel route but preserves product page and original files',()=>{
+test('maintenance takes over both public routes but preserves original files',()=>{
  const config=JSON.parse(read('vercel.json'));
  assert.equal(config.rewrites.find(r=>r.source==='/sofra').destination,'/SofraMaintenance');
- assert.equal(config.rewrites.find(r=>r.source==='/sofra/about').destination,'/Sofra');
+ assert.equal(config.rewrites.find(r=>r.source==='/sofra/about').destination,'/SofraMaintenance');
  for(const source of ['/SofraPanel','/SofraPanel.html']){
   const route=config.redirects.find(r=>r.source===source);
   assert.equal(route.destination,'/sofra');assert.equal(route.permanent,false);
  }
  const headers=config.headers.find(r=>r.source==='/sofra').headers;
  assert.ok(headers.some(h=>h.key==='Cache-Control'&&h.value==='no-store'));
+ const aboutHeaders=config.headers.find(r=>r.source==='/sofra/about').headers;
+ assert.ok(aboutHeaders.some(h=>h.key==='X-Robots-Tag'&&h.value==='noindex, nofollow'));
+ for(const h of headers)assert.ok(aboutHeaders.some(a=>a.key===h.key&&a.value===h.value));
+ assert.ok(read('Sofra.html').includes('<h1'));
  assert.match(read('SofraPanel.html'),/sofra-panel-core.js" defer/);
  assert.match(read('SofraMaintenance.html'),/name="robots" content="noindex, nofollow"/);
 });
