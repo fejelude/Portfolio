@@ -73,3 +73,18 @@ test('pixel worlds, compatibility cosmos and particle renderer draw and unlock v
   const {api,controls,discoveries}=fakeApi(),world=mount(api);world.resize?.();world.draw(.016,1);for(const [name,v] of actions){assert.ok(controls.has(name),id+': '+name);controls.get(name)(v);world.draw(.016,2)}assert.equal(discoveries.size,goal,id);world.dispose?.();
  }
 });
+
+test('hub dragon is decorative, has a confined responsive flight area and reuses motion controls',()=>{
+ const html=read('interactives.html'),css=read('css/interactive-worlds.css'),hub=read('js/interactive-worlds/hub.mjs');
+ assert.match(html,/class="iw-dragon-space" data-iw-dragon aria-hidden="true"/);
+ assert.match(html,/class="iw-dragon-wing-near"/);
+ assert.match(html,/class="iw-dragon-wing-far"/);
+ assert.match(html,/class="iw-dragon-tail"/);
+ assert.match(html,/Some stuff I made for fun\. Try them out hehe :\)/);
+ assert.doesNotMatch(html,/ONE LITTLE CORNER OF THE INTERNET/i);
+ assert.match(css,/\.iw-dragon-space\{[^}]*overflow:hidden;pointer-events:none/);
+ assert.match(css,/@keyframes iw-dragon-glide/);
+ assert.match(css,/@keyframes iw-dragon-flap/);
+ assert.match(css,/\[data-motion-paused\] \.iw-dragon-space \*\{animation-play-state:paused!important\}/);
+ assert.match(hub,/const observed=dragon\?\[\.\.\.cards,dragon\]:cards/);
+});

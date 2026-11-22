@@ -27,6 +27,10 @@ const server=createServer(async(req,res)=>{
     const select=async(name,value)=>page.getByLabel(name,{exact:true}).selectOption(value);
     try{
      await page.goto(base+'/interactives');assert.equal(await page.locator('[data-iw-card]').count(),6);assert.equal(await page.locator('#iw-count').textContent(),'0 / 6');await checkWidth();
+     const dragon=page.locator('[data-iw-dragon]');await dragon.scrollIntoViewIfNeeded();await page.waitForFunction(()=>document.querySelector('[data-iw-dragon]').hasAttribute('data-visible'));
+     assert.equal(await dragon.locator('.iw-dragon-flight').evaluate(el=>getComputedStyle(el).animationName),'iw-dragon-glide');
+     assert.ok(await dragon.evaluate(el=>{const a=el.getBoundingClientRect(),b=document.querySelector('.iw-intro-copy').getBoundingClientRect();return a.width>0&&(a.left>=b.right-1||a.top>=b.bottom-1)}));
+     await click('Pause motion');assert.equal(await dragon.locator('.iw-dragon-flight').evaluate(el=>getComputedStyle(el).animationPlayState),'paused');await click('Resume motion');
      await page.locator('[data-iw-card="room"]').scrollIntoViewIfNeeded();await page.waitForFunction(()=>document.querySelector('[data-iw-card="room"]').hasAttribute('data-visible'));
      assert.equal(await page.locator('[data-iw-card="room"] .ix-rain').evaluate(el=>getComputedStyle(el).animationName),'iw-rain');
      await click('Pause motion');assert.equal(await page.locator('[data-iw-card="room"] .ix-rain').evaluate(el=>getComputedStyle(el).animationName),'none');await click('Resume motion');
@@ -59,7 +63,7 @@ const server=createServer(async(req,res)=>{
     }finally{await context.close()}
    }
    const reduced=await browser.newContext({viewport:{width:320,height:568},reducedMotion:'reduce'});
-   try{const p=await reduced.newPage();await p.goto(base+'/interactives');assert.equal(await p.locator('#iw-motion').isDisabled(),true);assert.equal(await p.locator('[data-iw-card="room"] .ix-rain').evaluate(el=>getComputedStyle(el).animationName),'none');await p.goto(base+'/interactives/room');await p.locator('#iw-stage canvas').waitFor();assert.equal(await p.locator('#iw-pause').getAttribute('aria-pressed'),'true');await p.getByRole('button',{name:'Pet cat',exact:true}).click();assert.match(await p.locator('#iw-discovery').textContent(),/^1 \//)}finally{await reduced.close()}
+   try{const p=await reduced.newPage();await p.goto(base+'/interactives');assert.equal(await p.locator('#iw-motion').isDisabled(),true);assert.equal(await p.locator('.iw-dragon-flight').evaluate(el=>getComputedStyle(el).animationName),'none');assert.equal(await p.locator('[data-iw-card="room"] .ix-rain').evaluate(el=>getComputedStyle(el).animationName),'none');await p.goto(base+'/interactives/room');await p.locator('#iw-stage canvas').waitFor();assert.equal(await p.locator('#iw-pause').getAttribute('aria-pressed'),'true');await p.getByRole('button',{name:'Pet cat',exact:true}).click();assert.match(await p.locator('#iw-discovery').textContent(),/^1 \//)}finally{await reduced.close()}
    const fallback=await browser.newContext({viewport:{width:390,height:844}});
    try{const p=await fallback.newPage();await p.addInitScript(()=>{const actual=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return /^webgl/.test(type)?null:actual.call(this,type,...args)}});await p.goto(base+'/interactives/universe');await p.locator('#iw-stage canvas').waitFor();await p.getByRole('button',{name:'Discover this view',exact:true}).click();assert.match(await p.locator('#iw-discovery').textContent(),/^1 \//);assert.ok(await p.locator('#iw-stage canvas').evaluate(el=>!!el.getContext('2d')))}finally{await fallback.close()}
    const nojs=await browser.newContext({javaScriptEnabled:false,viewport:{width:320,height:568}});
