@@ -1,0 +1,151 @@
+/* Homepage-only Sofra exhibit. Deliberately independent of glass-panel and
+   action-buttons so the world layout cannot collapse its intended spacing. */
+.feje-world-home #sofra-project .sofra-feature {
+  --sf-rose: #ffb3ce;
+  --sf-line: #69324f;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, .62fr);
+  grid-template-areas: "meta mascot" "heading mascot" "description mascot" "actions mascot";
+  gap: 20px 24px;
+  align-items: center;
+  padding: clamp(26px, 4.6vw, 60px);
+  border: 1px solid var(--sf-line);
+  border-radius: 22px;
+  background: radial-gradient(ellipse at 91% 30%, #58213e73, transparent 57%),
+              radial-gradient(ellipse at 0% 100%, #481b3570, transparent 55%),
+              linear-gradient(145deg, #211522, #160f1d 70%);
+  box-shadow: 0 16px 48px #06040b8c, inset 0 1px 0 #ffa8d113;
+  overflow: hidden;
+  color: #fff5fa;
+}
+.feje-world-home .sofra-feature::before,
+.feje-world-home .sofra-feature::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: -1;
+}
+.feje-world-home .sofra-feature::before {
+  width: 64%; height: 1px; top: 0; right: 7%;
+  background: linear-gradient(90deg, transparent, #ff9dc8 80%, transparent);
+  box-shadow: 0 0 14px 2px #f75e9b60;
+}
+.feje-world-home .sofra-feature::after {
+  inset: auto auto -132px -86px; width: 320px; height: 210px;
+  border: 1px solid #d9508e70; border-radius: 50%;
+  box-shadow: 0 0 28px #d9508e2b, inset 0 0 22px #d9508e22;
+  transform: rotate(-17deg);
+}
+.feje-world-home .sofra-feature-meta {
+  grid-area: meta; display: grid; justify-items: start; gap: 13px; min-width: 0;
+}
+.feje-world-home .sofra-feature-kicker {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  font: 500 .72rem/1.4 'Space Grotesk', sans-serif; letter-spacing: .045em;
+  color: #dfbcd1;
+}
+.feje-world-home .sofra-feature-kicker > span:first-child { color: #ff90bb; font-size: 1rem; }
+.feje-world-home .sofra-feature-kicker strong { color: #ffb3cf; text-transform: uppercase; font-weight: 700; }
+.feje-world-home .sofra-feature-slash { color: #a27b98; }
+.feje-world-home .sofra-feature-status {
+  display: inline-flex; align-items: center; gap: 8px; max-width: 100%;
+  padding: 8px 11px; border: 1px solid #a14760; border-radius: 99px;
+  background: #72253d40; color: #ffe4e9;
+  font: 650 .68rem/1.35 Inter, sans-serif; letter-spacing: .035em;
+  text-transform: uppercase; box-shadow: 0 0 16px #d93e6326;
+}
+.feje-world-home .sofra-feature-status-dot {
+  flex: 0 0 8px; width: 8px; height: 8px; border-radius: 50%;
+  background: #ff819c; box-shadow: 0 0 0 3px #ff819c20, 0 0 9px #ff658f;
+}
+.feje-world-home .sofra-feature-heading { display: contents; }
+.feje-world-home #sofra-project .sofra-feature h2 {
+  grid-area: heading; margin: 0; min-width: 0;
+  font: 700 clamp(2.25rem, 4.65vw, 4.25rem)/1.03 'Space Grotesk', sans-serif;
+  letter-spacing: -.055em; color: #fff4fa;
+  overflow-wrap: normal;
+}
+.feje-world-home .sofra-feature h2 > span { display: block; color: #ff9fc3; }
+.feje-world-home .sofra-feature-description {
+  grid-area: description; margin: 0; max-width: 56ch; color: #e2cfdd;
+  font: 400 clamp(.94rem, 1.25vw, 1.05rem)/1.7 Inter, sans-serif;
+  overflow-wrap: anywhere;
+}
+.feje-world-home .sofra-feature-description strong { color: #ffd4e6; font-weight: 600; }
+.feje-world-home .sofra-feature-mascot {
+  grid-area: mascot; align-self: center; justify-self: center;
+  width: 100%; max-width: 300px; min-width: 0;
+  position: relative; padding: 0 0 22px; pointer-events: none;
+}
+.feje-world-home .sofra-kitty { display: block; width: 100%; height: auto; overflow: visible; }
+.feje-world-home .sofra-kitty-body { transform-box: view-box; transform-origin: 124px 185px; }
+.feje-world-home .sofra-kitty-wave { transform-box: view-box; transform-origin: 92px 142px; }
+.feje-world-home .sofra-kitty-eyes { transform-box: fill-box; transform-origin: center; }
+.feje-world-home .sofra-feature-hello {
+  position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  color: #ffc9df; font: 600 clamp(.65rem, 1.3vw, .88rem)/1.2 'Space Grotesk', sans-serif;
+  letter-spacing: .05em; white-space: nowrap;
+  background: #361b2c; border: 1px solid #8a4164; border-radius: 99px;
+  padding: 5px 10px;
+}
+.feje-world-home .sofra-feature-hello span { color: #ff8fba; }
+.feje-world-home .sofra-feature-actions { grid-area: actions; display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; min-width: 0; }
+.feje-world-home .sofra-feature-primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 14px;
+  min-height: 48px; padding: 12px 20px;
+  border: 1px solid #d977a5; border-radius: 12px;
+  background: linear-gradient(125deg, #a42b57, #762449);
+  box-shadow: inset 0 1px 0 #fff2, 0 4px 18px #e13d7640;
+  font: 700 .98rem/1.3 'Space Grotesk', sans-serif; color: #fff5fa;
+  text-decoration: none; transition: background .18s, box-shadow .18s;
+}
+.feje-world-home .sofra-feature-primary > span { font-size: 1.15rem; line-height: 1; }
+.feje-world-home .sofra-feature-secondary {
+  display: inline-flex; flex-direction: column; justify-content: center; gap: 2px;
+  min-height: 44px; max-width: 100%;
+  color: #d8bdd0; font: 500 .76rem/1.5 Inter, sans-serif; text-decoration: none;
+}
+.feje-world-home .sofra-feature-secondary > span { color: #ffbad5; text-decoration: underline; text-underline-offset: 4px; }
+.feje-world-home .sofra-feature a:focus-visible { outline: 2px solid #ffcedf; outline-offset: 4px; }
+@media (hover: hover) {
+  .feje-world-home .sofra-feature-primary:hover { background: #b43c6c; box-shadow: 0 5px 22px #ff6ea155; }
+  .feje-world-home .sofra-feature-secondary:hover > span { color: #fff1f7; }
+}
+/* A short greeting plays when the exhibit enters view. No continuous pulse,
+   full-card animation, timers or external animation library. */
+.feje-world-home .sofra-feature-mascot.is-greeting .sofra-kitty-body { animation: sf-kitty-hop 1.15s ease-in-out 2; }
+.feje-world-home .sofra-feature-mascot.is-greeting .sofra-kitty-wave { animation: sf-kitty-wave .55s ease-in-out 4; }
+.feje-world-home .sofra-feature-mascot.is-greeting .sofra-kitty-eyes { animation: sf-kitty-blink 2.3s ease-in-out 1; }
+@keyframes sf-kitty-hop { 0%,100% { transform: translateY(0); } 48% { transform: translateY(-5px) rotate(-2deg); } }
+@keyframes sf-kitty-wave { 0%,100% { transform: rotate(0); } 48% { transform: rotate(19deg); } }
+@keyframes sf-kitty-blink { 0%, 45%, 56%, 100% { transform: scaleY(1); } 50% { transform: scaleY(.15); } }
+@media (max-width: 900px) {
+  .feje-world-home #sofra-project { padding-block: 48px; }
+  .feje-world-home #sofra-project > .container { padding-inline: clamp(12px, 4vw, 24px); }
+  .feje-world-home #sofra-project .sofra-feature {
+    grid-template-columns: minmax(0, 1fr) clamp(100px, 28vw, 170px);
+    grid-template-areas: "meta meta" "heading mascot" "description description" "actions actions";
+    gap: 18px 8px; padding: clamp(18px, 5vw, 36px); border-radius: 18px;
+  }
+  .feje-world-home #sofra-project .sofra-feature h2 { font-size: clamp(1.75rem, 6.4vw, 3.25rem); }
+  .feje-world-home .sofra-feature-mascot { padding-bottom: 20px; }
+  .feje-world-home .sofra-feature-actions { gap: 10px 18px; }
+}
+@media (max-width: 480px) {
+  .feje-world-home .sofra-feature-actions { display: grid; justify-items: stretch; text-align: center; gap: 10px; }
+  .feje-world-home .sofra-feature-secondary { align-items: center; }
+  .feje-world-home .sofra-feature-status { font-size: .64rem; letter-spacing: .015em; }
+}
+@media (max-width: 350px) {
+  .feje-world-home #sofra-project .sofra-feature { grid-template-columns: minmax(0, 1fr) 88px; padding: 16px; }
+  .feje-world-home #sofra-project .sofra-feature h2 { font-size: 1.65rem; }
+  .feje-world-home .sofra-feature-hello { padding-inline: 7px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .feje-world-home .sofra-feature-mascot.is-greeting .sofra-kitty-body,
+  .feje-world-home .sofra-feature-mascot.is-greeting .sofra-kitty-wave,
+  .feje-world-home .sofra-feature-mascot.is-greeting .sofra-kitty-eyes { animation: none; }
+  .feje-world-home .sofra-feature-primary { transition: none; }
+}
