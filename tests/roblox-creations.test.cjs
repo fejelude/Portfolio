@@ -41,8 +41,8 @@ test('Owner-supplied links, full screenshot proportions and continuous motion ar
   }
   assert.doesNotMatch(section,/active players|live players|approval rating/i);
   assert.match(section,/rc-motion-toggle/);
-  assert.match(read('css/roblox-creations.css').toString(),/animation:rc-car-roll 6s ease-in-out infinite/);
-  assert.match(read('css/roblox-creations.css').toString(),/animation:rc-build-upper 6s ease-in-out infinite/);
+  assert.match(read('css/roblox-creations.css').toString(),/animation:rc-car-roll 6s steps\(1,end\) infinite/);
+  assert.match(read('css/roblox-creations.css').toString(),/animation:rc-build-upper 6s steps\(1,end\) infinite/);
   assert.match(read('css/roblox-creations.css').toString(),/prefers-reduced-motion:no-preference/);
 });
 
@@ -55,4 +55,24 @@ test('Pixel Roblox brand artwork and title colors are scoped to the creations se
   assert.match(css,/animation:rc-logo-idle 4s steps\(8,end\) infinite/);
   assert.match(css,/\.rc-header\[data-animation-paused\] \.rc-roblox-logo \*\{\s*animation-play-state:paused/);
   assert.match(read('js/roblox-creations.mjs').toString(),/observer\.observe\(entry\.querySelector\('\.rc-roblox-logo, \.rc-motif'\)\)/);
+});
+
+test('Both game motifs use a real 54 by 42 pixel grid, not gradients or smooth vector shapes',()=>{
+  const motifs=[...section.matchAll(/<svg class="rc-motif rc-(?:garage|build)-icon"[\s\S]*?<\/svg>/g)].map(m=>m[0]);
+  assert.equal(motifs.length,2);
+  for(const svg of motifs){
+    assert.match(svg,/viewBox="0 0 54 42" shape-rendering="crispEdges"/);
+    assert.doesNotMatch(svg,/<(?:linearGradient|radialGradient|ellipse|circle|polygon)\b/);
+    const paths=[...svg.matchAll(/<path fill="(#[0-9a-f]{6})" d="([^"]+)"/gi)];
+    assert.ok(paths.length>=20);
+    for(const [,color,data] of paths){
+      assert.match(data,/^(?:M\d+ \d+h\d+v1h-\d+z)+$/);
+      for(const [,x,y,w,back] of data.matchAll(/M(\d+) (\d+)h(\d+)v1h-(\d+)z/g)){
+        assert.equal(w,back);assert.ok(+x+ +w<=54&&+y<42&&+w>0);
+      }
+    }
+  }
+  const css=read('css/roblox-creations.css').toString();
+  assert.match(css,/\.rc-wheel-spin\{animation:rc-wheel-turn 6s steps\(1,end\) infinite\}/);
+  assert.match(css,/\.rc-entry\[data-animation-paused\] \.rc-motif \*\{animation-play-state:paused\}/);
 });

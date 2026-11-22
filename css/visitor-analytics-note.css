@@ -1,5 +1,0 @@
-/* Compact in-place disclosure; only the public footers use this class. */
-.visitor-analytics-note{box-sizing:border-box;width:100%;max-width:48rem;margin:12px auto 0;padding:0 16px;font-size:.76rem;line-height:1.6;flex:0 0 100%;text-align:center;overflow-wrap:anywhere}
-.visitor-analytics-note summary{cursor:pointer;min-height:44px;display:list-item;list-style-position:inside;align-content:center}
-.visitor-analytics-note summary:focus-visible{outline:2px solid currentColor;outline-offset:3px}
-.visitor-analytics-note p{margin:0 auto 12px;font-size:inherit;line-height:inherit;max-width:68ch;text-align:left}
