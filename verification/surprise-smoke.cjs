@@ -5,7 +5,7 @@ const {createServer} = require('node:http');
 const {readFile, mkdir} = require('node:fs/promises');
 const path = require('node:path');
 const root = path.resolve(__dirname, '..');
-const mime = {'.html':'text/html','.js':'text/javascript','.css':'text/css','.webp':'image/webp','.mp3':'audio/mpeg','.svg':'image/svg+xml'};
+const mime = {'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.webp':'image/webp','.mp3':'audio/mpeg','.svg':'image/svg+xml'};
 const server=createServer(async(req,res)=>{
   try {const url=new URL(req.url,'http://localhost');const name=url.pathname==='/'?'/index.html':url.pathname;const file=path.resolve(root,'.'+name);if(!file.startsWith(root+path.sep))throw Error('path');const body=await readFile(file);res.writeHead(200,{'Content-Type':mime[path.extname(file)]||'application/octet-stream','Content-Length':body.length});res.end(body);}catch {res.writeHead(404);res.end();}
 });
