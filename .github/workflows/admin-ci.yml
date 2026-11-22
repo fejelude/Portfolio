@@ -1,0 +1,35 @@
+name: Secret facility CI
+on:
+  pull_request:
+    paths:
+      - 'api/admin-*.js'
+      - 'api/activity*.js'
+      - lib/visitor-summary.js
+      - js/admin-pad.js
+      - js/admin-dashboard.js
+      - js/activity-logger.js
+      - css/admin.css
+      - tests/visitor-summary.test.js
+      - tests/activity-store.test.js
+      - verification/admin-smoke.cjs
+      - .github/workflows/admin-ci.yml
+permissions:
+  contents: read
+jobs:
+  admin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check api/admin-page.js && node --check api/activity.js && node --check api/activity-store.js && node --check js/admin-pad.js && node --check js/admin-dashboard.js && node --check js/activity-logger.js && node --test tests/activity-store.test.js tests/visitor-summary.test.js
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: node verification/admin-smoke.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: secret-facility-previews
+          path: verification/admin-results/

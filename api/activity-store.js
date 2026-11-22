@@ -80,6 +80,25 @@ function decodeLogs(items) {
   }).filter(Boolean);
 }
 
+// One accepted visit per browser/path in a rolling 30-minute window.
+// The Redis operation is atomic; existing security log writes are untouched.
+async function saveVisit(log, dedupKey, windowSeconds=1800) {
+  const status=storageStatus();
+  if(!dedupKey){await saveLog(log);return {recorded:true,storage:status};}
+  if(status.persistent){
+    const script="if not redis.call('SET',KEYS[1],'1','NX','EX',ARGV[1]) then return 0 end; redis.call('LPUSH',KEYS[2],ARGV[2]); redis.call('LTRIM',KEYS[2],0,ARGV[3]); return 1";
+    const result=await upstashCommand(['EVAL',script,2,'portfolio:visit:'+dedupKey,ACTIVITY_KEY,windowSeconds,JSON.stringify(log),status.limit-1]);
+    return {recorded:Number(result)===1,storage:status};
+  }
+  const now=Date.now(),seen=globalThis.__portfolioVisitWindows||(globalThis.__portfolioVisitWindows=new Map());
+  for(const [key,until] of seen)if(until<=now)seen.delete(key);
+  if(seen.has(dedupKey))return {recorded:false,storage:status};
+  if(seen.size>=status.limit*2)seen.delete(seen.keys().next().value);
+  seen.set(dedupKey,now+windowSeconds*1000);
+  try{await saveLog(log);}catch(error){seen.delete(dedupKey);throw error;}
+  return {recorded:true,storage:status};
+}
+
 async function readLogs() {
   const status = storageStatus();
   if (status.persistent) {
@@ -102,6 +121,7 @@ module.exports = {
   hasUpstash,
   readLogs,
   saveLog,
+  saveVisit,
   storageStatus,
   upstashCommand
 };

@@ -1,217 +1,29 @@
 const { getHeader, isAuthorized, isConfigured } = require('./admin-session');
-
-function shell(title, body, { extra = '', bodyClass = '' } = {}) {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${title} | Itsmefeje</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/css/admin.css">
-</head>
-<body class="admin-page ${bodyClass}">
-  <div class="admin-grid-bg" aria-hidden="true"></div>
-  <div class="admin-scanline" aria-hidden="true"></div>
-  ${body}
-  ${extra}
-</body>
-</html>`;
+const brand="<svg viewBox=\"0 0 32 24\" fill=\"none\" aria-hidden=\"true\"><path d=\"m10 5-7 7 7 7m12-14 7 7-7 7M18.5 3l-5 18\" stroke=\"currentColor\" stroke-width=\"2.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>";
+const art="<svg class=\"facility-droid\" viewBox=\"0 0 72 68\" shape-rendering=\"crispEdges\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M18 62h36v2H18z\" fill=\"#30223f\"/><g class=\"droid-body\"><path d=\"M32 6h8v4h-2v6h-4v-6h-2z\" fill=\"#8e79b5\"/><path class=\"droid-antenna\" d=\"M33 3h6v5h-6z\" fill=\"currentColor\"/><path d=\"M17 15h38v4h5v26h-5v4H17v-4h-5V19h5z\" fill=\"#44335f\"/><path d=\"M19 17h34v5h4v20h-4v4H19v-4h-4V22h4z\" fill=\"#b5a4d5\"/><path d=\"M20 18h31v3H20zM16 24h3v15h-3z\" fill=\"#e0d1fa\"/><path d=\"M21 25h30v14H21z\" fill=\"#241b35\"/><g class=\"droid-eyes\" fill=\"currentColor\"><path d=\"M25 29h5v7h-5zM42 29h5v7h-5z\"/></g><g class=\"droid-angry\" fill=\"currentColor\"><path d=\"M23 28h3v2h5v2h-5v-2h-3zM41 30h5v-2h3v2h-3v2h-5z\"/></g><g class=\"droid-check\" fill=\"currentColor\"><path d=\"M29 31h4v3h3v-3h3v-3h4v4h-4v3h-3v3h-3v-3h-4z\"/></g><path d=\"M30 41h12v2H30z\" fill=\"#6b578d\"/><path d=\"M8 25h4v13H8zM60 25h4v13h-4z\" fill=\"#8d72bf\"/><path d=\"M23 49h26v9H23z\" fill=\"#8873b0\"/><path d=\"M29 50h14v6H29z\" fill=\"#241b35\"/><path d=\"M34 51h4v4h-4z\" fill=\"currentColor\"/><path d=\"M18 50h4v7h-4zM50 50h4v7h-4z\" fill=\"#c8b5e7\"/><path d=\"M27 58h5v4h-5zM40 58h5v4h-5z\" fill=\"currentColor\"/><g class=\"droid-lock\" fill=\"currentColor\"><path d=\"M32 29v-3h8v3h2v9H30v-9zm2 0h4v-1h-4zM35 32h2v3h-2z\" fill-rule=\"evenodd\"/></g></g><path d=\"M4 13h8v1H5v7H4zM60 13h8v8h-1v-7h-7zM4 45h1v7h7v1H4zM67 45h1v8h-8v-1h7z\" fill=\"#74628c\"/><path class=\"droid-scan\" d=\"M5 32h62v1H5z\" fill=\"currentColor\"/></svg>";
+function shell(title,body,{extra='',bodyClass=''}={}){
+return `<!doctype html><html lang="en" class="facility-document"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#0c0a12"><meta name="color-scheme" content="dark"><meta name="robots" content="noindex, nofollow"><link rel="icon" href="/favicon.svg"><title>${title} | Itsmefeje</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/css/admin.css"></head><body class="admin-page ${bodyClass}"><header class="facility-nav"><a class="facility-brand" href="/">${brand}<span>Itsmefeje</span></a><span class="facility-nav-tag">PRIVATE / FJ</span></header>${body}${extra}</body></html>`;
 }
 
-function authMessage(url) {
-  if (url.searchParams.has('setup')) {
-    return {
-      tone: 'warning',
-      text: 'Server password is not configured yet.'
-    };
-  }
-
-  if (url.searchParams.has('cooldown')) {
-    const seconds = Math.max(1, Number(url.searchParams.get('cooldown')) || 60);
-    return {
-      tone: 'danger',
-      text: `Too many failed attempts. Try again in ${seconds}s.`
-    };
-  }
-
-  if (url.searchParams.has('error')) {
-    return {
-      tone: 'danger',
-      text: 'Access denied. Check the password and try again.'
-    };
-  }
-
-  return null;
+function authMessage(url){
+ if(url.searchParams.has('setup'))return {tone:'warning',text:'The server is not configured yet.'};
+ if(url.searchParams.has('cooldown')){const seconds=Math.max(1,Number(url.searchParams.get('cooldown'))||60);return {tone:'danger',text:`bro slow down XD — too many attempts. Try again in ${seconds}s.`};}
+ if(url.searchParams.has('error'))return {tone:'danger',text:'nice try XD — incorrect access code.'};
+ return null;
 }
 
-function loginPage(url) {
-  const message = authMessage(url);
-  const alert = message ? `<p class="admin-alert ${message.tone}" role="alert">${message.text}</p>` : '';
-  return shell('Admin Access', `
-  <main class="admin-auth-shell">
-    <section class="admin-auth-card admin-access-card ${message?.tone === 'danger' ? 'has-error' : ''}">
-      <div class="admin-orbit" aria-hidden="true">
-        <span></span><span></span><span></span>
-      </div>
-      <div class="admin-auth-copy">
-        <a class="admin-back-link" href="/">Main Website</a>
-        <span class="admin-kicker">Restricted Access</span>
-        <h1>Admin Panel</h1>
-        <p class="admin-muted">Enter the private access password to unlock website activity monitoring.</p>
-        ${alert}
-      </div>
-      <div class="admin-auth-access">
-        <form class="admin-login-form" method="post" action="/api/admin-auth" data-admin-pad-form>
-          <label class="admin-pad-label" id="admin-password-label">Access Code</label>
-          <input id="admin-password" class="admin-pad-native" name="password" type="password" autocomplete="off" inputmode="numeric" aria-labelledby="admin-password-label" tabindex="-1" />
-          <div class="admin-pad" data-code-length="8">
-            <div class="admin-code-display" aria-hidden="true">
-              <span class="code-slot" data-code-slot></span>
-              <span class="code-slot" data-code-slot></span>
-              <span class="code-slot" data-code-slot></span>
-              <span class="code-slot" data-code-slot></span>
-              <span class="code-slot" data-code-slot></span>
-              <span class="code-slot" data-code-slot></span>
-              <span class="code-slot" data-code-slot></span>
-              <span class="code-slot" data-code-slot></span>
-            </div>
-            <p class="pad-status" data-pad-status role="status" aria-live="polite">AWAITING ACCESS CODE</p>
-            <div class="admin-keypad" aria-label="Password keypad">
-              <button class="pad-key" type="button" data-pad-key="1">1</button>
-              <button class="pad-key" type="button" data-pad-key="2">2</button>
-              <button class="pad-key" type="button" data-pad-key="3">3</button>
-              <button class="pad-key" type="button" data-pad-key="4">4</button>
-              <button class="pad-key" type="button" data-pad-key="5">5</button>
-              <button class="pad-key" type="button" data-pad-key="6">6</button>
-              <button class="pad-key" type="button" data-pad-key="7">7</button>
-              <button class="pad-key" type="button" data-pad-key="8">8</button>
-              <button class="pad-key" type="button" data-pad-key="9">9</button>
-              <button class="pad-key pad-action" type="button" data-pad-action="clear">CLR</button>
-              <button class="pad-key" type="button" data-pad-key="0">0</button>
-              <button class="pad-key pad-action" type="button" data-pad-action="backspace">DEL</button>
-            </div>
-            <button class="pad-submit" type="submit" data-pad-submit disabled>Unlock Console</button>
-          </div>
-        </form>
-        <p class="admin-microcopy">Server-side validation. Signed session. Private logs.</p>
-      </div>
-    </section>
-  </main>`, {
-    extra: '<script src="/js/admin-pad.js"></script>'
-  });
+function droid(state='idle'){return `<div class="facility-unit" data-droid-state="${state}">${art}<span class="unit-id">FJ / SECURITY UNIT 01</span></div>`;}
+
+function loginPage(url){
+ const message=authMessage(url),alert=message?`<p class="admin-alert ${message.tone}" role="alert">${message.text}</p>`:'';
+ return shell('Secret Facility',`<main class="admin-auth-shell" id="main"><section class="admin-auth-card" aria-labelledby="facility-title"><div class="admin-auth-copy"><a class="admin-back-link" href="/">← back to my website</a><div class="facility-intro"><div><span class="admin-kicker">FJ / 001 · SUPER SECRET STUFF</span><h1 id="facility-title">Feje's<br>Secret Facility.</h1></div>${droid(message?.tone==='danger'?'denied':'idle')}</div><p class="admin-muted">A super secret facility only for Fejelude Laxamana himself.</p><p class="facility-aside">what are you doing here XD</p>${alert}</div><div class="admin-auth-access"><form class="admin-login-form" method="post" action="/api/admin-auth" data-admin-pad-form><label class="admin-pad-label" for="admin-password">access code</label><input id="admin-password" class="admin-pad-native" name="password" type="password" autocomplete="current-password" inputmode="numeric" pattern="[0-9]{8}" minlength="8" maxlength="8" required aria-describedby="pad-help" placeholder="Enter 8 digits"><div class="admin-pad" data-code-length="8" hidden><div class="admin-code-display" aria-hidden="true">${'<span class="code-slot" data-code-slot></span>'.repeat(8)}</div><p class="pad-status" data-pad-status role="status" aria-live="polite">where's the code bro</p><div class="admin-keypad" role="group" aria-label="Password keypad">${Array.from({length:9},(_,i)=>`<button class="pad-key" type="button" data-pad-key="${i+1}">${i+1}</button>`).join('')}<button class="pad-key pad-action" type="button" data-pad-action="clear" aria-label="Clear access code">CLR</button><button class="pad-key" type="button" data-pad-key="0">0</button><button class="pad-key pad-action" type="button" data-pad-action="backspace" aria-label="Delete last digit">DEL</button></div></div><button class="pad-submit" type="submit" data-pad-submit>lemme in XD <span aria-hidden="true">↗</span></button><p class="admin-microcopy" id="pad-help">8 digits. keypad or keyboard. no guesses pls.</p></form><div class="facility-lockline"><span class="lock-dot"></span> password required · private session</div></div></section></main>`,{extra:'<script src="/js/admin-pad.js" defer></script>'});
 }
 
-function setupPage() {
-  return shell('Admin Setup', `
-  <main class="admin-auth-shell">
-    <section class="admin-auth-card">
-      <a class="admin-back-link" href="/">Main Website</a>
-      <span class="admin-kicker">Access Ready</span>
-      <h1>Admin Panel</h1>
-      <p class="admin-muted">The built-in website password pad is active. Optional environment overrides can still be added later for a different password or signing key.</p>
-    </section>
-  </main>`);
+function setupPage(){return shell('Secret Facility',`<main class="admin-auth-shell"><section class="admin-auth-card"><div><a class="admin-back-link" href="/">← back to my website</a><span class="admin-kicker">FJ / SETUP</span><h1>Feje's Secret Facility.</h1><p class="admin-muted">Server access isn't configured yet.</p></div></section></main>`);}
+
+function dashboardPage({unlocked=false}={}){
+return shell('Secret Facility',`<main class="admin-shell" id="main"><header class="admin-header"><div class="dashboard-intro"><span class="admin-kicker">FJ / 002 · MY SECRET STUFF</span><h1>welcome back, me XD</h1><p class="admin-muted">who's been on my website lately?</p></div><div class="dashboard-unit">${droid(unlocked?'granted':'idle')}</div><div class="admin-actions"><button id="refresh-logs" type="button">refresh my stuff</button><form method="post" action="/api/admin-auth"><input type="hidden" name="action" value="logout"><button type="submit" class="secondary">lock this place up</button></form></div></header>${unlocked?'<p class="facility-success" role="status">oh hey, it’s actually me :3</p>':''}<section class="summary-grid" aria-label="Visitor summary"><article class="summary-card"><span>Visitor browsers</span><strong id="stat-sessions">—</strong><small>not individual people</small></article><article class="summary-card"><span>Recorded visits</span><strong id="stat-total">—</strong><small>repeat visits grouped</small></article><article class="summary-card"><span>Different pages</span><strong id="stat-pages">—</strong><small>public pages visited</small></article></section><section class="admin-panel activity-panel" aria-labelledby="visitors-heading"><div class="panel-heading"><span class="admin-kicker">FJ / VISITORS</span><h2 id="visitors-heading">who visited?</h2><p class="admin-muted">One entry per browser, not a row for every refresh.</p></div><div class="visitor-filters"><label for="log-search">Search visitors<input id="log-search" type="search" placeholder="Page, device, browser or IP prefix"></label><label for="filter-device">Device<select id="filter-device"><option value="">All devices</option></select></label></div><p id="logs-state" class="state-text" role="status" aria-live="polite">loading my stuff...</p><div id="logs-body" class="visitor-list" role="list"></div><div class="pagination-row"><button id="prev-page" type="button" class="secondary" disabled>← Previous</button><span id="page-label">Page 1</span><button id="next-page" type="button" class="secondary" disabled>Next →</button></div></section><details class="facility-details"><summary>storage &amp; security stuff</summary><p>Storage: <strong id="stat-source">—</strong></p><p>Security events retained: <strong id="stat-security">—</strong></p><p id="storage-warning" class="state-text"></p><p>Repeat visits to the same page within 30 minutes are ignored. Signed-in admin visits are ignored. IP prefixes are masked. Public pages only.</p></details><footer class="facility-footer"><a href="/">← my website</a><a href="/privacy.html">Visitor privacy ↗</a></footer></main>`,{extra:'<script src="/js/admin-dashboard.js" defer></script>',bodyClass:unlocked?'admin-unlocked':''});
 }
-
-function dashboardPage({ unlocked = false } = {}) {
-  return shell('Admin Panel', `
-  <main class="admin-shell">
-    <header class="admin-header">
-      <div>
-        <a class="admin-back-link" href="/">Main Website</a>
-        <span class="admin-kicker">Secure Console</span>
-        <h1>Admin Panel</h1>
-      </div>
-      <div class="admin-actions">
-        <button id="refresh-logs" type="button">Refresh</button>
-        <form method="post" action="/api/admin-auth">
-          <input type="hidden" name="action" value="logout" />
-          <button type="submit" class="secondary">Logout</button>
-        </form>
-      </div>
-    </header>
-
-    <section class="summary-grid" aria-label="Summary">
-      <article class="summary-card"><span>Total Events</span><strong id="stat-total">--</strong></article>
-      <article class="summary-card"><span>Unique Sessions</span><strong id="stat-sessions">--</strong></article>
-      <article class="summary-card"><span>Arcade Activity</span><strong id="stat-arcade">--</strong></article>
-      <article class="summary-card"><span>Security Events</span><strong id="stat-security">--</strong></article>
-      <article class="summary-card"><span>Storage</span><strong id="stat-source">--</strong></article>
-    </section>
-
-    <section class="admin-grid">
-      <article class="admin-panel activity-panel">
-        <div class="panel-heading">
-          <div>
-            <span class="admin-kicker">Live Logger</span>
-            <h2>Recent Activity</h2>
-          </div>
-          <input id="log-search" type="search" placeholder="Search logs" />
-        </div>
-
-        <div class="filter-grid" aria-label="Activity filters">
-          <label>Date <input id="filter-date" type="date" /></label>
-          <label>Device <select id="filter-device"><option value="">All devices</option></select></label>
-          <label>Browser <select id="filter-browser"><option value="">All browsers</option></select></label>
-          <label>Location <input id="filter-location" type="search" placeholder="City or country" /></label>
-          <label>Page <input id="filter-page" type="search" placeholder="/Arcade.html" /></label>
-          <label>Activity <input id="filter-type" type="search" placeholder="page_view" /></label>
-        </div>
-
-        <div id="logs-state" class="state-text">Loading logs...</div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>Page</th>
-                <th>IP</th>
-                <th>Location</th>
-                <th>Device</th>
-                <th>Browser</th>
-                <th>Event</th>
-              </tr>
-            </thead>
-            <tbody id="logs-body"></tbody>
-          </table>
-        </div>
-        <div class="pagination-row">
-          <button id="prev-page" type="button" class="secondary">Previous</button>
-          <span id="page-label">Page 1</span>
-          <button id="next-page" type="button" class="secondary">Next</button>
-        </div>
-      </article>
-
-      <aside class="breakdown-stack">
-        <article class="admin-panel">
-          <span class="admin-kicker">Visitors</span>
-          <h2>Devices</h2>
-          <div id="device-breakdown" class="breakdown-list"></div>
-        </article>
-        <article class="admin-panel">
-          <span class="admin-kicker">Geo</span>
-          <h2>Locations</h2>
-          <div id="location-breakdown" class="breakdown-list"></div>
-        </article>
-        <article class="admin-panel">
-          <span class="admin-kicker">Traffic</span>
-          <h2>Pages</h2>
-          <div id="page-breakdown" class="breakdown-list"></div>
-        </article>
-      </aside>
-    </section>
-  </main>
-  ${unlocked ? '<div class="unlock-flash" aria-hidden="true"><span>ACCESS GRANTED</span></div>' : ''}`, {
-    extra: '<script src="/js/admin-dashboard.js"></script>',
-    bodyClass: unlocked ? 'admin-unlocked' : ''
-  });
-}
-
 module.exports = async (request, response) => {
   response.setHeader('Cache-Control', 'no-store');
   response.setHeader('Content-Type', 'text/html; charset=utf-8');

@@ -1,262 +1,49 @@
 (() => {
-  const state = {
-    logs: [],
-    filtered: [],
-    page: 1,
-    perPage: 25,
-    storageWarning: ''
-  };
-
-  const els = {
-    total: document.getElementById('stat-total'),
-    sessions: document.getElementById('stat-sessions'),
-    arcade: document.getElementById('stat-arcade'),
-    security: document.getElementById('stat-security'),
-    source: document.getElementById('stat-source'),
-    logsBody: document.getElementById('logs-body'),
-    logsState: document.getElementById('logs-state'),
-    search: document.getElementById('log-search'),
-    prev: document.getElementById('prev-page'),
-    next: document.getElementById('next-page'),
-    pageLabel: document.getElementById('page-label'),
-    refresh: document.getElementById('refresh-logs'),
-    date: document.getElementById('filter-date'),
-    device: document.getElementById('filter-device'),
-    browser: document.getElementById('filter-browser'),
-    location: document.getElementById('filter-location'),
-    page: document.getElementById('filter-page'),
-    type: document.getElementById('filter-type'),
-    devices: document.getElementById('device-breakdown'),
-    locations: document.getElementById('location-breakdown'),
-    pages: document.getElementById('page-breakdown')
-  };
-
-  function setText(element, value) {
-    if (element) element.textContent = value;
-  }
-
-  function formatDate(value) {
-    if (!value) return '--';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return '--';
-    return date.toLocaleString([], {
-      month: 'short',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-
-  function locationLabel(log) {
-    const parts = [log.location?.city, log.location?.region, log.location?.country].filter(Boolean);
-    return parts.length ? parts.join(', ') : 'Unknown';
-  }
-
-  function searchableText(log) {
-    return [
-      log.type,
-      log.path,
-      log.title,
-      log.ip,
-      log.device,
-      log.browser,
-      log.os,
-      locationLabel(log),
-      log.details?.simulation,
-      log.details?.arcadeTheme
-    ].filter(Boolean).join(' ').toLowerCase();
-  }
-
-  function logDateValue(log) {
-    const date = new Date(log.receivedAt || log.timestamp);
-    if (Number.isNaN(date.getTime())) return '';
-    return date.toISOString().slice(0, 10);
-  }
-
-  function countMap(logs, selector) {
-    return logs.reduce((acc, log) => {
-      const key = selector(log) || 'Unknown';
-      acc[key] = (acc[key] || 0) + 1;
-      return acc;
-    }, {});
-  }
-
-  function renderBreakdown(target, data) {
-    if (!target) return;
-    target.innerHTML = '';
-
-    const entries = Object.entries(data)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 8);
-
-    if (!entries.length) {
-      const empty = document.createElement('p');
-      empty.className = 'state-text';
-      empty.textContent = 'No data yet.';
-      target.appendChild(empty);
-      return;
-    }
-
-    entries.forEach(([label, count]) => {
-      const row = document.createElement('div');
-      row.className = 'breakdown-row';
-
-      const name = document.createElement('span');
-      name.textContent = label;
-
-      const value = document.createElement('strong');
-      value.textContent = String(count);
-
-      row.append(name, value);
-      target.appendChild(row);
-    });
-  }
-
-  function setOptions(select, values) {
-    if (!select) return;
-    const current = select.value;
-    const label = select.options[0]?.textContent || 'All';
-    select.innerHTML = '';
-
-    const empty = document.createElement('option');
-    empty.value = '';
-    empty.textContent = label;
-    select.appendChild(empty);
-
-    values
-      .filter(Boolean)
-      .sort((a, b) => a.localeCompare(b))
-      .forEach((value) => {
-        const option = document.createElement('option');
-        option.value = value;
-        option.textContent = value;
-        select.appendChild(option);
-      });
-
-    select.value = values.includes(current) ? current : '';
-  }
-
-  function applyFilter() {
-    const query = els.search?.value.trim().toLowerCase() || '';
-    const date = els.date?.value || '';
-    const device = els.device?.value || '';
-    const browser = els.browser?.value || '';
-    const location = els.location?.value.trim().toLowerCase() || '';
-    const page = els.page?.value.trim().toLowerCase() || '';
-    const type = els.type?.value.trim().toLowerCase() || '';
-
-    state.filtered = state.logs.filter((log) => {
-      if (query && !searchableText(log).includes(query)) return false;
-      if (date && logDateValue(log) !== date) return false;
-      if (device && log.device !== device) return false;
-      if (browser && log.browser !== browser) return false;
-      if (location && !locationLabel(log).toLowerCase().includes(location)) return false;
-      if (page && !(log.path || '').toLowerCase().includes(page)) return false;
-      if (type && !(log.type || '').toLowerCase().includes(type)) return false;
-      return true;
-    });
-    state.page = 1;
-    renderTable();
-  }
-
-  function renderTable() {
-    if (!els.logsBody) return;
-    els.logsBody.innerHTML = '';
-
-    const totalPages = Math.max(1, Math.ceil(state.filtered.length / state.perPage));
-    state.page = Math.min(state.page, totalPages);
-
-    if (!state.filtered.length) {
-      const emptyText = state.logs.length ? 'No logs match that search.' : 'No activity logs yet.';
-      setText(els.logsState, state.storageWarning ? `${emptyText} ${state.storageWarning}` : emptyText);
-      setText(els.pageLabel, 'Page 1');
-      if (els.prev) els.prev.disabled = true;
-      if (els.next) els.next.disabled = true;
-      return;
-    }
-
-    setText(els.logsState, state.storageWarning);
-    const start = (state.page - 1) * state.perPage;
-    const pageLogs = state.filtered.slice(start, start + state.perPage);
-
-    pageLogs.forEach((log) => {
-      const row = document.createElement('tr');
-      [
-        formatDate(log.receivedAt || log.timestamp),
-        log.path || '/',
-        log.ip || 'Unknown',
-        locationLabel(log),
-        `${log.device || 'Unknown'} / ${log.os || 'Unknown'}`,
-        log.browser || 'Unknown',
-        log.type || 'event'
-      ].forEach((value) => {
-        const cell = document.createElement('td');
-        cell.textContent = value;
-        row.appendChild(cell);
-      });
-      els.logsBody.appendChild(row);
-    });
-
-    setText(els.pageLabel, `Page ${state.page} of ${totalPages}`);
-    if (els.prev) els.prev.disabled = state.page <= 1;
-    if (els.next) els.next.disabled = state.page >= totalPages;
-  }
-
-  function render(data) {
-    const logs = Array.isArray(data.logs) ? data.logs : [];
-    const storage = data.storage || data.summary || {};
-    state.logs = logs;
-    state.filtered = [...logs];
-    state.storageWarning = storage.persistent === false && storage.warning ? storage.warning : '';
-
-    setText(els.total, String(data.summary?.total ?? logs.length));
-    setText(els.sessions, String(data.summary?.sessions ?? 0));
-    setText(els.arcade, String(data.summary?.arcadeEvents ?? 0));
-    setText(els.security, String(data.summary?.securityEvents ?? 0));
-    setText(els.source, storage.persistent ? 'Persistent Redis' : 'Runtime Only');
-
-    setOptions(els.device, [...new Set(logs.map((log) => log.device).filter(Boolean))]);
-    setOptions(els.browser, [...new Set(logs.map((log) => log.browser).filter(Boolean))]);
-    renderBreakdown(els.devices, countMap(logs, (log) => log.device));
-    renderBreakdown(els.locations, countMap(logs, locationLabel));
-    renderBreakdown(els.pages, countMap(logs, (log) => log.path));
-    renderTable();
-  }
-
-  async function loadLogs() {
-    setText(els.logsState, 'Loading logs...');
-    try {
-      const response = await fetch('/api/activity?admin=1', {
-        credentials: 'same-origin',
-        cache: 'no-store'
-      });
-
-      const data = await response.json();
-      if (!response.ok || !data.ok) {
-        throw new Error(data.error || 'Unable to load logs.');
-      }
-
-      render(data);
-    } catch (error) {
-      setText(els.logsState, error.message || 'Unable to load logs.');
-      if (els.logsBody) els.logsBody.innerHTML = '';
-    }
-  }
-
-  els.search?.addEventListener('input', applyFilter);
-  [els.date, els.device, els.browser, els.location, els.page, els.type].forEach((control) => {
-    control?.addEventListener('input', applyFilter);
-    control?.addEventListener('change', applyFilter);
-  });
-  els.refresh?.addEventListener('click', loadLogs);
-  els.prev?.addEventListener('click', () => {
-    state.page = Math.max(1, state.page - 1);
-    renderTable();
-  });
-  els.next?.addEventListener('click', () => {
-    state.page += 1;
-    renderTable();
-  });
-
-  loadLogs();
+ const $=id=>document.getElementById(id),els={list:$('logs-body'),status:$('logs-state'),search:$('log-search'),device:$('filter-device'),refresh:$('refresh-logs'),prev:$('prev-page'),next:$('next-page'),label:$('page-label')};
+ const state={visitors:[],filtered:[],page:1,perPage:15,error:false,loading:false};
+ const text=(id,v)=>{$(id).textContent=String(v??'—');};
+ const date=value=>{const d=new Date(value);return Number.isNaN(d.getTime())?'Unknown':d.toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});};
+ const pageName=p=>p==='/'?'Homepage':p==='/Gallery.html'?'Game Gallery':p==='/sofra/about'?'Sofra':p||'Unknown page';
+ function node(tag,cls,value){const n=document.createElement(tag);if(cls)n.className=cls;if(value!==undefined)n.textContent=value;return n;}
+ function row(v){
+  const wrapper=node('div','');wrapper.setAttribute('role','listitem');
+  const entry=node('details','visitor-entry'),header=node('summary'),icon=node('span','visitor-icon',v.device==='Mobile'?'M':v.device==='Tablet'?'T':v.device==='Desktop'?'D':'?');icon.setAttribute('aria-hidden','true');
+  const main=node('span','visitor-main');main.append(node('span','visitor-name',[v.device,v.os,v.browser].filter(x=>x&&x!=='Unknown').join(' · ')||'Unknown browser'),node('span','visitor-page',pageName(v.lastPage)+' · '+v.visits+' '+(v.visits===1?'visit':'visits')));
+  const meta=node('span','visitor-meta');meta.append(node('span','visitor-ip','IP: '+(v.ip||'Unavailable')),node('span','',date(v.lastSeen)));
+  const chevron=node('span','visitor-chevron','›');chevron.setAttribute('aria-hidden','true');header.append(icon,main,meta,chevron);entry.append(header);
+  const history=node('div','visitor-history');history.append(node('p','',v.anonymous?'Browser storage unavailable — anonymous visit.':'First recorded: '+date(v.firstSeen)));
+  history.append(node('p','history-label','Pages visited'));const list=node('ul');for(const p of v.pages||[]){const item=node('li');item.append(node('span','',pageName(p.path)+' · '+date(p.lastSeen)),node('span','',p.count+'×'));list.append(item);}history.append(list);entry.append(history);wrapper.append(entry);return wrapper;
+ }
+ function render(){
+  els.list.replaceChildren();
+  const count=state.filtered.length,pages=Math.max(1,Math.ceil(count/state.perPage));state.page=Math.min(state.page,pages);
+  if(state.loading)els.status.textContent='loading my stuff...';
+  else if(state.error)els.status.textContent='could not load visitors. try refreshing.';
+  else els.status.textContent=count?count+' '+(count===1?'visitor browser':'visitor browsers')+' found.':state.visitors.length?'no visitors match that search.':'no visitors recorded yet.';
+  if(!state.error){const fragment=document.createDocumentFragment();for(const v of state.filtered.slice((state.page-1)*state.perPage,state.page*state.perPage))fragment.append(row(v));els.list.append(fragment);}
+  els.label.textContent='Page '+state.page+' / '+pages;els.prev.disabled=state.loading||state.error||state.page<=1;els.next.disabled=state.loading||state.error||state.page>=pages;
+ }
+ function filter(reset=true){
+  const q=els.search.value.trim().toLowerCase(),device=els.device.value;
+  state.filtered=state.visitors.filter(v=>(!device||v.device===device)&&(!q||[v.device,v.os,v.browser,v.ip,v.lastPage,...(v.pages||[]).flatMap(p=>[p.path,pageName(p.path)])].join(' ').toLowerCase().includes(q)));
+  if(reset)state.page=1;render();
+ }
+ function setOptions(){
+  const old=els.device.value,devices=[...new Set(state.visitors.map(v=>v.device).filter(Boolean))].sort();
+  els.device.replaceChildren(new Option('All devices',''),...devices.map(v=>new Option(v,v)));els.device.value=devices.includes(old)?old:'';
+ }
+ async function load(){
+  if(state.loading)return;state.loading=true;state.error=false;els.refresh.disabled=true;render();
+  try{
+   const response=await fetch('/api/activity?admin=1',{credentials:'same-origin',cache:'no-store'});
+   if(response.status===401){window.location.assign('/admin');return;}
+   const data=await response.json();if(!response.ok||!data.ok)throw Error('load');
+   state.visitors=Array.isArray(data.visitors)?data.visitors:[];
+   text('stat-sessions',data.summary?.visitors??state.visitors.length);text('stat-total',data.summary?.visits??0);text('stat-pages',data.summary?.pages??0);text('stat-security',data.summary?.securityEvents??0);
+   text('stat-source',data.storage?.persistent?'Persistent Redis':'Runtime only');text('storage-warning',data.storage?.warning||'');setOptions();
+  }catch{state.error=true;state.visitors=[];for(const id of ['stat-sessions','stat-total','stat-pages','stat-security','stat-source','storage-warning'])text(id,'—');}
+  finally{state.loading=false;els.refresh.disabled=false;filter();}
+ }
+ els.search.addEventListener('input',()=>filter());els.device.addEventListener('change',()=>filter());els.refresh.addEventListener('click',load);
+ els.prev.addEventListener('click',()=>{if(state.page>1){state.page--;render();}});els.next.addEventListener('click',()=>{if(state.page<Math.ceil(state.filtered.length/state.perPage)){state.page++;render();}});load();
 })();
