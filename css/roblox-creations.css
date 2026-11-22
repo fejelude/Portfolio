@@ -87,3 +87,35 @@
  .feje-world-home #roblox-creations .rc-motion-toggle{display:none}
  .feje-world-home #roblox-creations .rc-play-link{transition:none}
 }
+
+/* Small title accents; no changes to screenshots or the reading layout. */
+.feje-world-home #roblox-creations .rc-header h2{
+ display:flex;align-items:center;gap:clamp(8px,1.7vw,14px);color:var(--rc-purple)
+}
+.feje-world-home #roblox-creations .rc-header h2>span{min-width:0;overflow-wrap:break-word}
+.feje-world-home #roblox-creations .rc-roblox-logo{
+ display:block;width:clamp(27px,7vw,42px);height:auto;flex:0 0 clamp(27px,7vw,42px);overflow:visible
+}
+.feje-world-home #roblox-creations .rc-roblox-logo-body,
+.feje-world-home #roblox-creations .rc-roblox-glint{transform-box:view-box;transform-origin:20px 20px}
+.feje-world-home #roblox-creations .rc-roblox-glint{opacity:.65}
+.feje-world-home #roblox-creations .rc-entry h3{color:var(--rc-accent)}
+/* Use a quiet stepped loop rather than a fast spin or flashing text. */
+@media(prefers-reduced-motion:no-preference){
+ .feje-world-home #roblox-creations .rc-header[data-animate] .rc-roblox-logo-body{
+  animation:rc-logo-idle 4s steps(8,end) infinite
+ }
+ .feje-world-home #roblox-creations .rc-header[data-animate] .rc-roblox-glint{
+  animation:rc-logo-glint 4s ease-in-out infinite
+ }
+ .feje-world-home #roblox-creations .rc-header[data-animation-paused] .rc-roblox-logo *{
+  animation-play-state:paused
+ }
+}
+@keyframes rc-logo-idle{
+ 0%,100%{transform:translateY(0) rotate(0)}
+ 25%{transform:translateY(-2px) rotate(-7deg)}
+ 50%{transform:translateY(0) rotate(0)}
+ 75%{transform:translateY(-2px) rotate(7deg)}
+}
+@keyframes rc-logo-glint{0%,100%{opacity:.65}25%,75%{opacity:1}50%{opacity:.25}}

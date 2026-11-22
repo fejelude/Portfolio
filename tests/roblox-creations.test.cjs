@@ -45,3 +45,14 @@ test('Owner-supplied links, full screenshot proportions and continuous motion ar
   assert.match(read('css/roblox-creations.css').toString(),/animation:rc-build-upper 6s ease-in-out infinite/);
   assert.match(read('css/roblox-creations.css').toString(),/prefers-reduced-motion:no-preference/);
 });
+
+test('Pixel Roblox brand artwork and title colors are scoped to the creations section',()=>{
+  assert.match(section,/<h2 id="roblox-creations-title">\s*<svg class="rc-roblox-logo"[^>]*aria-hidden="true"[^>]*shape-rendering="crispEdges"/);
+  assert.match(section,/<span>My Roblox Creations\.<\/span>/);
+  assert.equal((html.match(/class="rc-roblox-logo"/g)||[]).length,1);
+  const css=read('css/roblox-creations.css').toString();
+  assert.match(css,/\.rc-entry h3\{color:var\(--rc-accent\)\}/);
+  assert.match(css,/animation:rc-logo-idle 4s steps\(8,end\) infinite/);
+  assert.match(css,/\.rc-header\[data-animation-paused\] \.rc-roblox-logo \*\{\s*animation-play-state:paused/);
+  assert.match(read('js/roblox-creations.mjs').toString(),/observer\.observe\(entry\.querySelector\('\.rc-roblox-logo, \.rc-motif'\)\)/);
+});
