@@ -60,9 +60,15 @@ export function buildCar(solid,lamps,index,low){
   }
   beam([s*.55,.78,1.23],[s*.48,.57,nose-.44],.018,trim,7);
   for(let k=0;k<4;k++)box(s*1.04,.40+k*.055,-.95+k*.1,.035,.025,.30,trim,7);
-  lamps.beam([s*.28,.49,nose-.015],[s*.78,.52,nose-.10],.045,white,3);
-  lamps.beam([s*.78,.52,nose-.10],[s*.99,.60,nose-.52],.035,white,3);
-  lamps.beam([s*.15,.65,tail-.03],[s*.90,.66,tail+.01],.048,hex(0xff6d92),3);
+  // Every model has its own lamp signature instead of a shared light bar.
+  if(index===0||index===4){lamps.beam([s*.30,.49,nose-.015],[s*.78,.52,nose-.10],.045,white,3);lamps.beam([s*.78,.52,nose-.10],[s*.99,.60,nose-.52],.035,white,3);}
+  else if(index===1){for(let k=0;k<4;k++)lamps.box(s*(.58+k*.13),.63,nose-.02-k*.08,.09,.065,.042,white,3);}
+  else if(index===2||index===7){lamps.beam([s*.41,.47,nose-.03],[s*.90,.52,nose-.17],.040,white,3);lamps.beam([s*.90,.52,nose-.17],[s*.99,.66,nose-.68],.05,white,3);box(s*.77,.40,nose-.08,.42,.09,.16,trim,7);}
+  else if(index===3){lamps.beam([s*.52,.50,nose-.14],[s*1.06,.68,nose-.77],.045,white,3);}
+  else if(index===8||index===9){lamps.beam([s*.36,.50,nose-.04],[s*.94,.57,nose-.29],.035,white,3);lamps.beam([s*.89,.62,nose-.32],[s*1.08,.67,nose-.64],.027,white,3);}
+  if(index!==4){lamps.beam([s*.15,.65,tail-.03],[s*.90,.66,tail+.01],.048,hex(0xff6d92),3);}
+  if(index===2||index===7||index===9){beam([s*.71,.86,-1.56],[s*.52,.78,-.78],.043,trim,7);beam([s*.52,.78,-.78],[s*.84,.76,.65],.038,trim,7);}
+  if(index===3){beam([s*.91,.33,-1.84],[s*.78,.30,.72],.065,silver,4);box(s*.75,.35,-.83,.14,.13,1.25,trim,7);}
   lamps.beam([s*.95,.25,-.65],[s*.95,.25,.70],.018,accent,3);
  }
  box(0,.24,nose-.18,1.87,.075,.60,trim,7);box(0,.23,tail+.15,1.86,.09,.55,trim,7);
@@ -74,7 +80,7 @@ export function buildCar(solid,lamps,index,low){
  };
  switch(c.feature){
   case "blade":box(0,.37,nose-.01,1.40,.13,.16,trim,7);for(let i=-3;i<=3;i++)box(i*.14,.37,nose+.08,.045,.11,.018,trim,7);box(0,.90,tail+.24,1.8,.055,.27,paint,4);break;
-  case "horseshoe":box(0,.48,nose+.03,.58,.43,.10,dark,7);circle(solid,[0,.51,nose+.11],.32,.29,.036,silver,4,24);for(let i=-3;i<=3;i++)box(i*.075,.46,nose+.115,.015,.27,.015,silver);
+  case "horseshoe":box(0,.48,nose+.03,.58,.43,.10,dark,7);for(let j=0;j<24;j++){const a=-Math.PI*.12+j*Math.PI*1.24/24,b=a+Math.PI*1.24/24;beam([.32*Math.cos(a),.43+.34*Math.sin(a),nose+.11],[.32*Math.cos(b),.43+.34*Math.sin(b),nose+.11],.036,silver,4);}beam([-.30,.35,nose+.11],[.30,.35,nose+.11],.035,silver,4);for(let i=-3;i<=3;i++)box(i*.075,.46,nose+.115,.015,.27,.015,silver);
    for(const s of [-1,1])for(let i=0;i<12;i++){const a=-1.2+i*.2,b=a+.2;beam([s*1.09,.70+.33*Math.sin(a),-.70+.62*Math.cos(a)],[s*1.09,.70+.33*Math.sin(b),-.70+.62*Math.cos(b)],.038,silver,4);}break;
   case "wing":wing(1.57,2.60,tail+.29,true);for(const s of [-1,1]){box(s*.84,.34,nose+.06,.48,.09,.30,trim);beam([s*.86,.63,nose-.38],[s*1.26,.37,nose-.10],.064,trim,4);}break;
   case "tunnels":for(const s of [-1,1]){box(s*.86,.37,0,.39,.21,2.23,trim,7);beam([s*.62,.55,-1.01],[s*1.05,.23,-2.19],.16,paint,4);beam([s*.66,.52,.91],[s*1.17,.36,1.95],.14,paint,4);}wing(1.13,2.10,tail+.32);break;
@@ -84,6 +90,16 @@ export function buildCar(solid,lamps,index,low){
   case "longtail":wing(1.16,2.34,tail+.13,true);box(0,.73,tail+.25,2.12,.07,.66,paint,4);for(const s of [-1,1])beam([s*.81,.64,-.76],[s*1.17,.35,-1.93],.13,trim,7);break;
   case "split":wing(1.34,2.31,tail+.30);box(0,.32,nose+.04,1.52,.15,.15,trim,7);lamps.beam([-.85,.58,nose-.02],[.85,.58,nose-.02],.03,accent,3);break;
   case "tandem":wing(1.52,2.55,tail+.30,true);beam([0,roof-.05,.10],[0,.87,-2.34],.1,paint,4);for(const s of [-1,1]){box(s*.85,.36,nose-.05,.44,.10,.37,trim);beam([s*.56,.60,-.7],[s*1.02,.78,-1.56],.085,paint,4);}break;
+ }
+ // Distinct accent inlays follow the roof/deck profile. They sit just above
+ // the loft and do not modify the shared camera target or wheel geometry.
+ if(index===1||index===6){
+  for(let j=0;j<profile.length-1;j++){
+   const a=profile[j],b=profile[j+1];beam([0,a[3]+.012,a[0]],[0,b[3]+.012,b[0]],index===1?.026:.055,index===1?silver:trim,4);
+  }
+ }
+ if(index===5||index===8)for(const s of [-1,1])for(let j=4;j<profile.length-1;j++){
+  const a=profile[j],b=profile[j+1];beam([s*a[1]*.56,a[3]-.035,a[0]],[s*b[1]*.56,b[3]-.035,b[0]],.055,trim,7);
  }
 }
 // Nine independent architectural compositions; Tokyo retains the existing city.

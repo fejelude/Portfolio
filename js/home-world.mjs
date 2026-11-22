@@ -50,7 +50,10 @@ if(stage){
       if(renderer){
         try{
           renderer.setCollectible(selected);time=0;slowFrames=0;
-          current=api.copyView(api.STATIONS.arrival);goal=api.copyView(current);
+          const reveal=!paused&&!motionQuery.matches&&visible&&!document.hidden;
+          current=api.copyView(api.STATIONS.arrival);
+          if(reveal){current.yaw-=.24;current.radius+=1.05;current.pitch+=.045;}
+          goal=api.copyView(api.STATIONS.arrival);
           select('arrival');renderer.draw(current,lights,time);updateMarkers();
         }catch(error){fallback('Graphics are not available rn. Try again ↗');}
       }
@@ -76,6 +79,8 @@ if(stage){
     const dt=last?Math.min(.1,(now-last)/1000):1/60;last=now;
     if(showcase&&!paused)goal.yaw+=dt*.30;
     const distance=api.blendView(current,goal,dt,paused||motionQuery.matches);
+    // Keep prolonged showcase sessions numerically stable without a camera jump.
+    if(Math.abs(current.yaw)>Math.PI*32){const turn=Math.trunc(current.yaw/(2*Math.PI))*2*Math.PI;current.yaw-=turn;goal.yaw-=turn;}
     if(!paused)time+=dt;
     renderer.draw(current,lights,time);updateMarkers();
     if(dt>.035&&!paused){if(++slowFrames>=24){renderer.ratio=Math.max(.85,renderer.ratio-.15);slowFrames=0;}}
@@ -123,7 +128,7 @@ if(stage){
       sceneListen(canvas,'lostpointercapture',()=>{drag=null;});
       sceneListen(canvas,'keydown',e=>{
         const dirs={ArrowLeft:[.18,0],ArrowRight:[-.18,0],ArrowUp:[0,-.08],ArrowDown:[0,.08]};
-        if(e.key==='Home'){e.preventDefault();select('arrival');return;}
+        if(e.key==='Home'){e.preventDefault();setShowcase(false);select('arrival');return;}
         if(!dirs[e.key])return;e.preventDefault();setShowcase(false);goal.yaw+=dirs[e.key][0];goal.pitch=Math.max(.09,Math.min(.72,goal.pitch+dirs[e.key][1]));request();
       });
       request();

@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import { buildWorld, STATIONS, copyView, blendView } from '../js/home-world-renderer.mjs';
+import { buildWorld, STATIONS, copyView, blendView, COLLECTION, collectibleAt } from '../js/home-world-renderer.mjs';
 test('procedural geometry is deterministic, finite and bounded',()=>{
   const a=buildWorld(false),b=buildWorld(false),low=buildWorld(true);
   assert.equal(a.length,3);
@@ -35,4 +35,27 @@ test('both tiers have actual neon signage, facade material and detailed car surf
     assert.ok(count.get(5)>1000,'neon glyphs and trim missing');
     assert.ok(lamps.length>0&&shuttle.length>0);
   }
+});
+
+test('all ten collectibles have unique models, palettes and world geometry in both tiers',()=>{
+  assert.equal(COLLECTION.length,10);
+  for(const key of ['id','name','world','accent','feature','poster'])assert.equal(new Set(COLLECTION.map(c=>c[key])).size,10);
+  assert.equal(collectibleAt(-1),COLLECTION[0]);assert.equal(collectibleAt(10),COLLECTION[0]);
+  const signatures=new Set();
+  for(const c of COLLECTION){
+    const hi=buildWorld(false,c.index),lo=buildWorld(true,c.index),again=buildWorld(false,c.index);
+    assert.equal(hi.length,3);assert.equal(lo.length,3);
+    for(let n=0;n<3;n++){
+      assert.ok(hi[n].length&&lo[n].length&&hi[n].length%30===0&&lo[n].length%30===0);
+      assert.ok(hi[n].every(Number.isFinite)&&lo[n].every(Number.isFinite));
+      assert.deepEqual(hi[n],again[n]);
+    }
+    const bytes=arr=>arr.reduce((total,b)=>total+b.byteLength,0);
+    assert.ok(bytes(hi)<3*1024*1024);assert.ok(bytes(lo)<bytes(hi));
+    // Geometry signature deliberately ignores colors/material IDs.
+    let hash=2166136261;
+    for(const batch of hi)for(let i=0;i<batch.length;i+=10)for(let k=0;k<3;k++)hash=Math.imul(hash^Math.round(batch[i+k]*1000),16777619);
+    signatures.add(hash>>>0);
+  }
+  assert.equal(signatures.size,10);
 });

@@ -34,7 +34,11 @@ const server=createServer(async(req,res)=>{
         assert.equal(await page.locator('a[href="/sofra"]').count()>=1,true);
         assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
         if(mode==='reduced')assert.equal(await page.locator('.brand-code-left').evaluate(el=>getComputedStyle(el).animationName),'none');
-        if(mode==='no-js'){assert.equal(await page.locator('#about').isVisible(),true);await context.close();continue;}
+        assert.match(await page.locator('.world-view-label').textContent(),/FEJE'S COLLECTIBLES/);
+        if(mode==='no-js'){assert.equal(await page.locator('#about').isVisible(),true);assert.equal(await page.locator('#world-collection').isVisible(),false);await context.close();continue;}
+        await page.locator('#world-collection').waitFor({state:'visible'});
+        assert.equal(await page.locator('[data-collectible-choice]').count(),10);
+        assert.equal(await page.locator('#collection-name').textContent(),'Aspark Owl');
         if(mobile){
           const nav=page.locator('.mobile-toggle');await nav.click();
           assert.equal(await nav.getAttribute('aria-expanded'),'true');
@@ -51,7 +55,15 @@ const server=createServer(async(req,res)=>{
         }
         await page.waitForFunction(()=>['live','fallback'].includes(document.querySelector('#world-stage').dataset.state));
         const state=await stage.getAttribute('data-state');
-        if(mode==='no-webgl')assert.equal(state,'fallback');
+        if(mode==='no-webgl'){
+          assert.equal(state,'fallback');
+          await page.locator('[data-collectible-choice="9"]').click();
+          assert.equal(await stage.getAttribute('data-collectible'),'9');
+          assert.equal(await page.locator('#collection-name').textContent(),'Czinger 21C');
+          assert.match(await page.locator('.world-poster').evaluate(el=>el.style.backgroundImage),/collectible-10\.svg/);
+          await page.locator('#collection-next').click();
+          assert.equal(await stage.getAttribute('data-collectible'),'0');
+        }
         if(name==='chromium'&&mode==='desktop')assert.equal(state,'live','Chromium must render the real scene');
         if(state==='live'){
           const canvas=page.locator('#world-canvas-host canvas');
@@ -66,6 +78,31 @@ const server=createServer(async(req,res)=>{
           assert.equal(await page.locator('#world-destination').getAttribute('href'),'Gallery.html');
           await page.locator('[data-world-view="arrival"]').click();
           if(await page.locator('#world-motion').getAttribute('aria-pressed')==='false')await page.locator('#world-motion').click();
+          // A paused scene must switch immediately, with no extra canvas.
+          const expected=['Aspark Owl','Bugatti Tourbillon','Koenigsegg Jesko Attack','Aston Martin Valkyrie','Lotus Evija','Ferrari F80','Pagani Utopia','McLaren W1','Rimac Nevera R','Czinger 21C'];
+          const slots=name==='chromium'&&mode==='desktop'?[1,2,3,4,5,6,7,8,9,0]:[4,9,0];
+          for(const slot of slots){
+            await page.locator('[data-collectible-choice="'+slot+'"]').click();
+            await page.waitForFunction(i=>document.querySelector('#world-stage').dataset.collectible===String(i),slot);
+            assert.equal(await page.locator('#collection-name').textContent(),expected[slot]);
+            assert.equal(await page.locator('[data-collectible-choice][aria-pressed="true"]').count(),1);
+            assert.equal(await page.locator('#world-canvas-host canvas').count(),1);
+            assert.equal(await canvas.evaluate(c=>c.getContext('webgl').getError()),0);
+            if(name==='chromium'&&mode==='desktop')await page.locator('#world-viewport').screenshot({path:path.join(out,'collectible-'+(slot+1)+'.png')});
+          }
+          await page.locator('#collection-prev').click();
+          assert.equal(await stage.getAttribute('data-collectible'),'9');
+          await page.locator('#collection-next').click();
+          assert.equal(await stage.getAttribute('data-collectible'),'0');
+          if(mode==='reduced')assert.equal(await page.locator('#world-showcase').isDisabled(),true);
+          else{
+            await page.locator('#world-showcase').click();assert.equal(await page.locator('#world-showcase').getAttribute('aria-pressed'),'true');
+            await canvas.focus();await page.keyboard.press('ArrowLeft');assert.equal(await page.locator('#world-showcase').getAttribute('aria-pressed'),'false');
+            await page.evaluate(()=>{document.querySelector('[data-collectible-choice="1"]').click();document.querySelector('[data-collectible-choice="7"]').click();});
+            await page.waitForFunction(()=>document.querySelector('#world-stage').dataset.collectible==='7');
+            await page.locator('#world-motion').click();
+            await page.locator('[data-collectible-choice="0"]').click();
+          }
           // Paused movement still updates the camera; verify the actual context and visible frame.
           const sample=await canvas.evaluate(c=>{const gl=c.getContext('webgl');return {width:gl.drawingBufferWidth,height:gl.drawingBufferHeight,error:gl.getError()};});
           assert.ok(sample.width>0&&sample.height>0);assert.equal(sample.error,0);
