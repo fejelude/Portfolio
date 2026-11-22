@@ -42,6 +42,10 @@ const server=createServer(async(req,res)=>{
         if(mobile){
           const nav=page.locator('.mobile-toggle');await nav.click();
           assert.equal(await nav.getAttribute('aria-expanded'),'true');
+          const mobileLinks=page.locator('.nav-links');
+          assert.equal(await mobileLinks.locator('a[href="#surprise"]').textContent(),'Click me');
+          assert.equal(await mobileLinks.locator('a.sofra-panel-link[href="/sofra"]').textContent(),'Sofra Panel');
+          assert.doesNotMatch(await mobileLinks.textContent(),/[♡♥]/);
           await nav.click();assert.equal(await nav.getAttribute('aria-expanded'),'false');
         }
         const launch=page.locator('#world-launch'), stage=page.locator('#world-stage');

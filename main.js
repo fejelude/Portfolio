@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Retire the old game entry even when another page has cached navigation.
     nav.querySelectorAll('a[href*="Arcade"], a[href="/arcade"]').forEach((link) => {
       link.href = '/#surprise';
-      link.textContent = 'Click me ♡';
+      link.textContent = 'Click me';
       link.classList.remove('nav-arcade-link');
     });
     const simulationDropdown = nav.querySelector(':scope > .dropdown');
@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const sofraLink = document.createElement('a');
       sofraLink.href = '/sofra';
       sofraLink.className = 'sofra-panel-link';
-      sofraLink.innerHTML = '<span aria-hidden="true">♡</span> Sofra Panel';
+      sofraLink.textContent = 'Sofra Panel';
       const contactLink = nav.querySelector('.btn-primary');
       nav.insertBefore(sofraLink, contactLink || null);
     }
@@ -114,11 +114,6 @@ document.addEventListener('DOMContentLoaded', () => {
       border: 1px solid rgba(244,167,194,.22);
       background: linear-gradient(135deg, rgba(244,167,194,.13), rgba(198,168,255,.09));
       box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 8px 26px rgba(244,167,194,.06);
-    }
-    .nav-links .sofra-panel-link span {
-      color: #f8bfd5;
-      font-size: 1rem;
-      filter: drop-shadow(0 0 8px rgba(244,167,194,.35));
     }
     .nav-links .sofra-panel-link:hover {
       color: #fff;
