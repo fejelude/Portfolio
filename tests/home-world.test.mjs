@@ -26,3 +26,13 @@ test('direct destinations are defined and unique',()=>{
   assert.equal(new Set(Object.values(STATIONS).map(v=>v.link)).size,6);
   for(const s of Object.values(STATIONS))assert.ok(s.radius>0&&s.marker.length===3&&s.target.length===3);
 });
+
+test('both tiers have actual neon signage, facade material and detailed car surfaces',()=>{
+  for(const low of [true,false]){
+    const [solid,lamps,shuttle]=buildWorld(low),count=new Map();
+    for(let i=9;i<solid.length;i+=10)count.set(solid[i],(count.get(solid[i])||0)+1);
+    for(const id of [0,2,4,5,6,7,8])assert.ok(count.get(id)>0,'missing material '+id);
+    assert.ok(count.get(5)>1000,'neon glyphs and trim missing');
+    assert.ok(lamps.length>0&&shuttle.length>0);
+  }
+});
