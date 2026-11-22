@@ -3,6 +3,11 @@ on:
   pull_request:
     paths:
       - index.html
+      - css/roblox-creations.css
+      - js/roblox-creations.mjs
+      - assets/roblox-creations/**
+      - tests/roblox-creations.test.cjs
+      - verification/roblox-creations-smoke.cjs
       - css/home-world.css
       - css/hero-pixels.css
       - js/hero-pixels.mjs
@@ -28,8 +33,10 @@ jobs:
         with:
           node-version: '24'
       - run: node --check js/hero-pixels.mjs && node --check js/sofra-feature.mjs && node --check js/home-collectibles.mjs && node --check js/home-world.mjs && node --check js/home-world-renderer.mjs && node --test tests/home-world.test.mjs
+      - run: node --check js/roblox-creations.mjs && node --test tests/roblox-creations.test.cjs
       - run: npm install --no-save --package-lock=false playwright@1.62.1
       - run: npx playwright install --with-deps chromium firefox webkit
+      - run: node verification/roblox-creations-smoke.cjs
       - run: node verification/hero-pixels-smoke.cjs
       - run: node verification/sofra-feature-smoke.cjs
       - run: node verification/home-world-smoke.cjs
