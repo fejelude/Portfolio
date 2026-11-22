@@ -45,8 +45,22 @@ const server=createServer(async(req,res)=>{
       for(const [name,selector] of [['rc-garage','.rc-car'],['rc-build','.rc-house-upper']]){
        const icon=section.locator('.'+name+' .rc-motif');
        await icon.scrollIntoViewIfNeeded();
+       assert.equal(await icon.getAttribute('viewBox'),'0 0 54 42');
+       assert.equal(await icon.getAttribute('shape-rendering'),'crispEdges');
        const part=icon.locator(selector);
        await page.waitForFunction(sel=>getComputedStyle(document.querySelector(sel)).animationPlayState==='running'&&getComputedStyle(document.querySelector(sel)).animationIterationCount==='infinite','.'+name+' '+selector);
+       assert.match(await part.evaluate(el=>getComputedStyle(el).animationTimingFunction),/^steps\(1(?:,\s*end)?\)$/);
+       // Sample real CSS animation frames to prove the artwork actually changes.
+       const frames=await part.evaluate(el=>{
+         const a=el.getAnimations()[0];a.pause();a.currentTime=0;
+         const first=getComputedStyle(el).transform+' '+getComputedStyle(el).opacity;
+         a.currentTime=3600;
+         const finished=getComputedStyle(el).transform+' '+getComputedStyle(el).opacity;
+         a.currentTime=6000;
+         const repeat=getComputedStyle(el).transform+' '+getComputedStyle(el).opacity;
+         a.play();return {first,finished,repeat};
+       });
+       assert.notEqual(frames.first,frames.finished);assert.equal(frames.first,frames.repeat);
       }
       const toggle=section.locator('.rc-motion-toggle');await toggle.click();
       assert.equal(await toggle.getAttribute('aria-pressed'),'true');

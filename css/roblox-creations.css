@@ -14,7 +14,7 @@
 .feje-world-home #roblox-creations .rc-chapter>span{font-variant-numeric:tabular-nums}
 .feje-world-home #roblox-creations .rc-entry h3{font:700 clamp(1.65rem,3.1vw,2.55rem)/1.05 'Space Grotesk',sans-serif;letter-spacing:-.045em;color:var(--rc-ink);margin:0;overflow-wrap:break-word}
 .feje-world-home #roblox-creations .rc-genre{color:var(--rc-muted);font-size:.78rem;line-height:1.4;margin:9px 0 0}
-.feje-world-home #roblox-creations .rc-motif{display:block;flex:0 0 clamp(82px,11vw,142px);width:clamp(82px,11vw,142px);height:auto;overflow:visible}
+.feje-world-home #roblox-creations .rc-motif{display:block;flex:0 0 clamp(82px,11vw,142px);width:clamp(82px,11vw,142px);height:auto;overflow:visible;shape-rendering:crispEdges;image-rendering:pixelated}
 .feje-world-home #roblox-creations .rc-media{grid-area:media;margin:0;min-width:0;align-self:center;max-width:520px;justify-self:center;width:100%}
 .feje-world-home #roblox-creations .rc-image-frame{border:1px solid var(--rc-line);background:#17131e;padding:4px;position:relative;border-radius:12px;overflow:hidden}
 .feje-world-home #roblox-creations .rc-image-frame::before{position:absolute;content:"";top:0;left:10px;width:44px;height:2px;background:var(--rc-accent)}
@@ -52,37 +52,38 @@
 .feje-world-home #roblox-creations .rc-motion-toggle .rc-play-glyph,.feje-world-home #roblox-creations .rc-motion-toggle[aria-pressed="true"] .rc-pause-glyph{display:none}
 .feje-world-home #roblox-creations .rc-motion-toggle[aria-pressed="true"] .rc-play-glyph{display:block}
 .feje-world-home #roblox-creations .rc-headlight,.feje-world-home #roblox-creations .rc-coin,.feje-world-home #roblox-creations .rc-spark{opacity:0}
-.feje-world-home #roblox-creations .rc-shutter{transform:translateY(-35px)}
+.feje-world-home #roblox-creations .rc-shutter{transform:translateY(-14px)}
+.feje-world-home #roblox-creations .rc-wheel-spin{opacity:0}
 @media(max-width:420px){
  .feje-world-home #roblox-creations .rc-entry-heading{gap:7px}
  .feje-world-home #roblox-creations .rc-motif{flex-basis:82px;width:82px}
 }
 @media(prefers-reduced-motion:no-preference){
- .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-shutter{animation:rc-shutter 6s ease-in-out infinite}
- .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-car{animation:rc-car-roll 6s ease-in-out infinite}
- .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-wheel{transform-box:fill-box;transform-origin:center;animation:rc-wheel-turn 6s ease-in-out infinite}
- .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-headlight{animation:rc-headlight 6s ease-in-out infinite}
- .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-coin{animation:rc-coin 6s ease-in-out infinite}
- .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-garage-lamp{animation:rc-lamp 6s ease-in-out infinite}
- .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-house-lower{animation:rc-build-lower 6s ease-in-out infinite}
- .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-house-upper{animation:rc-build-upper 6s ease-in-out infinite}
- .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-garden{animation:rc-garden 6s ease-in-out infinite}
- .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-pool-wave{animation:rc-water 3s ease-in-out infinite}
- .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-spark{transform-box:fill-box;transform-origin:center;animation:rc-spark 3s ease-in-out infinite}
+ .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-shutter{animation:rc-shutter 6s steps(1,end) infinite}
+ .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-car{animation:rc-car-roll 6s steps(1,end) infinite}
+ .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-wheel-spin{animation:rc-wheel-turn 6s steps(1,end) infinite}
+ .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-headlight{animation:rc-headlight 6s steps(1,end) infinite}
+ .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-coin{animation:rc-coin 6s steps(1,end) infinite}
+ .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-garage-lamp{animation:rc-lamp 6s steps(1,end) infinite}
+ .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-house-lower{animation:rc-build-lower 6s steps(1,end) infinite}
+ .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-house-upper{animation:rc-build-upper 6s steps(1,end) infinite}
+ .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-garden{animation:rc-garden 6s steps(1,end) infinite}
+ .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-pool-wave{animation:rc-water 3s steps(1,end) infinite}
+ .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-spark{animation:rc-spark 3s steps(1,end) infinite}
  .feje-world-home #roblox-creations .rc-entry[data-animate] .rc-spark-two{animation-delay:-1.35s}
  .feje-world-home #roblox-creations .rc-entry[data-animation-paused] .rc-motif *{animation-play-state:paused}
 }
-@keyframes rc-shutter{0%,100%{transform:translateY(0)}18%,76%{transform:translateY(-35px)}}
-@keyframes rc-car-roll{0%,100%{transform:translate(-12px,-8px) scale(.96)}30%,66%{transform:translate(0,0) scale(1)}}
-@keyframes rc-wheel-turn{0%,100%{transform:rotate(-30deg)}30%,66%{transform:rotate(30deg)}}
-@keyframes rc-headlight{0%,22%,90%,100%{opacity:0}36%,67%{opacity:.55}}
-@keyframes rc-coin{0%,26%,100%{transform:translateY(5px);opacity:0}38%,68%{transform:translateY(-5px);opacity:1}85%{transform:translateY(-12px);opacity:0}}
-@keyframes rc-lamp{0%,100%{opacity:.45}20%,80%{opacity:1}}
-@keyframes rc-build-lower{0%,100%{transform:translateY(-6px);opacity:.32}17%,83%{transform:translateY(0);opacity:1}}
-@keyframes rc-build-upper{0%,24%,100%{transform:translateY(-12px);opacity:0}42%,80%{transform:translateY(0);opacity:1}}
-@keyframes rc-garden{0%,44%,100%{transform:translateY(-5px);opacity:.2}62%,85%{transform:translateY(0);opacity:1}}
-@keyframes rc-water{0%,100%{opacity:.25}50%{opacity:.85}}
-@keyframes rc-spark{0%,100%{opacity:0;transform:scale(.5)}45%{opacity:1;transform:scale(1)}}
+@keyframes rc-shutter{0%,100%{transform:translateY(0)}3%{transform:translateY(-4px)}6%{transform:translateY(-8px)}9%,76%{transform:translateY(-14px)}82%{transform:translateY(-8px)}88%{transform:translateY(-4px)}94%{transform:translateY(0)}}
+@keyframes rc-car-roll{0%,12%,94%,100%{transform:translateX(-3px)}16%,90%{transform:translateX(-1px)}20%,86%{transform:translateX(1px)}24%,82%{transform:translateX(3px)}28%,78%{transform:translateX(4px)}}
+@keyframes rc-wheel-turn{0%,12%,20%,28%,78%,86%,94%,100%{opacity:0}16%,24%,82%,90%{opacity:1}}
+@keyframes rc-headlight{0%,12%,82%,100%{opacity:0}16%,78%{opacity:1}}
+@keyframes rc-coin{0%,28%,85%,100%{opacity:0;transform:translateY(2px)}32%{opacity:1;transform:translateY(0)}40%,60%{opacity:1;transform:translateY(-2px)}70%{opacity:1;transform:translateY(-1px)}78%{opacity:1;transform:translateY(1px)}}
+@keyframes rc-lamp{0%,100%{opacity:.45}9%,76%{opacity:1}}
+@keyframes rc-build-lower{0%,100%{transform:translateY(-6px);opacity:0}5%{transform:translateY(-4px);opacity:1}10%{transform:translateY(-2px);opacity:1}15%,88%{transform:translateY(0);opacity:1}92%{transform:translateY(-2px);opacity:1}96%{transform:translateY(-4px);opacity:1}}
+@keyframes rc-build-upper{0%,20%,88%,100%{transform:translateY(-6px);opacity:0}25%,84%{transform:translateY(-4px);opacity:1}30%,80%{transform:translateY(-2px);opacity:1}35%,76%{transform:translateY(0);opacity:1}}
+@keyframes rc-garden{0%,39%,83%,100%{opacity:0;transform:translateY(-2px)}44%,78%{opacity:1;transform:translateY(0)}}
+@keyframes rc-water{0%,100%{opacity:.3}25%{opacity:.8}50%{opacity:.45}75%{opacity:1}}
+@keyframes rc-spark{0%,100%{opacity:0}33%,66%{opacity:1}}
 @media(prefers-reduced-motion:reduce){
  .feje-world-home #roblox-creations .rc-motion-toggle{display:none}
  .feje-world-home #roblox-creations .rc-play-link{transition:none}
