@@ -142,14 +142,39 @@
           </div>
         </div>
       </div>
-      <div class="world-stage" id="world-stage" aria-label="Interactive rooftop observatory">
+      <div class="world-stage" id="world-stage" aria-label="Feje’s Collectibles, interactive hypercar collection" data-collectible="0">
         <div class="world-viewport" id="world-viewport">
           <div class="world-poster" role="img" aria-label="A violet concept car on a futuristic rooftop at dusk"></div>
           <div class="world-canvas-host" id="world-canvas-host"></div>
+          <div class="world-collection-transition" aria-hidden="true"></div>
           <div class="world-markers" id="world-markers" aria-hidden="true"></div>
-          <div class="world-view-label" aria-hidden="true"><span>FJ / 01</span><span>FEJE'S WORLD</span></div>
-          <button class="world-launch" id="world-launch" type="button" hidden>Explore my world XD <span aria-hidden="true">↗</span></button>
+          <div class="world-view-label" aria-hidden="true"><span id="world-collectible-index">FJ / 01</span><span>FEJE'S COLLECTIBLES</span></div>
+          <button class="world-launch" id="world-launch" type="button" hidden>Explore my collectibles XD <span aria-hidden="true">↗</span></button>
           <span class="world-instructions" id="world-instructions" hidden>Drag to look around, or use arrow keys. Click the places below!</span>
+        </div>
+        <div class="world-collection" id="world-collection" hidden aria-label="Choose a collectible">
+          <div class="collection-header">
+            <button class="collection-arrow" id="collection-prev" type="button" aria-label="Previous hypercar"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none"><path d="m15 5-7 7 7 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <div class="collection-title" role="status" aria-live="polite" aria-atomic="true">
+              <div class="collection-kicker">MY COLLECTIBLES <span id="collection-counter">01 / 10</span></div>
+              <h2 id="collection-name">Aspark Owl</h2>
+              <p id="collection-world">Neon Tokyo</p>
+            </div>
+            <button class="collection-arrow" id="collection-next" type="button" aria-label="Next hypercar"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none"><path d="m9 5 7 7-7 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </div>
+          <div class="collection-slots" role="group" aria-label="Ten hypercars">
+            <button type="button" data-collectible-choice="0" aria-label="01 Aspark Owl — Neon Tokyo" aria-pressed="true" title="Aspark Owl">01</button>
+            <button type="button" data-collectible-choice="1" aria-label="02 Bugatti Tourbillon — Frozen Horizon" aria-pressed="false" title="Bugatti Tourbillon">02</button>
+            <button type="button" data-collectible-choice="2" aria-label="03 Koenigsegg Jesko Attack — Solar Wasteland" aria-pressed="false" title="Koenigsegg Jesko Attack">03</button>
+            <button type="button" data-collectible-choice="3" aria-label="04 Aston Martin Valkyrie — Emerald Sanctuary" aria-pressed="false" title="Aston Martin Valkyrie">04</button>
+            <button type="button" data-collectible-choice="4" aria-label="05 Lotus Evija — Abyss" aria-pressed="false" title="Lotus Evija">05</button>
+            <button type="button" data-collectible-choice="5" aria-label="06 Ferrari F80 — Crimson Foundry" aria-pressed="false" title="Ferrari F80">06</button>
+            <button type="button" data-collectible-choice="6" aria-label="07 Pagani Utopia — Golden Reverie" aria-pressed="false" title="Pagani Utopia">07</button>
+            <button type="button" data-collectible-choice="7" aria-label="08 McLaren W1 — Skyline 2099" aria-pressed="false" title="McLaren W1">08</button>
+            <button type="button" data-collectible-choice="8" aria-label="09 Rimac Nevera R — Storm Circuit" aria-pressed="false" title="Rimac Nevera R">09</button>
+            <button type="button" data-collectible-choice="9" aria-label="10 Czinger 21C — Lunar Outpost" aria-pressed="false" title="Czinger 21C">10</button>
+          </div>
+          <p class="collection-note">hehe, choose your car XD <span>·</span> stylized 3D collectibles</p>
         </div>
         <div class="world-console">
           <div class="world-caption"><span id="world-status" role="status">01 / MY CAR</span><p id="world-description">hehe, look at my car XD</p></div>
@@ -164,7 +189,7 @@
             <button type="button" data-world-view="relay" aria-pressed="false">05 Contact</button>
             <button type="button" data-world-view="gallery" aria-pressed="false">06 Gallery</button>
           </div>
-          <div class="world-tools"><button type="button" id="world-lights" aria-pressed="true">Lights</button><button type="button" id="world-motion" aria-pressed="false">Pause motion</button></div>
+          <div class="world-tools"><button type="button" id="world-lights" aria-pressed="true">Lights</button><button type="button" id="world-motion" aria-pressed="false">Pause motion</button><button type="button" id="world-showcase" aria-pressed="false">Showcase</button></div>
         </div>
       </div>
     </section>
