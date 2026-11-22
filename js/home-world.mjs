@@ -77,7 +77,7 @@ if(stage){
         if(!drag||drag.id!==e.pointerId)return;
         if(!drag.moved){
           const rect=canvas.getBoundingClientRect();let best=null,d=42;
-          for(const [key,v] of Object.entries(api.STATIONS)){const p=renderer.project(v.marker);if(!p)continue;const n=Math.hypot(e.clientX-rect.left-p[0],e.clientY-rect.top-p[1]);if(n<d){best=key;d=n;}}
+          for(const {key,node,v} of markerNodes){if(node.hidden)continue;const p=renderer.project(v.marker);if(!p)continue;const bounds=node.getBoundingClientRect();if(e.clientX>=bounds.left&&e.clientX<=bounds.right&&e.clientY>=bounds.top&&e.clientY<=bounds.bottom){best=key;break;}const n=Math.hypot(e.clientX-rect.left-p[0],e.clientY-rect.top-p[1]);if(n<d){best=key;d=n;}}
           if(best)select(best);
         }
         drag=null;

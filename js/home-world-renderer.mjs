@@ -102,10 +102,6 @@ export function buildWorld(low=false){
     const axis=side[0]!==0,sgn=axis?side[0]:side[1];
     const point=(u,v,offset)=>axis?[x+sgn*offset,y+v,z+sgn*u]:[x-sgn*u,y+v,z+sgn*offset];
     const panel=(u0,v0,u1,v1,off,c,m)=>quad(point(u0,v0,off),point(u1,v0,off),point(u1,v1,off),point(u0,v1,off),c,m);
-    const stroke=(u1,v1,u2,v2,width,c,m=5)=>{
-      const len=Math.hypot(u2-u1,v2-v1)||1,du=-(v2-v1)/len*width/2,dv=(u2-u1)/len*width/2;
-      quad(point(u1+du,v1+dv,.045),point(u1-du,v1-dv,.045),point(u2-du,v2-dv,.045),point(u2+du,v2+dv,.045),c,m);
-    };
     box(x,y,z,axis?.20:w,h,axis?w:.20,hex(0x1c142b));
     panel(-w/2,-h/2,w/2,h/2,.111,mix(hex(0x160d25),color,.13),0);
     // Offset strokes to the outside face; panel face sits at .111.
@@ -269,7 +265,7 @@ const FRAG=[
 'if(m>4.5&&m<5.5)col=vColor*1.35;',
 'if(m>5.5&&m<6.5){float side=abs(n.x)>.5?vPosition.z:vPosition.x;vec2 f=vec2(side*1.30,vPosition.y*.83);vec2 cell=floor(f),uv=fract(f);float seed=hash(cell+floor(vPosition.xz*.17)*.31);float win=smoothstep(.15,.20,uv.x)*(1.-smoothstep(.73,.79,uv.x))*smoothstep(.20,.25,uv.y)*(1.-smoothstep(.69,.75,uv.y));float lit=step(.51,seed);vec3 glow=mix(vec3(.33,.12,.28),vec3(.12,.45,.54),step(.75,seed));glow=mix(glow,vec3(.65,.41,.22),step(.91,seed));float rib=smoothstep(.90,.97,uv.x);col=vColor*(.31+.36*sun)+rib*vec3(.022,.017,.035)+win*mix(vec3(.018,.022,.04),glow,lit);if(abs(n.y)>.5)col=vColor*.39;}',
 'if(m>1.5&&m<2.5){vec2 p=vPosition.xz;vec2 uv=abs(fract(p*.5+.5)-.5);float seam=smoothstep(.476,.496,max(uv.x,uv.y));float grain=hash(floor(p*30.));float shadow=exp(-dot(p*vec2(.53,.29),p*vec2(.53,.29))*2.8);float puddle=smoothstep(.28,.76,.5+.5*sin(p.x*.8+sin(p.y*.62)));float lamp=exp(-abs(abs(p.x)-3.4)*3.)*uLights*max(0.,1.-abs(p.y)/8.);col=vec3(.069,.057,.096)+grain*.012+puddle*vec3(.016,.010,.022);col*=1.-shadow*.72;col*=1.-seam*.36;col+=lamp*vec3(.12,.06,.20);',
-'if(uReflectionEnabled>.5){vec2 rc=gl_FragCoord.xy/uViewport;rc.y=1.-rc.y;float ripple=sin(p.z*17.+p.x*6.)*.0018;rc.x+=ripple;vec3 reflectCol=texture2D(uReflection,clamp(rc,vec2(.002),vec2(.998))).rgb;float fresnel=pow(1.-max(dot(n,view),0.),1.8);float wet=(.17+.50*fresnel)*(.64+.36*puddle)*(1.-seam*.7)*(1.-shadow*.72);col=mix(col,reflectCol,wet);}}',
+'if(uReflectionEnabled>.5){vec2 rc=gl_FragCoord.xy/uViewport;rc.y=1.-rc.y;float ripple=sin(p.y*17.+p.x*6.)*.0018;rc.x+=ripple;vec3 reflectCol=texture2D(uReflection,clamp(rc,vec2(.002),vec2(.998))).rgb;float fresnel=pow(1.-max(dot(n,view),0.),1.8);float wet=(.17+.50*fresnel)*(.64+.36*puddle)*(1.-seam*.7)*(1.-shadow*.72);col=mix(col,reflectCol,wet);}}',
 'float d=length(uEye-vPosition);float fog=1.-exp(-max(0.,d-10.)*.018);vec3 haze=vec3(.13,.09,.20);col=mix(col,haze,fog*.77);gl_FragColor=vec4(clamp(col,0.,1.),1.);}'
 ].join('\n');
 const SKYV='attribute vec2 aPosition;varying vec2 vUv;void main(){vUv=aPosition;gl_Position=vec4(aPosition,0.,1.);}';
