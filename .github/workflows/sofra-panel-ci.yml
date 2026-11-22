@@ -4,6 +4,11 @@ on:
   pull_request:
     paths:
       - 'SofraPanel.html'
+      - 'SofraMaintenance.html'
+      - 'css/sofra-maintenance.css'
+      - 'js/sofra-maintenance.mjs'
+      - 'verification/sofra-maintenance-smoke.cjs'
+      - 'vercel.json'
       - 'Sofra.html'
       - 'sofra-product.*'
       - 'tests/**'
@@ -16,6 +21,11 @@ on:
     branches: [main]
     paths:
       - 'SofraPanel.html'
+      - 'SofraMaintenance.html'
+      - 'css/sofra-maintenance.css'
+      - 'js/sofra-maintenance.mjs'
+      - 'verification/sofra-maintenance-smoke.cjs'
+      - 'vercel.json'
       - 'Sofra.html'
       - 'sofra-product.*'
       - 'tests/**'
@@ -39,6 +49,7 @@ jobs:
           node-version: '24'
       - name: Syntax check
         run: |
+          node --check js/sofra-maintenance.mjs
           node --check sofra-panel.js
           node --check sofra-panel-core.js
           node --check api/sofra/_config.js
@@ -54,3 +65,4 @@ jobs:
           npm install --no-save --package-lock=false playwright@1.62.1
           npx playwright install --with-deps chromium
           node verification/sofra-smoke.cjs
+          node verification/sofra-maintenance-smoke.cjs
