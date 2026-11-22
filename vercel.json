@@ -57,12 +57,18 @@
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
         { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'" }
       ]
+    },
+    {
+      "source": "/SofraMaintenance",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }, { "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     }
   ],
   "redirects": [
     { "source": "/arcade", "destination": "/#surprise", "permanent": false },
     { "source": "/Arcade", "destination": "/#surprise", "permanent": false },
-    { "source": "/Arcade.html", "destination": "/#surprise", "permanent": false }
+    { "source": "/Arcade.html", "destination": "/#surprise", "permanent": false },
+    { "source": "/SofraPanel", "destination": "/sofra", "permanent": false },
+    { "source": "/SofraPanel.html", "destination": "/sofra", "permanent": false }
   ],
   "rewrites": [
     { "source": "/sofra/about", "destination": "/Sofra" },
@@ -71,7 +77,7 @@
     { "source": "/Admin.html", "destination": "/api/admin-page" },
     { "source": "/crush", "destination": "/api/admin-page" },
     { "source": "/crush.html", "destination": "/api/admin-page" },
-    { "source": "/sofra", "destination": "/SofraPanel" }
+    { "source": "/sofra", "destination": "/SofraMaintenance" }
   ]
 }
 

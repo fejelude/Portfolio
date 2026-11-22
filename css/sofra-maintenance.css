@@ -1,0 +1,39 @@
+/* Scoped entirely to the standalone Sofra maintenance screen. */
+:root{color-scheme:dark;background:#160e19;color:#fff2f7;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;min-width:0;min-height:100vh;min-height:100dvh;background:#160e19}
+.sm-main{min-height:100vh;min-height:100dvh;width:min(100%,920px);margin-inline:auto;padding:max(20px,env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) max(18px,env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px));display:grid;grid-template-rows:auto 1fr auto;gap:24px}
+.sm-brand{display:flex;align-items:center;justify-content:center;gap:9px;font-size:.82rem;font-weight:650;letter-spacing:.045em;color:#edc8de}
+.sm-code{color:#fff2f7;font-family:ui-monospace,monospace;font-weight:800}
+.sm-brand-divider{color:#9d7290}
+.sm-content{align-self:center;justify-self:center;display:flex;flex-direction:column;align-items:center;text-align:center;max-width:560px;width:100%;padding:clamp(16px,4vw,42px) 0;gap:18px;min-width:0}
+.sm-status{display:flex;align-items:center;gap:8px;color:#ff9bb7;font:600 .7rem/1.4 ui-monospace,SFMono-Regular,monospace;text-transform:uppercase;letter-spacing:.13em}
+.sm-status>span{width:7px;height:7px;background:#ff719b;border-radius:1px;box-shadow:3px 0 #503044}
+.sm-mascot{width:clamp(132px,38vw,198px);height:auto;display:block;padding:0;background:none;border:0;color:inherit;appearance:none;cursor:pointer}
+.sm-mascot:disabled{opacity:1;cursor:default}
+.sm-mascot svg{display:block;width:100%;height:auto;image-rendering:pixelated;shape-rendering:crispEdges;overflow:visible}
+.sm-content h1{margin:0;font-size:clamp(2.25rem,7.8vw,4rem);line-height:1.05;letter-spacing:-.06em;font-weight:800;color:#ff91b4;text-wrap:balance}
+.sm-content p{margin:0;max-width:45ch;color:#e3bdce;font-size:clamp(.95rem,2.7vw,1.08rem);line-height:1.78;text-wrap:pretty}
+.sm-home{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:48px;padding:11px 23px;margin-top:7px;border:1px solid #e18eae;border-radius:7px;color:#ffd5e5;background:#2f1d2d;font-size:.9rem;font-weight:650;text-decoration:none}
+.sm-home:hover{background:#49253d;color:#fff2f7}
+.sm-home:focus-visible,.sm-mascot:focus-visible{outline:2px solid #ffb5d0;outline-offset:5px}
+.sm-footer{text-align:center;color:#ba97ae;font-size:.7rem;letter-spacing:.075em}
+.sm-footer span{margin-inline:5px}
+.sm-tear-splash{opacity:0}
+/* Integer pixel positions, discrete frames; no continuous transforms or flashes. */
+@media(prefers-reduced-motion:no-preference){
+  .sm-mascot.is-enhanced .sm-kitty-body{animation:sm-sniffle 2.4s steps(1,end) infinite}
+  .sm-mascot.is-enhanced .sm-tear-left{animation:sm-teardrop 1.2s steps(1,end) infinite}
+  .sm-mascot.is-enhanced .sm-tear-right{animation:sm-teardrop 1.2s steps(1,end) infinite;animation-delay:-.6s}
+  .sm-mascot.is-enhanced .sm-tear-splash{animation:sm-splash 1.2s steps(1,end) infinite}
+  .sm-mascot.is-enhanced .sm-rain{animation:sm-rainfall 1.2s steps(1,end) infinite}
+  .sm-mascot.is-enhanced .sm-cloud{animation:sm-cloud-bob 2.4s steps(1,end) infinite}
+  .sm-mascot:not(.is-running) svg *{animation-play-state:paused}
+}
+@keyframes sm-sniffle{0%,100%{transform:translateY(0)}25%{transform:translateY(-1px)}50%{transform:translateY(0)}75%{transform:translateY(1px)}}
+@keyframes sm-teardrop{0%,100%{transform:translateY(0);opacity:1}16%{transform:translateY(3px);opacity:1}32%{transform:translateY(7px);opacity:1}48%{transform:translateY(11px);opacity:1}64%{transform:translateY(15px);opacity:1}80%{transform:translateY(21px);opacity:1}96%{transform:translateY(24px);opacity:0}}
+@keyframes sm-splash{0%,79%,100%{opacity:0}84%,96%{opacity:1}}
+@keyframes sm-rainfall{0%,100%{transform:translateY(0);opacity:1}33%{transform:translateY(2px);opacity:1}66%{transform:translateY(4px);opacity:.4}}
+@keyframes sm-cloud-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1px)}}
+@media(max-width:360px){.sm-main{gap:15px;padding-inline:max(16px,env(safe-area-inset-left,0px))}.sm-content{gap:14px}.sm-content h1{font-size:2.15rem}}
+@media(max-height:530px) and (orientation:landscape){.sm-main{gap:12px}.sm-content{padding-block:8px;gap:11px}.sm-mascot{width:116px}.sm-content h1{font-size:2.2rem}.sm-break{display:none}}
