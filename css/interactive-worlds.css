@@ -68,3 +68,16 @@ progress{appearance:none;width:100%;height:6px;margin:14px 0;background:#352840;
 .iw-hub[data-motion-paused] .iw-intro{animation:none}
 .iw-hub[data-complete]:not([data-motion-paused]) .iw-progress{border-color:#e7c38b}
 @media(prefers-reduced-motion:no-preference){.iw-hub[data-complete]:not([data-motion-paused]) .iw-badges>span{animation:iw-float 1.8s steps(4,end) 2}}
+
+/* Keep device-safe focus and layout when the native Fullscreen API is absent. */
+.iw-os-symbol{font:700 1.35rem/1 monospace;color:#edb9e9}
+.iw-os-icons button span:last-child{font:600 .7rem/1.2 system-ui,sans-serif}
+.iw-os-content>button{margin:0 5px 5px 0}
+.iw-os-content .iw-os-row button[aria-label^="Paint color"]{min-width:36px;padding-inline:7px;font-size:1.15rem}
+.iw-os-content input[type=range]{padding:0;min-height:34px;accent-color:var(--iw-accent)}
+.iw-console.iw-expanded .iw-os{min-height:min(520px,65dvh)}
+.iw-world .iw-stage{border-bottom:1px solid #32263f}
+.iw-world .iw-world-heading,.iw-world .iw-console{overflow-wrap:anywhere}
+.iw-hub .iw-badges [data-earned]{border-color:var(--iw-accent);background:var(--iw-tint)}
+@media(prefers-reduced-motion:no-preference){.iw-os-icons{animation:iw-enter .4s ease-out both}.iw-os-window{animation:iw-enter .16s ease-out both}}
+@media(max-width:600px){.iw-world .iw-main{padding-inline:12px}.iw-toolbar{padding:7px 9px}.iw-toolbar button{padding-inline:9px}.iw-control-panel{padding:10px}.iw-settings{padding:0 10px 10px}.iw-progress-actions button{flex:1 1 auto}.iw-os-window{max-height:calc(100% - 70px)}}

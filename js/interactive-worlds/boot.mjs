@@ -8,7 +8,7 @@ const storage=deviceStorage(),motion=matchMedia('(prefers-reduced-motion: reduce
 let paused=motion.matches,manualPause=false,suspended=false,visible=true,raf=0,last=0,elapsed=0,dirty=true,simulation=null,module=null,soundOn=false,audio=null,found=new Set(),generation=0;
 let autoTier=innerWidth<650?'Low':'Medium',samples=0,slow=0;
 function tier(){return quality.value==='Auto'?autoTier:quality.value}
-function active(){return !paused&&!suspended&&visible&&!document.hidden}
+function active(){return !!simulation&&!paused&&!suspended&&visible&&!document.hidden}
 function invalidate(){dirty=true;schedule()}
 function schedule(){if(!raf&&!suspended&&!document.hidden&&(active()||dirty))raf=requestAnimationFrame(frame)}
 function frame(now){
@@ -28,19 +28,26 @@ function beep(){
 function refreshBadge(){const earned=getProgress(storage).includes(world);badge.toggleAttribute('data-earned',earned);discovery.textContent=found.size+' / '+goals[world]+' discovered'+(earned?' · badge collected!':'')}
 function discover(id,text){if(!found.has(id)){found.add(id);if(found.size>=goals[world]){earn(world,storage);say('Badge collected! '+text)}else say(text);beep();refreshBadge()}else say(text)}
 function button(label,action,pressed){const el=document.createElement('button');el.type='button';el.textContent=label;if(pressed!==undefined)el.setAttribute('aria-pressed',String(pressed));el.addEventListener('click',()=>{action(el);invalidate()});controls.append(el);return el}
-function range(label,min,max,value,step,action){const wrap=document.createElement('label'),el=document.createElement('input'),out=document.createElement('output');wrap.className='iw-range';wrap.append(document.createTextNode(label+' '));el.type='range';el.min=min;el.max=max;el.step=step;el.value=value;el.setAttribute('aria-label',label);out.textContent=value;el.addEventListener('input',()=>{out.textContent=el.value;action(Number(el.value));invalidate()});wrap.append(el,out);controls.append(wrap);return el}
+function range(label,min,max,value,step,action){const wrap=document.createElement('label'),el=document.createElement('input'),out=document.createElement('output');wrap.className='iw-range';wrap.append(document.createTextNode(label+' '));el.type='range';el.min=min;el.max=max;el.step=step;el.value=value;el.setAttribute('aria-label',label);out.textContent=value;el.addEventListener('input',()=>{out.textContent=el.value;action(Number(el.value));invalidate()});wrap.append(el,out);controls.append(wrap);el.updateValue=v=>{el.value=v;out.textContent=el.value};return el}
 function select(label,options,action){const wrap=document.createElement('label'),el=document.createElement('select');wrap.className='iw-range';wrap.append(document.createTextNode(label+' '));el.setAttribute('aria-label',label);for(const item of options){const o=document.createElement('option');o.value=typeof item==='string'?item:item[0];o.textContent=typeof item==='string'?item:item[1];el.append(o)}el.addEventListener('change',()=>{action(el.value);invalidate()});wrap.append(el);controls.append(wrap);return el}
 function canvas(w,h,pixel=false){const c=document.createElement('canvas');c.width=w;c.height=h;c.tabIndex=0;c.setAttribute('aria-label','Interactive '+world+' scene. Controls are also available below.');if(pixel)c.className='iw-pixel';stage.replaceChildren(c);return c}
 function point(c,e){const r=c.getBoundingClientRect();return {x:(e.clientX-r.left)/Math.max(1,r.width)*c.width,y:(e.clientY-r.top)/Math.max(1,r.height)*c.height}}
-function drag(c,move){let previous=null;c.addEventListener('pointerdown',e=>{if(e.button>0)return;previous=point(c,e);try{c.setPointerCapture(e.pointerId)}catch{}});
- c.addEventListener('pointermove',e=>{if(!previous)return;const p=point(c,e);move(p.x-previous.x,p.y-previous.y,p);previous=p;invalidate()});
- for(const event of ['pointerup','pointercancel','lostpointercapture'])c.addEventListener(event,()=>{previous=null});
- c.addEventListener('keydown',e=>{const map={ArrowLeft:[-10,0],ArrowRight:[10,0],ArrowUp:[0,-10],ArrowDown:[0,10]};if(map[e.key]){e.preventDefault();move(...map[e.key]);invalidate()}})
+function drag(c,move,pinch){
+ const points=new Map();
+ const distance=()=>{const [a,b]=[...points.values()];return a&&b?Math.hypot(a.x-b.x,a.y-b.y):0};
+ c.addEventListener('pointerdown',e=>{if(e.button>0)return;points.set(e.pointerId,point(c,e));try{c.setPointerCapture(e.pointerId)}catch{}});
+ c.addEventListener('pointermove',e=>{if(!points.has(e.pointerId))return;const prev=points.get(e.pointerId),p=point(c,e),oldDistance=distance();points.set(e.pointerId,p);
+  if(points.size===1)move(p.x-prev.x,p.y-prev.y,p);
+  else if(pinch&&oldDistance>1)pinch(distance()/oldDistance);
+  invalidate();
+ });
+ for(const event of ['pointerup','pointercancel','lostpointercapture'])c.addEventListener(event,e=>points.delete(e.pointerId));
+ c.addEventListener('keydown',e=>{const map={ArrowLeft:[-10,0],ArrowRight:[10,0],ArrowUp:[0,-10],ArrowDown:[0,10]};if(map[e.key]){e.preventDefault();move(...map[e.key]);invalidate()}else if(pinch&&(e.key==='+'||e.key==='='||e.key==='-')){e.preventDefault();pinch(e.key==='-'?.9:1.1);invalidate()}})
 }
 const api={stage,controls,canvas,button,range,select,point,drag,invalidate,say,discover,tier,beep};
 async function mount(){
- const id=++generation;simulation?.dispose?.();simulation=null;stage.replaceChildren();controls.replaceChildren();found=new Set();elapsed=0;last=0;refreshBadge();
- try{module=module||await loaders[world]();if(id!==generation)return;simulation=module.mount(api)||{};simulation.resize?.();say('Explore at your own pace.');invalidate();}
+ const id=++generation;simulation?.dispose?.();simulation=null;stage.replaceChildren();controls.replaceChildren();found=new Set();elapsed=0;last=0;say('Explore at your own pace.');refreshBadge();
+ try{module=module||await loaders[world]();if(id!==generation)return;simulation=module.mount(api)||{};simulation.resize?.();invalidate();}
  catch(error){if(id!==generation)return;stage.replaceChildren();const p=document.createElement('p');p.className='iw-message';p.textContent='This graphics experience could not start on this device. Try Reset world or choose another world.';stage.append(p);say('World initialization failed.');console.warn('World initialization failed',error);invalidate()}
 }
 function updateFullscreen(){const on=document.fullscreenElement===consoleEl||consoleEl.classList.contains('iw-expanded');full.setAttribute('aria-pressed',String(on));full.textContent=on?'Exit fullscreen':'Fullscreen'}
@@ -53,4 +60,4 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnim
 window.addEventListener('pagehide',e=>{suspended=true;cancelAnimationFrame(raf);raf=0;last=0;if(!e.persisted){simulation?.dispose?.();audio?.close?.().catch(()=>{})}});
 window.addEventListener('pageshow',()=>{suspended=false;invalidate()});
 if('IntersectionObserver' in window){new IntersectionObserver(items=>{visible=items[0].isIntersecting;last=0;invalidate()},{threshold:.05}).observe(stage)}
-if(IDS.includes(world)){[pause,full,quality,sound,reset].forEach(el=>el.disabled=false);sync();mount()}
+if(IDS.includes(world)){[pause,full,quality,sound,reset].forEach(el=>el.disabled=false);if(world==='os'){quality.disabled=true;quality.title='Desktop apps use native HTML rather than a graphics quality setting.';}sync();mount()}

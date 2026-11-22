@@ -27,8 +27,9 @@ export function mount(api){
  const zoomControl=api.range('Zoom',.65,2.3,zoom,.05,v=>zoom=v);
  api.range('Lensing',.3,1.6,strength,.1,v=>strength=v);
  api.range('Speed',0,2,speed,.1,v=>speed=v);
- api.drag(c,(dx,dy)=>{yaw+=dx/c.width*2;pitch=clamp(pitch+dy/c.height*2,-1.2,1.2)});
- c.addEventListener('wheel',e=>{e.preventDefault();zoom=clamp(zoom-e.deltaY*.001,.65,2.3);zoomControl.value=zoom;api.invalidate()},{passive:false});
+ const changeZoom=factor=>{zoom=clamp(zoom*factor,.65,2.3);zoomControl.updateValue(zoom)};
+ api.drag(c,(dx,dy)=>{yaw+=dx/c.width*2;pitch=clamp(pitch+dy/c.height*2,-1.2,1.2)},changeZoom);
+ c.addEventListener('wheel',e=>{e.preventDefault();zoom=clamp(zoom-e.deltaY*.001,.65,2.3);zoomControl.updateValue(zoom);api.invalidate()},{passive:false});
  c.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;api.say('Graphics context paused. Reset world to restart rendering.')});
  c.addEventListener('webglcontextrestored',()=>{lost=false;setup();resize();api.invalidate()});
  function resize(){const w={Low:480,Medium:800,High:1200}[api.tier()]||800;c.width=w;c.height=Math.round(w/1.6);if(gl&&!lost)gl.viewport(0,0,c.width,c.height)}

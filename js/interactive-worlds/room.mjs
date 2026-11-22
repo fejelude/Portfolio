@@ -20,7 +20,7 @@ export function mount(api){
   if(night){rect(ctx,112,58,12,12,'#efddba');rect(ctx,109,56,7,7,'#24213c');for(let i=0;i<13;i++)rect(ctx,44+(i*17)%91,54+(i*11)%37,1,1,'#eedffc')}
   else{rect(ctx,106,59,17,17,'#ffe5aa');rect(ctx,107,57,13,21,'#ffe5aa')}
   for(let i=0;i<10;i++){const x=40+i*10,h=12+(i*13)%30;rect(ctx,x,134-h,9,h,night?'#302b49':'#6d7b9f');for(let y=136-h;y<131;y+=6)if((i+y)%3!==0)rect(ctx,x+3,y,2,2,night?'#e4ae88':'#b3b8d6')}
-  if(rain){ctx.save();ctx.beginPath();ctx.rect(40,50,100,84);ctx.clip();for(let i=0;i<25;i++){const x=40+(i*31)%101,y=50+(i*17+Math.floor(t*40))%84;line(ctx,x,y,x-2,y+8,night?'#98b1dc99':'#d6e9f4aa')}ctx.restore()}
+  if(rain){ctx.save();ctx.beginPath();ctx.rect(40,50,100,84);ctx.clip();for(let i=0;i<(api.tier()==='Low'?15:api.tier()==='High'?40:25);i++){const x=40+(i*31)%101,y=50+(i*17+Math.floor(t*40))%84;line(ctx,x,y,x-2,y+8,night?'#98b1dc99':'#d6e9f4aa')}ctx.restore()}
   rect(ctx,87,49,5,86,'#483954');rect(ctx,40,91,100,4,'#483954');rect(ctx,35,134,110,5,'#987caa');
   rect(ctx,29,40,122,4,'#b69bd0');for(let i=0;i<4;i++){rect(ctx,29+i*5,44,4,96,i%2?'#634c89':'#8467a9');rect(ctx,132+i*5,44,4,96,i%2?'#634c89':'#8467a9')}
  }

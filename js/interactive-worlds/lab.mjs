@@ -45,10 +45,11 @@ export function mount(api){
  api.range('Exploded view',0,1.15,explode,.05,v=>explode=v);
  const zoomControl=api.range('Zoom',.55,1.5,zoom,.05,v=>zoom=v);
  api.button('Wireframe',b=>{wire=!wire;b.setAttribute('aria-pressed',String(wire))},false);
- api.button('Auto rotate',b=>{spin=!spin;b.setAttribute('aria-pressed',String(spin))},true);
+ const spinButton=api.button('Auto rotate',b=>{spin=!spin;b.setAttribute('aria-pressed',String(spin))},true);
  const part=api.select('Highlight part',[['','All components']],v=>{selected=v;api.say(v?'Highlighting '+v+'.':models[index].desc)});
  function updateParts(){part.replaceChildren();for(const name of ['',...new Set(models[index].parts.map(p=>p.name))]){const o=document.createElement('option');o.value=name;o.textContent=name||'All components';part.append(o)}}
- updateParts();api.drag(c,(dx,dy)=>{yaw+=dx/c.width*4;pitch=clamp(pitch+dy/c.height*2,-.65,1.1);spin=false});
+ updateParts();api.drag(c,(dx,dy)=>{yaw+=dx/c.width*4;pitch=clamp(pitch+dy/c.height*2,-.65,1.1);spin=false;spinButton.setAttribute('aria-pressed','false')},factor=>{zoom=clamp(zoom*factor,.55,1.5);zoomControl.updateValue(zoom)});
+ c.addEventListener('wheel',e=>{e.preventDefault();zoom=clamp(zoom-e.deltaY*.001,.55,1.5);zoomControl.updateValue(zoom);api.invalidate()},{passive:false});
  function resize(){c.width={Low:480,Medium:800,High:1200}[api.tier()]||800;c.height=Math.round(c.width/1.6)}
  function draw(dt,t){if(spin)yaw+=dt*.23;const w=c.width,h=c.height;
   ctx.fillStyle=radial(ctx,w*.5,h*.5,h*.9,[[0,'#173c49'],[.48,'#10232f'],[1,'#080e1b']]);ctx.fillRect(0,0,w,h);
