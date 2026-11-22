@@ -95,3 +95,16 @@ test('admin handler still returns separate unauthenticated and authorized HTML, 
  const login=await call(false,'/admin?error=1');assert.equal(login.code,401);assert.match(login.html,/data-droid-state="denied"/);assert.match(login.html,/name="password"/);assert.match(login.html,/method="post" action="\/api\/admin-auth"/);assert.equal((login.html.match(/data-code-slot/g)||[]).length,8);assert.ok(!login.html.includes('id="logs-body"'));
  const dash=await call(true,'/admin?unlocked=1');assert.equal(dash.code,200);assert.match(dash.html,/data-droid-state="granted"/);assert.match(dash.html,/name="action" value="logout"/);assert.match(dash.html,/id="logs-body"/);
 });
+
+test('visitor disclosure remains accessible in public footers without a standalone page',()=>{
+  assert.equal(require('node:fs').existsSync(path.join(root,'privacy.html')),false);
+  for(const name of ['index.html','Gallery.html','Sofra.html']){
+    const html=readFileSync(path.join(root,name),'utf8');
+    assert.doesNotMatch(html,/href="\/privacy\.html"/);
+    assert.match(html,/<details class="visitor-analytics-note">\s*<summary>This site uses basic visitor analytics\.<\/summary>/);
+    assert.match(html,/masked IP prefixes/);
+    assert.match(html,/Do Not Track and Global Privacy Control are respected/);
+    assert.match(html,/activity-logger\.js/);
+  }
+  assert.doesNotMatch(readFileSync(path.join(root,'api/admin-page.js'),'utf8'),/href="\/privacy\.html"/);
+});

@@ -31,6 +31,20 @@ const server=createServer(async(req,res)=>{
           await page.goto(url,{waitUntil:'domcontentloaded'});
           const row=page.locator('.feje-title-row'),sprite=page.locator('#feje-pixel-companion');
           await row.scrollIntoViewIfNeeded();
+          const terminal=page.locator('#hero-terminal');
+          assert.equal(await terminal.isVisible(),true);
+          assert.ok(await terminal.evaluate(el=>{const a=el.getBoundingClientRect(),b=el.closest('.hero-content').getBoundingClientRect();return a.left>=b.left-1&&a.right<=b.right+1&&el.scrollWidth<=el.clientWidth+1;}));
+          if(mode==='normal'){
+            await page.waitForFunction(()=>document.querySelector('#hero-terminal').classList.contains('is-running'));
+            await terminal.click();assert.equal(await terminal.getAttribute('aria-pressed'),'true');
+            const text=await terminal.locator('[data-terminal-text]').textContent();
+            await page.waitForTimeout(150);assert.equal(await terminal.locator('[data-terminal-text]').textContent(),text);
+            await terminal.click();assert.equal(await terminal.getAttribute('aria-pressed'),'false');
+          }else{
+            assert.equal(await terminal.isDisabled(),true);
+            assert.equal(await terminal.locator('[data-terminal-text]').textContent(),'ITSMEFEJE.EXE');
+            assert.equal(await terminal.locator('.hero-terminal-cursor').evaluate(el=>getComputedStyle(el).animationName),'none');
+          }
           assert.equal(await row.locator('h1').count(),1);
           assert.equal(await sprite.locator('[data-pixel-scene]').count(),6);
           assert.equal(await sprite.isVisible(),true);

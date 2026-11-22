@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="css/hero-pixels.css">
   <link rel="stylesheet" href="css/sofra-feature.css">
   <link rel="stylesheet" href="css/roblox-creations.css">
+  <link rel="stylesheet" href="/css/visitor-analytics-note.css">
 </head>
 <body class="feje-world-home">
   <a class="skip-link" href="#main-content">Skip to content</a>
@@ -79,7 +80,12 @@
   <main id="main-content" tabindex="-1">
     <section id="home" class="hero-section">
       <div class="hero-content reveal scroll-reveal">
-        <p class="world-kicker"><span></span> ITSMEFEJE / MY WEBSITE</p>
+        <p class="world-kicker">
+          <button type="button" id="hero-terminal" class="hero-terminal" aria-label="Pause homepage terminal animation" aria-pressed="false" disabled>
+            <svg class="hero-terminal-icon" viewBox="0 0 32 24" fill="none" aria-hidden="true" focusable="false"><path d="m10 5-7 7 7 7m12-14 7 7-7 7M18.5 3l-5 18" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="hero-terminal-line" aria-hidden="true"><span data-terminal-text>ITSMEFEJE.EXE</span><span class="hero-terminal-cursor">_</span></span>
+          </button>
+        </p>
         <div class="feje-title-row">
           <h1 class="world-title"><span class="blur-text">Fejelude</span> <span class="mobile-break"></span> <span class="blur-text">Laxamana</span></h1>
           <button type="button" class="feje-pixel-companion" id="feje-pixel-companion" aria-label="Pause pixel art animation" aria-pressed="false" disabled>
@@ -587,10 +593,15 @@
           <div class="footer-bottom">
             <p>&copy; <span id="year"></span> Fejelude Von O. Laxamana. Personal Website.</p>
             <div class="footer-links">
-              <a href=" https://www.fejelude.xyz/ " target="_blank">Website Updated Recently on November 22, 2026</a> <span aria-hidden="true"> · </span><a href="/privacy.html">Visitor privacy</a>
+              <a href=" https://www.fejelude.xyz/ " target="_blank">Website Updated Recently on November 22, 2026</a>
             </div>
           </div>
-        </footer>
+        
+<details class="visitor-analytics-note">
+  <summary>This site uses basic visitor analytics.</summary>
+  <p>I record public page visits, visit times, device type, browser, operating system, masked IP prefixes and a random browser ID. The ID rotates after 30 days and can be reset by clearing site storage. Repeated visits are grouped within 30 minutes. Do Not Track and Global Privacy Control are respected. Private pages, exact locations, clicks and form contents are not included in these new visitor records. Access is restricted and stored records are limited. Older analytics records may still exist, and separate security logs are retained.</p>
+</details>
+</footer>
       </div>
     </section>
 
@@ -605,6 +616,7 @@
   <script type="module" src="js/hero-pixels.mjs"></script>
   <script type="module" src="js/sofra-feature.mjs"></script>
   <script type="module" src="js/roblox-creations.mjs"></script>
+  <script type="module" src="js/hero-terminal.mjs"></script>
 </body>
 </html>
 

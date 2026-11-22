@@ -17,7 +17,19 @@
 .feje-world-home #home{position:relative;display:grid;grid-template-columns:minmax(285px,.74fr) minmax(0,1.4fr);align-items:center;gap:clamp(24px,4vw,76px);width:min(100%,1600px);margin:auto;padding:calc(var(--nav-height) + 52px) clamp(22px,5vw,82px) 64px;text-align:left;min-height:100svh}
 .feje-world-home #home .hero-content{width:100%;min-width:0;align-items:flex-start;text-align:left;display:flex;flex-direction:column;position:relative;z-index:1}
 .feje-world-home .world-kicker{font:600 .69rem/1.5 'Space Grotesk',sans-serif;letter-spacing:.2em;color:#c7a9ff;margin-bottom:28px;display:flex;align-items:center;gap:9px}
-.feje-world-home .world-kicker span{width:6px;height:6px;background:#c7a9ff;transform:rotate(45deg)}
+/* Homepage developer terminal. */
+.feje-world-home .world-kicker{max-width:100%}
+.feje-world-home .hero-terminal{display:inline-flex;align-items:center;gap:9px;max-width:100%;min-height:24px;padding:0;margin:0;border:0;border-radius:2px;background:none;color:#c7a9ff;font:600 clamp(.65rem,2.6vw,.83rem)/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.065em;text-align:left;box-shadow:none;text-transform:none;cursor:pointer}
+.feje-world-home .hero-terminal:disabled{opacity:1;cursor:default}
+.feje-world-home .hero-terminal:focus-visible{outline:2px solid #c7a9ff;outline-offset:4px}
+.feje-world-home .hero-terminal-icon{width:21px;height:17px;flex:0 0 21px;color:#fff}
+.feje-world-home .hero-terminal-line{display:inline-flex;align-items:baseline;min-width:0;white-space:nowrap;font-variant-ligatures:none}
+.feje-world-home .hero-terminal-cursor{margin-left:2px;color:#e5d4ff}
+.feje-world-home .hero-terminal.is-glitching [data-terminal-text]{text-shadow:1px 0 #f49ac8,-1px 0 #70c9dc}
+.feje-world-home .hero-terminal.is-glitching .hero-terminal-icon{filter:drop-shadow(1px 0 #ed82c2) drop-shadow(-1px 0 #71d3e7);transform:translateX(1px)}
+@media(prefers-reduced-motion:no-preference){.feje-world-home .hero-terminal.is-running .hero-terminal-cursor{animation:hero-terminal-blink 1.2s step-end infinite}}
+@keyframes hero-terminal-blink{50%{opacity:0}}
+@media(max-width:360px){.feje-world-home .hero-terminal{gap:6px;letter-spacing:0;font-size:.65rem}}
 .feje-world-home .world-title{font-size:clamp(2.8rem,5.3vw,6.7rem);line-height:.92;letter-spacing:-.07em;color:#f6f1fd;margin:0 0 25px!important;word-break:normal}
 .feje-world-home .world-title .blur-text{display:block;opacity:1;filter:none;transform:none;animation:none;will-change:auto}
 .feje-world-home .world-title .mobile-break{display:none}
