@@ -88,3 +88,28 @@ test('hub dragon is decorative, has a confined responsive flight area and reuses
  assert.match(css,/\[data-motion-paused\] \.iw-dragon-space \*\{animation-play-state:paused!important\}/);
  assert.match(hub,/const observed=dragon\?\[\.\.\.cards,dragon\]:cards/);
 });
+
+test('read-only local storage preserves legacy badges, pending discoveries and reset in this tab',async()=>{
+ const {deviceStorage,getDiscoveries,saveDiscoveries}=await import('../js/interactive-worlds/progress.mjs');
+ const memory=()=>{const values=new Map();return {
+  getItem:key=>values.get(key)??null,setItem:(key,v)=>values.set(key,v),removeItem:key=>values.delete(key)
+ }};
+ const localStorage=memory(),sessionStorage=memory();
+ localStorage.setItem('feje.interactives.v1','["room"]');
+ localStorage.setItem=localStorage.removeItem=()=>{throw Error('read only')};
+ const reopen=()=>deviceStorage({localStorage,sessionStorage});
+ saveDiscoveries('lab',new Set(['model-1']),reopen());
+ assert.deepEqual(getDiscoveries('lab',reopen()),['model-1']);
+ earn('lab',reopen());
+ assert.deepEqual(getProgress(reopen()),['room','lab']);
+ saveDiscoveries('lab',new Set(),reopen());
+ assert.deepEqual(getDiscoveries('lab',reopen()),[]);
+ assert.deepEqual(getProgress(reopen()),['room','lab']);
+ clearProgress(reopen());
+ assert.deepEqual(getProgress(reopen()),[]);
+ const denied=deviceStorage({});
+ earn('os',denied);
+ assert.deepEqual(getProgress(denied),['os']);
+ clearProgress(denied);
+ assert.deepEqual(getProgress(denied),[]);
+});

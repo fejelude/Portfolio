@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 400" fill="none" stroke="white" stroke-width="2" preserveAspectRatio="xMidYMax slice">
+ <path d="M0 262 77 228 122 242 246 163 322 203 359 186 444 232 510 205 548 218 651 151 703 186 761 165 869 220 960 179" opacity=".7"/>
+ <path d="m0 283 101-25 75 12 81-57 54 33 44-13 95 33 117-40 52 14 79-54 67 46 84-21 111 42v147H0Z" fill="white" fill-opacity=".13"/>
+ <path d="M0 277h960M0 286h960M0 302h960M0 332h960M0 381h960M441 274 0 345m458-71L94 400m380-126L304 400m190-126 21 126m-1-126 213 126m-195-126L950 400m-401-126 411 64" stroke-width="1" opacity=".66"/>
+</svg>

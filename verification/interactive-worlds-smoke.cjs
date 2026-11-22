@@ -23,6 +23,11 @@ const server=createServer(async(req,res)=>{
     const context=await browser.newContext({viewport:size,hasTouch:size.width<500,acceptDownloads:true});const page=await context.newPage();const errors=[];
     page.on('pageerror',e=>errors.push(e.message));
     const checkWidth=async()=>assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+    await page.addInitScript(()=>{
+     const request=window.requestAnimationFrame.bind(window);
+     window.worldFrames=0;
+     window.requestAnimationFrame=callback=>request(time=>{window.worldFrames++;callback(time)});
+    });
     const click=async(name)=>page.getByRole('button',{name,exact:true}).click();
     const select=async(name,value)=>page.getByLabel(name,{exact:true}).selectOption(value);
     try{
@@ -39,18 +44,57 @@ const server=createServer(async(req,res)=>{
       await page.locator('[data-iw-card="'+id+'"]').click();await page.waitForURL(base+'/interactives/'+id);
       await page.locator('#iw-stage '+(id==='os'?'.iw-os':'canvas')).waitFor();await checkWidth();
       await click('Pause');assert.equal(await page.locator('#iw-pause').getAttribute('aria-pressed'),'true');
-      if(id==='room'){for(const name of ['Look outside','Use computer','Toggle lamp','Pet cat','Inspect model car'])await click(name)}
-      if(id==='universe'){await click('Discover this view');await select('Celestial view','1');await select('Celestial view','2');await select('Quality','Low');assert.equal(await page.locator('#iw-stage canvas').evaluate(el=>el.width),480)}
+      if(id==='room'){
+       await click('Pet cat');await click('Pet cat');
+       await page.locator('header a.iw-back').click();
+       await page.locator('[data-iw-card="room"]').click();
+       await page.waitForFunction(()=>document.querySelector('#iw-discovery').textContent.startsWith('1 /'));
+       await click('Pause');
+       for(const name of ['Look outside','Use computer','Toggle lamp'])await click(name);
+       assert.equal(await page.locator('#iw-world-badge').getAttribute('data-earned'),null);
+       await click('Secret drawer');assert.match(await page.locator('#iw-message').textContent(),/tiny note/);
+       await click('Inspect model car');
+      }
+      if(id==='universe'){
+       await click('Discover this view');
+       await select('Celestial view','1');
+       await select('Celestial view','2');
+       await select('Quality','Low');
+       const surface=page.locator('#iw-stage canvas');
+       assert.equal(await surface.evaluate(el=>el.width),480);
+       if(engine==='chromium'){
+        const original=await surface.elementHandle();
+        const gl=await original.evaluateHandle(el=>el.getContext('webgl'));
+        assert.ok(await gl.evaluate(ctx=>ctx!==null),'Chromium with SwiftShader should compile the shader');
+        const recovery=await gl.evaluateHandle(ctx=>ctx.getExtension('WEBGL_lose_context'));
+        await recovery.evaluate(ext=>ext.loseContext());
+        await page.waitForFunction(old=>document.querySelector('#iw-stage canvas')!==old,original);
+        assert.ok(await surface.evaluate(el=>!!el.getContext('2d')));
+        await recovery.evaluate(ext=>ext.restoreContext());
+        await page.waitForFunction(old=>document.querySelector('#iw-stage canvas')===old,original);
+        assert.equal(await gl.evaluate(ctx=>ctx.isContextLost()),false);
+        for(const handle of [recovery,gl,original])await handle.dispose();
+       }
+      }
       if(id==='lab'){await click('Inspect invention');await select('Invention','1');await select('Invention','2');await click('Wireframe');await select('Highlight part','Chassis')}
       if(id==='os'){
+       await click('Play');
+       await page.locator('.iw-os').scrollIntoViewIfNeeded();
+       await page.waitForTimeout(150);
+       const startFrames=await page.evaluate(()=>window.worldFrames);
+       await page.waitForTimeout(1000);
+       const idleFrames=await page.evaluate(()=>window.worldFrames)-startFrames;
+       console.log(engine,size.width,'FejeOS idle callbacks in 1s:',idleFrames);
+       assert.ok(idleFrames<=2,'An idle desktop only wakes for its clock');
+       await click('Pause');
        await select('Open app','terminal');await page.getByLabel('Terminal command').fill('cat secret.txt');await click('Run');assert.match(await page.locator('[data-app="terminal"] pre').textContent(),/Secret found/);await click('Close Terminal');
        await select('Open app','calculator');await page.getByLabel('Calculator expression').fill('(12+8)*3');await click('Calculate');assert.equal(await page.locator('[data-app="calculator"] [role="status"]').textContent(),'60');await click('Close Calculator');
        await select('Open app','files');await click('▤ readme.txt');assert.match(await page.locator('[data-app="files"] pre').textContent(),/Welcome/);await click('Close Files');
-       await select('Open app','paint');assert.equal(await page.locator('[data-app="paint"] canvas').count(),1);await click('Close Paint');
+       await select('Open app','paint');assert.equal(await page.locator('[data-app="paint"] canvas').count(),1);const download=page.waitForEvent('download');await click('Save PNG');assert.equal((await download).suggestedFilename(),'fejeos-paint.png');await click('Close Paint');
        await select('Open app','settings');await click('Mint');assert.equal(await page.locator('.iw-os').getAttribute('data-wallpaper'),'mint');
       }
       if(id==='tokyo'){await click('Discover this district');await select('Neighborhood','1');await select('Neighborhood','2');await select('Time','1');await select('Neon theme','2')}
-      if(id==='particles'){await click('Discover this force');await select('Force','Repulsion');await select('Force','Vortex');await click('Burst');assert.ok(await page.locator('#iw-stage canvas').evaluate(el=>el.toDataURL('image/png').startsWith('data:image/png')))}
+      if(id==='particles'){await click('Discover this force');await select('Force','Repulsion');await select('Force','Vortex');await click('Burst');const download=page.waitForEvent('download');await click('Save PNG');assert.equal((await download).suggestedFilename(),'feje-particle-art.png');assert.ok(await page.locator('#iw-stage canvas').evaluate(el=>el.toDataURL('image/png').startsWith('data:image/png')))}
       assert.match(await page.locator('#iw-discovery').textContent(),/badge collected/);
       assert.equal(await page.locator('#iw-world-badge').getAttribute('data-earned'),'');
       await click('Play');await page.locator('#iw-stage').scrollIntoViewIfNeeded();await page.waitForTimeout(150);
@@ -59,6 +103,14 @@ const server=createServer(async(req,res)=>{
       await page.locator('header a.iw-back').click();await page.waitForURL(base+'/interactives');await page.waitForFunction(n=>document.querySelector('#iw-count').textContent===n+' / 6',ids.indexOf(id)+1);
      }
      assert.equal(await page.locator('body').getAttribute('data-complete'),'');assert.match(await page.locator('#iw-reward').textContent(),/Secret unlocked/);
+     await page.reload();await page.waitForFunction(()=>document.querySelector('#iw-count').textContent==='6 / 6');
+     for(const confirmReset of [false,true]){
+      page.once('dialog',dialog=>confirmReset?dialog.accept():dialog.dismiss());
+      await click('Reset collection');
+      assert.equal(await page.locator('#iw-count').textContent(),confirmReset?'0 / 6':'6 / 6');
+     }
+     await page.reload();await page.waitForFunction(()=>document.querySelector('#iw-clear').disabled===false);
+     assert.equal(await page.locator('[data-iw-badge][data-earned]').count(),0);
      assert.deepEqual(errors,[]);
     }finally{await context.close()}
    }
@@ -66,6 +118,22 @@ const server=createServer(async(req,res)=>{
    try{const p=await reduced.newPage();await p.goto(base+'/interactives');assert.equal(await p.locator('#iw-motion').isDisabled(),true);assert.equal(await p.locator('.iw-dragon-flight').evaluate(el=>getComputedStyle(el).animationName),'none');assert.equal(await p.locator('[data-iw-card="room"] .ix-rain').evaluate(el=>getComputedStyle(el).animationName),'none');await p.goto(base+'/interactives/room');await p.locator('#iw-stage canvas').waitFor();assert.equal(await p.locator('#iw-pause').getAttribute('aria-pressed'),'true');await p.getByRole('button',{name:'Pet cat',exact:true}).click();assert.match(await p.locator('#iw-discovery').textContent(),/^1 \//)}finally{await reduced.close()}
    const fallback=await browser.newContext({viewport:{width:390,height:844}});
    try{const p=await fallback.newPage();await p.addInitScript(()=>{const actual=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return /^webgl/.test(type)?null:actual.call(this,type,...args)}});await p.goto(base+'/interactives/universe');await p.locator('#iw-stage canvas').waitFor();await p.getByRole('button',{name:'Discover this view',exact:true}).click();assert.match(await p.locator('#iw-discovery').textContent(),/^1 \//);assert.ok(await p.locator('#iw-stage canvas').evaluate(el=>!!el.getContext('2d')))}finally{await fallback.close()}
+   const restricted=await browser.newContext();
+   try{
+    await restricted.addInitScript(()=>{
+     const set=Storage.prototype.setItem;
+     Storage.prototype.setItem=function(key,value){
+      if(this===localStorage)throw new DOMException('Full','QuotaExceededError');
+      return set.call(this,key,value);
+     };
+    });
+    const p=await restricted.newPage();await p.goto(base+'/interactives/tokyo');
+    await p.getByRole('button',{name:'Discover this district'}).click();
+    await p.getByLabel('Neighborhood').selectOption('1');await p.getByLabel('Neighborhood').selectOption('2');
+    await p.locator('header a.iw-back').click();await p.reload();
+    await p.waitForFunction(()=>document.querySelector('#iw-count').textContent==='1 / 6');
+    assert.match(await p.locator('#iw-reward').textContent(),/temporary/);
+   }finally{await restricted.close()}
    const nojs=await browser.newContext({javaScriptEnabled:false,viewport:{width:320,height:568}});
    try{const p=await nojs.newPage();await p.goto(base+'/interactives');assert.equal(await p.locator('[data-iw-card]').count(),6);await p.locator('[data-iw-card="room"]').click();assert.equal(await p.locator('noscript').isVisible(),true)}finally{await nojs.close()}
   }finally{await browser.close()}

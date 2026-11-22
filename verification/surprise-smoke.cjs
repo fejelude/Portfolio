@@ -42,7 +42,10 @@ const server=createServer(async(req,res)=>{
     const bounds=await page.locator('.kawaii-hero').boundingBox();assert.ok(bounds.x>=0&&bounds.y>=0);
     await page.screenshot({path:path.join(__dirname,`surprise-results/${name}-${mobile?'mobile':'desktop'}-peak.png`)});
     if(mobile){await page.setViewportSize({width:844,height:390});await page.waitForTimeout(100);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);}
-    await page.waitForSelector('.kawaii-world',{state:'detached',timeout:13000});
+    // The reveal starts immediately. Allow the actual remaining song plus its fade.
+    const remaining=await page.evaluate(()=>window.__testAudio.duration-window.__testAudio.currentTime);
+    assert.ok(Number.isFinite(remaining)&&remaining>=0&&remaining<30);
+    await page.waitForSelector('.kawaii-world',{state:'detached',timeout:Math.ceil(remaining*1000)+5000});
     assert.equal(await page.evaluate(()=>window.__testAudio.paused),true);
     assert.equal(await page.locator('#surprise-trigger').getAttribute('aria-disabled'),null);
     await page.locator('#surprise-trigger').click();assert.notEqual(await page.evaluate(()=>window.__testAudio.src),track);
