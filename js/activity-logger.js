@@ -1,118 +1,38 @@
 (() => {
-  const SESSION_KEY = 'portfolio-session-id';
-  const QUEUE_KEY = 'portfolio-activity-queue';
-  const ENDPOINT = '/api/activity';
-  const MAX_QUEUE = 30;
-
-  function allowTracking() {
-    return navigator.doNotTrack !== '1' && window.doNotTrack !== '1';
+  const KEY='portfolio-session-id', EXPIRY='portfolio-session-expiry';
+  const DAY=86400000;
+  function allowed(){return navigator.doNotTrack!=='1'&&window.doNotTrack!=='1'&&navigator.globalPrivacyControl!==true;}
+  function page(){
+    const path=location.pathname.toLowerCase().replace(/\/+$/,'')||'/';
+    if(['/', '/index','/index.html'].includes(path))return '/';
+    if(['/gallery','/gallery.html','/arcade','/arcade.html'].includes(path))return '/Gallery.html';
+    if(['/sofra/about','/sofra.html'].includes(path))return '/sofra/about';
+    return '';
   }
-
-  function getSessionId() {
-    try {
-      let id = window.localStorage.getItem(SESSION_KEY);
-      if (!id) {
-        id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-        window.localStorage.setItem(SESSION_KEY, id);
-      }
+  function browserId(){
+    try{
+      let id=localStorage.getItem(KEY);
+      const until=Number(localStorage.getItem(EXPIRY));
+      if(!id||!(/^[a-zA-Z0-9_-]{8,80}$/).test(id)||(until&&until<=Date.now())){
+        id=typeof crypto.randomUUID==='function'?crypto.randomUUID():Array.from(crypto.getRandomValues(new Uint8Array(16)),v=>v.toString(16).padStart(2,'0')).join('');
+        localStorage.setItem(KEY,id);localStorage.setItem(EXPIRY,String(Date.now()+30*DAY));
+      }else if(!until)localStorage.setItem(EXPIRY,String(Date.now()+30*DAY));
       return id;
-    } catch (error) {
-      return '';
-    }
+    }catch{return '';}
   }
-
-  function deviceType() {
-    const width = window.innerWidth || 0;
-    if (width <= 767) return 'Mobile';
-    if (width <= 1024) return 'Tablet';
-    return 'Desktop';
+  let sent=false;
+  async function track(type){
+    if(type!=='page_view'||sent||!allowed())return;
+    const path=page();if(!path)return;
+    sent=true;
+    const sessionId=browserId();
+    try{
+      await fetch('/api/activity',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'page_view',path,sessionId}),credentials:'same-origin',keepalive:true});
+    }catch{/* No persistent retry queue of private browsing activity. */}
   }
-
-  function payload(type, details = {}) {
-    return {
-      type,
-      path: `${window.location.pathname}${window.location.search}`,
-      title: document.title,
-      referrer: document.referrer,
-      sessionId: getSessionId(),
-      timestamp: new Date().toISOString(),
-      device: deviceType(),
-      viewport: {
-        width: window.innerWidth || null,
-        height: window.innerHeight || null
-      },
-      ...details
-    };
-  }
-
-  function readQueue() {
-    try {
-      return JSON.parse(window.localStorage.getItem(QUEUE_KEY) || '[]')
-        .filter((item) => typeof item === 'string' && item);
-    } catch (error) {
-      return [];
-    }
-  }
-
-  function writeQueue(items) {
-    try {
-      window.localStorage.setItem(QUEUE_KEY, JSON.stringify(items.slice(-MAX_QUEUE)));
-    } catch (error) {}
-  }
-
-  function queue(body) {
-    const items = readQueue();
-    items.push(body);
-    writeQueue(items);
-  }
-
-  async function post(body) {
-    const response = await fetch(ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body,
-      credentials: 'same-origin',
-      keepalive: true
-    });
-
-    if (!response.ok) throw new Error('Activity log request failed.');
-  }
-
-  async function flushQueue() {
-    if (!allowTracking()) return;
-
-    const items = readQueue();
-    if (!items.length) return;
-
-    const remaining = [];
-    for (const body of items) {
-      try {
-        await post(body);
-      } catch (error) {
-        remaining.push(body);
-      }
-    }
-    writeQueue(remaining);
-  }
-
-  function send(type, details = {}) {
-    if (!allowTracking()) return;
-
-    const body = JSON.stringify(payload(type, details));
-    if (navigator.sendBeacon) {
-      const blob = new Blob([body], { type: 'application/json' });
-      if (navigator.sendBeacon(ENDPOINT, blob)) return;
-    }
-
-    post(body).catch(() => queue(body));
-  }
-
-  window.PortfolioActivity = {
-    track: send
-  };
-
-  window.addEventListener('DOMContentLoaded', () => {
-    flushQueue();
-    send('page_view', { section: document.body?.classList.contains('arcade-page') ? 'arcade' : 'site' });
-  }, { once: true });
+  // Preserve the public method so existing callers do not break; non-page
+  // events are intentionally ignored, including repeated clicks/animations.
+  window.PortfolioActivity={track};
+  if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',()=>track('page_view'),{once:true});
+  else track('page_view');
 })();
