@@ -2,7 +2,7 @@
 // visitor requests it. Static finished artwork is the no-JS fallback.
 const section=document.querySelector('#roblox-creations');
 if(section){
-  const entries=[...section.querySelectorAll('.rc-entry')];
+  const entries=[...section.querySelectorAll('.rc-header, .rc-entry')];
   const toggle=section.querySelector('.rc-motion-toggle');
   const motion=matchMedia('(prefers-reduced-motion: reduce)');
   const visible=new Set();
@@ -11,7 +11,7 @@ if(section){
     if(toggle){
       toggle.hidden=motion.matches;
       toggle.setAttribute('aria-pressed',String(paused));
-      const label=paused?'Resume game icon animations':'Pause game icon animations';
+      const label=paused?'Resume Roblox animations':'Pause Roblox animations';
       toggle.setAttribute('aria-label',label);toggle.title=label;
     }
     for(const entry of entries){
@@ -26,13 +26,13 @@ if(section){
   if('IntersectionObserver' in window){
     const observer=new IntersectionObserver(items=>{
       for(const item of items){
-        const entry=item.target.closest('.rc-entry');
+        const entry=item.target.closest('.rc-header, .rc-entry');
         if(!entry)continue;
         if(item.isIntersecting)visible.add(entry);else visible.delete(entry);
       }
       sync();
     },{threshold:.15});
-    for(const entry of entries)observer.observe(entry.querySelector('.rc-motif'));
+    for(const entry of entries)observer.observe(entry.querySelector('.rc-roblox-logo, .rc-motif'));
   }else for(const entry of entries)visible.add(entry);
   toggle?.addEventListener('click',()=>{paused=!paused;sync();});
   document.addEventListener('visibilitychange',sync);

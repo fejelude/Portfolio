@@ -23,6 +23,16 @@ const server=createServer(async(req,res)=>{
      const page=await context.newPage();await page.route('**/*',r=>r.request().url().startsWith(url)?r.continue():r.abort());await page.goto(url,{waitUntil:'domcontentloaded'});
      const section=page.locator('#roblox-creations');await section.scrollIntoViewIfNeeded();assert.equal(await section.isVisible(),true);
      assert.equal(await section.locator('article').count(),2);
+     const logo=section.locator('.rc-roblox-logo');
+     await logo.scrollIntoViewIfNeeded();
+     assert.equal(await logo.count(),1);
+     assert.equal(await logo.getAttribute('aria-hidden'),'true');
+     assert.ok(await logo.evaluate(el=>{const r=el.getBoundingClientRect(),h=el.closest('h2').getBoundingClientRect();return r.width>=26&&r.width<=43&&r.left>=h.left-1&&r.right<=h.right+1;}));
+     for(const [selector,color] of [['#roblox-creations-title','rgb(199, 169, 255)'],['#rc-garage-title','rgb(229, 176, 210)'],['#rc-build-title','rgb(175, 217, 179)']]){
+      assert.equal(await section.locator(selector).evaluate(el=>getComputedStyle(el).color),color);
+     }
+     if(mode==='reduced'||mode==='no-js')assert.equal(await logo.locator('.rc-roblox-logo-body').evaluate(el=>getComputedStyle(el).animationName),'none');
+     else await page.waitForFunction(()=>getComputedStyle(document.querySelector('.rc-roblox-logo-body')).animationName==='rc-logo-idle');
      for(const img of await section.locator('img').all()){await img.scrollIntoViewIfNeeded();await img.evaluate(el=>el.decode());assert.ok(await img.evaluate(el=>el.naturalWidth===Number(el.getAttribute('width'))&&el.naturalHeight===Number(el.getAttribute('height'))&&Math.abs(el.getBoundingClientRect().width/el.getBoundingClientRect().height-el.naturalWidth/el.naturalHeight)<.025));}
      assert.equal(await section.evaluate(el=>{const r=el.getBoundingClientRect();return r.left>=-1&&r.right<=innerWidth+1&&el.scrollWidth<=el.clientWidth+1;}),true);
      const stacked=await section.locator('.rc-entry').first().evaluate(el=>getComputedStyle(el).gridTemplateAreas.startsWith('"heading"'));
@@ -40,9 +50,11 @@ const server=createServer(async(req,res)=>{
       }
       const toggle=section.locator('.rc-motion-toggle');await toggle.click();
       assert.equal(await toggle.getAttribute('aria-pressed'),'true');
+      await logo.scrollIntoViewIfNeeded();assert.equal(await logo.locator('.rc-roblox-logo-body').evaluate(el=>getComputedStyle(el).animationPlayState),'paused');
       const first=section.locator('.rc-garage .rc-motif');await first.scrollIntoViewIfNeeded();
       assert.equal(await first.locator('.rc-car').evaluate(el=>getComputedStyle(el).animationPlayState),'paused');
       await toggle.click();assert.equal(await toggle.getAttribute('aria-pressed'),'false');
+      await logo.scrollIntoViewIfNeeded();await page.waitForFunction(()=>getComputedStyle(document.querySelector('.rc-roblox-logo-body')).animationPlayState==='running');
      }
      await section.screenshot({path:path.join(out,'roblox-'+name+'-'+width+'-'+mode+'.png'),animations:'disabled'});
     }finally{await context.close();}
