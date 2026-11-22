@@ -22,7 +22,12 @@ test('Both actual screenshot previews are local WebP files with reserved dimensi
     assert.equal(data.toString('ascii',8,12),'WEBP');
     assert.equal(data.readUInt32LE(4)+8,data.length);
     const img=section.match(new RegExp('<img src="/'+file.replace('.','\\.')+'"[^>]*>'))?.[0];
-    assert.ok(img);assert.match(img,/width="\d+" height="\d+"/);assert.match(img,/loading="lazy"/);assert.match(img,/alt="[^"]+"/);
+    assert.ok(img);assert.match(img,/width="\d+" height="\d+"/);
+    const [,w,h]=img.match(/width="(\d+)" height="(\d+)"/);
+    assert.equal(data.toString('ascii',12,16),'VP8 ');
+    assert.equal(data.readUInt16LE(26)&0x3fff,Number(w));assert.equal(data.readUInt16LE(28)&0x3fff,Number(h));
+    const sourceRatio=name==='dream-garage-tycoon'?937/914:966/916;
+    assert.ok(Math.abs(Number(w)/Number(h)-sourceRatio)<.003);assert.match(img,/loading="lazy"/);assert.match(img,/alt="[^"]+"/);
   }
 });
 test('Owner-supplied links, full screenshot proportions and continuous motion are retained',()=>{
@@ -32,7 +37,7 @@ test('Owner-supplied links, full screenshot proportions and continuous motion ar
     const entry=section.match(new RegExp('<article class="rc-entry rc-'+id+'"[\\s\\S]*?<\\/article>'))[0];
     assert.ok(entry.includes('https://www.roblox.com/share?code='+code+'&amp;type=ExperienceDetails&amp;stamp='+stamp));
     assert.match(entry,/target="_blank" rel="noopener noreferrer"/);
-    assert.match(entry,/width="300" height="(?:293|284)"/);
+    assert.match(entry,/width="360" height="(?:351|341)"/);
   }
   assert.doesNotMatch(section,/active players|live players|approval rating/i);
   assert.match(section,/rc-motion-toggle/);
