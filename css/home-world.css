@@ -133,3 +133,31 @@
 
 .feje-world-home .world-view-label{z-index:2}
 .feje-world-home .world-instructions{z-index:2}
+
+/* Feje's Collectibles. Keeps the purple site chrome, lets only the exhibit
+   accent reflect the selected world; no layout change outside this stage. */
+.feje-world-home .world-stage{--collection-accent:#c6a2ff}
+.feje-world-home .world-poster{background-image:url('../assets/home-world/collectible-1.svg')}
+.feje-world-home .world-collection-transition{position:absolute;inset:0;z-index:1;background:#0d0b15;opacity:0;pointer-events:none;transition:opacity .18s ease}
+.feje-world-home .world-stage[data-switching="true"] .world-collection-transition{opacity:1}
+.feje-world-home .world-stage[data-switching="true"] .world-markers{visibility:hidden}
+.feje-world-home .world-collection{padding:19px 0 15px;border-bottom:1px solid var(--world-line);min-width:0}
+.feje-world-home .collection-header{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:12px;align-items:center}
+.feje-world-home .collection-title{min-width:0;text-align:center}
+.feje-world-home .collection-kicker{display:flex;justify-content:center;gap:9px;color:var(--collection-accent);font-size:.63rem;letter-spacing:.13em}
+.feje-world-home .collection-kicker span{color:#bfb5cd}
+.feje-world-home .collection-title h2{font:700 clamp(1.12rem,2.5vw,1.85rem)/1.19 'Space Grotesk',sans-serif;letter-spacing:-.035em;color:#f5effa;margin:5px 0 3px;overflow-wrap:break-word}
+.feje-world-home .collection-title p{font-size:.79rem;line-height:1.4;color:var(--collection-accent);margin:0}
+.feje-world-home .collection-arrow,.feje-world-home .collection-slots button{display:grid;place-items:center;color:#c9bfd8;background:#15111e;border:1px solid #42364e;border-radius:0;min-width:0;min-height:44px;cursor:pointer;font:600 .78rem 'Space Grotesk',sans-serif;transition:border-color .18s,color .18s,background .18s}
+.feje-world-home .collection-arrow svg{width:20px;height:20px}
+.feje-world-home .collection-slots{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin-top:14px}
+.feje-world-home .collection-slots button[aria-pressed="true"]{color:var(--collection-accent);border-color:var(--collection-accent);background:#241b30;box-shadow:inset 0 -2px 0 var(--collection-accent)}
+.feje-world-home .collection-arrow:hover,.feje-world-home .collection-slots button:hover{color:var(--collection-accent);border-color:var(--collection-accent)}
+.feje-world-home .collection-arrow:focus-visible,.feje-world-home .collection-slots button:focus-visible{outline:2px solid var(--collection-accent);outline-offset:2px}
+.feje-world-home .collection-note{font-size:.68rem;color:#bdb1ca;margin-top:9px;text-align:center;line-height:1.4}
+.feje-world-home .collection-note span{color:var(--collection-accent);padding:0 3px}
+.feje-world-home .world-view-label{letter-spacing:.12em}
+.feje-world-home #world-showcase:disabled{opacity:.5;cursor:default}
+@media(min-width:1380px){.feje-world-home .collection-slots{grid-template-columns:repeat(10,minmax(0,1fr))}}
+@media(max-width:350px){.feje-world-home .world-view-label{font-size:.53rem;inset-inline:10px}.feje-world-home .collection-header{gap:6px}}
+@media(prefers-reduced-motion:reduce){.feje-world-home .world-collection-transition,.feje-world-home .collection-arrow,.feje-world-home .collection-slots button{transition:none}}
