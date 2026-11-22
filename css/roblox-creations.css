@@ -46,11 +46,13 @@
 .feje-world-home #roblox-creations .rc-play-link{display:inline-flex;align-items:center;justify-content:space-between;gap:26px;max-width:100%;min-height:44px;padding:8px 14px;margin-top:8px;border:1px solid var(--rc-accent);border-radius:5px;color:var(--rc-accent);background:#1b1623;font:600 .85rem/1.4 'Space Grotesk',sans-serif;text-decoration:none;transition:background .2s,color .2s}
 .feje-world-home #roblox-creations .rc-play-link:hover{color:#100d18;background:var(--rc-accent)}
 .feje-world-home #roblox-creations .rc-play-link:focus-visible,.feje-world-home #roblox-creations .rc-motion-toggle:focus-visible{outline:2px solid var(--rc-purple);outline-offset:4px}
-.feje-world-home #roblox-creations .rc-motion-toggle{display:inline-grid;place-items:center;width:44px;height:44px;margin-top:12px;padding:10px;color:var(--rc-muted);border:1px solid var(--rc-line);border-radius:5px;background:transparent;cursor:pointer}
-.feje-world-home #roblox-creations .rc-motion-toggle[hidden]{display:none}
-.feje-world-home #roblox-creations .rc-motion-toggle svg{width:20px;height:20px}
-.feje-world-home #roblox-creations .rc-motion-toggle .rc-play-glyph,.feje-world-home #roblox-creations .rc-motion-toggle[aria-pressed="true"] .rc-pause-glyph{display:none}
-.feje-world-home #roblox-creations .rc-motion-toggle[aria-pressed="true"] .rc-play-glyph{display:block}
+/* Logo doubles as the pause control, retaining a full 44px touch target. */
+.feje-world-home #roblox-creations .rc-motion-toggle{position:relative;display:inline-grid;place-items:center;flex:0 0 44px;width:44px;height:44px;padding:0;margin:0;border:0;border-radius:4px;background:none;color:var(--rc-purple);box-shadow:none;cursor:pointer}
+.feje-world-home #roblox-creations .rc-motion-toggle:disabled{opacity:1;cursor:default}
+.feje-world-home #roblox-creations .rc-motion-toggle .rc-motion-state{position:absolute;right:-1px;bottom:-1px;width:12px;height:12px;background:#24192e;border:1px solid #7c6398;border-radius:2px;color:#e9d7ff;opacity:0;pointer-events:none}
+.feje-world-home #roblox-creations .rc-motion-toggle:not(:disabled):is(:hover,:focus-visible,[aria-pressed="true"]) .rc-motion-state{opacity:1}
+.feje-world-home #roblox-creations .rc-motion-toggle .rc-state-play,.feje-world-home #roblox-creations .rc-motion-toggle[aria-pressed="true"] .rc-state-pause{display:none}
+.feje-world-home #roblox-creations .rc-motion-toggle[aria-pressed="true"] .rc-state-play{display:block}
 .feje-world-home #roblox-creations .rc-headlight,.feje-world-home #roblox-creations .rc-coin,.feje-world-home #roblox-creations .rc-spark{opacity:0}
 .feje-world-home #roblox-creations .rc-shutter{transform:translateY(-14px)}
 .feje-world-home #roblox-creations .rc-wheel-spin{opacity:0}
@@ -85,7 +87,7 @@
 @keyframes rc-water{0%,100%{opacity:.3}25%{opacity:.8}50%{opacity:.45}75%{opacity:1}}
 @keyframes rc-spark{0%,100%{opacity:0}33%,66%{opacity:1}}
 @media(prefers-reduced-motion:reduce){
- .feje-world-home #roblox-creations .rc-motion-toggle{display:none}
+ .feje-world-home #roblox-creations .rc-motion-toggle .rc-motion-state{display:none}
  .feje-world-home #roblox-creations .rc-play-link{transition:none}
 }
 
@@ -120,3 +122,56 @@
  75%{transform:translateY(-2px) rotate(7deg)}
 }
 @keyframes rc-logo-glint{0%,100%{opacity:.65}25%,75%{opacity:1}50%{opacity:.25}}
+
+
+/* CHROMATIC SHOWCASE: tint the page only while the reading line is inside the
+   Roblox chapter. No layout shift, fullscreen filter, canvas or video layer. */
+body.feje-world-home{--rc-page:#0c0a12;--rc-nav:#100e18;--rc-chrome-line:#332b40;background-color:var(--rc-page)}
+body.feje-world-home[data-rc-scene="intro"]{--rc-page:#20142f;--rc-nav:#1a1227;--rc-chrome-line:#59416f}
+body.feje-world-home[data-rc-scene="garage"]{--rc-page:#301824;--rc-nav:#25131e;--rc-chrome-line:#75425d}
+body.feje-world-home[data-rc-scene="build"]{--rc-page:#112921;--rc-nav:#11211c;--rc-chrome-line:#3f7058}
+body.feje-world-home[data-rc-scene="note"]{--rc-page:#21162f;--rc-nav:#1b1328;--rc-chrome-line:#584473}
+body.feje-world-home .premium-nav{background-color:var(--rc-nav);border-bottom-color:var(--rc-chrome-line)}
+.feje-world-home #roblox-creations{
+ position:relative;isolation:isolate;content-visibility:visible;
+ background-image:linear-gradient(180deg,transparent 0%,#20142fba 10%,#301824b0 28%,#301824a0 42%,#112921b0 62%,#112921a0 76%,#21162fb0 89%,transparent 100%);
+}
+.feje-world-home #roblox-creations[data-rc-enhanced]{background-image:linear-gradient(180deg,transparent,#ffffff03 9%,#ffffff03 91%,transparent)}
+.feje-world-home #roblox-creations .rc-container{position:relative}
+.feje-world-home #roblox-creations [data-rc-zone]{position:relative;isolation:isolate}
+.feje-world-home #roblox-creations .rc-header,.feje-world-home #roblox-creations .rc-note{--rc-ambient:#c7a9ff}
+.feje-world-home #roblox-creations .rc-entry{--rc-ambient:var(--rc-accent)}
+/* Keep small particles at the reading-area margins, behind all content. */
+.feje-world-home #roblox-creations .rc-particles{position:absolute;inset:8px -12px;overflow:hidden;pointer-events:none;z-index:-1;color:var(--rc-ambient)}
+.feje-world-home #roblox-creations .rc-particles i{position:absolute;left:var(--px);top:var(--py);width:var(--ps);height:var(--ps);display:block;background:currentColor;opacity:.32}
+.feje-world-home #roblox-creations .rc-particles i:nth-child(3n+2){box-shadow:0 -2px currentColor,0 2px currentColor,-2px 0 currentColor,2px 0 currentColor;opacity:.2}
+.feje-world-home #roblox-creations .rc-note .rc-particles{inset-inline:0 -12px}
+.feje-world-home #roblox-creations .rc-image-frame{border-color:color-mix(in srgb,var(--rc-accent) 30%,#332b40);box-shadow:0 0 0 1px color-mix(in srgb,var(--rc-accent) 7%,transparent)}
+.feje-world-home #roblox-creations .rc-entry[data-rc-current] .rc-image-frame{
+ border-color:color-mix(in srgb,var(--rc-accent) 78%,#332b40);
+ box-shadow:0 0 0 1px color-mix(in srgb,var(--rc-accent) 20%,transparent),0 0 30px color-mix(in srgb,var(--rc-accent) 19%,transparent);
+}
+.feje-world-home #roblox-creations .rc-image-frame::before{z-index:1}
+.feje-world-home #roblox-creations .rc-image-frame::after{content:"";position:absolute;bottom:0;right:10px;width:44px;height:2px;background:var(--rc-accent);opacity:.12;pointer-events:none}
+.feje-world-home #roblox-creations .rc-entry[data-rc-current] .rc-image-frame::after{opacity:1}
+.feje-world-home #roblox-creations .rc-note{border-left-color:#c7a9ff;background:linear-gradient(90deg,#c7a9ff0b,transparent 72%)}
+.feje-world-home #roblox-creations .rc-note-mark{display:block;width:100%;max-width:36px;height:auto;shape-rendering:crispEdges;overflow:visible;margin-top:3px}
+.feje-world-home #roblox-creations .rc-heart-beat{opacity:0}
+@media(prefers-reduced-motion:no-preference){
+ body.feje-world-home:not([data-rc-motion="paused"]){transition:background-color .78s cubic-bezier(.22,.61,.36,1)}
+ body.feje-world-home:not([data-rc-motion="paused"]) .premium-nav{transition:background-color .78s cubic-bezier(.22,.61,.36,1),border-bottom-color .78s ease}
+ .feje-world-home #roblox-creations:not([data-rc-paused]) .rc-image-frame{transition:border-color .65s ease,box-shadow .65s ease}
+ .feje-world-home #roblox-creations:not([data-rc-paused]) .rc-image-frame::after{transition:opacity .65s ease}
+ .feje-world-home #roblox-creations:not([data-rc-paused]) [data-rc-current] .rc-particles i{animation:rc-pixel-drift 5.6s steps(1,end) infinite;animation-delay:var(--pd)}
+ .feje-world-home #roblox-creations .rc-note[data-animate] .rc-heart-rest{animation:rc-heart-rest 2.4s steps(1,end) infinite}
+ .feje-world-home #roblox-creations .rc-note[data-animate] .rc-heart-beat{animation:rc-heart-beat 2.4s steps(1,end) infinite}
+ .feje-world-home #roblox-creations .rc-note[data-animation-paused] .rc-note-mark *{animation-play-state:paused}
+}
+@keyframes rc-pixel-drift{0%,100%{transform:translateY(0);opacity:.23}25%{transform:translateY(-3px);opacity:.42}50%{transform:translateY(-6px);opacity:.23}75%{transform:translateY(-3px);opacity:.13}}
+@keyframes rc-heart-rest{0%,100%{opacity:1}12%{opacity:0}22%{opacity:1}33%{opacity:0}43%{opacity:1}}
+@keyframes rc-heart-beat{0%,100%{opacity:0}12%{opacity:1}22%{opacity:0}33%{opacity:1}43%{opacity:0}}
+@media(max-width:420px){
+ .feje-world-home #roblox-creations .rc-particles{inset-inline:-8px}
+ .feje-world-home #roblox-creations .rc-note .rc-particles{inset-inline:0 -8px}
+ .feje-world-home #roblox-creations .rc-header h2{gap:7px}
+}
