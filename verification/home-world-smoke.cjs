@@ -40,7 +40,12 @@ const server=createServer(async(req,res)=>{
         const launch=page.locator('#world-launch'), stage=page.locator('#world-stage');
         await page.locator('#world-viewport').scrollIntoViewIfNeeded();
         if(mode==='reduced')assert.equal(await stage.getAttribute('data-state'),null);
-        if(await launch.isVisible())await launch.click();
+        await page.waitForFunction(()=>{const s=document.querySelector('#world-stage'),b=document.querySelector('#world-launch');return s.dataset.state==='live'||(!b.hidden&&!b.disabled);});
+        if((await stage.getAttribute('data-state'))!=='live') {
+          // Automatic desktop startup may race an explicit click; success in
+          // either path is equivalent. Do not swallow a failed launch.
+          try{await launch.click({timeout:2500});}catch(error){if((await stage.getAttribute('data-state'))!=='live')throw error;}
+        }
         await page.waitForFunction(()=>['live','fallback'].includes(document.querySelector('#world-stage').dataset.state));
         const state=await stage.getAttribute('data-state');
         if(mode==='no-webgl')assert.equal(state,'fallback');

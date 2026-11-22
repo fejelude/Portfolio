@@ -101,6 +101,12 @@ if(stage){
   listen(window,'resize',request);
   listen(document,'visibilitychange',()=>{if(document.hidden)stop();else request();});
   listen(motionQuery,'change',e=>{paused=e.matches;updateMotion();request();});
+  // The legacy smooth-scroll handler doesn't focus its destination; keep the
+  // skip link useful for keyboard users without touching shared main.js.
+  listen(document.querySelector('.skip-link'),'click',e=>{
+    e.preventDefault();e.stopImmediatePropagation();
+    const main=$('main-content');main.focus({preventScroll:true});main.scrollIntoView({behavior:'auto'});
+  });
   // Existing page anchors also select a corresponding view without intercepting navigation.
   listen(document,'click',e=>{
     const href=e.target.closest?.('a[href^="#"]')?.getAttribute('href');

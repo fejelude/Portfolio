@@ -165,7 +165,7 @@ const FRAG=[
 const SKYV='attribute vec2 aPosition;varying vec2 vUv;void main(){vUv=aPosition;gl_Position=vec4(aPosition,0.,1.);}';
 const SKYF=[
 'precision mediump float;varying vec2 vUv;uniform vec3 uForward,uRight,uUp;uniform float uAspect;',
-'float hash(vec2 a){return fract(sin(dot(a,vec2(41.7,289.1)))*43758.5453);}',
+'float hash(vec2 a){a=mod(a,64.);return fract(sin(dot(a,vec2(4.17,2.891)))*437.585); }',
 'float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+1.),f.x),f.y);}',
 'void main(){vec3 r=normalize(uForward+uRight*vUv.x*uAspect*.404+uUp*vUv.y*.404);float h=clamp(r.y+.12,0.,1.);vec3 col=mix(vec3(.56,.34,.44),vec3(.10,.075,.16),smoothstep(0.,.72,h));',
 'vec3 sun=normalize(vec3(-.5,.12,-.8));float s=max(dot(r,sun),0.);col+=pow(s,35.)*vec3(.34,.18,.13)+pow(s,350.)*vec3(.34,.24,.19);',
@@ -231,7 +231,8 @@ export class TerminalRenderer{
 }
 export function copyView(v){return {target:v.target.slice(),yaw:v.yaw,pitch:v.pitch,radius:v.radius};}
 export function blendView(current,goal,dt,instant=false){
-  const t=instant?1:1-Math.exp(-Math.max(0,dt)*5.2);
+  if(instant){Object.assign(current,copyView(goal));return 0;}
+  const t=1-Math.exp(-Math.max(0,dt)*5.2);
   current.target=mix(current.target,goal.target,t);
   for(const k of ['yaw','pitch','radius'])current[k]+=(goal[k]-current[k])*t;
   return Math.abs(current.yaw-goal.yaw)+Math.abs(current.pitch-goal.pitch)+Math.abs(current.radius-goal.radius)+Math.hypot(...sub(current.target,goal.target));
