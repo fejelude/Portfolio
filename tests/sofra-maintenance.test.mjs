@@ -44,3 +44,11 @@ test('animation lifecycle respects visibility, manual pause, reduced motion and 
  listener([{isIntersecting:true}]);win.events.pagehide({persisted:true});assert.ok(!classes.has('is-running'));
  win.events.pageshow();assert.ok(classes.has('is-running'));win.events.pagehide({persisted:false});assert.ok(disconnected);
 });
+
+test('offline status uses a round red indicator and a motion-aware pulse',()=>{
+ const css=read('css/sofra-maintenance.css');
+ const dot=css.match(/\.sm-status>span\{([^}]+)\}/)?.[1]||'';
+ assert.match(dot,/width:8px;height:8px;background:#ff453a;border-radius:50%/);
+ assert.match(css,/@media\(prefers-reduced-motion:no-preference\)\{\s*\.sm-content:has\(\.sm-mascot\.is-running\) \.sm-status>span\{animation:sm-status-breathe 1\.8s ease-in-out infinite\}/);
+ assert.match(css,/@keyframes sm-status-breathe/);
+});

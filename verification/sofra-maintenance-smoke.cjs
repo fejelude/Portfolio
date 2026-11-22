@@ -36,14 +36,21 @@ const server=createServer(async(req,res)=>{
     assert.equal(await p.locator('a.sm-home').getAttribute('href'),'/');
     assert.equal(await p.locator('#auth-gate').count(),0);
     const mascot=p.locator('.sm-mascot'),tear=mascot.locator('.sm-tear-left');
+    const dot=p.locator('.sm-status>span');
+    const dotStyle=()=>dot.evaluate(el=>{const s=getComputedStyle(el);return {color:s.backgroundColor,radius:s.borderTopLeftRadius,width:s.width,height:s.height,animation:s.animationName};});
+    const ds=await dotStyle();
+    assert.equal(ds.color,'rgb(255, 69, 58)');assert.equal(ds.radius,'50%');assert.equal(ds.width,ds.height);
     if(mode==='normal'){
       await p.waitForFunction(()=>document.querySelector('.sm-mascot').classList.contains('is-running'));
       assert.equal(await tear.evaluate(el=>getComputedStyle(el).animationIterationCount),'infinite');
+      assert.equal((await dotStyle()).animation,'sm-status-breathe');
       const frames=await tear.evaluate(el=>{const a=el.getAnimations()[0];a.pause();a.currentTime=0;const start=getComputedStyle(el).transform;a.currentTime=600;const mid=getComputedStyle(el).transform;a.currentTime=1200;const repeat=getComputedStyle(el).transform;a.play();return [start,mid,repeat];});
       assert.notEqual(frames[0],frames[1]);assert.equal(frames[0],frames[2]);
       await mascot.click();assert.equal(await tear.evaluate(el=>getComputedStyle(el).animationPlayState),'paused');
+      assert.equal((await dotStyle()).animation,'none');
       await mascot.click();assert.equal(await tear.evaluate(el=>getComputedStyle(el).animationPlayState),'running');
-    }else{assert.equal(await mascot.isDisabled(),true);assert.equal(await tear.evaluate(el=>getComputedStyle(el).animationName),'none');}
+      assert.equal((await dotStyle()).animation,'sm-status-breathe');
+    }else{assert.equal(await mascot.isDisabled(),true);assert.equal(await tear.evaluate(el=>getComputedStyle(el).animationName),'none');assert.equal((await dotStyle()).animation,'none');}
     assert.deepEqual(errors,[]);assert.deepEqual(api,[]);
     await p.goto(base+'/SofraPanel');assert.equal(new URL(p.url()).pathname,'/sofra');assert.equal(await p.locator('.sm-content').count(),1);
     await p.locator('a.sm-home').click();assert.equal(new URL(p.url()).pathname,'/');
