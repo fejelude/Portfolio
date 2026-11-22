@@ -9,10 +9,10 @@
   const wrapper=node('div','');wrapper.setAttribute('role','listitem');
   const entry=node('details','visitor-entry'),header=node('summary'),icon=node('span','visitor-icon',v.device==='Mobile'?'M':v.device==='Tablet'?'T':v.device==='Desktop'?'D':'?');icon.setAttribute('aria-hidden','true');
   const main=node('span','visitor-main');main.append(node('span','visitor-name',[v.device,v.os,v.browser].filter(x=>x&&x!=='Unknown').join(' · ')||'Unknown browser'),node('span','visitor-page',pageName(v.lastPage)+' · '+v.visits+' '+(v.visits===1?'visit':'visits')));
-  const meta=node('span','visitor-meta');meta.append(node('span','visitor-ip',v.ip||'Unavailable'),node('span','',date(v.lastSeen)));
+  const meta=node('span','visitor-meta');meta.append(node('span','visitor-ip','IP: '+(v.ip||'Unavailable')),node('span','',date(v.lastSeen)));
   const chevron=node('span','visitor-chevron','›');chevron.setAttribute('aria-hidden','true');header.append(icon,main,meta,chevron);entry.append(header);
   const history=node('div','visitor-history');history.append(node('p','',v.anonymous?'Browser storage unavailable — anonymous visit.':'First recorded: '+date(v.firstSeen)));
-  const list=node('ul');for(const p of v.pages||[]){const item=node('li');item.append(node('span','',pageName(p.path)+' · '+date(p.lastSeen)),node('span','',p.count+'×'));list.append(item);}history.append(list);entry.append(history);wrapper.append(entry);return wrapper;
+  history.append(node('p','history-label','Pages visited'));const list=node('ul');for(const p of v.pages||[]){const item=node('li');item.append(node('span','',pageName(p.path)+' · '+date(p.lastSeen)),node('span','',p.count+'×'));list.append(item);}history.append(list);entry.append(history);wrapper.append(entry);return wrapper;
  }
  function render(){
   els.list.replaceChildren();

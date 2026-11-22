@@ -20,6 +20,8 @@
       return id;
     }catch{return '';}
   }
+  // Retire the old offline queue; do not replay historical click events.
+  try{localStorage.removeItem('portfolio-activity-queue');}catch{}
   let sent=false;
   async function track(type){
     if(type!=='page_view'||sent||!allowed())return;

@@ -2,6 +2,7 @@
  const form=document.querySelector('[data-admin-pad-form]');if(!form)return;
  const input=form.querySelector('#admin-password'),pad=form.querySelector('.admin-pad'),slots=[...pad.querySelectorAll('[data-code-slot]')],status=pad.querySelector('[data-pad-status]'),submit=form.querySelector('[data-pad-submit]'),droid=document.querySelector('[data-droid-state]');
  const limit=slots.length;let verifying=false;
+ pad.querySelector('.admin-code-display').addEventListener('click',()=>{if(!verifying)input.focus();});
  function setState(value){if(droid)droid.dataset.droidState=value;}
  function sync(preserve=false){
   input.value=input.value.replace(/\D/g,'').slice(0,limit);
