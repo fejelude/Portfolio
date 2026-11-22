@@ -12,12 +12,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/desktop-nav.css">
   <link rel="stylesheet" href="css/surprise.css">
 </head>
 <body>
   <div id="liquid-ether-bg"></div>
 
-  <header class="glass-nav premium-nav">
+  <header class="glass-nav premium-nav has-desktop-nav">
     <div class="container nav-container">
       <div class="logo nav-brand">
         <a href="/">
@@ -38,6 +39,35 @@
         <a href="#surprise">Click me ♡</a>
         <a href="Gallery.html">Gallery</a>
         <a href="#contact" class="btn-primary">Contact</a>
+      </nav>
+
+      <nav class="desktop-nav" aria-label="Main navigation">
+        <a class="desktop-nav-item" href="#about">About</a>
+        <a class="desktop-nav-item" href="Gallery.html">Gallery</a>
+        <div class="desktop-nav-disclosure">
+          <button class="desktop-nav-item" type="button" aria-expanded="false" aria-controls="desktop-nav-more">
+            More
+            <span class="desktop-nav-chevron" aria-hidden="true"></span>
+          </button>
+          <div class="desktop-nav-popover" id="desktop-nav-more" aria-hidden="true" inert>
+            <div class="desktop-nav-group">
+              <p id="desktop-nav-sofra">Sofra</p>
+              <ul aria-labelledby="desktop-nav-sofra">
+                <li><a href="/sofra/about">Meet Sofra</a></li>
+                <li><a href="/sofra">Sofra Panel</a></li>
+              </ul>
+            </div>
+            <div class="desktop-nav-group">
+              <p id="desktop-nav-portfolio">Portfolio</p>
+              <ul aria-labelledby="desktop-nav-portfolio">
+                <li><a href="#learning">Learning</a></li>
+                <li><a href="#goals">Goals</a></li>
+                <li><a href="#surprise">Click me ♡</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <a class="desktop-nav-item desktop-nav-contact" href="#contact">Contact</a>
       </nav>
     </div>
   </header>
