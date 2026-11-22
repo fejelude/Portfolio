@@ -23,11 +23,25 @@ const server=createServer(async(req,res)=>{
      const page=await context.newPage();await page.route('**/*',r=>r.request().url().startsWith(url)?r.continue():r.abort());await page.goto(url,{waitUntil:'domcontentloaded'});
      const section=page.locator('#roblox-creations');await section.scrollIntoViewIfNeeded();assert.equal(await section.isVisible(),true);
      assert.equal(await section.locator('article').count(),2);
-     for(const img of await section.locator('img').all()){await img.scrollIntoViewIfNeeded();await img.evaluate(el=>el.decode());assert.ok(await img.evaluate(el=>el.naturalWidth>=200));}
+     for(const img of await section.locator('img').all()){await img.scrollIntoViewIfNeeded();await img.evaluate(el=>el.decode());assert.ok(await img.evaluate(el=>el.naturalWidth===300&&Math.abs(el.getBoundingClientRect().width/el.getBoundingClientRect().height-el.naturalWidth/el.naturalHeight)<.025));}
      assert.equal(await section.evaluate(el=>{const r=el.getBoundingClientRect();return r.left>=-1&&r.right<=innerWidth+1&&el.scrollWidth<=el.clientWidth+1;}),true);
      const stacked=await section.locator('.rc-entry').first().evaluate(el=>getComputedStyle(el).gridTemplateAreas.startsWith('"heading"'));
      assert.equal(stacked,width<=760);
-     if(mode==='reduced'||mode==='no-js')assert.equal(await section.locator('[data-animate]').count(),0);
+     assert.equal(await section.locator('.rc-play-link').count(),2);
+     if(mode==='reduced'||mode==='no-js'){assert.equal(await section.locator('[data-animate]').count(),0);assert.equal(await section.locator('.rc-motion-toggle').isVisible(),false);}
+     else{
+      for(const [name,selector] of [['rc-garage','.rc-car'],['rc-build','.rc-house-upper']]){
+       const icon=section.locator('.'+name+' .rc-motif');
+       await icon.scrollIntoViewIfNeeded();
+       const part=icon.locator(selector);
+       await page.waitForFunction(sel=>getComputedStyle(document.querySelector(sel)).animationPlayState==='running'&&getComputedStyle(document.querySelector(sel)).animationIterationCount==='infinite','.'+name+' '+selector);
+      }
+      const toggle=section.locator('.rc-motion-toggle');await toggle.click();
+      assert.equal(await toggle.getAttribute('aria-pressed'),'true');
+      const first=section.locator('.rc-garage .rc-motif');await first.scrollIntoViewIfNeeded();
+      assert.equal(await first.locator('.rc-car').evaluate(el=>getComputedStyle(el).animationPlayState),'paused');
+      await toggle.click();assert.equal(await toggle.getAttribute('aria-pressed'),'false');
+     }
      await section.screenshot({path:path.join(out,'roblox-'+name+'-'+width+'-'+mode+'.png'),animations:'disabled'});
     }finally{await context.close();}
    }

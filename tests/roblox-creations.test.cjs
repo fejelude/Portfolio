@@ -25,9 +25,18 @@ test('Both actual screenshot previews are local WebP files with reserved dimensi
     assert.ok(img);assert.match(img,/width="\d+" height="\d+"/);assert.match(img,/loading="lazy"/);assert.match(img,/alt="[^"]+"/);
   }
 });
-test('No fabricated game URLs, live statistics or third-party images are introduced',()=>{
-  assert.equal((section.match(/https?:\/\//g)||[]).length,1);
+test('Owner-supplied links, full screenshot proportions and continuous motion are retained',()=>{
+  assert.equal((section.match(/https?:\/\//g)||[]).length,3);
   assert.match(section,/https:\/\/www\.roblox\.com\/users\/5512860740\/profile/);
+  for(const [id,code,stamp] of [['garage','132634f1bcf0e6408124bc98c218b860','1795354910064'],['build','c433ab2168342e45bcbbf4eb823ab887','1795354924018']]){
+    const entry=section.match(new RegExp('<article class="rc-entry rc-'+id+'"[\\s\\S]*?<\\/article>'))[0];
+    assert.ok(entry.includes('https://www.roblox.com/share?code='+code+'&amp;type=ExperienceDetails&amp;stamp='+stamp));
+    assert.match(entry,/target="_blank" rel="noopener noreferrer"/);
+    assert.match(entry,/width="300" height="(?:293|284)"/);
+  }
   assert.doesNotMatch(section,/active players|live players|approval rating/i);
+  assert.match(section,/rc-motion-toggle/);
+  assert.match(read('css/roblox-creations.css').toString(),/animation:rc-car-roll 6s ease-in-out infinite/);
+  assert.match(read('css/roblox-creations.css').toString(),/animation:rc-build-upper 6s ease-in-out infinite/);
   assert.match(read('css/roblox-creations.css').toString(),/prefers-reduced-motion:no-preference/);
 });
