@@ -52,6 +52,17 @@ const server=createServer(async(req,res)=>{
       assert.equal((await dotStyle()).animation,'sm-status-breathe');
     }else{assert.equal(await mascot.isDisabled(),true);assert.equal(await tear.evaluate(el=>getComputedStyle(el).animationName),'none');assert.equal((await dotStyle()).animation,'none');}
     assert.deepEqual(errors,[]);assert.deepEqual(api,[]);
+    // Direct visits to the product route must show the identical maintenance UI.
+    await p.goto(base+'/sofra/about');
+    assert.equal(new URL(p.url()).pathname,'/sofra/about');
+    assert.equal((await p.locator('h1').innerText()).replace(/\s+/g,' ').trim(),'Sofra will be back soon.');
+    assert.equal(await p.locator('.sm-mascot svg').count(),1);
+    assert.equal(await p.locator('.sm-status>span').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(255, 69, 58)');
+    assert.equal(await p.locator('#auth-gate').count(),0);
+    assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
+    if(mode==='normal')await p.waitForFunction(()=>getComputedStyle(document.querySelector('.sm-status>span')).animationName==='sm-status-breathe');
+    assert.deepEqual(api,[]);
+    assert.deepEqual(errors,[]);
     await p.goto(base+'/SofraPanel');assert.equal(new URL(p.url()).pathname,'/sofra');assert.equal(await p.locator('.sm-content').count(),1);
     await p.locator('a.sm-home').click();assert.equal(new URL(p.url()).pathname,'/');
     console.log('PASS',width,height,mode);

@@ -1,7 +1,8 @@
 // Run with `node verification/sofra-smoke.cjs` after installing Playwright.
 // Uses fixtures only. Never connects to Discord or changes real guild settings.
 // Intentionally serves the preserved original panel at /sofra in this local fixture,
-// even while the production route shows the maintenance page.
+// and the original product page at /sofra/about, even while both production
+// routes show the maintenance page.
 const { chromium } = require(require.resolve('playwright', { paths: [process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES || process.cwd()] }));
 const http = require('node:http');
 const fs = require('node:fs');
