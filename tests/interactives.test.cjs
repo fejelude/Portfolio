@@ -23,3 +23,23 @@ test('clean URL resolves to a genuine static placeholder, with a return link',()
  assert.match(css,/ix-star-hop 1\.6s steps\(1,end\) 3/);
  assert.match(css,/@media\(prefers-reduced-motion:no-preference\)/);
 });
+
+test('viewport-aware star stays inactive offscreen or with reduced motion',async()=>{
+ const {mountEntry}=await import('../js/interactives-entry.mjs');
+ const target=()=>({events:{},addEventListener(k,f){this.events[k]=f;}});
+ let cb,disconnected=false;
+ const entry={dataset:{},querySelector:()=>({})};
+ const doc={...target(),hidden:false},motion={...target(),matches:false};
+ const win={...target(),matchMedia:()=>motion,IntersectionObserver:class{constructor(fn){cb=fn;}observe(){}disconnect(){disconnected=true;}}};
+ mountEntry(entry,doc,win);
+ assert.equal(entry.dataset.ixVisible,undefined);
+ cb([{isIntersecting:true}]);assert.equal(entry.dataset.ixVisible,'');
+ cb([{isIntersecting:false}]);assert.equal(entry.dataset.ixVisible,undefined);
+ cb([{isIntersecting:true}]);motion.matches=true;motion.events.change();assert.equal(entry.dataset.ixVisible,undefined);
+ motion.matches=false;motion.events.change();assert.equal(entry.dataset.ixVisible,'');
+ doc.hidden=true;doc.events.visibilitychange();assert.equal(entry.dataset.ixVisible,undefined);
+ doc.hidden=false;doc.events.visibilitychange();assert.equal(entry.dataset.ixVisible,'');
+ win.events.pagehide({persisted:true});assert.equal(entry.dataset.ixVisible,undefined);
+ win.events.pageshow();assert.equal(entry.dataset.ixVisible,'');
+ win.events.pagehide({persisted:false});assert.ok(disconnected);
+});

@@ -16,8 +16,8 @@
 .ix-details p{margin:0;padding:12px 14px;border:1px solid #413452;border-radius:5px;text-align:left;background:#15111ecc;overflow-wrap:break-word}
 /* Finite, discrete pixel motion; static frame is the default. */
 @media(prefers-reduced-motion:no-preference){
- .ix-star-body{animation:ix-star-hop 1.6s steps(1,end) 3}
- .ix-star-glints{animation:ix-star-twinkle 1.6s steps(1,end) 3}
+ .ix-entry[data-ix-visible] .ix-star-body,.ix-template-art .ix-star-body{animation:ix-star-hop 1.6s steps(1,end) 3}
+ .ix-entry[data-ix-visible] .ix-star-glints,.ix-template-art .ix-star-glints{animation:ix-star-twinkle 1.6s steps(1,end) 3}
  .ix-cta:hover .ix-star-body,.ix-cta:focus-visible .ix-star-body{animation:ix-star-hover 1.2s steps(1,end) 3}
  .ix-cta{transition:background-color .2s,border-color .2s,color .2s}
 }

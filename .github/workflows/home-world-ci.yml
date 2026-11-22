@@ -5,6 +5,7 @@ on:
       - index.html
       - interactives.html
       - css/interactives.css
+      - js/interactives-entry.mjs
       - tests/interactives.test.cjs
       - css/roblox-creations.css
       - js/roblox-creations.mjs
@@ -38,7 +39,7 @@ jobs:
         with:
           node-version: '24'
       - run: node --check js/hero-pixels.mjs && node --check js/sofra-feature.mjs && node --check js/home-collectibles.mjs && node --check js/home-world.mjs && node --check js/home-world-renderer.mjs && node --test tests/home-world.test.mjs
-      - run: node --test tests/interactives.test.cjs
+      - run: node --check js/interactives-entry.mjs && node --test tests/interactives.test.cjs
       - run: node --check js/hero-terminal.mjs && node --test tests/hero-terminal.test.mjs
       - run: node --check js/roblox-creations.mjs && node --test tests/roblox-creations.test.cjs
       - run: npm install --no-save --package-lock=false playwright@1.62.1

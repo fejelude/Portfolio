@@ -44,6 +44,7 @@ const server=createServer(async(req,res)=>{
         await details.locator('summary').click();assert.equal(await details.locator('p').isVisible(),true);
         await details.locator('summary').click();assert.equal(await details.getAttribute('open'),null);
         if(mode==='reduced')assert.equal(await link.locator('.ix-star-body').evaluate(el=>getComputedStyle(el).animationName),'none');
+        else if(mode!=='no-js')await page.waitForFunction(()=>document.querySelector('#interactives-entry').hasAttribute('data-ix-visible'));
         await link.click();await page.waitForURL(url+'/interactives');
         assert.equal(await page.locator('h1').textContent(),'My interactives.');
         assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
