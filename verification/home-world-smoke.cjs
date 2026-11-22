@@ -48,7 +48,7 @@ const server=createServer(async(req,res)=>{
         await link.click();await page.waitForURL(url+'/interactives');
         assert.equal(await page.locator('h1').textContent(),'My interactives.');
         assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
-        assert.equal(await page.locator('.ix-template-main a.ix-return').getAttribute('href'),'/#interactives-entry');
+        assert.equal(await page.locator('.iw-main a.ix-return').getAttribute('href'),'/#interactives-entry');
         await page.locator('.ix-return').click();await page.waitForURL(url+'/#interactives-entry');
         await page.goto(url,{waitUntil:'domcontentloaded'});
         if(mode==='no-js'){assert.equal(await page.locator('#about').isVisible(),true);assert.equal(await page.locator('#world-collection').isVisible(),false);await context.close();continue;}

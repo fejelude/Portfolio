@@ -13,13 +13,14 @@ test('interactives entry follows collectible controls and precedes Sofra',()=>{
  assert.match(block,/shape-rendering="crispEdges"/);
  assert.match(html,/href="\/css\/interactives\.css"/);
 });
-test('clean URL resolves to a genuine static placeholder, with a return link',()=>{
+test('clean URL resolves to the six-world hub, with a return link',()=>{
  assert.equal(JSON.parse(read('vercel.json')).cleanUrls,true);
  const page=read('interactives.html'),css=read('css/interactives.css');
  assert.match(page,/<title>Interactives \| Itsmefeje<\/title>/);
  assert.match(page,/<h1>My interactives\.<\/h1>/);
  assert.match(page,/href="\/#interactives-entry"/);
- assert.doesNotMatch(page,/<script|<iframe/);
+ assert.match(page,/src="\/js\/interactive-worlds\/hub\.mjs"/);assert.doesNotMatch(page,/<iframe/);
+ assert.equal((page.match(/data-iw-card=/g)||[]).length,6);
  assert.match(css,/ix-star-hop 1\.6s steps\(1,end\) 3/);
  assert.match(css,/@media\(prefers-reduced-motion:no-preference\)/);
 });
