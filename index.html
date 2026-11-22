@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="css/desktop-nav.css">
   <link rel="stylesheet" href="css/surprise.css">
   <link rel="stylesheet" href="css/home-world.css">
+  <link rel="stylesheet" href="css/sofra-feature.css">
 </head>
 <body class="feje-world-home">
   <a class="skip-link" href="#main-content">Skip to content</a>
@@ -155,24 +156,80 @@
       </div>
     </section>
       
-    <section id="sofra-project" class="section-padding">
+    <section id="sofra-project" class="section-padding" aria-labelledby="sofra-feature-title">
       <div class="container narrow">
-        <article class="glass-panel sofra-project-card">
-          <span class="project-kicker"> fejes new / FEATURED PROJECT</span>
-          <div
-            role="status"
-            aria-label="Current Sofra status: experiencing a problem"
-            style="display:inline-flex;align-items:center;gap:9px;margin:0 0 20px;padding:8px 13px;border:1px solid rgba(251,113,133,.44);border-radius:999px;background:linear-gradient(135deg,rgba(244,63,94,.18),rgba(236,72,153,.12));color:#ffe4e6;box-shadow:0 0 0 1px rgba(255,255,255,.025) inset,0 8px 26px rgba(244,63,94,.13),0 0 22px rgba(236,72,153,.12);font-size:11px;font-weight:700;line-height:1.2;letter-spacing:.075em;text-transform:uppercase;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);"
-          >
-            <span
-              aria-hidden="true"
-              style="display:inline-block;width:9px;height:9px;flex:0 0 9px;border-radius:50%;background:linear-gradient(135deg,#fda4af,#fb7185 50%,#ec4899);box-shadow:0 0 0 4px rgba(251,113,133,.12),0 0 15px rgba(251,113,133,.72);"
-            ></span>
-            Currently experiencing a problem
+        <article class="sofra-feature">
+          <div class="sofra-feature-meta">
+            <span class="sofra-feature-kicker"><span aria-hidden="true">✦</span> fejes new <span class="sofra-feature-slash">/</span> <strong>Featured project</strong></span>
+            <div class="sofra-feature-status" role="status" aria-label="Current Sofra status: experiencing a problem">
+              <span class="sofra-feature-status-dot" aria-hidden="true"></span>
+              <span>Currently experiencing a problem</span>
+            </div>
           </div>
-          <h2> The Best Free Discord Bot.</h2>
-          <p> Her name is Sofra. She helps welcome members, keep your server organized, and makes managing a community way less of a headache. it has alot of functions it also has a dashboard that brings everything together :3</p>
-          <div class="action-buttons"><a href="/sofra/about" class="btn-primary">Explore Sofra ↗</a><a href="/sofra" class="sofra-dashboard-link">Already using Sofra? Open your dashboard →</a></div>
+          <div class="sofra-feature-heading">
+            <h2 id="sofra-feature-title">The Best Free <span>Discord Bot.</span></h2>
+            <div class="sofra-feature-mascot" id="sofra-feature-mascot" aria-hidden="true">
+              <svg class="sofra-kitty" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 228" fill="none" focusable="false">
+                <defs>
+                  <linearGradient id="sf-fur" x1="66" y1="30" x2="167" y2="194" gradientUnits="userSpaceOnUse"><stop stop-color="#fff1f7"/><stop offset=".52" stop-color="#ffc4db"/><stop offset="1" stop-color="#e66eaa"/></linearGradient>
+                  <linearGradient id="sf-ear" x1="78" y1="42" x2="80" y2="94" gradientUnits="userSpaceOnUse"><stop stop-color="#f79bc0"/><stop offset="1" stop-color="#d74a83"/></linearGradient>
+                  <linearGradient id="sf-bow" x1="151" y1="30" x2="195" y2="80" gradientUnits="userSpaceOnUse"><stop stop-color="#ff9fb8"/><stop offset="1" stop-color="#cc315f"/></linearGradient>
+                  <linearGradient id="sf-orbit" x1="21" y1="200" x2="217" y2="158" gradientUnits="userSpaceOnUse"><stop stop-color="#e67da8" stop-opacity=".14"/><stop offset=".48" stop-color="#ffb8d1"/><stop offset="1" stop-color="#b52c67" stop-opacity=".2"/></linearGradient>
+                  <radialGradient id="sf-aura"><stop stop-color="#dc4d94" stop-opacity=".35"/><stop offset="1" stop-color="#dc4d94" stop-opacity="0"/></radialGradient>
+                </defs>
+                <circle cx="120" cy="117" r="104" fill="url(#sf-aura)"/>
+                <ellipse cx="123" cy="185" rx="85" ry="22" transform="rotate(-9 123 185)" stroke="#8f355e" stroke-width="1"/>
+                <ellipse cx="123" cy="185" rx="85" ry="22" transform="rotate(-9 123 185)" stroke="url(#sf-orbit)" stroke-width="2.5" stroke-dasharray="178 70"/>
+                <g class="sofra-kitty-spark" fill="#ffc0db">
+                  <path d="M26 70q0 9 9 9-9 0-9 9 0-9-9-9 9 0 9-9Z"/>
+                  <path d="M211 92q0 7 7 7-7 0-7 7 0-7-7-7 7 0 7-7Z"/>
+                  <path d="M207 40q0 6 6 6-6 0-6 6 0-6-6-6 6 0 6-6Z"/>
+                  <circle cx="41" cy="123" r="2" opacity=".7"/><circle cx="195" cy="122" r="1.5" opacity=".7"/>
+                </g>
+                <g class="sofra-kitty-body" stroke="#8f426c" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                  <!-- A curled tail, little feet and soft pink body. -->
+                  <path d="M148 171c24 8 42-3 41-18-1-9 8-13 14-7 12 15-2 46-32 48-9 1-17-1-24-5Z" fill="url(#sf-fur)"/>
+                  <path d="M108 172c-13 3-22 16-16 23 6 7 22 3 30-6M136 174c14 0 23 12 18 20-5 8-19 5-29-3" fill="url(#sf-fur)"/>
+                  <path d="M91 135c-12 17-9 48 13 55 15 5 39 3 49-7 12-12 9-35-1-49Z" fill="url(#sf-fur)"/>
+                  <path d="M109 154c-9 5-12 20-2 25 9 5 24 1 29-6 3-7-1-15-7-18Z" fill="#fff0f6" stroke="none" opacity=".7"/>
+                  <!-- Wave is its own transform group. -->
+                  <g class="sofra-kitty-wave">
+                    <path d="M91 151c-9 2-18-5-24-11l-11-14c-5-8-1-14 5-15 8-1 11 7 15 10-4-11 1-16 7-14 6 2 5 14 9 20 4 5 10 7 11 13 1 5-4 9-12 11Z" fill="url(#sf-fur)"/>
+                    <ellipse cx="77" cy="132" rx="6.5" ry="5" transform="rotate(35 77 132)" fill="#e886ac" stroke="none"/>
+                    <circle cx="66" cy="119" r="2.5" fill="#e886ac" stroke="none"/>
+                    <circle cx="81" cy="115" r="2.5" fill="#e886ac" stroke="none"/>
+                  </g>
+                  <path d="M151 145c9 0 17 10 13 17-3 7-14 6-21-1" fill="url(#sf-fur)"/>
+                  <!-- Ears and rounded head. -->
+                  <path d="M60 84 61 43q1-12 9-6l35 32m42-3 32-29q8-6 10 6l-2 45" fill="url(#sf-fur)"/>
+                  <path d="m69 50 0 32 25-15Zm108 0-23 17 24 14Z" fill="url(#sf-ear)" stroke="none"/>
+                  <path d="M124 58c-42 0-75 25-75 56 0 32 32 48 73 48 43 0 73-18 73-49 0-29-28-55-71-55Z" fill="url(#sf-fur)"/>
+                  <path d="M75 84c12-14 26-18 42-19" stroke="#fff7fb" stroke-width="3" opacity=".8"/>
+                  <ellipse cx="72" cy="125" rx="11" ry="6" fill="#ed83ab" stroke="none" opacity=".84"/>
+                  <ellipse cx="172" cy="125" rx="11" ry="6" fill="#ed83ab" stroke="none" opacity=".84"/>
+                  <g class="sofra-kitty-eyes" stroke="#6e334f" stroke-width="4.5">
+                    <path d="M86 110q7-11 15 0M144 110q7-11 15 0"/>
+                  </g>
+                  <path d="M118 119q5-5 10 0l-5 5Z" fill="#a94068" stroke="none"/>
+                  <path d="M123 125q-1 6-8 4m8-4q1 6 8 4" stroke="#843957" stroke-width="2.2"/>
+                  <path d="M117 131q6 2 12 0-1 8-6 8-4 0-6-8Z" fill="#b34c76" stroke="none"/>
+                  <path d="m52 119-16-5m15 12-16 2m156-9 15-5m-14 12 15 2" stroke="#a5547b" stroke-width="1.8"/>
+                  <!-- Original ribbon and tiny heart pendant. -->
+                  <path d="M151 68c-8-17-2-26 8-21 5 3 10 8 14 14 6-8 17-12 21-6 5 8-7 19-20 18-8 6-17 10-20 6-2-3-2-7-3-11Z" fill="url(#sf-bow)"/>
+                  <ellipse cx="173" cy="67" rx="6.4" ry="7.2" fill="#ffb3ce"/>
+                  <path d="M106 160q17 7 34 0" stroke="#c24b78" stroke-width="5"/>
+                  <path d="M123 169c-5-7-14 0-6 7l6 5 6-5c8-7-1-14-6-7Z" fill="#f7bf83" stroke="#936044" stroke-width="1.6"/>
+                </g>
+                <path d="M36 99l-7-6m13 1-3-9m5 24-10-1" stroke="#ff8bb8" stroke-width="2.8" stroke-linecap="round" class="sofra-kitty-spark"/>
+              </svg>
+              <span class="sofra-feature-hello">hello! <span>♡</span></span>
+            </div>
+          </div>
+          <p class="sofra-feature-description">Her name is <strong>Sofra.</strong> She helps welcome members, keep your server organized, and makes managing a community way less of a headache. She has a lot of functions and a dashboard that brings everything together :3</p>
+          <div class="sofra-feature-actions">
+            <a href="/sofra/about" class="sofra-feature-primary">Explore Sofra <svg aria-hidden="true" viewBox="0 0 16 16" fill="none"><path d="M3 13 13 3M5 3h8v8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+            <a href="/sofra" class="sofra-feature-secondary">Already using Sofra? <span>Open your dashboard <span aria-hidden="true">→︎</span></span></a>
+          </div>
         </article>
       </div>
     </section>
@@ -380,6 +437,7 @@
   <script src="js/surprise.js"></script>
   
   <script type="module" src="js/home-world.mjs"></script>
+  <script type="module" src="js/sofra-feature.mjs"></script>
 </body>
 </html>
 
