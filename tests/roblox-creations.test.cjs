@@ -121,3 +121,9 @@ test('showcase controller clears the theme outside the chapter and responds to m
  offset=2400;win.events.scroll();flush();assert.equal(doc.body.dataset.rcScene,undefined);
  doc.hidden=true;doc.events.visibilitychange();assert.equal(root.dataset.rcPaused,'');
 });
+
+test('game captions keep the names without screenshot capture labels',()=>{
+ assert.match(section,/<figcaption><span>01 \/ Dream Garage Tycoon<\/span><\/figcaption>/);
+ assert.match(section,/<figcaption><span>02 \/ Build to Impress<\/span><\/figcaption>/);
+ assert.doesNotMatch(section,/Roblox screenshot · captured earlier/);
+});
