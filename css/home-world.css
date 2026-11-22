@@ -2,7 +2,18 @@
 .feje-world-home{--world-ink:#0c0a12;--world-muted:#c1b8d1;--world-line:#332b40;--world-accent:#c7a9ff;background:#0c0a12;color:#f4effa}
 .feje-world-home .skip-link{z-index:3000}
 .feje-world-home .premium-nav{background:#100e18;border-bottom:1px solid var(--world-line)}
-.feje-world-home .brand-mark{border-radius:1px;background:#b99aff;box-shadow:none;transform:rotate(45deg)}
+.feje-world-home .brand-mark{display:inline-flex;align-items:center;justify-content:center;flex:0 0 26px;width:26px;height:22px;border-radius:0;background:none;box-shadow:none;transform:none;color:#fff}
+.feje-world-home .brand-mark svg{display:block;width:100%;height:100%;overflow:visible;stroke:currentColor;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
+.feje-world-home .brand-code-left,.feje-world-home .brand-code-right{animation:feje-bracket-open .85s ease-in-out 2 alternate;transform-box:fill-box;transform-origin:center}
+.feje-world-home .brand-code-right{animation-name:feje-bracket-close}
+.feje-world-home .brand-code-slash{animation:feje-code-slash .85s ease-in-out 2 alternate}
+@keyframes feje-bracket-open{0%{transform:translateX(2px);opacity:.72}100%{transform:translateX(0);opacity:1}}
+@keyframes feje-bracket-close{0%{transform:translateX(-2px);opacity:.72}100%{transform:translateX(0);opacity:1}}
+@keyframes feje-code-slash{0%{opacity:.65}100%{opacity:1}}
+.feje-world-home .nav-brand a:hover .brand-code-left{transform:translateX(-1px)}
+.feje-world-home .nav-brand a:hover .brand-code-right{transform:translateX(1px)}
+.feje-world-home .footer-bottom .footer-links a{color:#c7a9ff;text-underline-offset:4px;text-decoration-thickness:1px}
+@media(prefers-reduced-motion:reduce){.feje-world-home .brand-mark svg path{animation:none;transform:none}}
 .feje-world-home #home{position:relative;display:grid;grid-template-columns:minmax(285px,.74fr) minmax(0,1.4fr);align-items:center;gap:clamp(24px,4vw,76px);width:min(100%,1600px);margin:auto;padding:calc(var(--nav-height) + 52px) clamp(22px,5vw,82px) 64px;text-align:left;min-height:100svh}
 .feje-world-home #home .hero-content{width:100%;min-width:0;align-items:flex-start;text-align:left;display:flex;flex-direction:column;position:relative;z-index:1}
 .feje-world-home .world-kicker{font:600 .69rem/1.5 'Space Grotesk',sans-serif;letter-spacing:.2em;color:#c7a9ff;margin-bottom:28px;display:flex;align-items:center;gap:9px}
@@ -119,3 +130,6 @@
   box-shadow: 0 0 14px var(--achievement-glow), inset 0 0 8px #e65a7824;
 }
 .feje-world-home #goals .goal-achieved .goal-content p { margin: 0; }
+
+.feje-world-home .world-view-label{z-index:2}
+.feje-world-home .world-instructions{z-index:2}

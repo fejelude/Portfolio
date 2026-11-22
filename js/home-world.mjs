@@ -19,7 +19,7 @@ if(stage){
   function updateMarkers(){
     for(const m of markerNodes){
       const p=renderer.project(m.v.marker);
-      const show=p&&p[0]>38&&p[0]<canvas.clientWidth-38&&p[1]>38&&p[1]<canvas.clientHeight-40&&m.key!==active;
+      const show=p&&p[0]>38&&p[0]<canvas.clientWidth-38&&p[1]>64&&p[1]<canvas.clientHeight-48&&m.key!==active;
       m.node.hidden=!show;
       if(show){const x=Math.round(p[0]),y=Math.round(p[1]);if(x!==m.x||y!==m.y){m.node.style.left=x+'px';m.node.style.top=y+'px';m.x=x;m.y=y;}}
     }
@@ -42,7 +42,7 @@ if(stage){
     const distance=api.blendView(current,goal,dt,paused||motionQuery.matches);
     if(!paused)time+=dt;
     renderer.draw(current,lights,time);updateMarkers();
-    if(dt>.035&&!paused){if(++slowFrames>=24){renderer.ratio=Math.max(.7,renderer.ratio-.15);slowFrames=0;}}
+    if(dt>.035&&!paused){if(++slowFrames>=24){renderer.ratio=Math.max(.85,renderer.ratio-.15);slowFrames=0;}}
     else slowFrames=Math.max(0,slowFrames-1);
     if(!paused||distance>.002)request();else last=0;
   }

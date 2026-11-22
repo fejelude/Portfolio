@@ -28,6 +28,8 @@ const server=createServer(async(req,res)=>{
         if(mode==='no-webgl')await page.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return /^webgl/.test(type)?null:original.call(this,type,...args);};});
         await page.goto(url,{waitUntil:'domcontentloaded'});
         assert.equal(await page.locator('h1').count(),1);
+        assert.equal(await page.locator('.brand-mark svg path').count(),3);
+        assert.match(await page.locator('.footer-bottom .footer-links a').textContent(),/November 22, 2026/);
         assert.equal(await page.locator('#surprise-trigger').count(),1);
         assert.equal(await page.locator('a[href="/sofra"]').count()>=1,true);
         assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
