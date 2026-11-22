@@ -63,6 +63,8 @@
 /* Stepped movement within each 8-bit vignette. Scene transitions are smooth,
    but the characters retain pixel-art motion rather than vector tweening. */
 .feje-world-home .feje-pixel-error,
+.feje-world-home .feje-pixel-wave,
+.feje-world-home .feje-pixel-terminal-error,
 .feje-world-home .feje-pixel-terminal-face { opacity: 0; }
 .feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-bob { animation: feje-pixel-bob .5s steps(2,end) infinite; }
 .feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-type { animation: feje-pixel-type .4s steps(1,end) infinite; }
@@ -90,8 +92,16 @@
 @keyframes feje-pixel-blink { 0%,100% { transform: scaleY(1); } 45% { transform: scaleY(.2); } 55% { transform: scaleY(1); } }
 @keyframes feje-pixel-wing { 0%,100% { transform: rotate(0); } 50% { transform: rotate(13deg); } }
 @keyframes feje-pixel-spark { 0%,100% { opacity: .8; transform: translate(0); } 50% { opacity: 1; transform: translate(-2px,-2px); } }
-@keyframes feje-pixel-terminal { 0%,100% { opacity: 1; } 65% { opacity: 0; } }
+@keyframes feje-pixel-terminal { 0%,100% { opacity: 1; } 40% { opacity: 0; } }
 @keyframes feje-pixel-face { 0%,100% { opacity: 0; } 65% { opacity: 1; } }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-wave { animation: feje-pixel-wave 2s steps(1,end) infinite; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-terminal-error { animation: feje-pixel-terminal-error 2s steps(1,end) infinite; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-flame { animation: feje-pixel-flame .7s steps(3,end) infinite; }
+.feje-world-home .feje-pixel-companion.is-enhanced .feje-pixel-astronaut .feje-pixel-hover { animation: feje-pixel-space-drift 2s steps(6,end) infinite; }
+@keyframes feje-pixel-wave { 0%,100% { opacity: 0; transform: translateY(0); } 65% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; transform: translate(-1px,-2px); } }
+@keyframes feje-pixel-terminal-error { 0%,100% { opacity: 0; } 40% { opacity: 1; } 65% { opacity: 0; } }
+@keyframes feje-pixel-flame { 0%,100% { opacity: .45; transform: translateX(1px); } 50% { opacity: 1; transform: translateX(-2px); } }
+@keyframes feje-pixel-space-drift { 0%,100% { transform: translate(0,0); } 25% { transform: translate(2px,-3px); } 50% { transform: translate(4px,0); } 75% { transform: translate(2px,3px); } }
 @media (max-width: 900px) {
   .feje-world-home #home .feje-title-row .world-title {
     font-size: clamp(1.85rem, 12vw, 4.4rem);

@@ -61,12 +61,15 @@ const server=createServer(async(req,res)=>{
               }
               animations.forEach(a=>a.currentTime=1880);
               const crossing=scenes.map(s=>Number(getComputedStyle(s).opacity));
+              animations.forEach(a=>a.currentTime=11880);
+              const wrapCrossing=scenes.map(s=>Number(getComputedStyle(s).opacity));
               animations.forEach(a=>a.currentTime=12000+1000);
               const wrap=scenes.map(s=>Number(getComputedStyle(s).opacity));
-              return {samples,crossing,wrap};
+              return {samples,crossing,wrapCrossing,wrap};
             });
             sequence.samples.forEach((s,i)=>{assert.ok(s[i]>.99,JSON.stringify(sequence));assert.ok(s.filter(v=>v>.01).length===1,JSON.stringify(sequence));});
             assert.ok(sequence.crossing[0]>.05&&sequence.crossing[0]<.95&&sequence.crossing[1]>.05&&sequence.crossing[1]<.95,JSON.stringify(sequence));
+            assert.ok(sequence.wrapCrossing[5]>.05&&sequence.wrapCrossing[5]<.95&&sequence.wrapCrossing[0]>.05&&sequence.wrapCrossing[0]<.95,JSON.stringify(sequence));
             assert.ok(sequence.wrap[0]>.99);
             assert.equal(await sprite.locator('.feje-pixel-developer').evaluate(el=>getComputedStyle(el).animationPlayState),'paused');
             if(width===390||width===1440){
