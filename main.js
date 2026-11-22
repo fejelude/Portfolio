@@ -133,6 +133,62 @@ document.addEventListener('DOMContentLoaded', () => {
   `;
   document.head.appendChild(navStyle);
 
+  const desktopDisclosure = document.querySelector('.desktop-nav-disclosure');
+  if (desktopDisclosure) {
+    const trigger = desktopDisclosure.querySelector('button');
+    const popover = document.getElementById(trigger.getAttribute('aria-controls'));
+    const links = [...popover.querySelectorAll('a')];
+
+    const isOpen = () => trigger.getAttribute('aria-expanded') === 'true';
+    const setOpen = (open) => {
+      trigger.setAttribute('aria-expanded', String(open));
+      popover.setAttribute('aria-hidden', String(!open));
+      popover.inert = !open;
+    };
+
+    trigger.addEventListener('click', () => {
+      trigger.focus({ preventScroll: true });
+      setOpen(!isOpen());
+    });
+
+    desktopDisclosure.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && isOpen()) {
+        event.preventDefault();
+        trigger.focus({ preventScroll: true });
+        setOpen(false);
+      }
+
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        setOpen(true);
+        const index = links.indexOf(document.activeElement);
+        const nextLink = event.key === 'ArrowDown'
+          ? links[index + 1] || links[0]
+          : links[index - 1] || links.at(-1);
+        nextLink.focus();
+      }
+    });
+
+    desktopDisclosure.addEventListener('focusout', (event) => {
+      // A pointer click can briefly clear focus before WebKit dispatches click.
+      if (event.relatedTarget && !desktopDisclosure.contains(event.relatedTarget)) {
+        setOpen(false);
+      }
+    });
+
+    popover.addEventListener('click', (event) => {
+      if (!event.target.closest('a')) return;
+      trigger.focus({ preventScroll: true });
+      setOpen(false);
+    });
+
+    document.addEventListener('click', (event) => {
+      if (isOpen() && !desktopDisclosure.contains(event.target)) setOpen(false);
+    });
+
+    window.matchMedia('(width > 900px)').addEventListener('change', () => setOpen(false));
+  }
+
   if (logoText && typeof window.ShinyText === 'function' && allowDecorativeMotion) {
     new window.ShinyText(logoText, {
       text: 'Itsmefeje',
