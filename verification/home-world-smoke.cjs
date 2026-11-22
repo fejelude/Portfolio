@@ -9,7 +9,7 @@ const out=path.join(__dirname,'home-world-results');
 const mime={'.html':'text/html','.css':'text/css','.js':'text/javascript','.mjs':'text/javascript','.svg':'image/svg+xml','.webp':'image/webp'};
 const server=createServer(async(req,res)=>{
   try{
-    const url=new URL(req.url,'http://localhost');const name=url.pathname==='/'?'/index.html':url.pathname;
+    const url=new URL(req.url,'http://localhost');const name=url.pathname==='/'?'/index.html':url.pathname==='/interactives'?'/interactives.html':url.pathname;
     const file=path.resolve(root,'.'+name);if(!file.startsWith(root+path.sep))throw Error('path');
     const body=await readFile(file);res.writeHead(200,{'Content-Type':mime[path.extname(file)]||'application/octet-stream'});res.end(body);
   }catch{res.writeHead(404);res.end();}
@@ -35,6 +35,22 @@ const server=createServer(async(req,res)=>{
         assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
         if(mode==='reduced')assert.equal(await page.locator('.brand-code-left').evaluate(el=>getComputedStyle(el).animationName),'none');
         assert.match(await page.locator('.world-view-label').textContent(),/FEJE'S COLLECTIBLES/);
+        // Entry point is accessible even with JavaScript disabled or WebGL unavailable.
+        const ix=page.locator('#interactives-entry'),link=ix.locator('a.ix-cta');
+        await link.scrollIntoViewIfNeeded();assert.equal(await link.isVisible(),true);
+        assert.equal(await link.getAttribute('href'),'/interactives');
+        const bounds=await link.boundingBox();assert.ok(bounds.height>=44&&bounds.x>=0&&bounds.x+bounds.width<=await page.evaluate(()=>innerWidth)+1);
+        const details=ix.locator('details');assert.equal(await details.getAttribute('open'),null);
+        await details.locator('summary').click();assert.equal(await details.locator('p').isVisible(),true);
+        await details.locator('summary').click();assert.equal(await details.getAttribute('open'),null);
+        if(mode==='reduced')assert.equal(await link.locator('.ix-star-body').evaluate(el=>getComputedStyle(el).animationName),'none');
+        else if(mode!=='no-js')await page.waitForFunction(()=>document.querySelector('#interactives-entry').hasAttribute('data-ix-visible'));
+        await link.click();await page.waitForURL(url+'/interactives');
+        assert.equal(await page.locator('h1').textContent(),'My interactives.');
+        assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
+        assert.equal(await page.locator('.ix-template-main a.ix-return').getAttribute('href'),'/#interactives-entry');
+        await page.locator('.ix-return').click();await page.waitForURL(url+'/#interactives-entry');
+        await page.goto(url,{waitUntil:'domcontentloaded'});
         if(mode==='no-js'){assert.equal(await page.locator('#about').isVisible(),true);assert.equal(await page.locator('#world-collection').isVisible(),false);await context.close();continue;}
         await page.locator('#world-collection').waitFor({state:'visible'});
         assert.equal(await page.locator('[data-collectible-choice]').count(),10);
