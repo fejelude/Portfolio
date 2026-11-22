@@ -40,7 +40,7 @@ const server=createServer(async(req,res)=>{
      assert.equal(await section.locator('.rc-play-link').count(),2);
      assert.equal(await section.locator('.rc-image-frame img').first().evaluate(el=>getComputedStyle(el).objectFit),'contain');
      assert.ok(await section.locator('.rc-image-frame img').first().evaluate(el=>parseFloat(getComputedStyle(el).borderTopLeftRadius)>0));
-     if(mode==='reduced'||mode==='no-js'){assert.equal(await section.locator('[data-animate]').count(),0);assert.equal(await section.locator('.rc-motion-toggle').isVisible(),false);}
+     if(mode==='reduced'||mode==='no-js'){assert.equal(await section.locator('[data-animate]').count(),0);assert.equal(await section.locator('.rc-motion-toggle').isDisabled(),true);assert.equal(await section.locator('.rc-motion-toggle').isVisible(),true);assert.equal(await page.locator('body').getAttribute('data-rc-scene'),null);}
      else{
       for(const [name,selector] of [['rc-garage','.rc-car'],['rc-build','.rc-house-upper']]){
        const icon=section.locator('.'+name+' .rc-motif');
@@ -69,6 +69,29 @@ const server=createServer(async(req,res)=>{
       assert.equal(await first.locator('.rc-car').evaluate(el=>getComputedStyle(el).animationPlayState),'paused');
       await toggle.click();assert.equal(await toggle.getAttribute('aria-pressed'),'false');
       await logo.scrollIntoViewIfNeeded();await page.waitForFunction(()=>getComputedStyle(document.querySelector('.rc-roblox-logo-body')).animationPlayState==='running');
+     }
+     if(mode==='normal'){
+      const readScene=async(zone)=>{
+       await section.locator('[data-rc-zone="'+zone+'"]').evaluate(el=>window.scrollTo({top:window.scrollY+el.getBoundingClientRect().top-innerHeight*.35,behavior:'instant'}));
+       await page.waitForFunction(zone=>document.body.dataset.rcScene===zone,zone);
+       assert.equal(await section.locator('[data-rc-zone="'+zone+'"]').getAttribute('data-rc-current'),'');
+      };
+      for(const [zone,background] of [['intro','rgb(32, 20, 47)'],['garage','rgb(48, 24, 36)'],['build','rgb(17, 41, 33)'],['note','rgb(33, 22, 47)']]){
+       await readScene(zone);
+       await page.waitForFunction(color=>getComputedStyle(document.body).backgroundColor===color,background);
+       const active=section.locator('[data-rc-zone="'+zone+'"]');
+       assert.equal(await active.locator('.rc-particles i').first().evaluate(el=>getComputedStyle(el).animationName),'rc-pixel-drift');
+       if(zone==='garage'||zone==='build')assert.notEqual(await active.locator('.rc-image-frame').evaluate(el=>getComputedStyle(el).boxShadow),'none');
+       if(zone==='note')await page.waitForFunction(()=>getComputedStyle(document.querySelector('.rc-heart-beat')).animationName==='rc-heart-beat');
+       if(width===390||width===1440)await page.screenshot({path:path.join(out,'chromatic-'+name+'-'+width+'-'+zone+'.png')});
+      }
+      await readScene('garage');await readScene('intro');
+      await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
+      await page.waitForFunction(()=>!document.body.hasAttribute('data-rc-scene'));
+      await page.waitForFunction(()=>getComputedStyle(document.body).backgroundColor==='rgb(12, 10, 18)');
+     }else{
+      assert.equal(await section.locator('.rc-heart-beat').evaluate(el=>getComputedStyle(el).animationName),'none');
+      assert.equal(await section.locator('.rc-particles i').first().evaluate(el=>getComputedStyle(el).animationName),'none');
      }
      await section.screenshot({path:path.join(out,'roblox-'+name+'-'+width+'-'+mode+'.png'),animations:'disabled'});
     }finally{await context.close();}
