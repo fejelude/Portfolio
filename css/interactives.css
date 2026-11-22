@@ -1,0 +1,39 @@
+/* Shared only by the homepage entry point and the standalone placeholder. */
+.ix-entry,.ix-template{--ix-ink:#f0e8ff;--ix-muted:#c1b5d4;--ix-violet:#c7a9ff;--ix-border:#7d659f;--ix-base:#1d162b}
+.feje-world-home #interactives-entry{display:flex;flex-direction:column;align-items:center;gap:10px;padding:22px 0 0;min-width:0;text-align:center;scroll-margin-top:calc(var(--nav-height,72px) + 16px)}
+.ix-kicker{margin:0;color:var(--ix-violet);font:600 .68rem/1.5 "Space Grotesk",system-ui,sans-serif;letter-spacing:.15em}
+.ix-cta{display:inline-flex;align-items:center;justify-content:center;gap:12px;max-width:100%;min-width:0;min-height:48px;padding:10px 19px;border:1px solid var(--ix-border);border-radius:5px;background:var(--ix-base);color:var(--ix-ink);font:650 .92rem/1.35 "Space Grotesk",system-ui,sans-serif;text-decoration:none;box-shadow:0 4px 20px #9470e51a,inset 0 0 0 1px #c7a9ff0b}
+.ix-cta:hover{background:#2b2040;border-color:var(--ix-violet);color:#fff}
+.ix-cta:active{background:#36264e}
+.ix-cta:focus-visible,.ix-details summary:focus-visible,.ix-template a:focus-visible{outline:2px solid var(--ix-violet);outline-offset:4px}
+.ix-star{flex:0 0 28px;width:28px;height:28px;display:block;image-rendering:pixelated;overflow:visible}
+.ix-arrow{flex:0 0 14px;width:14px;height:14px;color:var(--ix-violet);margin-inline-start:9px}
+.ix-details{max-width:360px;width:100%;color:var(--ix-muted);font:400 .8rem/1.65 Inter,system-ui,sans-serif}
+.ix-details summary{width:fit-content;max-width:100%;margin:auto;cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px;list-style:none;color:var(--ix-muted);font-weight:550}
+.ix-details summary::-webkit-details-marker{display:none}
+.ix-details summary::after{content:"";width:7px;height:7px;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:translateY(-2px) rotate(45deg)}
+.ix-details[open] summary::after{transform:translateY(2px) rotate(225deg)}
+.ix-details p{margin:0;padding:12px 14px;border:1px solid #413452;border-radius:5px;text-align:left;background:#15111ecc;overflow-wrap:break-word}
+/* Finite, discrete pixel motion; static frame is the default. */
+@media(prefers-reduced-motion:no-preference){
+ .ix-star-body{animation:ix-star-hop 1.6s steps(1,end) 3}
+ .ix-star-glints{animation:ix-star-twinkle 1.6s steps(1,end) 3}
+ .ix-cta:hover .ix-star-body,.ix-cta:focus-visible .ix-star-body{animation:ix-star-hover 1.2s steps(1,end) 3}
+ .ix-cta{transition:background-color .2s,border-color .2s,color .2s}
+}
+@keyframes ix-star-hop{0%,100%{transform:translateY(0)}25%{transform:translateY(-1px)}50%{transform:translateY(-2px)}75%{transform:translateY(0)}}
+@keyframes ix-star-twinkle{0%,100%{opacity:.75}25%{opacity:1}50%{opacity:.25}75%{opacity:1}}
+@keyframes ix-star-hover{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+.ix-template{margin:0;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;background:#0c0a12;color:var(--ix-ink);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.6}
+.ix-template *,.ix-template *::before,.ix-template *::after{box-sizing:border-box}
+.ix-template-header{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #332b40;padding:max(14px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) 14px max(20px,env(safe-area-inset-left));background:#100e18}
+.ix-brand{color:var(--ix-ink);font-weight:750;font-size:clamp(1rem,4vw,1.25rem);text-decoration:none;white-space:nowrap}
+.ix-brand span{font-family:ui-monospace,monospace;margin-inline-end:5px;color:#fff}
+.ix-home{font-size:.84rem;min-height:44px;display:flex;align-items:center;color:var(--ix-violet);text-underline-offset:4px;text-align:right}
+.ix-template-main{flex:1;display:grid;place-items:center;width:100%;padding:clamp(40px,9vw,96px) 24px}
+.ix-template-intro{display:flex;flex-direction:column;align-items:center;gap:18px;max-width:480px;text-align:center;min-width:0}
+.ix-template-art .ix-star{width:96px;height:96px}
+.ix-template h1{color:var(--ix-violet);font-size:clamp(2.4rem,8vw,4rem);line-height:1.06;letter-spacing:-.055em;margin:0}
+.ix-template-intro>p:not(.ix-kicker){color:var(--ix-muted);margin:0;max-width:38ch}
+.ix-return{margin-top:8px}
+@media(max-width:360px){.ix-cta{padding-inline:13px;gap:9px}.ix-arrow{margin-inline-start:2px}.ix-template-header{padding-inline:16px}}
