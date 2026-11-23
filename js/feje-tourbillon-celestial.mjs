@@ -50,19 +50,18 @@ function skyTexture(low){
   return mix(mix(at(ix,iy),at(ix+1,iy),fx),mix(at(ix,iy+1),at(ix+1,iy+1),fx),fy);
  }
  function cloudAt(u,v){
-  const a=TAU*(u-.75),x0=8+6*Math.cos(a),y0=8+6*Math.sin(a);
+  const a=TAU*(u-.75),x0=8+6*Math.cos(a)+v*7,y0=8+6*Math.sin(a)+v*9;
   const warpA=grain(x0*.73+11,y0*.73+v*3);
   const warpB=grain(x0*.86-v*1.7+6,y0*.90+v*4);
   const x=x0+1.55*(warpA-.5),y=y0+v*9+1.6*(warpB-.5);
   const lowNoise=grain(x*.64+1,y*.58+1);
   const mid=grain(x*1.6+9,y*1.45+4);
   const hi=grain(x*3.4+2,y*3.1+7);
-  const ridge=1-Math.abs(mid*2-1);
   const gauss=(center,width)=>Math.exp(-Math.pow((v-center)/width,2));
   const layers=.87*gauss(.59+.17*Math.sin(a*.9+.3),.34)
               +.62*gauss(.38+.12*Math.sin(a*1.7+2),.22)
               +.56*gauss(.83+.08*Math.sin(a*2.5-1),.25);
-  const filaments=.30+.9*(.46*lowNoise+.34*ridge+.2*hi);
+  const filaments=.10+1.20*(.64*lowNoise+.25*mid+.11*hi);
   return Math.min(1,Math.max(0,layers*filaments*.75));
  }
  for(let y=0;y<h;y++){
@@ -72,7 +71,11 @@ function skyTexture(low){
    const cloud=cloudAt(u,v);
    const violet=.14+.44*(.5+.5*Math.sin(a*2.3+v*6.5+1));
    const fine=(grain(x*.17,y*.19)-.5)*3;
-   writeNebulaColor(img.data,(y*w+x)*4,cloud,violet,fine);
+   const i=(y*w+x)*4,cyan=.5+.5*Math.sin(a*2.7-v*9+1.9);
+   writeNebulaColor(img.data,i,cloud,violet,fine);
+   // Blue gas catches subtle aqua light, while purple remains in the shadows.
+   img.data[i+1]+=cloud*cyan*30;
+   img.data[i+2]+=cloud*cyan*8;
   }
  }
  ctx.putImageData(img,0,0);
