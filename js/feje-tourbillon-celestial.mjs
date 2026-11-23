@@ -20,39 +20,109 @@ function profile(root,name,points,material,n=64){
 function band(root,name,y,r,w,h,material,n=64){
  return profile(root,name,[[r-w,y-h/2],[r-.018,y-h/2],[r,y-h*.24],[r,y+h*.23],[r-.023,y+h/2],[r-w,y+h/2],[r-w,y-h/2]],material,n);
 }
+// Coordinates on the distant nebula dome (not near the temple pillars).
+// Both the strokes and the star nodes are painted into the SAME sky texture.
+export const CONSTELLATION_PATHS=Object.freeze([
+ [[.640,.540],[.656,.489],[.677,.516],[.696,.471],[.721,.494]],
+ [[.798,.536],[.813,.485],[.835,.505],[.851,.459],[.876,.475]]
+]);
+export function skyDirection(u,v,radius=52){
+ const phi=TAU*u,theta=Math.PI*v;
+ return [-radius*Math.cos(phi)*Math.sin(theta),radius*Math.cos(theta),radius*Math.sin(phi)*Math.sin(theta)];
+}
 export function writeNebulaColor(buffer,index,cloud,violet,fine){
- buffer[index]=6+cloud*(21+77*violet)+fine;
- buffer[index+1]=10+cloud*(52-17*violet)+fine;
- buffer[index+2]=29+cloud*(112+22*violet)+fine;
+ // Rich sapphire/indigo mass with cyan lights and selective violet shadows.
+ buffer[index]=7+cloud*(47+34*violet)+fine;
+ buffer[index+1]=12+cloud*(64-22*violet)+fine;
+ buffer[index+2]=31+cloud*(158+16*violet)+fine;
  buffer[index+3]=255;
 }
 function skyTexture(low){
  const w=low?384:640,h=w/2;
  const c=document.createElement('canvas');c.width=w;c.height=h;
- const ctx=c.getContext('2d'),img=ctx.createImageData(w,h),rand=random(1965);
- // Periodic value-noise fields keep the nebula seam closed around the sky.
+ const ctx=c.getContext('2d',{willReadFrequently:false}),img=ctx.createImageData(w,h),rand=random(1965);
+ // Periodic noise wraps in longitude. A two-axis warp breaks the former
+ // single thin cloud band into overlapping, irregular celestial gas masses.
  const side=64,noise=Float32Array.from({length:side*side},()=>rand());
  function grain(x,y){
-  const a=Math.floor(x),b=Math.floor(y),fx=smooth(x-a),fy=smooth(y-b);
-  const at=(u,v)=>noise[((v+side*64)%side)*side+((u+side*64)%side)];
-  return mix(mix(at(a,b),at(a+1,b),fx),mix(at(a,b+1),at(a+1,b+1),fx),fy);
+  const ix=Math.floor(x),iy=Math.floor(y),fx=smooth(x-ix),fy=smooth(y-iy);
+  const at=(a,b)=>noise[(((b%side)+side)%side)*side+((a%side+side)%side)];
+  return mix(mix(at(ix,iy),at(ix+1,iy),fx),mix(at(ix,iy+1),at(ix+1,iy+1),fx),fy);
+ }
+ function cloudAt(u,v){
+  const a=TAU*(u-.75),x0=8+6*Math.cos(a)+v*7,y0=8+6*Math.sin(a)+v*9;
+  const warpA=grain(x0*.73+11,y0*.73+v*3);
+  const warpB=grain(x0*.86-v*1.7+6,y0*.90+v*4);
+  const x=x0+1.55*(warpA-.5),y=y0+v*9+1.6*(warpB-.5);
+  const lowNoise=grain(x*.64+1,y*.58+1);
+  const mid=grain(x*1.6+9,y*1.45+4);
+  const hi=grain(x*3.4+2,y*3.1+7);
+  const gauss=(center,width)=>Math.exp(-Math.pow((v-center)/width,2));
+  const layers=.87*gauss(.59+.17*Math.sin(a*.9+.3),.34)
+              +.62*gauss(.38+.12*Math.sin(a*1.7+2),.22)
+              +.56*gauss(.83+.08*Math.sin(a*2.5-1),.25);
+  const filaments=.10+1.20*(.64*lowNoise+.25*mid+.11*hi);
+  return Math.min(1,Math.max(0,layers*filaments*.75));
  }
  for(let y=0;y<h;y++){
-  const v=y/h;
+  const v=(y+.5)/h;
   for(let x=0;x<w;x++){
-   const u=x/w,a=TAU*(u-.75),dx=Math.cos(a),dz=Math.sin(a);
-   const nx=dx*8+8,ny=dz*8+8+v*12;
-   const dust=grain(nx,ny)*.55+grain(nx*2+3,ny*2)*.27+grain(nx*4,ny*4+7)*.13+grain(nx*8,ny*8)*.05;
-   const latitude=.67+.09*Math.sin(2*a+.7)+.05*Math.sin(5*a);
-   const cloud=Math.exp(-Math.abs(v-latitude)*7.8)*Math.pow(dust,.88);
-   const violet=.54+.46*Math.sin(2*a+.86+v*3);
-   const fine=grain(nx*11,ny*11)*2;
-   const i=(y*w+x)*4;
+   const u=(x+.5)/w,a=TAU*(u-.75);
+   const cloud=cloudAt(u,v);
+   const violet=.14+.44*(.5+.5*Math.sin(a*2.3+v*6.5+1));
+   const fine=(grain(x*.17,y*.19)-.5)*3;
+   const i=(y*w+x)*4,cyan=.5+.5*Math.sin(a*2.7-v*9+1.9);
    writeNebulaColor(img.data,i,cloud,violet,fine);
+   // Blue gas catches subtle aqua light, while purple remains in the shadows.
+   img.data[i+1]+=cloud*cyan*30;
+   img.data[i+2]+=cloud*cyan*8;
   }
  }
  ctx.putImageData(img,0,0);
- const map=new T.CanvasTexture(c);map.colorSpace=T.SRGBColorSpace;return map;
+ // Stars are embedded in the same nebula texture, biased toward wispy clouds
+ // and softly extinguished in the denser gas instead of floating as a separate
+ // full-sphere point cloud in front of the atmosphere.
+ const stars=low?750:1450,scale=w/640;
+ ctx.save();ctx.globalCompositeOperation='screen';
+ for(let i=0;i<stars;i++){
+  const u=rand(),v=.11+rand()*.79,gas=cloudAt(u,v);
+  if(rand()>.22+.69*gas)continue;
+  const x=u*w,y=v*h,large=rand()<.065,alpha=(.24+.54*rand())*(1-.32*gas);
+  if(large){
+   const size=(6+8*rand())*scale;
+   const halo=ctx.createRadialGradient(x,y,0,x,y,size);
+   halo.addColorStop(0,'rgba(215,247,255,.48)');
+   halo.addColorStop(.2,'rgba(112,206,255,.21)');
+   halo.addColorStop(1,'rgba(94,156,255,0)');
+   ctx.globalAlpha=alpha;ctx.fillStyle=halo;ctx.fillRect(x-size,y-size,size*2,size*2);
+  }
+  ctx.globalAlpha=alpha;ctx.fillStyle=i%9===0?'#ffe7c7':i%5===0?'#b5e9ff':'#e3edff';
+  const size=large?Math.max(1,1.5*scale):Math.max(.6,.85*scale);
+  ctx.fillRect(x-size/2,y-size/2,size,size);
+ }
+ // Zodiac-like routes are a restrained overlay on the cloudy sky itself.
+ // Glowing nodes emit into the surrounding nebula; there are no near-camera
+ // zigzag "wires" beside the architectural columns.
+ for(const path of CONSTELLATION_PATHS){
+  ctx.beginPath();
+  path.forEach(([u,v],i)=>{if(i)ctx.lineTo(u*w,v*h);else ctx.moveTo(u*w,v*h)});
+  ctx.shadowColor='#62bfff';ctx.shadowBlur=12*scale;
+  ctx.strokeStyle='#78c5ff';ctx.lineWidth=2.1*scale;ctx.globalAlpha=.26;ctx.stroke();
+  ctx.shadowBlur=0;ctx.strokeStyle='#d1efff';ctx.lineWidth=Math.max(.65,.85*scale);
+  ctx.globalAlpha=.50;ctx.stroke();
+  path.forEach(([u,v],i)=>{
+   const x=u*w,y=v*h,rad=(i%2?9:13)*scale;
+   const glow=ctx.createRadialGradient(x,y,0,x,y,rad);
+   glow.addColorStop(0,'rgba(243,252,255,.86)');
+   glow.addColorStop(.16,'rgba(137,224,255,.5)');
+   glow.addColorStop(1,'rgba(93,166,255,0)');
+   ctx.globalAlpha=.74;ctx.fillStyle=glow;ctx.fillRect(x-rad,y-rad,2*rad,2*rad);
+   ctx.globalAlpha=.9;ctx.fillStyle='#e8faff';
+   ctx.beginPath();ctx.arc(x,y,Math.max(.8,1.45*scale),0,TAU);ctx.fill();
+  });
+ }
+ ctx.restore();
+ const map=new T.CanvasTexture(c);map.colorSpace=T.SRGBColorSpace;map.anisotropy=2;return map;
 }
 function softStar(){
  const c=document.createElement('canvas');c.width=c.height=32;
@@ -80,20 +150,18 @@ function starField(root,count,radius,texture,seed){
  }));
  root.add(dots);return dots;
 }
-function constellation(root,coords,texture,offset){
- const path=coords.map(p=>new T.Vector3(...p));
- const line=patternedLine(root,'Constellation strokes',coords,0xbcdcff,.4);
- const g=new T.BufferGeometry().setFromPoints(path),sparkMat=new T.PointsMaterial({
-  size:.28,color:0xb6e1ff,map:texture,transparent:true,depthWrite:false,blending:T.AdditiveBlending
- });
- root.add(new T.Points(g,sparkMat));
- const pulse=new T.Sprite(new T.SpriteMaterial({map:texture,color:0xe1efff,depthWrite:false,transparent:true,blending:T.AdditiveBlending}));
- pulse.scale.setScalar(.57);root.add(pulse);
+function constellationPulse(root,coords,texture,offset){
+ const path=coords.map(([u,v])=>new T.Vector3(...skyDirection(u,v)));
+ const pulse=new T.Sprite(new T.SpriteMaterial({
+  map:texture,color:0xd4f5ff,transparent:true,depthWrite:false,
+  blending:T.AdditiveBlending,opacity:0
+ }));
+ pulse.scale.setScalar(.48);pulse.name='Distant constellation shimmer';
+ root.add(pulse);
  return progress=>{
   const t=(progress+offset)%1,travel=t*(path.length-1),i=Math.min(path.length-2,Math.floor(travel));
-  const glow=Math.pow(Math.sin(Math.PI*t),2);
   pulse.position.lerpVectors(path[i],path[i+1],travel-i);
-  line.material.opacity=.40+glow*.31;pulse.material.opacity=glow*.80;sparkMat.opacity=.67+.30*glow;
+  pulse.material.opacity=.45*Math.pow(Math.sin(Math.PI*t),2);
  };
 }
 function engraving(root,name,points,material){
@@ -165,8 +233,10 @@ function makePillar(root,x,z,base,height,muted,gold,gem,n){
 }
 function architecture(root,gold,gem,low){
  const n=low?24:40;
- makePillar(root,-7.65,-11,-8.0,7.5,false,gold,gem,n);
- makePillar(root,6.62,-12.8,-9.05,8.6,false,gold,gem,n);
+ // Matched outer columns frame the timepiece without intersecting the
+ // visible mechanisms in the default three-quarter camera position.
+ makePillar(root,-7.9,-12.6,-9.0,8.4,false,gold,gem,n);
+ makePillar(root,7.9,-12.6,-9.0,8.4,false,gold,gem,n);
  const distanceTrim=new T.Group();root.add(distanceTrim);
  if(!low){
   makePillar(distanceTrim,-11,-18,-12.0,12.1,true,gold,gem,24);
@@ -175,13 +245,8 @@ function architecture(root,gold,gem,low){
  const arch=place(root,'Open celestial arch',new T.TorusGeometry(6.9,.072,6,76,2.92),gold,.25,-9.0,-12);
  arch.rotation.z=.11;
  place(root,'Arch second ring',new T.TorusGeometry(6.58,.04,5,64,2.92),gold,.25,-9.0,-12).rotation.z=.11;
- const wavy=[];
- for(let j=0;j<3;j++)for(let i=0;i<32;i++){
-  const p=i/32,q=(i+1)/32;
-  const at=k=>[-8+16*k,-7.05+j*.18+.10*Math.sin(10*k+j),-10.7];
-  wavy.push(at(p),at(q));
- }
- engraving(root,'Distant celestial terrace',wavy,new T.LineBasicMaterial({color:0x546999,transparent:true,opacity:.65,depthWrite:false}));
+ // No free-floating terrace strokes: from side angles they looked like
+ // stray wires rather than believable architectural elements.
  return distanceTrim;
 }
 function orbitArc(parent,r,length,color,y){
@@ -193,18 +258,17 @@ function orbitArc(parent,r,length,color,y){
 }
 export function buildCelestialObservatory(scene,{mobile=false}={}){
  const root=new T.Group();root.name='Daedalus Celestial Observatory';scene.add(root);
+ const skyGroup=new T.Group();skyGroup.name='Distant nebula and constellations';root.add(skyGroup);
  const sky=skyTexture(mobile);
- place(root,'Procedural nebula dome',new T.SphereGeometry(55,32,20),
+ place(skyGroup,'Layered sapphire nebula dome',new T.SphereGeometry(55,32,20),
   new T.MeshBasicMaterial({map:sky,side:T.BackSide,depthWrite:false,toneMapped:false})).renderOrder=-20;
  const gold=alloy(0xd4a970);
  const gem=new T.MeshStandardMaterial({color:0x56cdf2,metalness:.42,roughness:.19,emissive:0x0c8bc3,emissiveIntensity:.7});
  const texture=softStar();
- starField(root,mobile?530:920,46,texture,318);
- const dust=starField(root,mobile?40:98,17,texture,712);
- const signals=[
-  constellation(root,[[-9,-2.1,-13],[-7.2,-.9,-13],[-5.8,-2.3,-13],[-4.0,-1.4,-13],[-3.0,-2.9,-13]],texture,.13),
-  constellation(root,[[3.5,-2.7,-14],[5.7,-1.1,-14],[7.2,-2.0,-14],[8.7,-.7,-14],[10.1,-2.7,-14]],texture,.68)
- ];
+ // Far stars and strokes already live inside skyTexture; only nearby dust
+ // and the two small travelling light glints remain separate 3D particles.
+ const dust=starField(root,mobile?22:52,17,texture,712);
+ const signals=CONSTELLATION_PATHS.map((path,i)=>constellationPulse(skyGroup,path,texture,i*.47+.09));
  platform(root,gold,gem,mobile?56:84);
  const distanceTrim=architecture(root,gold,gem,mobile);
  const orbiter=new T.Group();root.add(orbiter);
@@ -220,6 +284,7 @@ export function buildCelestialObservatory(scene,{mobile=false}={}){
  const fill=new T.PointLight(0x3ab8ff,1.8,8,2);fill.position.set(0,.24,2.05);scene.add(fill);
  return {update(seconds,{economy=false,focus=false}={}){
   const {angle,breath,pulse}=celestialPhase(seconds);
+  skyGroup.rotation.y=.012*Math.sin(angle);skyGroup.rotation.x=.004*Math.sin(angle+.7);
   orbiter.rotation.y=angle;blue.material.opacity=.44+.26*breath;warm.material.opacity=.29+.20*(1-breath);
   gem.emissiveIntensity=.46+.28*breath;
   fill.intensity=1.52+.51*breath;

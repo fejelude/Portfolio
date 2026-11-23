@@ -65,6 +65,10 @@ async function desktop(browser,url){
  const video=page.video();
  try{
   await page.goto(url);
+  const insignia=page.locator('#tourbillon .ft-maker-seal');
+  assert.equal(await insignia.count(),1);
+  assert.equal(await insignia.getAttribute('aria-hidden'),'true');
+  assert.equal(await insignia.evaluate(el=>getComputedStyle(el).userSelect),'none');
   const canvas=page.locator('.ft-model'),stage=page.locator('[data-ft-stage]');
   await canvas.waitFor({timeout:30000});
   assert.ok(await canvas.evaluate(c=>!!c.getContext('webgl2')));
