@@ -28,6 +28,14 @@ const server=createServer(async(req,res)=>{
         if(mode==='no-webgl')await page.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return /^webgl/.test(type)?null:original.call(this,type,...args);};});
         await page.goto(url,{waitUntil:'domcontentloaded'});
         assert.equal(await page.locator('h1').count(),1);
+        const sofCrown=page.locator('#sofra-project .sofra-feature-kicker .sofra-princess-crown');
+        assert.equal(await sofCrown.count(),1);
+        assert.equal(await sofCrown.getAttribute('aria-hidden'),'true');
+        assert.equal(await sofCrown.locator('svg[shape-rendering="crispEdges"]').count(),1);
+        assert.equal(await sofCrown.locator('.sf-crown-gem').count(),1);
+        const crownAnimation=await sofCrown.locator('.sf-crown-body').evaluate(el=>getComputedStyle(el).animationName);
+        assert.equal(crownAnimation,mode==='reduced'?'none':'sf-princess-crown-bob');
+        assert.ok(await sofCrown.evaluate(el=>{const r=el.getBoundingClientRect();return r.width>=30&&r.height>=28&&r.right<=document.documentElement.scrollWidth+1;}));
         assert.equal(await page.locator('.brand-mark svg path').count(),3);
         assert.match(await page.locator('.footer-bottom .footer-links a').textContent(),/November 22, 2026/);
         assert.equal(await page.locator('#surprise-trigger').count(),1);
