@@ -18,6 +18,26 @@
 }
 .feje-world-home .ft-kicker>span:first-child{color:#f5d195;font:700 1.26rem/1 Georgia,serif}
 .feje-world-home .ft-slash{color:#a19ac5}
+
+/* Custom 8-bit maker's insignia, not a selectable font glyph. */
+.feje-world-home .ft-kicker>.ft-maker-seal{
+ display:inline-grid;place-items:center;flex:0 0 32px;width:32px;height:32px;
+ line-height:0;margin-right:3px;pointer-events:none;user-select:none;-webkit-user-select:none;
+}
+.feje-world-home .ft-maker-seal-art{display:block;width:32px;height:32px;overflow:visible;image-rendering:pixelated}
+.feje-world-home .ft-maker-seal-wheel{transform-origin:16px 16px}
+.feje-world-home .ft-maker-seal-jewel{transform-origin:16px 17px}
+.feje-world-home .ft-maker-seal-glint{opacity:.75}
+@media(prefers-reduced-motion:no-preference){
+ .feje-world-home .ft-maker-seal-wheel{animation:ft-maker-wheel 16s steps(12,end) infinite}
+ .feje-world-home .ft-maker-seal-jewel{animation:ft-maker-jewel 4s steps(2,end) infinite}
+ .feje-world-home .ft-maker-seal-glint{animation:ft-maker-glint 4s steps(2,end) infinite}
+}
+@keyframes ft-maker-wheel{to{transform:rotate(360deg)}}
+@keyframes ft-maker-jewel{0%,100%{opacity:1}45%,55%{opacity:.7}}
+@keyframes ft-maker-glint{0%,15%,65%,100%{opacity:.25}24%,36%{opacity:1}}
+@media(max-width:390px){.feje-world-home .ft-kicker>.ft-maker-seal{flex-basis:28px;width:28px;height:28px}.feje-world-home .ft-maker-seal-art{width:28px;height:28px}}
+
 .feje-world-home .ft-title-block h2{
  margin:0 0 8px;font:600 clamp(1.86rem,4vw,3.68rem)/1.04 Georgia,serif;
  letter-spacing:-.043em;color:#fff1dd;text-wrap:balance

@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {ASPECTS,manilaParts,handAngles} from '../js/feje-tourbillon.mjs';
 import {MOVEMENT as m,TAU,movementAt} from '../js/feje-tourbillon-mechanism.mjs';
 import {astrolabeTime,SKY_PERIOD} from '../js/feje-tourbillon-astrolabe.mjs';
-import {celestialPhase,writeNebulaColor} from '../js/feje-tourbillon-celestial.mjs';
+import {celestialPhase,writeNebulaColor,skyDirection,CONSTELLATION_PATHS} from '../js/feje-tourbillon-celestial.mjs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const close=(actual,expected)=>assert.ok(Math.abs(actual-expected)<1e-9,`${actual} != ${expected}`);
 
@@ -85,4 +85,41 @@ test('nebula pixels retain blue, violet and green channels',()=>{
  assert.ok(p[6]>p[4]&&p[4]>p[5]&&p[5]>10);
  assert.equal(p[7],255);
  assert.deepEqual([...p.slice(0,4)],[0,0,0,0]);
+});
+
+test('constellations and embedded stars share the distant blue nebula',()=>{
+ const sky=read('js/feje-tourbillon-celestial.mjs');
+ assert.match(sky,/const stars=low\?750:1450/);
+ assert.match(sky,/constellationPulse\(skyGroup,path,texture/);
+ assert.match(sky,/Layered sapphire nebula dome/);
+ assert.match(sky,/skyGroup\.rotation\.y=/);
+ assert.doesNotMatch(sky,/starField\(root,mobile\?530:920/);
+ assert.doesNotMatch(sky,/constellation\(root,\[\[/);
+ assert.doesNotMatch(sky,/engraving\(root,'Distant celestial terrace'/);
+ assert.equal(CONSTELLATION_PATHS.length,2);
+ for(const path of CONSTELLATION_PATHS){
+  assert.ok(path.length>=5);
+  for(const [u,v] of path){
+   assert.ok(u>=0&&u<=1&&v>=0&&v<=1);
+   const p=skyDirection(u,v,52);
+   close(Math.hypot(...p),52);
+   assert.ok(p[2]<0,'constellation belongs to distant hemisphere');
+  }
+ }
+ const back=skyDirection(.75,.5,52);
+ close(back[2],-52);close(back[1],0);
+});
+
+test('the maker mark is pixel clockwork, not a selectable Delta character',()=>{
+ const html=read('index.html'),css=read('css/feje-tourbillon.css');
+ const head=html.slice(html.indexOf('id="tourbillon"'),html.indexOf('id="tourbillon"')+2600);
+ assert.match(head,/class="ft-maker-seal" aria-hidden="true"/);
+ assert.match(head,/shape-rendering="crispEdges"/);
+ assert.match(head,/class="ft-maker-seal-jewel"/);
+ assert.match(head,/ΔΑΙΔΑΛΟΣ/);
+ assert.doesNotMatch(head,/<span aria-hidden="true">Δ<\/span>/);
+ assert.match(css,/\.ft-maker-seal-art\{[^}]*image-rendering:pixelated/);
+ assert.match(css,/pointer-events:none;user-select:none/);
+ assert.match(css,/@keyframes ft-maker-wheel/);
+ assert.match(css,/@media\(prefers-reduced-motion:no-preference\)/);
 });
