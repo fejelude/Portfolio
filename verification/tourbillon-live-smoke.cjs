@@ -65,6 +65,11 @@ async function desktop(browser,url){
  const video=page.video();
  try{
   await page.goto(url);
+  const watchCard=page.locator('#tourbillon');
+  assert.equal(await watchCard.locator('.ft-card-cosmos').count(),1);
+  assert.equal(await watchCard.locator('.ft-title-echo[aria-hidden="true"]').count(),1);
+  assert.ok(await watchCard.locator('#ft-title').evaluate(el=>getComputedStyle(el).fontFamily.includes('Cormorant Garamond')));
+
   const insignia=page.locator('#tourbillon .ft-maker-seal');
   assert.equal(await insignia.count(),1);
   assert.equal(await insignia.getAttribute('aria-hidden'),'true');
@@ -76,6 +81,8 @@ async function desktop(browser,url){
   // Hold the movement to isolate the camera test. The actual WebGL pixels
   // must change while the canvas element and its CSS transform stay put.
   await page.getByRole('button',{name:'Pause movement'}).click();
+  assert.equal(await watchCard.getAttribute('data-ft-card-motion'),null,'card ambience must pause with the watch');
+
   await stage.screenshot({path:path.join(out,'daedalus-live-overview.png'),timeout:60000});
   const a=await canvas.screenshot(),b=await canvas.boundingBox();
   await page.mouse.move(b.x+b.width*.59,b.y+b.height*.46);
@@ -88,6 +95,8 @@ async function desktop(browser,url){
   assert.notDeepEqual(await canvas.screenshot(),a,'orbit did not change the rendered geometry');
 
   await page.getByRole('button',{name:'Resume movement'}).click();
+  await page.waitForFunction(()=>document.querySelector('#tourbillon').hasAttribute('data-ft-card-motion'));
+
   await page.getByRole('button',{name:'Reset view'}).click();
   await page.getByRole('button',{name:'Hide case'}).click();
   await page.getByRole('button',{name:'Tourbillon',exact:true}).click();

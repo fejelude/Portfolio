@@ -133,6 +133,9 @@ export function mountTourbillon(root){
   invalidate();
  }
  function sync(){
+  // Decorative card animation follows the existing watch pause/visibility
+  // state; keep the actual Asia/Manila clock independent and accurate.
+  root.toggleAttribute('data-ft-card-motion',live()&&!paused&&!reduced.matches);
   clearTimeout(clock);
   if(live())updateTime();
   if(inView())loadModel();

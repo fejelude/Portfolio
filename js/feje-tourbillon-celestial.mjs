@@ -206,49 +206,9 @@ function platform(root,gold,gem,n){
  }
  root.add(mounts,jewels);
 }
-function makePillar(root,x,z,base,height,muted,gold,gem,n){
- const g=new T.Group();root.add(g);g.position.set(x,base,z);g.scale.setScalar(height/6.7);
- const stone=new T.MeshStandardMaterial({color:muted?0x263355:0x536888,metalness:.30,roughness:.6});
- const shadowed=new T.MeshStandardMaterial({color:muted?0x171f3e:0x344866,metalness:.37,roughness:.55});
- profile(g,'Stepped Ionian base and capital',[
-  [0,0],[1.18,0],[1.18,.25],[1.02,.25],[1.02,.48],[.88,.48],[.88,.74],[.70,.84],[.69,1.25],[.47,1.36],[.43,1.55],
-  [.38,5.46],[.48,5.62],[.64,5.73],[.64,5.91],[.87,6.05],[.87,6.22],[1.05,6.34],[1.05,6.57],[0,6.57]
- ],stone,n);
- const count=muted?8:16;
- const geo=new T.CylinderGeometry(.067,.09,4.06,6);
- const flutes=new T.InstancedMesh(geo,shadowed,count),pose=new T.Object3D();
- for(let i=0;i<count;i++){
-  const a=TAU*i/count;pose.position.set(.421*Math.cos(a),3.49,.421*Math.sin(a));
-  pose.rotation.z=-.012*Math.cos(a);pose.rotation.x=.012*Math.sin(a);pose.updateMatrix();flutes.setMatrixAt(i,pose.matrix);
- }
- g.add(flutes);
- for(const [y,r,w] of [[.25,1.183,.075],[.77,.85,.057],[1.32,.585,.07],[5.65,.54,.05],[6.23,.96,.076],[6.57,1.048,.09]]){
-  band(g,'Column collar inlay',y,r,w,.063,gold,n);
- }
- if(!muted){
-  const mount=place(g,'Chiseled crystal shrine',new T.OctahedronGeometry(.29),gold,0,1.04,.676);
-  mount.scale.set(.88,1.47,.45);
-  place(g,'Cyan column stone',new T.OctahedronGeometry(.215),gem,0,1.05,.789).scale.set(.85,1.5,.45);
- }
-}
-function architecture(root,gold,gem,low){
- const n=low?24:40;
- // Matched outer columns frame the timepiece without intersecting the
- // visible mechanisms in the default three-quarter camera position.
- makePillar(root,-7.9,-12.6,-9.0,8.4,false,gold,gem,n);
- makePillar(root,7.9,-12.6,-9.0,8.4,false,gold,gem,n);
- const distanceTrim=new T.Group();root.add(distanceTrim);
- if(!low){
-  makePillar(distanceTrim,-11,-18,-12.0,12.1,true,gold,gem,24);
-  makePillar(distanceTrim,12.1,-19,-12.6,12.8,true,gold,gem,24);
- }
- const arch=place(root,'Open celestial arch',new T.TorusGeometry(6.9,.072,6,76,2.92),gold,.25,-9.0,-12);
- arch.rotation.z=.11;
- place(root,'Arch second ring',new T.TorusGeometry(6.58,.04,5,64,2.92),gold,.25,-9.0,-12).rotation.z=.11;
- // No free-floating terrace strokes: from side angles they looked like
- // stray wires rather than believable architectural elements.
- return distanceTrim;
-}
+// The former columns and arches were removed deliberately: this exhibit now
+// floats in an uninterrupted celestial sky, with its engraved dial platform as
+// the only architectural stage. This also saves meshes, materials and draws.
 function orbitArc(parent,r,length,color,y){
  const pts=Array.from({length:64},(_,i)=>{
   const a=length*i/63;
@@ -270,7 +230,7 @@ export function buildCelestialObservatory(scene,{mobile=false}={}){
  const dust=starField(root,mobile?22:52,17,texture,712);
  const signals=CONSTELLATION_PATHS.map((path,i)=>constellationPulse(skyGroup,path,texture,i*.47+.09));
  platform(root,gold,gem,mobile?56:84);
- const distanceTrim=architecture(root,gold,gem,mobile);
+ // No temple columns, arch toruses or detached terrace geometry.
  const orbiter=new T.Group();root.add(orbiter);
  band(orbiter,'Engraved traveling meridian',-.35,3.364,.015,.005,gold,mobile?56:84);
  const meridian=[];
@@ -288,7 +248,7 @@ export function buildCelestialObservatory(scene,{mobile=false}={}){
   orbiter.rotation.y=angle;blue.material.opacity=.44+.26*breath;warm.material.opacity=.29+.20*(1-breath);
   gem.emissiveIntensity=.46+.28*breath;
   fill.intensity=1.52+.51*breath;
-  dust.visible=!economy&&!focus;distanceTrim.visible=!economy;
+  dust.visible=!economy&&!focus;
   dust.rotation.y=.055*Math.sin(angle);dust.rotation.z=.013*Math.cos(angle);
   signals.forEach(signal=>signal(pulse));
  }};
