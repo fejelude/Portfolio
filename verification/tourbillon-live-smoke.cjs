@@ -25,6 +25,38 @@ const server=createServer(async(req,res)=>{
  }catch{res.writeHead(404);res.end()}
 });
 
+async function recordSky(browser,url){
+ const viewport={width:1280,height:960};
+ const context=await browser.newContext({viewport,timezoneId:'America/Los_Angeles',
+  recordVideo:{dir:out,size:{width:1000,height:750}}});
+ const page=await context.newPage();
+ const video=page.video();
+ try{
+  await page.goto(url);
+  const stage=page.locator('[data-ft-stage]'),canvas=page.locator('.ft-model');
+  const astro=page.locator('.ft-astrolabe');
+  await canvas.waitFor({timeout:30000});
+  await stage.scrollIntoViewIfNeeded();
+  const time=await page.locator('#ft-time').evaluate(el=>Number(el.textContent.slice(0,2)));
+  assert.equal(await astro.locator('figcaption').textContent(),time>=6&&time<18?'Manila day':'Manila night');
+  assert.equal(await astro.locator('canvas').evaluate(c=>getComputedStyle(c).imageRendering),'pixelated');
+  await astro.screenshot({path:path.join(out,'daedalus-pixel-astrolabe.png')});
+  await stage.scrollIntoViewIfNeeded();
+  await stage.screenshot({path:path.join(out,'daedalus-celestial-desktop.png')});
+  // Hold the complete 20-second atmospheric cycle in a real WebGL recording.
+  await page.waitForTimeout(20800);
+  await page.getByRole('button',{name:'Zoom in'}).click();
+  await stage.scrollIntoViewIfNeeded();
+  await canvas.focus();
+  await canvas.press('ArrowDown');
+  await page.waitForTimeout(850);
+  await stage.screenshot({path:path.join(out,'daedalus-platform-detail.png')});
+ } finally{
+  await context.close();
+  await video.saveAs(path.join(out,'daedalus-celestial-cycle.webm'));
+ }
+}
+
 async function desktop(browser,url){
  const viewport={width:1360,height:980};
  const context=await browser.newContext({viewport,recordVideo:{dir:out,size:{width:1040,height:750}},timezoneId:'America/Los_Angeles'});
@@ -108,6 +140,11 @@ async function mobile(browser,url){
    await page.waitForTimeout(950);
    await stage.screenshot({path:path.join(out,'daedalus-mobile-'+name+'.png')});
   }
+  const frames=await page.locator('[data-ft-ratio]').evaluateAll(buttons=>buttons.map(b=>b.getBoundingClientRect().top));
+  assert.equal(new Set(frames).size,1,'the four frame segments should share one row');
+  const a=await page.locator('.ft-astrolabe').boundingBox(),t=await page.locator('.ft-timeblock').boundingBox();
+  assert.ok(a.x>=t.x+t.width-.5,'astrolabe overlaps the clock');
+  await page.locator('#tourbillon').screenshot({path:path.join(out,'daedalus-celestial-mobile.png')});
   await page.getByRole('button',{name:'Pause movement'}).tap();
   const stats=await page.evaluate(async()=>{
    const {createWatchRenderer}=await import('/js/feje-tourbillon-renderer.mjs');
@@ -138,6 +175,6 @@ async function mobile(browser,url){
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const url='http://127.0.0.1:'+server.address().port;
  const browser=await chromium.launch({headless:true,args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
- try{await desktop(browser,url);await mobile(browser,url)}
+ try{await recordSky(browser,url);await desktop(browser,url);await mobile(browser,url)}
  finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exitCode=1}).finally(()=>server.close());

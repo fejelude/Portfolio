@@ -1,3 +1,5 @@
+import {mountAstrolabe,SKY_PERIOD} from './feje-tourbillon-astrolabe.mjs';
+
 export const ASPECTS=Object.freeze({normal:'4 / 3',landscape:'16 / 9',portrait:'3 / 4',square:'1 / 1'});
 const fmt=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Manila',hourCycle:'h23',hour:'2-digit',minute:'2-digit',second:'2-digit'});
 const storageKey='fejelude.tourbillon.aspect.v1';
@@ -14,6 +16,7 @@ export function handAngles(t){
 export function mountTourbillon(root){
  if(!root)return ()=>{};
  const stage=root.querySelector('[data-ft-stage]'),canvas=root.querySelector('.ft-model');
+ const astrolabe=mountAstrolabe(root.querySelector('[data-ft-astro]'),root.querySelector('[data-ft-astro-status]'));
  const output=root.querySelector('#ft-time'),note=root.querySelector('#ft-detail');
  const buttons=[...root.querySelectorAll('[data-ft-ratio]')],hotspots=[...root.querySelectorAll('[data-ft-inspect]')];
  const pause=root.querySelector('[data-ft-pause]'),caseButton=root.querySelector('[data-ft-case]');
@@ -32,7 +35,7 @@ export function mountTourbillon(root){
  };
  const defaultNote='Drag to orbit. Pinch or use + and − to zoom.';
  let visible=alwaysVisible,onStage=alwaysVisible,suspended=false,paused=false,contextLost=false,caseVisible=true;
- let observer,resizer,load,model,selected='',clock=0,frame=0,clockParts,elapsed=0,last=0,lastPaint=-Infinity,dirty=true;
+ let observer,resizer,load,model,selected='',clock=0,frame=0,clockParts,elapsed=0,skySeconds=0,last=0,lastPaint=-Infinity,dirty=true;
  const pointers=new Map();
  const live=()=>visible&&!document.hidden&&!suspended;
  const inView=()=>live()&&onStage&&!contextLost;
@@ -82,6 +85,7 @@ export function mountTourbillon(root){
   clockParts=manilaParts(date);
   output.textContent=[clockParts.hour,clockParts.minute,clockParts.second].map(v=>String(v).padStart(2,'0')).join(':');
   output.dateTime=date.toISOString();
+  astrolabe(clockParts,skySeconds);
   invalidate();
   clock=setTimeout(updateTime,1000-date.getUTCMilliseconds());
  }
@@ -103,13 +107,17 @@ export function mountTourbillon(root){
  function tick(now){
   frame=0;
   if(!inView()||!model)return;
-  if(last&&moving())elapsed+=(now-last)/1000;
+  if(last&&moving()){
+   const activeSeconds=(now-last)/1000;
+   elapsed+=activeSeconds;skySeconds=(skySeconds+activeSeconds)%SKY_PERIOD;
+  }
   const delta=last?Math.min(.09,(now-last)/1000):0;
   last=now;
   const animate=moving(),interval=mobile?40:32;
   if(dirty||!animate||now-lastPaint>=interval){
    const ms=animate?new Date().getUTCMilliseconds():0;
-   dirty=model.draw(elapsed,handAngles({...clockParts,millisecond:ms}),delta,reduced.matches);
+   dirty=model.draw(elapsed,handAngles({...clockParts,millisecond:ms}),delta,reduced.matches,skySeconds);
+   astrolabe(clockParts,skySeconds);
    lastPaint=now;
    if(canvas.hidden){setReady(true);fallback.hidden=true}
   }

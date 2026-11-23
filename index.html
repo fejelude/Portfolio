@@ -232,10 +232,16 @@
               <h2 id="ft-title">Fejelude's Tourbillon.</h2>
               <p>A little observatory I built for fun. It keeps Philippine time.</p>
             </div>
-            <div class="ft-timeblock" aria-label="Live Philippine time">
-              <span class="ft-pht"><i aria-hidden="true"></i> PHILIPPINE TIME</span>
-              <time id="ft-time" aria-label="Current time in the Philippines">--:--:--</time>
-              <span class="ft-zone">ASIA/MANILA · UTC+08</span>
+            <div class="ft-almanac">
+              <div class="ft-timeblock" aria-label="Live Philippine time">
+                <span class="ft-pht"><i aria-hidden="true"></i> PHILIPPINE TIME</span>
+                <time id="ft-time" aria-label="Current time in the Philippines">--:--:--</time>
+                <span class="ft-zone">ASIA/MANILA · UTC+08</span>
+              </div>
+              <figure class="ft-astrolabe" aria-label="Pixel astrolabe on Manila time">
+                <canvas data-ft-astro width="88" height="88" aria-hidden="true"></canvas>
+                <figcaption data-ft-astro-status>Manila astrolabe</figcaption>
+              </figure>
             </div>
           </div>
           <div class="ft-settings" role="group" aria-label="Watch display aspect ratio">
