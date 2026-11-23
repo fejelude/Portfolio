@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="/css/interactives.css">
   <link rel="stylesheet" href="css/hero-pixels.css">
   <link rel="stylesheet" href="css/sofra-feature.css">
+  <link rel="stylesheet" href="css/feje-tourbillon.css">
   <link rel="stylesheet" href="css/roblox-creations.css">
 </head>
 <body class="feje-world-home">
@@ -222,6 +223,51 @@
       </div>
     </section>
       
+    <section id="tourbillon" class="ft-section section-padding" aria-labelledby="ft-title">
+      <div class="container narrow">
+        <article class="ft-card" data-ft-aspect="normal">
+          <div class="ft-top">
+            <div class="ft-title-block">
+              <p class="ft-kicker"><span aria-hidden="true">Δ</span> ΔΑΙΔΑΛΟΣ <span class="ft-slash">/</span> BUILT WITH CODE</p>
+              <h2 id="ft-title">Fejelude's Tourbillon.</h2>
+              <p>A ridiculously detailed watch I coded for fun. It's on Philippine time, hehe.</p>
+            </div>
+            <div class="ft-timeblock" aria-label="Live Philippine time">
+              <span class="ft-pht"><i aria-hidden="true"></i> PHILIPPINE TIME</span>
+              <time id="ft-time" aria-label="Current time in the Philippines">--:--:--</time>
+              <span class="ft-zone">ASIA/MANILA · UTC+08</span>
+            </div>
+          </div>
+          <div class="ft-settings" role="group" aria-label="Watch display aspect ratio">
+            <span class="ft-settings-label">FRAME</span>
+            <button class="ft-aspect" type="button" data-ft-ratio="normal" aria-pressed="true">Normal</button>
+            <button class="ft-aspect" type="button" data-ft-ratio="landscape" aria-pressed="false">Landscape</button>
+            <button class="ft-aspect" type="button" data-ft-ratio="portrait" aria-pressed="false">Portrait</button>
+            <button class="ft-aspect" type="button" data-ft-ratio="square" aria-pressed="false">Square</button>
+          </div>
+          <div class="ft-stage" data-ft-stage data-aspect="normal">
+            <div class="ft-grid-etch" aria-hidden="true"></div>
+            <span class="ft-corner ft-tl" aria-hidden="true">+</span><span class="ft-corner ft-tr" aria-hidden="true">+</span>
+            <span class="ft-corner ft-bl" aria-hidden="true">+</span><span class="ft-corner ft-br" aria-hidden="true">+</span>
+            <div class="ft-side ft-side-left" aria-hidden="true"><span>EXHIBIT 001</span><strong>21 JEWELS</strong><span>MANILA / PHT</span></div>
+            <div class="ft-side ft-side-right" aria-hidden="true"><span>HAND-CODED</span><strong>ΔΑΙΔΑΛΟΣ</strong><span>TOURBILLON</span></div>
+            <div class="ft-watch" data-ft-watch>
+              <div class="ft-watch-poster" aria-hidden="true">Δ</div>
+              <button class="ft-hotspot ft-hotspot-orbit" type="button" data-ft-inspect="orbit" aria-label="Inspect orbital display">+</button>
+              <button class="ft-hotspot ft-hotspot-gears" type="button" data-ft-inspect="gears" aria-label="Inspect mechanical gears">+</button>
+              <button class="ft-hotspot ft-hotspot-cage" type="button" data-ft-inspect="tourbillon" aria-label="Inspect tourbillon cage">+</button>
+            </div>
+            <span class="ft-footmark" aria-hidden="true">Δ / 001</span>
+          </div>
+          <div class="ft-footer">
+            <p id="ft-detail" role="status">Real Philippine time. The moving parts are my own little mechanical experiment.</p>
+            <span>move it around or tap the + marks :)</span>
+          </div>
+          <noscript><p class="ft-nojs">Enable JavaScript to run the Philippine clock and change the frame. The static display is available without it.</p></noscript>
+        </article>
+      </div>
+    </section>
+
     <section id="sofra-project" class="section-padding" aria-labelledby="sofra-feature-title">
       <div class="container narrow">
         <article class="sofra-feature">
@@ -548,6 +594,7 @@
   <script type="module" src="js/home-world.mjs"></script>
   <script type="module" src="js/hero-pixels.mjs"></script>
   <script type="module" src="js/sofra-feature.mjs"></script>
+  <script type="module" src="js/feje-tourbillon.mjs"></script>
   <script type="module" src="js/roblox-creations.mjs"></script>
   <script type="module" src="js/hero-terminal.mjs"></script>
   <script type="module" src="/js/interactives-entry.mjs"></script>

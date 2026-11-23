@@ -19,6 +19,9 @@ on:
       - js/hero-pixels.mjs
       - verification/hero-pixels-smoke.cjs
       - css/sofra-feature.css
+      - css/feje-tourbillon.css
+      - js/feje-tourbillon*.mjs
+      - tests/feje-tourbillon.test.mjs
       - js/sofra-feature.mjs
       - verification/sofra-feature-smoke.cjs
       - js/home-world*.mjs
@@ -40,6 +43,7 @@ jobs:
           node-version: '24'
       - run: node --check js/hero-pixels.mjs && node --check js/sofra-feature.mjs && node --check js/home-collectibles.mjs && node --check js/home-world.mjs && node --check js/home-world-renderer.mjs && node --test tests/home-world.test.mjs
       - run: node --check js/interactives-entry.mjs && node --test tests/interactives.test.cjs
+      - run: node --check js/feje-tourbillon.mjs && node --check js/feje-tourbillon-art.mjs && node --test tests/feje-tourbillon.test.mjs
       - run: node --check js/hero-terminal.mjs && node --test tests/hero-terminal.test.mjs
       - run: node --check js/roblox-creations.mjs && node --test tests/roblox-creations.test.cjs
       - run: npm install --no-save --package-lock=false playwright@1.62.1
