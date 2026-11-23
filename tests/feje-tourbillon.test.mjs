@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {ASPECTS,manilaParts,handAngles} from '../js/feje-tourbillon.mjs';
 import {MOVEMENT as m,TAU,movementAt} from '../js/feje-tourbillon-mechanism.mjs';
+import {astrolabeTime,SKY_PERIOD} from '../js/feje-tourbillon-astrolabe.mjs';
+import {celestialPhase,writeNebulaColor} from '../js/feje-tourbillon-celestial.mjs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const close=(actual,expected)=>assert.ok(Math.abs(actual-expected)<1e-9,`${actual} != ${expected}`);
 
@@ -61,4 +63,26 @@ test('the watch uses live WebGL geometry and keeps a static compatibility poster
  assert.match(renderer,/new T\.PerspectiveCamera/);
  assert.match(renderer,/watch\.update\(movementAt\(seconds\)\)/);
  assert.doesNotMatch(renderer,/motion-[1-3]\.webp|drawImage\(/);
+});
+
+test('the 20-second sky and the Manila astrolabe track independent timelines',()=>{
+ assert.equal(SKY_PERIOD,20);
+ assert.deepEqual(celestialPhase(3.25),celestialPhase(23.25));
+ assert.deepEqual(celestialPhase(0),celestialPhase(20));
+ assert.equal(celestialPhase(10).breath,0);
+ const morning=astrolabeTime(manilaParts(new Date('2026-11-23T22:30:00Z')));
+ const evening=astrolabeTime(manilaParts(new Date('2026-11-24T10:30:00Z')));
+ assert.ok(morning.day);
+ assert.equal(evening.day,false);
+ close(morning.hourPhase,6.5/24);
+ close(evening.hourPhase,18.5/24);
+ close(morning.minutePhase,.5);
+});
+
+test('nebula pixels retain blue, violet and green channels',()=>{
+ const p=new Uint8ClampedArray(8);
+ writeNebulaColor(p,4,.7,.8,1);
+ assert.ok(p[6]>p[4]&&p[4]>p[5]&&p[5]>10);
+ assert.equal(p[7],255);
+ assert.deepEqual([...p.slice(0,4)],[0,0,0,0]);
 });

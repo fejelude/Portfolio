@@ -1,10 +1,11 @@
 import * as T from './vendor/three-r160.1.mjs';
 import {buildWatch} from './feje-tourbillon-model.mjs';
 import {movementAt} from './feje-tourbillon-mechanism.mjs';
+import {buildCelestialObservatory} from './feje-tourbillon-celestial.mjs';
 
 const fit=(n,min,max)=>Math.min(max,Math.max(min,n));
 const views={
- overview:{target:[.055,.64,0],azimuth:.16,elevation:.69,distance:8.65},
+ overview:{target:[.055,.43,0],azimuth:.13,elevation:.58,distance:8.95},
  tourbillon:{target:[-1.08,1.055,.86],azimuth:-.35,elevation:.52,distance:3.15},
  escapement:{target:[-1.08,1.12,.86],azimuth:-.32,elevation:1.09,distance:2.45},
  gears:{target:[-.53,.30,.65],azimuth:-.33,elevation:1.13,distance:3.28},
@@ -49,13 +50,14 @@ function disposeScene(scene){
 }
 
 export function createWatchRenderer(canvas,{mobile=false}={}){
- const context=canvas.getContext('webgl2',{alpha:true,antialias:true,depth:true,powerPreference:'low-power'});
+ const antialias=!mobile;
+ const context=canvas.getContext('webgl2',{alpha:true,antialias,depth:true,powerPreference:'low-power'});
  if(!context)return null;
- const renderer=new T.WebGLRenderer({canvas,context,alpha:true,antialias:true});
+ const renderer=new T.WebGLRenderer({canvas,context,alpha:true,antialias});
  renderer.toneMapping=T.ACESFilmicToneMapping;
  renderer.toneMappingExposure=1.21;
  renderer.setClearColor(0x000000,0);
- const scene=new T.Scene(),camera=new T.PerspectiveCamera(38,1,.10,40);
+ const scene=new T.Scene(),camera=new T.PerspectiveCamera(38,1,.10,82);
  let reflection;
  const rebuildReflections=()=>{
   reflection?.dispose();
@@ -69,6 +71,7 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
  areaLight(0xc7dcff,1.8,3,4,-4);
  areaLight(0xfff5e5,.65,3,1,4);
  scene.add(new T.HemisphereLight(0xd9e9ff,0x654133,1.1));
+ const observatory=buildCelestialObservatory(scene,{mobile});
  const watch=buildWatch(scene);
  rebuildReflections();
 
@@ -77,7 +80,7 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
  const current={...overview},goal={...overview};
  let width=0,height=0;
  let pixelRatio=Math.min(devicePixelRatio||1,mobile?1.2:1.55);
- let samples=0,cost=0;
+ let samples=0,cost=0,slowFrames=0,economy=mobile,focusDetail=false;
  const stats={frames:0,triangles:0,drawCalls:0,pixelRatio};
  function resize(w,h){
   if(w<1||h<1||w===width&&h===height)return;
@@ -88,6 +91,7 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
   renderer.setPixelRatio(pixelRatio);renderer.setSize(width,height,false);
  }
  function focus(name){
+  focusDetail=Object.hasOwn(views,name)&&name!=='overview';
   const v=views[name]??overview;
   desiredTarget.set(...v.target);
   Object.assign(goal,v);
@@ -113,22 +117,27 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
   },
   zoom(factor){goal.distance=fit(goal.distance*factor,1.65,15)},
   setCase(visible){watch.shell.visible=visible},
-  draw(seconds,angles,delta,immediate=false){
+  draw(seconds,angles,delta,immediate=false,skySeconds=seconds){
    const start=performance.now();
    watch.update(movementAt(seconds));
+   observatory.update(skySeconds,{economy,focus:focusDetail});
    for(const [name,angle] of Object.entries(angles))watch.hands[name].rotation.y=-angle*Math.PI/180;
    const settling=settleCamera(delta,immediate);
    renderer.render(scene,camera);
    stats.frames++;stats.triangles=renderer.info.render.triangles;stats.drawCalls=renderer.info.render.calls;
    samples++;cost+=performance.now()-start;
+   if(delta>.045)slowFrames++;
    // Lower fill cost after sustained slow frame submissions. Keep mesh detail
    // and the case structure intact in the coarse/mobile profile.
    if(samples===60){
-    if(cost/samples>16&&pixelRatio>.78){
-     pixelRatio=Math.max(.72,pixelRatio*.80);
-     stats.pixelRatio=pixelRatio;renderer.setPixelRatio(pixelRatio);
+    if(cost/samples>16||slowFrames/samples>.24){
+     economy=true;
+     if(pixelRatio>.78){
+      pixelRatio=Math.max(.72,pixelRatio*.80);
+      stats.pixelRatio=pixelRatio;renderer.setPixelRatio(pixelRatio);
+     }
     }
-    samples=0;cost=0;
+    samples=0;cost=0;slowFrames=0;
    }
    return settling;
   },
