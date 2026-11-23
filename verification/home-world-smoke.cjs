@@ -35,11 +35,18 @@ const server=createServer(async(req,res)=>{
         const tourbStage=watch.locator('[data-ft-stage]');
         if(mode!=='no-js'){
           await page.waitForFunction(()=>/^\d{2}:\d{2}:\d{2}$/.test(document.querySelector('#ft-time')?.textContent||''));
-          await watch.locator('.ft-dial').waitFor({state:'attached',timeout:10000});
+          await tourbStage.scrollIntoViewIfNeeded();
           await page.waitForFunction(()=>document.querySelector('.ft-watch-poster').naturalWidth===820);
-          if(mode==='desktop'||mode==='mobile'){
-            await watch.locator('.ft-movement').waitFor({timeout:15000});
-            await watch.screenshot({path:path.join(out,'tourbillon-'+name+'-'+mode+'.png')});
+          const canvas=watch.locator('.ft-model');
+          const supports3D=mode!=='no-webgl'&&await page.evaluate(()=>!!document.createElement('canvas').getContext('webgl2'));
+          if(supports3D){
+            await canvas.waitFor({timeout:30000});
+            if(mode==='desktop'||mode==='mobile'){
+              await watch.screenshot({path:path.join(out,'tourbillon-'+name+'-'+mode+'.png')});
+            }
+          }else{
+            await watch.locator('[data-ft-fallback]').waitFor({timeout:20000});
+            assert.equal(await canvas.isHidden(),true);
           }
           const live=await watch.locator('#ft-time').textContent();
           const local=await page.evaluate(()=>new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Manila',hourCycle:'h23',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date()));
@@ -51,21 +58,25 @@ const server=createServer(async(req,res)=>{
             assert.ok(Math.abs(box.width/box.height-ratio)<.02,'bad ratio: '+name);
             assert.equal(await watch.locator('[data-ft-ratio="'+name+'"]').getAttribute('aria-pressed'),'true');
             assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
-            const watchBox=await watch.locator('[data-ft-watch]').boundingBox();
-            assert.ok(Math.abs(watchBox.width-watchBox.height)<1,'watch was stretched');
+            if(supports3D){
+              const view=await canvas.boundingBox();
+              assert.ok(Math.abs(view.width/view.height-ratio)<.02,'camera surface does not follow the frame');
+            }
           }
-          await watch.locator('[data-ft-inspect="tourbillon"]').click();
-          assert.match(await watch.locator('#ft-detail').textContent(),/Tourbillon-inspired/);
-          if(mode==='reduced'){
-            assert.equal(await watch.locator('.ft-movement').isHidden(),true);
-            assert.equal(await watch.locator('[data-ft-pause]').isDisabled(),true);
-          }else if(mode==='desktop'||mode==='mobile'){
-            await watch.locator('[data-ft-pause]').click();
-            await tourbStage.scrollIntoViewIfNeeded();
-            assert.equal(await tourbStage.getAttribute('data-running'),null);
-            const hand=await watch.locator('#ft-second-hand').getAttribute('transform');
-            await page.waitForFunction(previous=>document.querySelector('#ft-second-hand').getAttribute('transform')!==previous,hand,{timeout:5000});
-            await watch.locator('[data-ft-pause]').click();
+          if(supports3D){
+            await watch.locator('[data-ft-inspect="tourbillon"]').click();
+            assert.match(await watch.locator('#ft-detail').textContent(),/one turn per minute/);
+            if(mode==='reduced'){
+              assert.equal(await tourbStage.getAttribute('data-running'),null);
+              assert.equal(await watch.locator('[data-ft-pause]').isDisabled(),true);
+            }else if(mode==='desktop'||mode==='mobile'){
+              await watch.locator('[data-ft-pause]').click();
+              await tourbStage.scrollIntoViewIfNeeded();
+              assert.equal(await tourbStage.getAttribute('data-running'),null);
+              const previous=await watch.locator('#ft-time').textContent();
+              await page.waitForFunction(last=>document.querySelector('#ft-time').textContent!==last,previous,{timeout:5000});
+              await watch.locator('[data-ft-pause]').click();
+            }
           }
         }else{
           assert.equal(await watch.locator('.ft-watch-poster').count(),1);

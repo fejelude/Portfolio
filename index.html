@@ -248,17 +248,25 @@
           <div class="ft-stage" data-ft-stage data-aspect="normal">
             <div class="ft-watch" data-ft-watch>
               <img class="ft-watch-poster" src="/assets/tourbillon/observatory.webp" width="820" height="820" loading="lazy" decoding="async" alt="A rose-gold astronomical watch with a curved crystal, blue enamel base, Earth globe and faceted moon">
-              <canvas class="ft-movement" aria-hidden="true" hidden></canvas>
+              <canvas class="ft-model" tabindex="0" aria-label="Orbit the mechanical watch. Arrow keys rotate, plus and minus zoom, and Home resets the view." hidden></canvas>
             </div>
           </div>
           <div class="ft-footer">
             <div class="ft-inspect" role="group" aria-label="Inspect the watch">
-              <button class="ft-hotspot" type="button" data-ft-inspect="orbit" aria-pressed="false">Earth &amp; moon</button>
-              <button class="ft-hotspot" type="button" data-ft-inspect="gears" aria-pressed="false">Gear train</button>
-              <button class="ft-hotspot" type="button" data-ft-inspect="tourbillon" aria-pressed="false">Tourbillon</button>
+              <button class="ft-hotspot" type="button" data-ft-inspect="orbit" aria-pressed="false" disabled>Earth &amp; moon</button>
+              <button class="ft-hotspot" type="button" data-ft-inspect="gears" aria-pressed="false" disabled>Gear train</button>
+              <button class="ft-hotspot" type="button" data-ft-inspect="tourbillon" aria-pressed="false" disabled>Tourbillon</button>
+              <button class="ft-hotspot" type="button" data-ft-inspect="escapement" aria-pressed="false" disabled>Escapement</button>
             </div>
-            <button class="ft-aspect" type="button" data-ft-pause aria-pressed="false">Pause movement</button>
-            <p id="ft-detail" role="status">Drag gently to tilt the case, or pick a part to inspect.</p>
+            <div class="ft-view-controls" role="group" aria-label="Watch view">
+              <button class="ft-aspect" type="button" data-ft-view="in" aria-label="Zoom in" disabled>+</button>
+              <button class="ft-aspect" type="button" data-ft-view="out" aria-label="Zoom out" disabled>−</button>
+              <button class="ft-aspect" type="button" data-ft-view="reset" disabled>Reset view</button>
+              <button class="ft-aspect" type="button" data-ft-case aria-pressed="false" disabled>Hide case</button>
+              <button class="ft-aspect" type="button" data-ft-pause aria-pressed="false" disabled>Pause movement</button>
+            </div>
+            <p id="ft-detail" role="status">Drag to orbit. Pinch or use + and − to zoom.</p>
+            <p data-ft-fallback hidden>3D is unavailable on this device. Philippine time is still live above.</p>
           </div>
           <noscript><p class="ft-nojs">Enable JavaScript to run the Philippine clock and change the frame. The static display is available without it.</p></noscript>
         </article>

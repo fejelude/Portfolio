@@ -1,7 +1,6 @@
 """Original Daedalus observatory. Run with Blender in background mode."""
-import bpy, math, sys, os, random, json
+import bpy, math, sys, os, random
 from mathutils import Vector
-from bpy_extras.object_utils import world_to_camera_view
 
 bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
@@ -304,30 +303,5 @@ scene.render.resolution_percentage=100
 scene.view_settings.view_transform='AgX'
 scene.render.image_settings.file_format='PNG'
 
-bpy.context.view_layer.update()
-def uv(v):
-    p=world_to_camera_view(scene,camera,Vector(v))
-    return [round(p.x*1000,3),round((1-p.y)*1000,3)]
-xy=[uv(face.matrix_world@Vector(x)) for x in [(0,0,.124),(1,0,.124),(0,-1,.124)]]
-meta={'dial':xy,'earth':uv(earth.location),'moon':uv(moon_root.location),'cage':uv(cage.location)}
-with open(os.path.join(out,'projection.json'),'w') as f:json.dump(meta,f)
-def render(name):
-    scene.render.filepath=os.path.join(out,name+'.png')
-    bpy.ops.render.render(write_still=True)
-if mode in ('preview','poster'):
-    render(mode)
-else:
-    start=int(args[2]) if len(args)>2 else 0
-    stop=int(args[3]) if len(args)>3 else 24
-    if mode=='all':
-        render('poster')
-    scene.cycles.samples=40
-    scene.render.resolution_x=scene.render.resolution_y=420
-    for index in range(start,stop):
-        phase=index*T/24
-        globe.rotation_euler.z=phase
-        moon_root.rotation_euler=(.18*math.sin(phase),.30,phase*2)
-        cage.rotation_euler.z=phase
-        gimbal.rotation_euler.x=.91+.21*math.sin(phase*2)
-        balance.rotation_euler.z=.35*math.sin(phase*5)
-        render('frame-%02d'%index)
+scene.render.filepath=os.path.join(out,mode+'.png')
+bpy.ops.render.render(write_still=True)

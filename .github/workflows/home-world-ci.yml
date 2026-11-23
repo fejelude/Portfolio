@@ -21,6 +21,8 @@ on:
       - css/sofra-feature.css
       - css/feje-tourbillon.css
       - js/feje-tourbillon*.mjs
+      - js/vendor/three-*
+      - verification/tourbillon-live-smoke.cjs
       - assets/tourbillon/**
       - tests/feje-tourbillon.test.mjs
       - js/sofra-feature.mjs
@@ -44,11 +46,12 @@ jobs:
           node-version: '24'
       - run: node --check js/hero-pixels.mjs && node --check js/sofra-feature.mjs && node --check js/home-collectibles.mjs && node --check js/home-world.mjs && node --check js/home-world-renderer.mjs && node --test tests/home-world.test.mjs
       - run: node --check js/interactives-entry.mjs && node --test tests/interactives.test.cjs
-      - run: node --check js/feje-tourbillon.mjs && node --check js/feje-tourbillon-art.mjs && node --test tests/feje-tourbillon.test.mjs
+      - run: node --check js/feje-tourbillon.mjs && node --check js/feje-tourbillon-renderer.mjs && node --test tests/feje-tourbillon.test.mjs
       - run: node --check js/hero-terminal.mjs && node --test tests/hero-terminal.test.mjs
       - run: node --check js/roblox-creations.mjs && node --test tests/roblox-creations.test.cjs
       - run: npm install --no-save --package-lock=false playwright@1.62.1
       - run: npx playwright install --with-deps chromium firefox webkit
+      - run: node verification/tourbillon-live-smoke.cjs
       - run: node verification/roblox-creations-smoke.cjs
       - run: node verification/hero-pixels-smoke.cjs
       - run: node verification/sofra-feature-smoke.cjs
