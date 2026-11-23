@@ -77,15 +77,13 @@ test('pixel worlds, compatibility cosmos and particle renderer draw and unlock v
 test('hub dragon is decorative, has a confined responsive flight area and reuses motion controls',()=>{
  const html=read('interactives.html'),css=read('css/interactive-worlds.css'),hub=read('js/interactive-worlds/hub.mjs');
  assert.match(html,/class="iw-dragon-space" data-iw-dragon aria-hidden="true"/);
- assert.match(html,/class="iw-dragon-wing-near"/);
- assert.match(html,/class="iw-dragon-wing-far"/);
- assert.match(html,/class="iw-dragon-tail"/);
+ assert.match(html,/<canvas class="iw-dragon-scene" width="240" height="140" hidden>/);
+ assert.match(html,/<img class="iw-dragon-scene" src="\/assets\/interactives\/serpent.png"/);
  assert.match(html,/Some stuff I made for fun\. Try them out hehe :\)/);
  assert.doesNotMatch(html,/ONE LITTLE CORNER OF THE INTERNET/i);
  assert.match(css,/\.iw-dragon-space\{[^}]*overflow:hidden;pointer-events:none/);
- assert.match(css,/@keyframes iw-dragon-glide/);
- assert.match(css,/@keyframes iw-dragon-flap/);
- assert.match(css,/\[data-motion-paused\] \.iw-dragon-space \*\{animation-play-state:paused!important\}/);
+ assert.match(css,/image-rendering:pixelated/);
+ assert.match(hub,/import\('\.\/serpent\.mjs'\)/);
  assert.match(hub,/const observed=dragon\?\[\.\.\.cards,dragon\]:cards/);
 });
 
@@ -112,4 +110,21 @@ test('read-only local storage preserves legacy badges, pending discoveries and r
  assert.deepEqual(getProgress(denied),['os']);
  clearProgress(denied);
  assert.deepEqual(getProgress(denied),[]);
+});
+
+test('serpent renderer repeats its pose and every effect after 12 seconds',async()=>{
+ const {LOOP_SECONDS,drawSerpent}=await import('../js/interactive-worlds/serpent.mjs');
+ assert.equal(LOOP_SECONDS,12);
+ function frame(time){
+  const calls=[];
+  const ctx=new Proxy({createRadialGradient:()=>({addColorStop:(...args)=>calls.push(args)})},{
+   get:(o,k)=>o[k]??((...args)=>calls.push([k,...args])),
+   set:(o,k,v)=>{if(k!=='fillStyle'||typeof v==='string')calls.push([k,v]);return true}
+  });
+  drawSerpent(ctx,time);
+  return calls;
+ }
+ assert.deepEqual(frame(0),frame(12));
+ assert.deepEqual(frame(3.25),frame(15.25));
+ assert.notDeepEqual(frame(0),frame(3));
 });

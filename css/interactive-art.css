@@ -18,30 +18,10 @@
   .iw-hub:not([data-motion-paused]) .iw-card[data-visible] .ix-stream {
     animation: iw-stream 7s linear infinite;
   }
-  .iw-hub .iw-dragon-space[data-visible] .iw-dragon-wing-far {
-    animation-delay: -.14s;
-  }
-  .iw-hub .iw-dragon-space[data-visible] .iw-dragon-tail {
-    animation-delay: -.36s;
-  }
 }
 @keyframes iw-stream { to { stroke-dashoffset: var(--iw-stream-period, -67); } }
 
 @keyframes iw-street-pass {
   from { transform: translateX(-78px); }
   to { transform: translateX(222px); }
-}
-
-/* Bank into the arc without squeezing the whole silhouette edge-on. */
-@keyframes iw-dragon-bank {
-  0%, 100% { transform: rotate(-4deg) skewX(-2deg); }
-  24% { transform: rotate(-8deg) skewX(1deg); }
-  52% { transform: rotate(5deg) skewX(3deg); }
-  78% { transform: rotate(1deg) skewX(-1deg); }
-}
-@keyframes iw-dragon-flap {
-  0%, 100% { transform: rotate(3deg) scaleY(.96); }
-  28% { transform: rotate(10deg) scaleY(1.07); }
-  47% { transform: rotate(-12deg) scaleY(.66); }
-  65% { transform: rotate(-7deg) scaleY(.78); }
 }
