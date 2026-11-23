@@ -29,9 +29,9 @@
 .feje-world-home .ft-maker-seal-jewel{transform-origin:16px 17px}
 .feje-world-home .ft-maker-seal-glint{opacity:.75}
 @media(prefers-reduced-motion:no-preference){
- .feje-world-home .ft-maker-seal-wheel{animation:ft-maker-wheel 16s steps(12,end) infinite}
- .feje-world-home .ft-maker-seal-jewel{animation:ft-maker-jewel 4s steps(2,end) infinite}
- .feje-world-home .ft-maker-seal-glint{animation:ft-maker-glint 4s steps(2,end) infinite}
+ .feje-world-home #tourbillon[data-ft-card-motion] .ft-maker-seal-wheel{animation:ft-maker-wheel 16s steps(12,end) infinite}
+ .feje-world-home #tourbillon[data-ft-card-motion] .ft-maker-seal-jewel{animation:ft-maker-jewel 4s steps(2,end) infinite}
+ .feje-world-home #tourbillon[data-ft-card-motion] .ft-maker-seal-glint{animation:ft-maker-glint 4s steps(2,end) infinite}
 }
 @keyframes ft-maker-wheel{to{transform:rotate(360deg)}}
 @keyframes ft-maker-jewel{0%,100%{opacity:1}45%,55%{opacity:.7}}
@@ -113,4 +113,161 @@
  .feje-world-home .ft-view-controls{display:grid;grid-template-columns:44px 44px repeat(2,minmax(0,1fr))}
  .feje-world-home .ft-view-controls [data-ft-pause]{grid-column:1/-1}
  .feje-world-home .ft-view-controls button{padding-inline:4px}
+}
+
+
+/* Celestial atelier finish, isolated to this one homepage card.
+   All new motion is composited opacity/transform, gated by visible state. */
+.feje-world-home .ft-card{
+ background:
+  radial-gradient(ellipse at 82% 4%,#373051b8 0%,transparent 46%),
+  radial-gradient(ellipse at 8% 46%,#202f5c8c 0%,transparent 58%),
+  radial-gradient(ellipse at 86% 94%,#422c545c 0%,transparent 45%),
+  linear-gradient(152deg,#19233d 0%,#111a31 45%,#0b1324 100%);
+ border-color:#a18467;
+ box-shadow:inset 0 0 0 4px #111b30,inset 0 0 0 5px #9a7d634b,0 20px 70px #050713ae;
+}
+.feje-world-home .ft-card::before{
+ content:"";position:absolute;z-index:3;inset:6px;pointer-events:none;
+ border:1px solid #ddbe9540;border-radius:11px;
+ box-shadow:inset 0 0 15px #cea6f10a,0 0 12px #e7c49112;
+ opacity:.65;
+}
+.feje-world-home .ft-card::after{
+ content:"";position:absolute;z-index:3;pointer-events:none;
+ width:32%;height:2px;top:5px;left:9%;opacity:0;
+ background:linear-gradient(90deg,transparent,#c9e9ff8f,#f7d2a0e8,transparent);
+ transform:translateX(-110%);
+}
+.feje-world-home .ft-card>:not(.ft-card-cosmos){
+ position:relative;z-index:1;
+}
+.feje-world-home .ft-card-cosmos{
+ position:absolute;z-index:0;inset:0;pointer-events:none;overflow:hidden;
+ border-radius:inherit;contain:paint;
+}
+.feje-world-home .ft-card-cosmos::before{
+ content:"";position:absolute;inset:0;opacity:.58;
+ background:
+  radial-gradient(ellipse at 87% 8%,#ad8bdf25 0%,transparent 42%),
+  radial-gradient(ellipse at 7% 38%,#75bcfa10 0%,transparent 40%),
+  radial-gradient(ellipse at 75% 89%,#e5bc8f10 0%,transparent 39%);
+}
+.feje-world-home .ft-card-cosmos::after{
+ content:"";position:absolute;inset:0;opacity:.62;
+ background-image:
+  radial-gradient(circle 1.4px at 17% 11%,#e7f8ff 55%,transparent 80%),
+  radial-gradient(circle 1px at 68% 7%,#bddfff 50%,transparent 90%),
+  radial-gradient(circle 1.6px at 88% 19%,#e0b9ff 50%,transparent 90%),
+  radial-gradient(circle 1px at 95% 42%,#edddff 50%,transparent 90%),
+  radial-gradient(circle 1.2px at 7% 63%,#b7e8ff 55%,transparent 90%),
+  radial-gradient(circle 1px at 76% 77%,#c4bdff 55%,transparent 90%),
+  radial-gradient(circle 1.5px at 91% 92%,#f8dbac 50%,transparent 90%),
+  radial-gradient(circle 1px at 23% 95%,#bcd8ff 55%,transparent 90%);
+}
+.feje-world-home .ft-card-zodiac{
+ position:absolute;top:0;right:-7%;width:min(82%,580px);height:auto;
+ opacity:.36;overflow:visible;
+}
+.feje-world-home .ft-zodiac-orbit{transform-origin:448px 64px}
+.feje-world-home .ft-title-block h2{
+ font-family:'Cormorant Garamond',Georgia,serif;
+ font-size:clamp(2rem,4.45vw,4.25rem);font-weight:700;
+ line-height:1.02;letter-spacing:-.025em;
+ color:#fff2dd;text-shadow:0 1px 1px #0005,0 0 28px #dbb58a20;
+ position:relative;isolation:isolate;
+}
+.feje-world-home .ft-title-name{position:relative;z-index:1;display:block}
+.feje-world-home .ft-title-echo{
+ position:absolute;z-index:2;inset:0;display:block;opacity:0;pointer-events:none;
+ color:#9ceaff;clip-path:inset(43% 0 43% 0);mix-blend-mode:screen;
+ transform:translateX(0);
+}
+.feje-world-home .ft-kicker{
+ font-family:'Cinzel',Georgia,serif;font-size:clamp(.59rem,1.5vw,.68rem);
+ font-weight:600;letter-spacing:.075em;color:#f2ce99;
+}
+.feje-world-home .ft-title-block>p:last-child{
+ color:#d4dbec;max-width:56ch;letter-spacing:.003em;
+}
+.feje-world-home .ft-pht{
+ font-family:'Cinzel',Georgia,serif;font-weight:600;
+ letter-spacing:.06em;color:#f1d0a8;
+}
+.feje-world-home .ft-astrolabe figcaption{
+ font-family:'Cinzel',Georgia,serif;font-weight:600;
+ font-size:.57rem;letter-spacing:.04em;color:#c0d9f2;
+}
+.feje-world-home .ft-settings{
+ background:#111c36e8;border-color:#8f7467;border-radius:9px;
+ box-shadow:inset 0 1px 0 #f4dfc321,0 0 18px #10173136;
+}
+.feje-world-home .ft-settings-label{
+ font-family:'Cinzel',Georgia,serif;letter-spacing:.07em;color:#e8c99d;
+}
+.feje-world-home .ft-stage{
+ border-color:#bd9773;
+ box-shadow:0 0 0 1px #f8dbab1d,0 9px 27px #040b1c55;
+}
+.feje-world-home .ft-stage::after{
+ box-shadow:inset 0 0 0 1px #f7dda34a,inset 0 0 35px #111a3b7b;
+}
+.feje-world-home .ft-footer p{color:#cfd9ed}
+@media(prefers-reduced-motion:no-preference){
+ .feje-world-home #tourbillon[data-ft-card-motion] .ft-card-cosmos::before{
+  animation:ft-atelier-aura 17s ease-in-out infinite;
+ }
+ .feje-world-home #tourbillon[data-ft-card-motion] .ft-card-cosmos::after{
+  animation:ft-atelier-stars 15s ease-in-out infinite;
+ }
+ .feje-world-home #tourbillon[data-ft-card-motion] .ft-card-zodiac .ft-zodiac-orbit{
+  animation:ft-atelier-orbit 42s linear infinite;
+ }
+ .feje-world-home #tourbillon[data-ft-card-motion] .ft-card::before{
+  animation:ft-atelier-border 14s ease-in-out infinite;
+ }
+ .feje-world-home #tourbillon[data-ft-card-motion] .ft-card::after{
+  animation:ft-atelier-streak 14s ease-in-out infinite;
+ }
+ .feje-world-home #tourbillon[data-ft-card-motion] .ft-title-echo{
+  animation:ft-atelier-zodiac-signal 14s steps(1,end) infinite;
+ }
+}
+@keyframes ft-atelier-aura{
+ 0%,100%{opacity:.36}48%{opacity:.78}
+}
+@keyframes ft-atelier-stars{
+ 0%,100%{opacity:.35}50%{opacity:.78}
+}
+@keyframes ft-atelier-orbit{to{transform:rotate(360deg)}}
+@keyframes ft-atelier-border{
+ 0%,100%{opacity:.48}50%{opacity:.87}
+}
+@keyframes ft-atelier-streak{
+ 0%,66%{opacity:0;transform:translateX(-110%)}
+ 70%{opacity:.8}
+ 88%{opacity:.7;transform:translateX(250%)}
+ 92%,100%{opacity:0;transform:translateX(250%)}
+}
+@keyframes ft-atelier-zodiac-signal{
+ 0%,61%,62%,63%,100%{opacity:0;transform:translateX(0)}
+ 61.15%{opacity:.72;transform:translateX(2px)}
+ 61.55%{opacity:.35;transform:translateX(-1px)}
+}
+@media(prefers-reduced-motion:reduce){
+ .feje-world-home #tourbillon .ft-card-cosmos *,
+ .feje-world-home #tourbillon .ft-card-cosmos::before,
+ .feje-world-home #tourbillon .ft-card-cosmos::after,
+ .feje-world-home #tourbillon .ft-title-echo,
+ .feje-world-home #tourbillon .ft-card::before,
+ .feje-world-home #tourbillon .ft-card::after{animation:none!important}
+}
+@media(max-width:760px){
+ .feje-world-home .ft-card-zodiac{top:12px;right:-18%;width:90%;opacity:.22}
+ .feje-world-home .ft-title-block h2{font-size:clamp(1.98rem,6.9vw,3rem);line-height:.99}
+ .feje-world-home .ft-kicker{letter-spacing:.045em}
+}
+@media(max-width:360px){
+ .feje-world-home .ft-title-block h2{font-size:1.87rem}
+ .feje-world-home .ft-card-zodiac{opacity:.15}
 }

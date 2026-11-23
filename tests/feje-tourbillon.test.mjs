@@ -112,7 +112,9 @@ test('constellations and embedded stars share the distant blue nebula',()=>{
 
 test('the maker mark is pixel clockwork, not a selectable Delta character',()=>{
  const html=read('index.html'),css=read('css/feje-tourbillon.css');
- const head=html.slice(html.indexOf('id="tourbillon"'),html.indexOf('id="tourbillon"')+2600);
+ const kickerStart=html.indexOf('<p class="ft-kicker">',html.indexOf('id="tourbillon"'));
+ assert.ok(kickerStart>0,'Daedalus maker label is present');
+ const head=html.slice(kickerStart,html.indexOf('</p>',kickerStart)+4);
  assert.match(head,/class="ft-maker-seal" aria-hidden="true"/);
  assert.match(head,/shape-rendering="crispEdges"/);
  assert.match(head,/class="ft-maker-seal-jewel"/);
@@ -122,4 +124,33 @@ test('the maker mark is pixel clockwork, not a selectable Delta character',()=>{
  assert.match(css,/pointer-events:none;user-select:none/);
  assert.match(css,/@keyframes ft-maker-wheel/);
  assert.match(css,/@media\(prefers-reduced-motion:no-preference\)/);
+});
+
+test('the observatory is pillar-free while its real watch and cosmic platform survive',()=>{
+ const sky=read('js/feje-tourbillon-celestial.mjs');
+ const renderer=read('js/feje-tourbillon-renderer.mjs');
+ assert.doesNotMatch(sky,/makePillar\(|function architecture\(|distanceTrim|Open celestial arch|Arch second ring|Stepped Ionian base and capital/);
+ assert.match(sky,/platform\(root,gold,gem/);
+ assert.match(sky,/Layered sapphire nebula dome/);
+ assert.match(sky,/constellationPulse\(skyGroup/);
+ assert.match(renderer,/watch\.update\(movementAt\(seconds\)\)/);
+});
+
+test('premium Daedalus card stays local, accessible and pauses its ambient animation',()=>{
+ const html=read('index.html'),css=read('css/feje-tourbillon.css'),app=read('js/feje-tourbillon.mjs');
+ const card=html.slice(html.indexOf('id="tourbillon"'),html.indexOf('id="tourbillon"')+5200);
+ assert.match(html,/family=Cormorant\+Garamond/);
+ assert.match(html,/family=Cinzel/);
+ assert.match(card,/class="ft-card-cosmos" aria-hidden="true"/);
+ assert.match(card,/class="ft-title-name">Fejelude's Tourbillon\.<\/span>/);
+ assert.match(card,/class="ft-title-echo" aria-hidden="true"/);
+ assert.match(css,/\.feje-world-home \.ft-title-block h2\{[\s\S]*?Cormorant Garamond/);
+ assert.match(css,/\.feje-world-home \.ft-kicker\{[\s\S]*?Cinzel/);
+ assert.match(css,/@keyframes ft-atelier-zodiac-signal/);
+ assert.match(css,/@keyframes ft-atelier-aura/);
+ assert.match(css,/@keyframes ft-atelier-streak/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
+ assert.match(css,/#tourbillon\[data-ft-card-motion\]/);
+ assert.match(app,/root\.toggleAttribute\('data-ft-card-motion',live\(\)&&!paused&&!reduced\.matches\)/);
+ assert.match(app,/timeZone:'Asia\/Manila'/);
 });
