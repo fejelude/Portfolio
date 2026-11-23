@@ -20,7 +20,8 @@ const server=createServer(async(req,res)=>{
    for(const [width,height,mode] of [[320,700,'normal'],[390,844,'normal'],[768,1024,'normal'],[1440,900,'normal'],[390,844,'reduced'],[390,844,'no-js']]){
     const context=await browser.newContext({viewport:{width,height},hasTouch:width<761,reducedMotion:mode==='reduced'?'reduce':'no-preference',javaScriptEnabled:mode!=='no-js'});
     try{
-     const page=await context.newPage();await page.route('**/*',r=>r.request().url().startsWith(url)?r.continue():r.abort());await page.goto(url,{waitUntil:'domcontentloaded'});
+     console.log('Roblox smoke',name,width,height,mode);
+     const page=await context.newPage();page.setDefaultTimeout(15000);await page.route('**/*',r=>r.request().url().startsWith(url)?r.continue():r.abort());await page.goto(url,{waitUntil:'domcontentloaded'});
      const section=page.locator('#roblox-creations');await section.scrollIntoViewIfNeeded();assert.equal(await section.isVisible(),true);
      assert.equal(await section.locator('article').count(),2);
      const logo=section.locator('.rc-roblox-logo');
@@ -33,7 +34,20 @@ const server=createServer(async(req,res)=>{
      }
      if(mode==='reduced'||mode==='no-js')assert.equal(await logo.locator('.rc-roblox-logo-body').evaluate(el=>getComputedStyle(el).animationName),'none');
      else await page.waitForFunction(()=>getComputedStyle(document.querySelector('.rc-roblox-logo-body')).animationName==='rc-logo-idle');
-     for(const img of await section.locator('img').all()){await img.scrollIntoViewIfNeeded();await img.evaluate(el=>el.decode());assert.ok(await img.evaluate(el=>el.naturalWidth===Number(el.getAttribute('width'))&&el.naturalHeight===Number(el.getAttribute('height'))&&Math.abs(el.getBoundingClientRect().width/el.getBoundingClientRect().height-el.naturalWidth/el.naturalHeight)<.025));}
+     for(const img of await section.locator('img').all()){
+      await img.scrollIntoViewIfNeeded();
+      // Poll actual image readiness without awaiting a page-world decode
+      // promise in Firefox's JavaScript-disabled context.
+      const deadline=Date.now()+10000;
+      let loaded=false;
+      while(Date.now()<deadline){
+       loaded=await img.evaluate(el=>el.complete&&el.naturalWidth>0);
+       if(loaded)break;
+       await new Promise(resolve=>setTimeout(resolve,100));
+      }
+      assert.ok(loaded,'Showcase image did not load: '+await img.getAttribute('src'));
+      assert.ok(await img.evaluate(el=>el.naturalWidth===Number(el.getAttribute('width'))&&el.naturalHeight===Number(el.getAttribute('height'))&&Math.abs(el.getBoundingClientRect().width/el.getBoundingClientRect().height-el.naturalWidth/el.naturalHeight)<.025));
+     }
      assert.equal(await section.evaluate(el=>{const r=el.getBoundingClientRect();return r.left>=-1&&r.right<=innerWidth+1&&el.scrollWidth<=el.clientWidth+1;}),true);
      const stacked=await section.locator('.rc-entry').first().evaluate(el=>getComputedStyle(el).gridTemplateAreas.startsWith('"heading"'));
      assert.equal(stacked,width<=760);

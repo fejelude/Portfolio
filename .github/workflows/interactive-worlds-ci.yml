@@ -5,6 +5,8 @@ on:
       - 'interactives.html'
       - 'interactives/**'
       - 'css/interactive-worlds.css'
+      - 'css/interactive-art.css'
+      - 'assets/interactives/**'
       - 'js/interactive-worlds/**'
       - 'tests/interactive-worlds.test.mjs'
       - 'verification/interactive-worlds-smoke.cjs'

@@ -28,7 +28,13 @@ export function mount(api){
  const start=el('span','','✦ FEJEOS / v1.0'),clock=el('span','','00:00');bar.append(start,clock);
  desktop.append(icons,bar);api.stage.replaceChildren(desktop);
  function btn(text,fn){const b=el('button','',text);b.type='button';b.addEventListener('click',fn);return b}
- function front(w){w.style.zIndex=String(++z)}
+ function front(w){
+  const current=desktop.querySelector('[data-front]');
+  if(current===w)return;
+  current?.removeAttribute('data-front');
+  w.setAttribute('data-front','');
+  w.style.zIndex=String(++z);
+ }
  function open(id){
   const info=APPS.find(a=>a[0]===id);if(!info)return;
   if(windows.has(id)){const w=windows.get(id);front(w);w.querySelector('.iw-os-title').focus();return}
@@ -40,13 +46,14 @@ export function mount(api){
   title.addEventListener('pointermove',e=>{if(drag)move(e.clientX-drag.x,e.clientY-drag.y)});
   for(const type of ['pointerup','pointercancel','lostpointercapture'])title.addEventListener(type,()=>drag=null);
   title.addEventListener('keydown',e=>{if(e.target!==title)return;const steps={ArrowLeft:[-12,0],ArrowRight:[12,0],ArrowUp:[0,-12],ArrowDown:[0,12]};if(steps[e.key]){e.preventDefault();move(w.offsetLeft+steps[e.key][0],w.offsetTop+steps[e.key][1])}});
-  w.addEventListener('pointerdown',()=>front(w));move(w.offsetLeft,w.offsetTop);
+  w.addEventListener('pointerdown',()=>front(w));
+  w.addEventListener('focusin',()=>front(w));
   if(id==='terminal')terminal(content);
   if(id==='files')files(content);
   if(id==='paint')paint(content);
   if(id==='calculator')calculator(content);
   if(id==='settings')settings(content);
-  api.discover(id,info[1]+' opened.');title.focus();
+  move(w.offsetLeft,w.offsetTop);api.discover(id,info[1]+' opened.');title.focus({preventScroll:true});
  }
  function terminal(content){
   const output=el('pre','','FEJEOS TERMINAL v1.0\nType help to see what you can do.\n'),form=el('form'),input=el('input');input.setAttribute('aria-label','Terminal command');input.placeholder='guest@fejeos:~$';input.maxLength=160;input.autocomplete='off';const row=el('div','iw-os-row'),run=el('button','','Run');run.type='submit';row.append(run);form.append(input,row);content.append(output,form);
@@ -62,14 +69,24 @@ export function mount(api){
  function paint(content){
   const c=el('canvas');c.width=360;c.height=180;c.setAttribute('aria-label','Paint canvas');const ctx=c.getContext('2d');let color='#7952bc',size=7,prev=null;
   const clear=()=>{ctx.fillStyle='#f6eef9';ctx.fillRect(0,0,c.width,c.height)};clear();const row=el('div','iw-os-row');
-  for(const v of ['#7952bc','#e77ba6','#56a7b9','#40886d','#34223d']){const b=btn('●',()=>color=v);b.style.color=v;b.setAttribute('aria-label','Paint color '+v);row.append(b)}
+  const swatches=[['Violet','#7952bc'],['Rose','#e77ba6'],['Blue','#56a7b9'],['Green','#40886d'],['Ink','#34223d']];
+  for(const [name,value] of swatches){
+   const b=btn('●',()=>{
+    color=value;
+    for(const swatch of row.querySelectorAll('[aria-pressed]'))swatch.setAttribute('aria-pressed',String(swatch===b));
+   });
+   b.style.setProperty('--paint-color',value);
+   b.setAttribute('aria-label','Paint color '+name);
+   b.setAttribute('aria-pressed',String(value===color));
+   row.append(b);
+  }
   const brush=el('input');brush.type='range';brush.min=2;brush.max=20;brush.value=size;brush.setAttribute('aria-label','Brush size');brush.addEventListener('input',()=>size=+brush.value);
   row.append(btn('Clear',clear),btn('Save PNG',()=>{const a=el('a');a.download='fejeos-paint.png';a.href=c.toDataURL('image/png');a.click()}));content.append(c,row,brush);
   const point=e=>{const r=c.getBoundingClientRect();return [(e.clientX-r.left)*c.width/r.width,(e.clientY-r.top)*c.height/r.height]};
   const stroke=(a,b)=>{ctx.strokeStyle=color;ctx.lineWidth=size;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0]+.01,b[1]+.01);ctx.stroke()};
-  c.addEventListener('pointerdown',e=>{if(e.button>0)return;prev=point(e);stroke(prev,prev);try{c.setPointerCapture(e.pointerId)}catch{}});
-  c.addEventListener('pointermove',e=>{if(prev){const p=point(e);stroke(prev,p);prev=p}});
-  for(const event of ['pointerup','pointercancel','lostpointercapture'])c.addEventListener(event,()=>prev=null);
+  c.addEventListener('pointerdown',e=>{if(e.button>0||!e.isPrimary)return;prev=point(e);stroke(prev,prev);try{c.setPointerCapture(e.pointerId)}catch{}});
+  c.addEventListener('pointermove',e=>{if(prev&&e.isPrimary){const p=point(e);stroke(prev,p);prev=p}});
+  for(const event of ['pointerup','pointercancel','lostpointercapture'])c.addEventListener(event,e=>{if(e.isPrimary)prev=null});
  }
  function settings(content){content.append(el('p','','Choose your desktop wallpaper.'),...['violet','rose','mint'].map(v=>btn(v[0].toUpperCase()+v.slice(1),()=>{desktop.dataset.wallpaper=v;api.say('Wallpaper changed to '+v+'.')})),el('p','','This is a fictional desktop running entirely inside your browser.'))}
  for(const [id,name,symbol] of APPS){const b=btn('',()=>open(id));b.dataset.appOpen=id;b.append(el('span','iw-os-symbol',symbol),el('span','',name));icons.append(b)}
@@ -79,5 +96,5 @@ export function mount(api){
  let previous='';function draw(){const value=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});if(value!==previous){clock.textContent=value;previous=value}}
  function resize(){for(const w of windows.values()){w.style.left=clamp(w.offsetLeft,0,Math.max(0,desktop.clientWidth-w.offsetWidth))+'px';w.style.top=clamp(w.offsetTop,0,Math.max(0,desktop.clientHeight-w.offsetHeight-44))+'px'}}
  const observer='ResizeObserver' in window?new ResizeObserver(resize):null;observer?.observe(desktop);
- return {draw,resize,dispose:()=>observer?.disconnect()};
+ return {draw,resize,nextFrameDelay:()=>60000-Date.now()%60000,dispose:()=>observer?.disconnect()};
 }

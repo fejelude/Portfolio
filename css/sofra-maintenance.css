@@ -33,7 +33,7 @@ body{margin:0;min-width:0;min-height:100vh;min-height:100dvh;background:#160e19}
   .sm-mascot.is-enhanced .sm-tear-splash{animation:sm-splash 1.2s steps(1,end) infinite}
   .sm-mascot.is-enhanced .sm-rain{animation:sm-rainfall 1.2s steps(1,end) infinite}
   .sm-mascot.is-enhanced .sm-cloud{animation:sm-cloud-bob 2.4s steps(1,end) infinite}
-  .sm-mascot:not(.is-running) svg *{animation-play-state:paused}
+  .sm-mascot.is-enhanced:not(.is-running) svg *{animation-play-state:paused}
 }
 @keyframes sm-sniffle{0%,100%{transform:translateY(0)}25%{transform:translateY(-1px)}50%{transform:translateY(0)}75%{transform:translateY(1px)}}
 @keyframes sm-teardrop{0%,100%{transform:translateY(0);opacity:1}16%{transform:translateY(3px);opacity:1}32%{transform:translateY(7px);opacity:1}48%{transform:translateY(11px);opacity:1}64%{transform:translateY(15px);opacity:1}80%{transform:translateY(21px);opacity:1}96%{transform:translateY(24px);opacity:0}}
