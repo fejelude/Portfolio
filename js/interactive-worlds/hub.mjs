@@ -2,6 +2,8 @@ import {getProgress,clearProgress,deviceStorage} from './progress.mjs';
 const storage=deviceStorage(),body=document.body,cards=[...document.querySelectorAll('[data-iw-card]')],motion=matchMedia('(prefers-reduced-motion: reduce)'),toggle=document.getElementById('iw-motion');
 const dragon=document.querySelector('[data-iw-dragon]');
 const observed=dragon?[...cards,dragon]:cards;
+const heroCursor=document.querySelector('[data-iw-hero-cursor]');
+if(heroCursor)observed.push(heroCursor);
 let paused=false,suspended=false,observer,loadSerpent,setSerpentRunning;
 function syncSerpent(){
  const running=dragon?.hasAttribute('data-visible')&&!paused&&!motion.matches&&!document.hidden&&!suspended;

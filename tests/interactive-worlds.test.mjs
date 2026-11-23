@@ -128,3 +128,22 @@ test('serpent renderer repeats its pose and every effect after 12 seconds',async
  assert.deepEqual(frame(3.25),frame(15.25));
  assert.notDeepEqual(frame(0),frame(3));
 });
+
+test('decorative pixel cursor uses the current hub and its motion and viewport guards',()=>{
+ const html=read('interactives.html');
+ const css=read('css/interactive-cursor.css');
+ const hub=read('js/interactive-worlds/hub.mjs');
+ assert.match(html,/href="\/css\/interactive-cursor\.css"/);
+ assert.match(html,/class="iw-hero-cursor" data-iw-hero-cursor aria-hidden="true"/);
+ assert.match(html,/shape-rendering="crispEdges"/);
+ assert.match(html,/class="iw-cursor-pointer"/);
+ assert.match(html,/class="iw-cursor-click-flash"/);
+ assert.match(css,/pointer-events:none/);
+ assert.match(css,/@media\(max-width:360px\)/);
+ assert.match(css,/@media\(prefers-reduced-motion:no-preference\)/);
+ assert.match(css,/\.iw-hub\[data-motion-paused\] \.iw-hero-cursor \*/);
+ assert.match(css,/@keyframes iw-hero-cursor-fly/);
+ assert.match(css,/@keyframes iw-hero-cursor-click/);
+ assert.match(hub,/observed\.push\(heroCursor\)/);
+ assert.equal((html.match(/data-iw-card=/g)||[]).length,6);
+});
