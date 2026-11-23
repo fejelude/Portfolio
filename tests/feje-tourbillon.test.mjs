@@ -112,7 +112,9 @@ test('constellations and embedded stars share the distant blue nebula',()=>{
 
 test('the maker mark is pixel clockwork, not a selectable Delta character',()=>{
  const html=read('index.html'),css=read('css/feje-tourbillon.css');
- const head=html.slice(html.indexOf('id="tourbillon"'),html.indexOf('id="tourbillon"')+2600);
+ const kickerStart=html.indexOf('<p class="ft-kicker">',html.indexOf('id="tourbillon"'));
+ assert.ok(kickerStart>0,'Daedalus maker label is present');
+ const head=html.slice(kickerStart,html.indexOf('</p>',kickerStart)+4);
  assert.match(head,/class="ft-maker-seal" aria-hidden="true"/);
  assert.match(head,/shape-rendering="crispEdges"/);
  assert.match(head,/class="ft-maker-seal-jewel"/);
