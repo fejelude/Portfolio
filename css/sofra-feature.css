@@ -47,6 +47,50 @@
   color: #dfbcd1;
 }
 .feje-world-home .sofra-feature-kicker > span:first-child { color: #ff90bb; font-size: 1rem; }
+/* Sofra's custom pixel princess crown: decorative, crisp, isolated to this label. */
+.feje-world-home .sofra-feature-kicker > .sofra-princess-crown {
+  display: inline-grid; place-items: center; flex: 0 0 34px;
+  width: 34px; height: 32px; min-width: 0; color: #ff90bb;
+  line-height: 0; pointer-events: none; user-select: none;
+}
+.feje-world-home .sofra-princess-crown .sf-crown-art {
+  display: block; width: 100%; height: 100%;
+  image-rendering: pixelated; overflow: visible;
+}
+.feje-world-home .sofra-princess-crown .sf-crown-body { transform-origin: 24px 22px; }
+.feje-world-home .sofra-princess-crown .sf-crown-gem { transform-origin: 26px 24px; }
+.feje-world-home .sofra-princess-crown .sf-crown-twinkle { opacity: .48; }
+@media (prefers-reduced-motion: no-preference) {
+  .feje-world-home .sofra-princess-crown .sf-crown-body {
+    animation: sf-princess-crown-bob 3.6s steps(2, end) infinite;
+  }
+  .feje-world-home .sofra-princess-crown .sf-crown-gem {
+    animation: sf-princess-crown-gem 3.6s steps(2, end) infinite;
+  }
+  .feje-world-home .sofra-princess-crown .sf-crown-twinkle-a {
+    animation: sf-princess-crown-glint 3.6s steps(1, end) infinite;
+  }
+  .feje-world-home .sofra-princess-crown .sf-crown-twinkle-b {
+    animation: sf-princess-crown-glint 3.6s -1.2s steps(1, end) infinite;
+  }
+  .feje-world-home .sofra-princess-crown .sf-crown-twinkle-c {
+    animation: sf-princess-crown-glint 3.6s -2.4s steps(1, end) infinite;
+  }
+}
+@keyframes sf-princess-crown-bob {
+  0%, 100% { transform: translateY(0); }
+  42%, 58% { transform: translateY(-2px); }
+}
+@keyframes sf-princess-crown-gem {
+  0%, 25%, 75%, 100% { opacity: .86; }
+  35%, 65% { opacity: 1; }
+}
+@keyframes sf-princess-crown-glint {
+  0%, 100% { opacity: .16; }
+  20%, 40% { opacity: 1; }
+  60% { opacity: .45; }
+}
+
 .feje-world-home .sofra-feature-kicker strong { color: #ffb3cf; text-transform: uppercase; font-weight: 700; }
 .feje-world-home .sofra-feature-slash { color: #a27b98; }
 .feje-world-home .sofra-feature-status {
