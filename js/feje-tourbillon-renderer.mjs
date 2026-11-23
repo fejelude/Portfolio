@@ -2,6 +2,7 @@ import * as T from './vendor/three-r160.1.mjs';
 import {buildWatch} from './feje-tourbillon-model.mjs';
 import {movementAt} from './feje-tourbillon-mechanism.mjs';
 import {buildCelestialObservatory} from './feje-tourbillon-celestial.mjs';
+import {qualityConfiguration,normalizeQuality} from './feje-tourbillon-quality.mjs';
 
 const fit=(n,min,max)=>Math.min(max,Math.max(min,n));
 const views={
@@ -49,7 +50,7 @@ function disposeScene(scene){
  for(const t of textures)t.dispose();
 }
 
-export function createWatchRenderer(canvas,{mobile=false}={}){
+export function createWatchRenderer(canvas,{mobile=false,quality='default'}={}){
  const antialias=!mobile;
  const context=canvas.getContext('webgl2',{alpha:true,antialias,depth:true,powerPreference:'low-power'});
  if(!context)return null;
@@ -71,7 +72,8 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
  areaLight(0xc7dcff,1.8,3,4,-4);
  areaLight(0xfff5e5,.65,3,1,4);
  scene.add(new T.HemisphereLight(0xd9e9ff,0x654133,1.1));
- const observatory=buildCelestialObservatory(scene,{mobile});
+ let qualityMode=normalizeQuality(quality);
+ const observatory=buildCelestialObservatory(scene,{mobile,quality:qualityMode});
  const watch=buildWatch(scene);
  rebuildReflections();
 
@@ -79,12 +81,33 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
  const target=new T.Vector3(...overview.target),desiredTarget=target.clone();
  const current={...overview},goal={...overview};
  let width=0,height=0;
- let pixelRatio=Math.min(devicePixelRatio||1,mobile?1.2:1.55);
- let samples=0,cost=0,slowFrames=0,economy=mobile,focusDetail=false;
- const stats={frames:0,triangles:0,drawCalls:0,pixelRatio};
+ const deviceDpr=typeof devicePixelRatio==='number'?devicePixelRatio:1;
+ const maxRenderSize=context.getParameter(context.MAX_RENDERBUFFER_SIZE)||8192;
+ const params=()=>({dpr:deviceDpr,mobile,width,height,maxRenderSize});
+ const initial=qualityConfiguration(qualityMode,params());
+ let pixelRatio=initial.pixelRatio;
+ let samples=0,cost=0,slowFrames=0,economy=initial.economy,focusDetail=false;
+ const stats={frames:0,triangles:0,drawCalls:0,pixelRatio,quality:qualityMode,economy};
+ function setQuality(value){
+  const mode=normalizeQuality(value);
+  qualityMode=mode;
+  const config=qualityConfiguration(mode,params());
+  pixelRatio=config.pixelRatio;economy=config.economy;
+  stats.pixelRatio=pixelRatio;stats.quality=mode;stats.economy=economy;
+  samples=0;cost=0;slowFrames=0;
+  observatory.setQuality(mode);
+  renderer.setPixelRatio(pixelRatio);
+  if(width>0&&height>0)renderer.setSize(width,height,false);
+ }
  function resize(w,h){
   if(w<1||h<1||w===width&&h===height)return;
   width=w;height=h;
+  // High's pixel budget depends on the visible frame area. Recalculate
+  // after changing Normal/Landscape/Portrait/Square without resetting orbit.
+  if(qualityMode==='high'){
+   pixelRatio=qualityConfiguration(qualityMode,params()).pixelRatio;
+   stats.pixelRatio=pixelRatio;
+  }
   camera.aspect=w/h;
   camera.fov=2*Math.atan(Math.tan(38*Math.PI/360)/Math.min(1,camera.aspect))*180/Math.PI;
   camera.updateProjectionMatrix();
@@ -110,13 +133,12 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
   return moving;
  }
  return {
-  resize,focus,stats,rebuildReflections,
+  resize,focus,stats,rebuildReflections,setQuality,
   orbit(dx,dy){
    goal.azimuth+=dx;
    goal.elevation=fit(goal.elevation+dy,.08,1.49);
   },
   zoom(factor){goal.distance=fit(goal.distance*factor,1.65,15)},
-  setCase(visible){watch.shell.visible=visible},
   draw(seconds,angles,delta,immediate=false,skySeconds=seconds){
    const start=performance.now();
    watch.update(movementAt(seconds));
@@ -130,17 +152,30 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
    // Lower fill cost after sustained slow frame submissions. Keep mesh detail
    // and the case structure intact in the coarse/mobile profile.
    if(samples===60){
-    if(cost/samples>16||slowFrames/samples>.24){
+    if(qualityMode==='high'){
+     // Preserve the requested detailed sky/geometry. A persistent >26ms
+     // GPU/CPU render cost may trim supersampling but never drop below the
+     // old Default pixel ratio on an ordinary viewport.
+     if(cost/samples>26){
+      const floor=Math.min(pixelRatio,qualityConfiguration('default',params()).pixelRatio);
+      if(pixelRatio>floor+.035){
+       pixelRatio=Math.max(floor,pixelRatio*.9);
+       stats.pixelRatio=pixelRatio;renderer.setPixelRatio(pixelRatio);
+      }
+     }
+    }else if(cost/samples>16||slowFrames/samples>.24){
+     // Exactly the prior adaptive Default behavior; Low may also recover.
      economy=true;
      if(pixelRatio>.78){
       pixelRatio=Math.max(.72,pixelRatio*.80);
       stats.pixelRatio=pixelRatio;renderer.setPixelRatio(pixelRatio);
      }
     }
+    stats.economy=economy;
     samples=0;cost=0;slowFrames=0;
    }
    return settling;
   },
-  dispose(){reflection?.dispose();disposeScene(scene);renderer.dispose()}
+  dispose(){observatory.dispose();reflection?.dispose();disposeScene(scene);renderer.dispose()}
  };
 }

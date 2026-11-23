@@ -1,4 +1,5 @@
 import {mountAstrolabe,SKY_PERIOD} from './feje-tourbillon-astrolabe.mjs';
+import {QUALITY_LEVELS,QUALITY_STORAGE_KEY,normalizeQuality} from './feje-tourbillon-quality.mjs';
 
 export const ASPECTS=Object.freeze({normal:'4 / 3',landscape:'16 / 9',portrait:'3 / 4',square:'1 / 1'});
 const fmt=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Manila',hourCycle:'h23',hour:'2-digit',minute:'2-digit',second:'2-digit'});
@@ -19,14 +20,19 @@ export function mountTourbillon(root){
  const astrolabe=mountAstrolabe(root.querySelector('[data-ft-astro]'),root.querySelector('[data-ft-astro-status]'));
  const output=root.querySelector('#ft-time'),note=root.querySelector('#ft-detail');
  const buttons=[...root.querySelectorAll('[data-ft-ratio]')],hotspots=[...root.querySelectorAll('[data-ft-inspect]')];
- const pause=root.querySelector('[data-ft-pause]'),caseButton=root.querySelector('[data-ft-case]');
+ const pause=root.querySelector('[data-ft-pause]');
+ const qualityRoot=root.querySelector('[data-ft-quality-root]');
+ const qualityTrigger=root.querySelector('[data-ft-quality-toggle]');
+ const qualityPanel=root.querySelector('[data-ft-quality-panel]');
+ const qualityCurrent=root.querySelector('[data-ft-quality-current]');
+ const qualityOptions=[...root.querySelectorAll('[data-ft-quality]')];
  const viewButtons=[...root.querySelectorAll('[data-ft-view]')];
  const reduced=matchMedia('(prefers-reduced-motion: reduce)'),mobile=matchMedia('(pointer: coarse)').matches;
  const controller=new AbortController(),{signal}=controller;
  const on=(element,event,handler,options)=>element.addEventListener(event,handler,{...options,signal});
  const fallback=root.querySelector('[data-ft-fallback]');
  const alwaysVisible=!('IntersectionObserver' in window);
- const controls=[pause,caseButton,...viewButtons,...hotspots];
+ const controls=[pause,...viewButtons,...hotspots];
  const details={
   tourbillon:'The carriage makes one turn per minute around a fixed fourth wheel.',
   escapement:'Each beat unlocks one ruby pallet, advances the escape wheel half a tooth, and locks on the other pallet.',
@@ -34,7 +40,8 @@ export function mountTourbillon(root){
   orbit:'Two gear pairs drive the globe and crystal on separate tilted axes.'
  };
  const defaultNote='Drag to orbit. Pinch or use + and − to zoom.';
- let visible=alwaysVisible,onStage=alwaysVisible,suspended=false,paused=false,contextLost=false,caseVisible=true;
+ let visible=alwaysVisible,onStage=alwaysVisible,suspended=false,paused=false,contextLost=false;
+ let quality='default';
  let observer,resizer,load,model,selected='',clock=0,frame=0,clockParts,elapsed=0,skySeconds=0,last=0,lastPaint=-Infinity,dirty=true;
  const pointers=new Map();
  const live=()=>visible&&!document.hidden&&!suspended;
@@ -62,11 +69,48 @@ export function mountTourbillon(root){
   invalidate();
  }
  for(const button of hotspots)on(button,'click',()=>focus(selected===button.dataset.ftInspect?'':button.dataset.ftInspect));
- on(caseButton,'click',()=>{
-  caseVisible=!caseVisible;
-  caseButton.setAttribute('aria-pressed',String(!caseVisible));
-  caseButton.textContent=caseVisible?'Hide case':'Show case';
-  model?.setCase(caseVisible);invalidate();
+ function setQuality(value,save=true){
+  quality=normalizeQuality(value);
+  stage.dataset.quality=quality;
+  qualityCurrent.textContent=quality.charAt(0).toUpperCase()+quality.slice(1);
+  qualityTrigger.setAttribute('aria-label','Graphics quality: '+qualityCurrent.textContent);
+  for(const option of qualityOptions){
+   const selected=option.dataset.ftQuality===quality;
+   option.setAttribute('aria-checked',String(selected));
+   option.tabIndex=selected?0:-1;
+  }
+  model?.setQuality(quality);
+  if(save)try{localStorage.setItem(QUALITY_STORAGE_KEY,quality)}catch{}
+  invalidate();
+ }
+ function closeQuality(refocus=false){
+  if(qualityPanel.hidden)return;
+  qualityPanel.hidden=true;
+  qualityTrigger.setAttribute('aria-expanded','false');
+  if(refocus)qualityTrigger.focus();
+ }
+ function openQuality(){
+  qualityPanel.hidden=false;
+  qualityTrigger.setAttribute('aria-expanded','true');
+  qualityOptions.find(option=>option.dataset.ftQuality===quality)?.focus();
+ }
+ try{
+  const saved=localStorage.getItem(QUALITY_STORAGE_KEY);
+  setQuality(normalizeQuality(saved),false);
+ }catch{setQuality('default',false)}
+ on(qualityTrigger,'click',()=>qualityPanel.hidden?openQuality():closeQuality());
+ for(const option of qualityOptions)on(option,'click',()=>{setQuality(option.dataset.ftQuality);closeQuality(true)});
+ on(qualityPanel,'keydown',event=>{
+  const index=QUALITY_LEVELS.indexOf(quality);
+  const next=event.key==='ArrowRight'||event.key==='ArrowDown'?(index+1)%3:
+   event.key==='ArrowLeft'||event.key==='ArrowUp'?(index+2)%3:
+   event.key==='Home'?0:event.key==='End'?2:-1;
+  if(next>=0){event.preventDefault();setQuality(QUALITY_LEVELS[next]);qualityOptions[next].focus()}
+ });
+ on(document,'pointerdown',event=>{if(!qualityRoot.contains(event.target))closeQuality()});
+ on(document,'focusin',event=>{if(!qualityRoot.contains(event.target))closeQuality()});
+ on(document,'keydown',event=>{
+  if(event.key==='Escape'&&!qualityPanel.hidden){event.preventDefault();closeQuality(true)}
  });
  on(pause,'click',()=>{
   paused=!paused;
@@ -93,7 +137,7 @@ export function mountTourbillon(root){
   if(load)return;
   load=import('./feje-tourbillon-renderer.mjs').then(({createWatchRenderer})=>{
    if(signal.aborted)return;
-   model=createWatchRenderer(canvas,{mobile});
+   model=createWatchRenderer(canvas,{mobile,quality});
    if(!model){fallback.hidden=false;return}
    resize();
    if('ResizeObserver' in window){resizer=new ResizeObserver(resize);resizer.observe(stage)}
@@ -157,6 +201,7 @@ export function mountTourbillon(root){
    if(signal.aborted||canvas.getContext('webgl2')?.isContextLost())return;
    try{
     model?.rebuildReflections();
+    model?.setQuality(quality);
     contextLost=false;sync();
    }catch(error){
     fallback.hidden=false;console.warn('Tourbillon context recovery failed',error);

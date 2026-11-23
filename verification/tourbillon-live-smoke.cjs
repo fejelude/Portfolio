@@ -98,7 +98,28 @@ async function desktop(browser,url){
   await page.waitForFunction(()=>document.querySelector('#tourbillon').hasAttribute('data-ft-card-motion'));
 
   await page.getByRole('button',{name:'Reset view'}).click();
-  await page.getByRole('button',{name:'Hide case'}).click();
+  // The new graphics selector replaces Hide case and must affect canvas pixels.
+  const graphics=page.locator('[data-ft-quality-toggle]');
+  assert.equal(await graphics.getAttribute('aria-expanded'),'false');
+  await graphics.click();
+  assert.equal(await graphics.getAttribute('aria-expanded'),'true');
+  assert.equal(await page.locator('[data-ft-quality-panel]').isVisible(),true);
+  await page.locator('[data-ft-quality="default"]').click();
+  const balancedWidth=await canvas.evaluate(c=>c.width);
+  await graphics.click();
+  await page.locator('[data-ft-quality="high"]').click();
+  const highWidth=await canvas.evaluate(c=>c.width);
+  assert.ok(highWidth>balancedWidth,'High should increase actual WebGL canvas resolution');
+  assert.equal(await page.evaluate(()=>localStorage.getItem('fejelude.tourbillon.quality.v1')),'high');
+  await graphics.click();
+  await page.locator('[data-ft-quality="low"]').click();
+  const lowWidth=await canvas.evaluate(c=>c.width);
+  assert.ok(lowWidth<balancedWidth,'Low should reduce actual WebGL canvas resolution');
+  await graphics.click();
+  await page.locator('[data-ft-quality="default"]').click();
+  await graphics.click();
+  await page.keyboard.press('Escape');
+  assert.equal(await page.locator('[data-ft-quality-panel]').isVisible(),false);
   await page.getByRole('button',{name:'Tourbillon',exact:true}).click();
   await stage.scrollIntoViewIfNeeded();
   await page.waitForTimeout(1700);
@@ -111,7 +132,7 @@ async function desktop(browser,url){
    await page.waitForTimeout(1350);
    await canvas.screenshot({path:path.join(out,'daedalus-live-'+id+'.png')});
   }
-  await page.getByRole('button',{name:'Show case'}).click();
+  assert.equal(await stage.getAttribute('data-quality'),'default');
   await page.getByRole('button',{name:'Reset view'}).click();
   await page.getByRole('button',{name:'Pause movement'}).click();
   const previous=await page.locator('#ft-time').getAttribute('datetime');
@@ -154,6 +175,14 @@ async function mobile(browser,url){
   }
   const frames=await page.locator('[data-ft-ratio]').evaluateAll(buttons=>buttons.map(b=>b.getBoundingClientRect().top));
   assert.equal(new Set(frames).size,1,'the four frame segments should share one row');
+  // Mobile touch must open a compact accessible panel without overflow.
+  await page.locator('[data-ft-quality-toggle]').tap();
+  assert.equal(await page.locator('[data-ft-quality-panel]').isVisible(),true);
+  await page.locator('[data-ft-quality="high"]').tap();
+  assert.equal(await page.locator('[data-ft-stage]').getAttribute('data-quality'),'high');
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+  await page.locator('[data-ft-quality-toggle]').tap();
+  await page.locator('[data-ft-quality="default"]').tap();
   const a=await page.locator('.ft-astrolabe').boundingBox(),t=await page.locator('.ft-timeblock').boundingBox();
   assert.ok(a.x>=t.x+t.width-.5,'astrolabe overlaps the clock');
   await page.locator('#tourbillon').screenshot({path:path.join(out,'daedalus-celestial-mobile.png')});

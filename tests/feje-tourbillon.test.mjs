@@ -5,6 +5,7 @@ import {ASPECTS,manilaParts,handAngles} from '../js/feje-tourbillon.mjs';
 import {MOVEMENT as m,TAU,movementAt} from '../js/feje-tourbillon-mechanism.mjs';
 import {astrolabeTime,SKY_PERIOD} from '../js/feje-tourbillon-astrolabe.mjs';
 import {celestialPhase,writeNebulaColor,skyDirection,CONSTELLATION_PATHS} from '../js/feje-tourbillon-celestial.mjs';
+import {QUALITY_LEVELS,QUALITY_STORAGE_KEY,normalizeQuality,qualityConfiguration} from '../js/feje-tourbillon-quality.mjs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const close=(actual,expected)=>assert.ok(Math.abs(actual-expected)<1e-9,`${actual} != ${expected}`);
 
@@ -153,4 +154,55 @@ test('premium Daedalus card stays local, accessible and pauses its ambient anima
  assert.match(css,/#tourbillon\[data-ft-card-motion\]/);
  assert.match(app,/root\.toggleAttribute\('data-ft-card-motion',live\(\)&&!paused&&!reduced\.matches\)/);
  assert.match(app,/timeZone:'Asia\/Manila'/);
+});
+
+test('quality profiles preserve Default while Low saves fill cost and High adds real pixels',()=>{
+ assert.deepEqual(QUALITY_LEVELS,['low','default','high']);
+ assert.equal(normalizeQuality('invalid'),'default');
+ assert.equal(normalizeQuality(null),'default');
+ assert.equal(normalizeQuality('high'),'high');
+ assert.match(QUALITY_STORAGE_KEY,/tourbillon/);
+ const phone={dpr:3,mobile:true,width:390,height:520};
+ const low=qualityConfiguration('low',phone),normal=qualityConfiguration('default',phone),high=qualityConfiguration('high',phone);
+ assert.equal(normal.pixelRatio,1.2,'existing default mobile DPR must stay unchanged');
+ assert.equal(normal.economy,true);
+ assert.equal(normal.adaptive,true);
+ assert.equal(low.pixelRatio,.82);
+ assert.equal(low.economy,true);
+ assert.ok(high.pixelRatio>normal.pixelRatio,'High must visibly supersample');
+ assert.equal(high.economy,false);
+ assert.equal(high.detailedSky,true);
+ const desktop={dpr:1,mobile:false,width:960,height:720};
+ assert.equal(qualityConfiguration('default',desktop).pixelRatio,1);
+ assert.equal(qualityConfiguration('high',desktop).pixelRatio,2);
+ assert.equal(qualityConfiguration('default',{dpr:3,mobile:false}).pixelRatio,1.55);
+ const giant=qualityConfiguration('high',{dpr:4,mobile:false,width:4000,height:3000,maxRenderSize:8192});
+ assert.ok(giant.pixelRatio**2*4000*3000<=3400000+1,'High must cap pixel budget');
+ assert.ok(giant.pixelRatio*4000<=8192,'High must cap max buffer dimension');
+});
+
+test('Tourbillon uses live graphics presets, not a decorative no-op selector',()=>{
+ const html=read('index.html'),app=read('js/feje-tourbillon.mjs'),render=read('js/feje-tourbillon-renderer.mjs'),sky=read('js/feje-tourbillon-celestial.mjs'),css=read('css/feje-tourbillon.css');
+ for(const key of QUALITY_LEVELS)assert.match(html,new RegExp('data-ft-quality="'+key+'"'));
+ assert.match(html,/data-ft-quality-toggle aria-haspopup/);
+ assert.match(html,/data-ft-quality-panel role="dialog"/);
+ assert.match(html,/role="radiogroup" aria-label="Graphics presets"/);
+ assert.match(html,/class="ft-quality-gear"/);
+ assert.doesNotMatch(html,/data-ft-case/);
+ assert.doesNotMatch(app,/caseVisible|caseButton|setCase\(/);
+ assert.doesNotMatch(render,/setCase\(/);
+ assert.match(app,/QUALITY_STORAGE_KEY/);
+ assert.match(app,/model\?\.setQuality\(quality\)/);
+ assert.match(app,/createWatchRenderer\(canvas,\{mobile,quality\}\)/);
+ assert.match(app,/event\.key==='Escape'/);
+ assert.match(app,/event\.key==='ArrowDown'/);
+ assert.match(render,/setQuality,stats|stats,rebuildReflections,setQuality/);
+ assert.match(render,/renderer\.setPixelRatio\(pixelRatio\)/);
+ assert.match(render,/observatory\.setQuality\(mode\)/);
+ assert.match(render,/qualityMode==='high'/);
+ assert.match(render,/cost\/samples>26/);
+ assert.match(sky,/detailedSky=skyTexture\(false\)/);
+ assert.match(sky,/setQuality,/);
+ assert.match(css,/\.ft-quality-panel\[hidden\]\{display:none!important\}/);
+ assert.match(css,/\.ft-quality-option\[aria-checked=true\]/);
 });
