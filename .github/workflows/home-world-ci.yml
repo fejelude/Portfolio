@@ -21,6 +21,7 @@ on:
       - css/sofra-feature.css
       - css/feje-tourbillon.css
       - js/feje-tourbillon*.mjs
+      - assets/tourbillon/**
       - tests/feje-tourbillon.test.mjs
       - js/sofra-feature.mjs
       - verification/sofra-feature-smoke.cjs

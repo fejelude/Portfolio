@@ -6,7 +6,7 @@ const assert=require('node:assert/strict');
 const path=require('node:path');
 const root=path.resolve(__dirname,'..');
 const out=path.join(__dirname,'home-world-results');
-const mime={'.html':'text/html','.css':'text/css','.js':'text/javascript','.mjs':'text/javascript','.svg':'image/svg+xml','.webp':'image/webp'};
+const mime={'.html':'text/html','.css':'text/css','.js':'text/javascript','.mjs':'text/javascript','.svg':'image/svg+xml','.webp':'image/webp','.json':'application/json'};
 const server=createServer(async(req,res)=>{
   try{
     const url=new URL(req.url,'http://localhost');const name=url.pathname==='/'?'/index.html':url.pathname==='/interactives'?'/interactives.html':url.pathname;
@@ -23,7 +23,7 @@ const server=createServer(async(req,res)=>{
     try{
       for(const mode of ['desktop','mobile','reduced','no-webgl','no-js']){
         const mobile=mode==='mobile';
-        const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1440,height:900},hasTouch:mobile,reducedMotion:mode==='reduced'?'reduce':'no-preference',javaScriptEnabled:mode!=='no-js'});
+        const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1440,height:900},hasTouch:mobile,timezoneId:'America/Los_Angeles',reducedMotion:mode==='reduced'?'reduce':'no-preference',javaScriptEnabled:mode!=='no-js'});
         const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
         if(mode==='no-webgl')await page.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return /^webgl/.test(type)?null:original.call(this,type,...args);};});
         await page.goto(url,{waitUntil:'domcontentloaded'});
@@ -35,7 +35,12 @@ const server=createServer(async(req,res)=>{
         const tourbStage=watch.locator('[data-ft-stage]');
         if(mode!=='no-js'){
           await page.waitForFunction(()=>/^\d{2}:\d{2}:\d{2}$/.test(document.querySelector('#ft-time')?.textContent||''));
-          assert.equal(await watch.locator('.ft-dial').count(),1);
+          await watch.locator('.ft-dial').waitFor({state:'attached',timeout:10000});
+          await page.waitForFunction(()=>document.querySelector('.ft-watch-poster').naturalWidth===820);
+          if(mode==='desktop'||mode==='mobile'){
+            await watch.locator('.ft-movement').waitFor({timeout:15000});
+            await watch.screenshot({path:path.join(out,'tourbillon-'+name+'-'+mode+'.png')});
+          }
           const live=await watch.locator('#ft-time').textContent();
           const local=await page.evaluate(()=>new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Manila',hourCycle:'h23',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date()));
           const secs=t=>t.split(':').map(Number).reduce((s,n,i)=>s+n*[3600,60,1][i],0);
@@ -46,12 +51,26 @@ const server=createServer(async(req,res)=>{
             assert.ok(Math.abs(box.width/box.height-ratio)<.02,'bad ratio: '+name);
             assert.equal(await watch.locator('[data-ft-ratio="'+name+'"]').getAttribute('aria-pressed'),'true');
             assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
+            const watchBox=await watch.locator('[data-ft-watch]').boundingBox();
+            assert.ok(Math.abs(watchBox.width-watchBox.height)<1,'watch was stretched');
           }
           await watch.locator('[data-ft-inspect="tourbillon"]').click();
           assert.match(await watch.locator('#ft-detail').textContent(),/Tourbillon-inspired/);
-          if(mode==='reduced')assert.equal(await watch.locator('.ft-tourb-cage').evaluate(el=>getComputedStyle(el).animationName),'none');
+          if(mode==='reduced'){
+            assert.equal(await watch.locator('.ft-movement').isHidden(),true);
+            assert.equal(await watch.locator('[data-ft-pause]').isDisabled(),true);
+          }else if(mode==='desktop'||mode==='mobile'){
+            await watch.locator('[data-ft-pause]').click();
+            await tourbStage.scrollIntoViewIfNeeded();
+            assert.equal(await tourbStage.getAttribute('data-running'),null);
+            const hand=await watch.locator('#ft-second-hand').getAttribute('transform');
+            await page.waitForFunction(previous=>document.querySelector('#ft-second-hand').getAttribute('transform')!==previous,hand,{timeout:5000});
+            await watch.locator('[data-ft-pause]').click();
+          }
         }else{
           assert.equal(await watch.locator('.ft-watch-poster').count(),1);
+          await watch.locator('.ft-watch-poster').scrollIntoViewIfNeeded();
+          assert.equal(await watch.locator('.ft-watch-poster').evaluate(img=>img.complete&&img.naturalWidth===820),true);
           assert.equal(await watch.locator('#ft-time').textContent(),'--:--:--');
         }
 

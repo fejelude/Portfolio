@@ -230,7 +230,7 @@
             <div class="ft-title-block">
               <p class="ft-kicker"><span aria-hidden="true">Δ</span> ΔΑΙΔΑΛΟΣ <span class="ft-slash">/</span> BUILT WITH CODE</p>
               <h2 id="ft-title">Fejelude's Tourbillon.</h2>
-              <p>A ridiculously detailed watch I coded for fun. It's on Philippine time, hehe.</p>
+              <p>A little observatory I built for fun. It keeps Philippine time.</p>
             </div>
             <div class="ft-timeblock" aria-label="Live Philippine time">
               <span class="ft-pht"><i aria-hidden="true"></i> PHILIPPINE TIME</span>
@@ -246,22 +246,19 @@
             <button class="ft-aspect" type="button" data-ft-ratio="square" aria-pressed="false">Square</button>
           </div>
           <div class="ft-stage" data-ft-stage data-aspect="normal">
-            <div class="ft-grid-etch" aria-hidden="true"></div>
-            <span class="ft-corner ft-tl" aria-hidden="true">+</span><span class="ft-corner ft-tr" aria-hidden="true">+</span>
-            <span class="ft-corner ft-bl" aria-hidden="true">+</span><span class="ft-corner ft-br" aria-hidden="true">+</span>
-            <div class="ft-side ft-side-left" aria-hidden="true"><span>EXHIBIT 001</span><strong>21 JEWELS</strong><span>MANILA / PHT</span></div>
-            <div class="ft-side ft-side-right" aria-hidden="true"><span>HAND-CODED</span><strong>ΔΑΙΔΑΛΟΣ</strong><span>TOURBILLON</span></div>
             <div class="ft-watch" data-ft-watch>
-              <div class="ft-watch-poster" aria-hidden="true">Δ</div>
-              <button class="ft-hotspot ft-hotspot-orbit" type="button" data-ft-inspect="orbit" aria-label="Inspect orbital display">+</button>
-              <button class="ft-hotspot ft-hotspot-gears" type="button" data-ft-inspect="gears" aria-label="Inspect mechanical gears">+</button>
-              <button class="ft-hotspot ft-hotspot-cage" type="button" data-ft-inspect="tourbillon" aria-label="Inspect tourbillon cage">+</button>
+              <img class="ft-watch-poster" src="/assets/tourbillon/observatory.webp" width="820" height="820" loading="lazy" decoding="async" alt="A rose-gold astronomical watch with a curved crystal, blue enamel base, Earth globe and faceted moon">
+              <canvas class="ft-movement" aria-hidden="true" hidden></canvas>
             </div>
-            <span class="ft-footmark" aria-hidden="true">Δ / 001</span>
           </div>
           <div class="ft-footer">
-            <p id="ft-detail" role="status">Real Philippine time. The moving parts are my own little mechanical experiment.</p>
-            <span>move it around or tap the + marks :)</span>
+            <div class="ft-inspect" role="group" aria-label="Inspect the watch">
+              <button class="ft-hotspot" type="button" data-ft-inspect="orbit" aria-pressed="false">Earth &amp; moon</button>
+              <button class="ft-hotspot" type="button" data-ft-inspect="gears" aria-pressed="false">Gear train</button>
+              <button class="ft-hotspot" type="button" data-ft-inspect="tourbillon" aria-pressed="false">Tourbillon</button>
+            </div>
+            <button class="ft-aspect" type="button" data-ft-pause aria-pressed="false">Pause movement</button>
+            <p id="ft-detail" role="status">Drag gently to tilt the case, or pick a part to inspect.</p>
           </div>
           <noscript><p class="ft-nojs">Enable JavaScript to run the Philippine clock and change the frame. The static display is available without it.</p></noscript>
         </article>
