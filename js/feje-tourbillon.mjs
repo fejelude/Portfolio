@@ -1,90 +1,188 @@
-import {mountMovement,watchSVG} from './feje-tourbillon-art.mjs';
-
 export const ASPECTS=Object.freeze({normal:'4 / 3',landscape:'16 / 9',portrait:'3 / 4',square:'1 / 1'});
 const fmt=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Manila',hourCycle:'h23',hour:'2-digit',minute:'2-digit',second:'2-digit'});
 const storageKey='fejelude.tourbillon.aspect.v1';
-const manifestUrl='/assets/tourbillon/projection.json';
+
 export function manilaParts(date){
  const pieces={};for(const part of fmt.formatToParts(date))if(['hour','minute','second'].includes(part.type))pieces[part.type]=Number(part.value);
  return {...pieces,millisecond:date.getUTCMilliseconds()};
 }
 export function handAngles(t){
- const seconds=t.second+t.millisecond/1000;
- return {hour:(t.hour%12+t.minute/60+seconds/3600)*30,minute:(t.minute+seconds/60)*6,second:seconds*6};
+ const s=t.second+t.millisecond/1000;
+ return {hour:(t.hour%12+t.minute/60+s/3600)*30,minute:(t.minute+s/60)*6,second:s*6};
 }
+
 export function mountTourbillon(root){
  if(!root)return ()=>{};
- const stage=root.querySelector('[data-ft-stage]'),watch=root.querySelector('[data-ft-watch]'),output=root.querySelector('#ft-time'),note=root.querySelector('#ft-detail');
- const buttons=[...root.querySelectorAll('[data-ft-ratio]')],hotspots=[...root.querySelectorAll('[data-ft-inspect]')],pause=root.querySelector('[data-ft-pause]');
- const reduced=matchMedia('(prefers-reduced-motion: reduce)');
- const controller=new AbortController(),signal=controller.signal;
- const handle=(node,event,callback,options)=>node.addEventListener(event,callback,{...options,signal});
+ const stage=root.querySelector('[data-ft-stage]'),canvas=root.querySelector('.ft-model');
+ const output=root.querySelector('#ft-time'),note=root.querySelector('#ft-detail');
+ const buttons=[...root.querySelectorAll('[data-ft-ratio]')],hotspots=[...root.querySelectorAll('[data-ft-inspect]')];
+ const pause=root.querySelector('[data-ft-pause]'),caseButton=root.querySelector('[data-ft-case]');
+ const viewButtons=[...root.querySelectorAll('[data-ft-view]')];
+ const reduced=matchMedia('(prefers-reduced-motion: reduce)'),mobile=matchMedia('(pointer: coarse)').matches;
+ const controller=new AbortController(),{signal}=controller;
+ const on=(element,event,handler,options)=>element.addEventListener(event,handler,{...options,signal});
+ const fallback=root.querySelector('[data-ft-fallback]');
  const alwaysVisible=!('IntersectionObserver' in window);
- let visible=alwaysVisible,onStage=alwaysVisible,suspended=false,paused=false,clock=0,observer,load,move,selected='',hands,drag=null;
+ const controls=[pause,caseButton,...viewButtons,...hotspots];
+ const details={
+  tourbillon:'The carriage makes one turn per minute around a fixed fourth wheel.',
+  escapement:'Each beat unlocks one ruby pallet, advances the escape wheel half a tooth, and locks on the other pallet.',
+  gears:'A 48-tooth barrel drives a 16-tooth pinion. Its 36-tooth wheel drives the 12-tooth carriage pinion.',
+  orbit:'Two gear pairs drive the globe and crystal on separate tilted axes.'
+ };
+ const defaultNote='Drag to orbit. Pinch or use + and − to zoom.';
+ let visible=alwaysVisible,onStage=alwaysVisible,suspended=false,paused=false,contextLost=false,caseVisible=true;
+ let observer,resizer,load,model,selected='',clock=0,frame=0,clockParts,elapsed=0,last=0,lastPaint=-Infinity,dirty=true;
+ const pointers=new Map();
+ const live=()=>visible&&!document.hidden&&!suspended;
+ const inView=()=>live()&&onStage&&!contextLost;
+ const moving=()=>inView()&&!paused&&!reduced.matches;
+ function setReady(ready){
+  stage.toggleAttribute('data-ft-live',ready);
+  canvas.hidden=!ready;
+  for(const control of controls)control.disabled=!ready||(control===pause&&reduced.matches);
+ }
  function setRatio(value){
   if(!Object.hasOwn(ASPECTS,value))return;
-  stage.dataset.aspect=value;root.querySelector('.ft-card').dataset.ftAspect=value;
+  stage.dataset.aspect=value;
   buttons.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.ftRatio===value)));
   try{localStorage.setItem(storageKey,value)}catch{}
+  invalidate();
  }
  try{const saved=localStorage.getItem(storageKey);if(saved)setRatio(saved)}catch{}
- for(const button of buttons)handle(button,'click',()=>setRatio(button.dataset.ftRatio));
- const details={
-  orbit:'Earth and moon. I gave the globe gold coastlines and cut the moon from silver and ice-blue facets.',
-  gears:'The central hub ties the satellites together with twin bridges, shafts and exposed pinions.',
-  tourbillon:'Tourbillon-inspired cage. The outer carriage, tilted inner ring and balance are a digital interpretation.'
- };
- for(const button of hotspots)handle(button,'click',()=>{
-  selected=selected===button.dataset.ftInspect?'':button.dataset.ftInspect;
-  hotspots.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.ftInspect===selected)));
-  note.textContent=details[selected]||'Drag gently to tilt the case, or pick a part to inspect.';
- });
- function loadArt(){
-  if(load)return;
-  load=fetch(manifestUrl,{signal}).then(response=>{
-   if(!response.ok)throw Error('Watch geometry unavailable');
-   return response.json();
-  }).then(manifest=>{
-   if(signal.aborted)return;
-   watch.insertAdjacentHTML('beforeend',watchSVG(manifest));
-   hands=Object.fromEntries(['hour','minute','second'].map(name=>[name,watch.querySelector('#ft-'+name+'-hand')]));
-   move=mountMovement(watch.querySelector('canvas'),manifest);
-   sync();
-  }).catch(()=>{}); // The poster and digital Manila clock remain usable.
+ for(const button of buttons)on(button,'click',()=>setRatio(button.dataset.ftRatio));
+ function focus(name){
+  selected=name;
+  hotspots.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.ftInspect===name)));
+  note.textContent=details[name]||defaultNote;
+  model?.focus(name);
+  invalidate();
  }
+ for(const button of hotspots)on(button,'click',()=>focus(selected===button.dataset.ftInspect?'':button.dataset.ftInspect));
+ on(caseButton,'click',()=>{
+  caseVisible=!caseVisible;
+  caseButton.setAttribute('aria-pressed',String(!caseVisible));
+  caseButton.textContent=caseVisible?'Hide case':'Show case';
+  model?.setCase(caseVisible);invalidate();
+ });
+ on(pause,'click',()=>{
+  paused=!paused;
+  pause.textContent=paused?'Resume movement':'Pause movement';
+  pause.setAttribute('aria-pressed',String(paused));
+  sync();
+ });
+ for(const button of viewButtons)on(button,'click',()=>{
+  if(button.dataset.ftView==='reset')focus('');
+  else model?.zoom(button.dataset.ftView==='in'?.84:1/.84);
+  invalidate();
+ });
+
  function updateTime(){
-  const date=new Date(),parts=manilaParts(date);
-  output.textContent=[parts.hour,parts.minute,parts.second].map(v=>String(v).padStart(2,'0')).join(':');
+  const date=new Date();
+  clockParts=manilaParts(date);
+  output.textContent=[clockParts.hour,clockParts.minute,clockParts.second].map(v=>String(v).padStart(2,'0')).join(':');
   output.dateTime=date.toISOString();
-  if(hands){
-   const angles=handAngles({...parts,millisecond:0});
-   for(const [name,angle] of Object.entries(angles))hands[name].setAttribute('transform','rotate('+angle+')');
-  }
+  invalidate();
   clock=setTimeout(updateTime,1000-date.getUTCMilliseconds());
  }
+ function loadModel(){
+  if(load)return;
+  load=import('./feje-tourbillon-renderer.mjs').then(({createWatchRenderer})=>{
+   if(signal.aborted)return;
+   model=createWatchRenderer(canvas,{mobile});
+   if(!model){fallback.hidden=false;return}
+   resize();
+   if('ResizeObserver' in window){resizer=new ResizeObserver(resize);resizer.observe(stage)}
+   invalidate();
+  }).catch(error=>{
+   model?.dispose();
+   model=null;setReady(false);fallback.hidden=false;
+   console.warn('Tourbillon renderer unavailable',error);
+  });
+ }
+ function tick(now){
+  frame=0;
+  if(!inView()||!model)return;
+  if(last&&moving())elapsed+=(now-last)/1000;
+  const delta=last?Math.min(.09,(now-last)/1000):0;
+  last=now;
+  const animate=moving(),interval=mobile?40:32;
+  if(dirty||!animate||now-lastPaint>=interval){
+   const ms=animate?new Date().getUTCMilliseconds():0;
+   dirty=model.draw(elapsed,handAngles({...clockParts,millisecond:ms}),delta,reduced.matches);
+   lastPaint=now;
+   if(canvas.hidden){setReady(true);fallback.hidden=true}
+  }
+  if(dirty||animate)frame=requestAnimationFrame(tick);
+  else last=0;
+ }
+ function invalidate(){
+  dirty=true;
+  if(!frame&&model&&inView())frame=requestAnimationFrame(tick);
+ }
+ function resize(){
+  model?.resize(stage.clientWidth,stage.clientHeight);
+  invalidate();
+ }
  function sync(){
-  const active=visible&&!document.hidden&&!suspended;
   clearTimeout(clock);
-  if(active){loadArt();updateTime()}
-  const animate=active&&onStage&&!paused&&!reduced.matches;
-  stage.toggleAttribute('data-running',animate);
-  move?.(animate);
-  pause.disabled=reduced.matches;
-  if(reduced.matches)resetTilt();
+  if(live())updateTime();
+  if(inView())loadModel();
+  stage.toggleAttribute('data-running',moving());
+  if(!inView()){
+   cancelAnimationFrame(frame);frame=0;
+  }
+  last=0;lastPaint=-Infinity;
+  if(stage.hasAttribute('data-ft-live'))pause.disabled=reduced.matches;
+  invalidate();
  }
- handle(pause,'click',()=>{
-  paused=!paused;pause.setAttribute('aria-pressed',String(paused));pause.textContent=paused?'Resume movement':'Pause movement';sync();
+ on(canvas,'webglcontextlost',event=>{
+  event.preventDefault();contextLost=true;setReady(false);fallback.hidden=false;sync();
  });
- function tilt(event){
-  if(reduced.matches||!onStage||(event.pointerType!=='mouse'&&drag!==event.pointerId))return;
-  const r=watch.getBoundingClientRect(),clamp=n=>Math.min(1,Math.max(-1,n));
-  const x=clamp((event.clientX-r.left)/r.width*2-1),y=clamp((event.clientY-r.top)/r.height*2-1);
-  watch.style.setProperty('--ft-x',(-y*5)+'deg');watch.style.setProperty('--ft-y',(x*7)+'deg');
- }
- function resetTilt(){drag=null;watch.style.removeProperty('--ft-x');watch.style.removeProperty('--ft-y')}
- handle(watch,'pointerdown',event=>{if(event.isPrimary&&event.button===0)drag=event.pointerId},{passive:true});
- handle(watch,'pointermove',tilt,{passive:true});
- for(const event of ['pointerleave','pointerup','pointercancel'])handle(watch,event,resetTilt,{passive:true});
+ on(canvas,'webglcontextrestored',()=>{
+  // Three's listener reinitializes its renderer state in this event too.
+  // Rebuild the reflection target after all event listeners have run.
+  setTimeout(()=>{
+   if(signal.aborted||canvas.getContext('webgl2')?.isContextLost())return;
+   try{
+    model?.rebuildReflections();
+    contextLost=false;sync();
+   }catch(error){
+    fallback.hidden=false;console.warn('Tourbillon context recovery failed',error);
+   }
+  },0);
+ });
+ on(canvas,'pointerdown',event=>{
+  if(event.button!==0||!model)return;
+  pointers.set(event.pointerId,[event.clientX,event.clientY]);
+  try{canvas.setPointerCapture(event.pointerId)}catch{}
+ });
+ on(canvas,'pointermove',event=>{
+  const previous=pointers.get(event.pointerId);
+  if(!previous||!model)return;
+  const next=[event.clientX,event.clientY];
+  if(pointers.size===2){
+   const other=[...pointers.entries()].find(([id])=>id!==event.pointerId)[1];
+   const distance=p=>Math.hypot(p[0]-other[0],p[1]-other[1]);
+   const a=distance(previous),b=distance(next);
+   if(a>8&&b>8)model.zoom(a/b);
+  }else if(pointers.size===1){
+   const scale=Math.min(canvas.clientWidth,canvas.clientHeight);
+   if(scale>0)model.orbit((previous[0]-next[0])*4.2/scale,(next[1]-previous[1])*3.2/scale);
+  }
+  pointers.set(event.pointerId,next);invalidate();
+ });
+ for(const type of ['pointerup','pointercancel','lostpointercapture'])on(canvas,type,event=>pointers.delete(event.pointerId));
+ on(canvas,'keydown',event=>{
+  const key=event.key;
+  const directions={ArrowLeft:[-.18,0],ArrowRight:[.18,0],ArrowUp:[0,.13],ArrowDown:[0,-.13]};
+  if(directions[key])model?.orbit(...directions[key]);
+  else if(key==='+'||key==='=')model?.zoom(.85);
+  else if(key==='-')model?.zoom(1/.85);
+  else if(key==='Home')focus('');
+  else return;
+  event.preventDefault();invalidate();
+ });
  if(!alwaysVisible){
   observer=new IntersectionObserver(entries=>{
    for(const entry of entries){
@@ -95,11 +193,12 @@ export function mountTourbillon(root){
   });
   observer.observe(root);observer.observe(stage);
  }
- handle(document,'visibilitychange',sync);
- handle(reduced,'change',sync);
- handle(window,'pageshow',()=>{suspended=false;sync()});
- handle(window,'pagehide',event=>{suspended=true;sync();if(!event.persisted)dispose()});
- function dispose(){controller.abort();observer?.disconnect();clearTimeout(clock);move?.(false)}
+ if(!('ResizeObserver' in window))on(window,'resize',resize);
+ on(document,'visibilitychange',sync);
+ on(reduced,'change',sync);
+ on(window,'pageshow',()=>{suspended=false;sync()});
+ on(window,'pagehide',event=>{suspended=true;sync();if(!event.persisted)dispose()});
+ function dispose(){controller.abort();observer?.disconnect();resizer?.disconnect();clearTimeout(clock);cancelAnimationFrame(frame);model?.dispose()}
  sync();
  return dispose;
 }
