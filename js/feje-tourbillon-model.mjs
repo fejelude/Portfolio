@@ -391,6 +391,53 @@ function timeDial(root){
  return hands;
 }
 
+// Batch opaque details that share a material and direct rigid parent.
+// Moving parts still have separate pivots. The shell, cage, balance, fork
+// and each arbor can be transformed without rewriting the GPU buffers.
+function batchMachinedDetails(root){
+ const candidates=new Set();
+ function batch(parent){
+  const buckets=new Map();
+  for(const child of [...parent.children]){
+   if(child.isGroup){batch(child);continue}
+   if(!child.isMesh||child.isInstancedMesh||child.material.transparent||child.material.vertexColors)continue;
+   const keys=Object.keys(child.geometry.attributes).sort();
+   if(!keys.includes('normal'))continue;
+   if(!buckets.has(child.material))buckets.set(child.material,new Map());
+   const family=buckets.get(child.material),key=keys.join('/');
+   if(!family.has(key))family.set(key,[]);
+   family.get(key).push(child);
+  }
+  for(const [material,families] of buckets)for(const pieces of families.values()){
+   if(pieces.length<3)continue;
+   const positions=pieces.reduce((n,o)=>n+o.geometry.attributes.position.count,0);
+   const indices=pieces.reduce((n,o)=>n+(o.geometry.index?.count??o.geometry.attributes.position.count),0);
+   const keys=Object.keys(pieces[0].geometry.attributes);
+   const joined=new T.BufferGeometry(),data={};
+   for(const key of keys){
+    const stride=pieces[0].geometry.attributes[key].itemSize;
+    data[key]=new Float32Array(positions*stride);
+    joined.setAttribute(key,new T.BufferAttribute(data[key],stride));
+   }
+   const index=positions>65535?new Uint32Array(indices):new Uint16Array(indices);
+   let vertex=0,offset=0;
+   for(const piece of pieces){
+    piece.updateMatrix();
+    const g=piece.geometry.clone().applyMatrix4(piece.matrix);
+    const n=g.attributes.position.count,ind=g.index?.array;
+    for(const key of keys)data[key].set(g.attributes[key].array,vertex*g.attributes[key].itemSize);
+    for(let i=0;i<(ind?.length??n);i++)index[offset++]=(ind?ind[i]:i)+vertex;
+    vertex+=n;
+    candidates.add(piece.geometry);parent.remove(piece);g.dispose();
+   }
+   joined.setIndex(new T.BufferAttribute(index,1));
+   mesh(parent,'Matched machined details',joined,material);
+  }
+ }
+ batch(root);
+ root.traverse(o=>{if(o.geometry)candidates.delete(o.geometry)});
+ for(const g of candidates)g.dispose();
+}
 export function buildWatch(scene){
  const root=group(scene,'ΔΑΙΔΑΛΟΣ · Fejelude astronomical movement');
  const shell=casework(root);
@@ -400,5 +447,6 @@ export function buildWatch(scene){
  const movement=regulator(root,drive.cagePoint.x,drive.cagePoint.z);
  const orbit=astronomy(root,drive.barrelPos);
  const hands=timeDial(root);
+ batchMachinedDetails(root);
  return {root,shell,hands,movement,orbit,update(state){drive.update(state);movement.update(state);orbit.update(state)}};
 }

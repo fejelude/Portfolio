@@ -140,12 +140,17 @@ export function mountTourbillon(root){
   event.preventDefault();contextLost=true;setReady(false);fallback.hidden=false;sync();
  });
  on(canvas,'webglcontextrestored',()=>{
-  try{
-   model?.rebuildReflections();
-   contextLost=false;sync();
-  }catch(error){
-   fallback.hidden=false;console.warn('Tourbillon context recovery failed',error);
-  }
+  // Three's listener reinitializes its renderer state in this event too.
+  // Rebuild the reflection target after all event listeners have run.
+  setTimeout(()=>{
+   if(signal.aborted||canvas.getContext('webgl2')?.isContextLost())return;
+   try{
+    model?.rebuildReflections();
+    contextLost=false;sync();
+   }catch(error){
+    fallback.hidden=false;console.warn('Tourbillon context recovery failed',error);
+   }
+  },0);
  });
  on(canvas,'pointerdown',event=>{
   if(event.button!==0||!model)return;
