@@ -82,39 +82,15 @@ progress{appearance:none;width:100%;height:6px;margin:14px 0;background:#352840;
 @media(prefers-reduced-motion:no-preference){.iw-os-icons{animation:iw-enter .4s ease-out both}.iw-os-window{animation:iw-enter .16s ease-out both}}
 @media(max-width:600px){.iw-world .iw-main{padding-inline:12px}.iw-toolbar{padding:7px 9px}.iw-toolbar button{padding-inline:9px}.iw-control-panel{padding:10px}.iw-settings{padding:0 10px 10px}.iw-progress-actions button{flex:1 1 auto}.iw-os-window{max-height:calc(100% - 70px)}}
 
-/* Hub dragon: original vector artwork, confined to its own responsive flight stage. */
+/* Hub dragon: pixel-art serpent, confined to its own responsive flight stage. */
 .iw-hub .iw-intro{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.88fr);align-items:center;gap:clamp(10px,3vw,32px);max-width:none;margin-bottom:26px}
 .iw-intro-copy{min-width:0;position:relative;z-index:1}
 .iw-intro-copy>p:not(.iw-kicker){font-size:clamp(1rem,2.8vw,1.22rem);line-height:1.7;color:#c7bbd2;margin:0;max-width:40ch}
 .iw-dragon-space{position:relative;width:100%;min-width:0;aspect-ratio:12/7;overflow:hidden;pointer-events:none;isolation:isolate}
-.iw-dragon-scene{display:block;width:100%;height:100%;overflow:hidden}
-.iw-dragon-flight{transform-origin:240px 140px}
-.iw-dragon-bank{transform-origin:247px 144px}
-.iw-dragon-wing-near{transform-origin:260px 151px}
-.iw-dragon-wing-far{transform-origin:280px 145px}
-.iw-dragon-tail{transform-origin:213px 165px}
-.iw-dragon-pupil{transform-origin:353px 102px}
+.iw-dragon-scene{width:100%;height:100%;object-fit:contain;image-rendering:pixelated}
+.iw-dragon-space canvas{position:absolute;inset:0}
+.iw-dragon-space canvas:not([hidden])+img{visibility:hidden}
 @media(max-width:760px){.iw-hub .iw-intro{grid-template-columns:minmax(0,1fr);gap:0;margin-bottom:16px}.iw-dragon-space{width:min(100%,440px);margin:0 auto;aspect-ratio:12/6.6}.iw-intro-copy>p:not(.iw-kicker){max-width:46ch}}
-@media(prefers-reduced-motion:no-preference){
- .iw-hub .iw-dragon-space[data-visible] .iw-dragon-flight{animation:iw-dragon-glide 15s cubic-bezier(.45,.03,.55,.97) infinite}
- .iw-hub .iw-dragon-space[data-visible] .iw-dragon-bank{animation:iw-dragon-bank 15s ease-in-out infinite}
- .iw-hub .iw-dragon-space[data-visible] .iw-dragon-wing-near{animation:iw-dragon-flap 2.9s ease-in-out infinite}
- .iw-hub .iw-dragon-space[data-visible] .iw-dragon-wing-far{animation:iw-dragon-flap-far 2.9s ease-in-out infinite}
- .iw-hub .iw-dragon-space[data-visible] .iw-dragon-tail{animation:iw-dragon-tail 2.9s ease-in-out infinite}
- .iw-hub .iw-dragon-space[data-visible] .iw-dragon-pupil{animation:iw-dragon-blink 7s linear infinite}
- .iw-hub .iw-dragon-space[data-visible] .iw-dragon-spark{animation:iw-dragon-glint 4.8s ease-in-out infinite}
- .iw-hub .iw-dragon-space[data-visible] .iw-dragon-spark-b{animation-delay:-1.5s}
- .iw-hub .iw-dragon-space[data-visible] .iw-dragon-spark-c{animation-delay:-3s}
-}
-.iw-hub[data-motion-paused] .iw-dragon-space *{animation-play-state:paused!important}
-@keyframes iw-dragon-glide{0%,100%{transform:translate(-25px,12px)}25%{transform:translate(5px,-14px)}45%{transform:translate(43px,3px)}60%{transform:translate(30px,20px)}78%{transform:translate(-5px,-4px)}90%{transform:translate(-35px,-5px)}}
-@keyframes iw-dragon-bank{0%,100%{transform:rotate(-6deg) scaleX(1)}25%{transform:rotate(-9deg) scaleX(1)}42%{transform:rotate(5deg) scaleX(1)}49%{transform:rotate(1deg) scaleX(.18)}56%{transform:rotate(-4deg) scaleX(-1)}76%{transform:rotate(7deg) scaleX(-1)}87%{transform:rotate(1deg) scaleX(-1)}93%{transform:rotate(-3deg) scaleX(-.18)}98%{transform:rotate(-6deg) scaleX(1)}}
-@keyframes iw-dragon-flap{0%,100%{transform:rotate(-7deg) scaleY(.91)}22%{transform:rotate(10deg) scaleY(1.04)}46%{transform:rotate(-19deg) scaleY(.68)}68%{transform:rotate(1deg) scaleY(.97)}}
-@keyframes iw-dragon-flap-far{0%,100%{transform:rotate(7deg) scaleY(.88)}22%{transform:rotate(-9deg) scaleY(1.03)}46%{transform:rotate(19deg) scaleY(.67)}68%{transform:rotate(1deg) scaleY(.97)}}
-@keyframes iw-dragon-tail{0%,100%{transform:rotate(-3deg)}48%{transform:rotate(6deg)}}
-@keyframes iw-dragon-blink{0%,90%,96%,100%{transform:scaleY(1)}93%{transform:scaleY(.12)}}
-@keyframes iw-dragon-glint{0%,100%{opacity:.35}50%{opacity:.75}}
-
 /* Frame the stage and give the settings their own row. */
 .iw-progress{max-width:none}
 .iw-toolbar{background:#1a1422}
