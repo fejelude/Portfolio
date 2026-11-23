@@ -1,0 +1,37 @@
+
+/* Decorative pixel cursor for the interactives hero. Real mouse/touch cursors are untouched. */
+.iw-hub .iw-intro{position:relative}
+.iw-hero-cursor{position:absolute;z-index:2;top:-10px;right:clamp(4px,1.6vw,22px);width:clamp(76px,9vw,112px);aspect-ratio:1;pointer-events:none;user-select:none;-webkit-user-select:none;isolation:isolate;contain:layout paint}
+.iw-hero-cursor-svg{display:block;width:100%;height:100%;overflow:visible}
+.iw-cursor-drift{transform-origin:38px 64px}
+.iw-cursor-click-flash{transform-origin:19px 14px;opacity:0}
+.iw-cursor-star{opacity:.58}
+@media(max-width:760px){.iw-hero-cursor{top:-9px;right:2px;width:clamp(68px,19vw,88px)}}
+@media(max-width:360px){.iw-hero-cursor{top:-8px;right:0;width:58px}}
+@media(prefers-reduced-motion:no-preference){
+ .iw-hero-cursor[data-visible] .iw-cursor-drift{animation:iw-hero-cursor-fly 6s steps(8,end) infinite}
+ .iw-hero-cursor[data-visible] .iw-cursor-click-flash{animation:iw-hero-cursor-click 6s steps(4,end) infinite}
+ .iw-hero-cursor[data-visible] .iw-cursor-star-a{animation:iw-hero-cursor-shine 6s steps(2,end) infinite}
+ .iw-hero-cursor[data-visible] .iw-cursor-star-b{animation:iw-hero-cursor-shine 6s steps(2,end) -2s infinite}
+ .iw-hero-cursor[data-visible] .iw-cursor-star-c{animation:iw-hero-cursor-shine 6s steps(2,end) -4s infinite}
+}
+.iw-hub[data-motion-paused] .iw-hero-cursor *{animation-play-state:paused!important}
+@keyframes iw-hero-cursor-fly{
+ 0%,100%{transform:translate(2px,5px) rotate(-5deg)}
+ 20%{transform:translate(-8px,-4px) rotate(0deg)}
+ 34%{transform:translate(-9px,-5px) rotate(0deg)}
+ 39%{transform:translate(-9px,-5px) rotate(0deg) scale(.92)}
+ 44%{transform:translate(-9px,-5px) rotate(0deg)}
+ 58%{transform:translate(7px,3px) rotate(7deg)}
+ 80%{transform:translate(8px,6px) rotate(3deg)}
+}
+@keyframes iw-hero-cursor-click{
+ 0%,32%,47%,100%{opacity:0;transform:scale(.55)}
+ 35%,40%{opacity:1;transform:scale(1)}
+ 44%{opacity:.35;transform:scale(1.24)}
+}
+@keyframes iw-hero-cursor-shine{
+ 0%,100%{opacity:.22;transform:scale(.9)}
+ 30%,45%{opacity:.85;transform:scale(1.06)}
+ 65%{opacity:.4;transform:scale(1)}
+}
