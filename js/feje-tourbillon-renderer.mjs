@@ -50,9 +50,10 @@ function disposeScene(scene){
 }
 
 export function createWatchRenderer(canvas,{mobile=false}={}){
- const context=canvas.getContext('webgl2',{alpha:true,antialias:true,depth:true,powerPreference:'low-power'});
+ const antialias=!mobile;
+ const context=canvas.getContext('webgl2',{alpha:true,antialias,depth:true,powerPreference:'low-power'});
  if(!context)return null;
- const renderer=new T.WebGLRenderer({canvas,context,alpha:true,antialias:true});
+ const renderer=new T.WebGLRenderer({canvas,context,alpha:true,antialias});
  renderer.toneMapping=T.ACESFilmicToneMapping;
  renderer.toneMappingExposure=1.21;
  renderer.setClearColor(0x000000,0);
@@ -79,7 +80,7 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
  const current={...overview},goal={...overview};
  let width=0,height=0;
  let pixelRatio=Math.min(devicePixelRatio||1,mobile?1.2:1.55);
- let samples=0,cost=0,economy=mobile,focusDetail=false;
+ let samples=0,cost=0,slowFrames=0,economy=mobile,focusDetail=false;
  const stats={frames:0,triangles:0,drawCalls:0,pixelRatio};
  function resize(w,h){
   if(w<1||h<1||w===width&&h===height)return;
@@ -125,15 +126,18 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
    renderer.render(scene,camera);
    stats.frames++;stats.triangles=renderer.info.render.triangles;stats.drawCalls=renderer.info.render.calls;
    samples++;cost+=performance.now()-start;
+   if(delta>.045)slowFrames++;
    // Lower fill cost after sustained slow frame submissions. Keep mesh detail
    // and the case structure intact in the coarse/mobile profile.
    if(samples===60){
-    if(cost/samples>16&&pixelRatio>.78){
+    if(cost/samples>16||slowFrames/samples>.24){
      economy=true;
-     pixelRatio=Math.max(.72,pixelRatio*.80);
-     stats.pixelRatio=pixelRatio;renderer.setPixelRatio(pixelRatio);
+     if(pixelRatio>.78){
+      pixelRatio=Math.max(.72,pixelRatio*.80);
+      stats.pixelRatio=pixelRatio;renderer.setPixelRatio(pixelRatio);
+     }
     }
-    samples=0;cost=0;
+    samples=0;cost=0;slowFrames=0;
    }
    return settling;
   },

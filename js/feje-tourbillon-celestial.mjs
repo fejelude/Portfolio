@@ -20,6 +20,12 @@ function profile(root,name,points,material,n=64){
 function band(root,name,y,r,w,h,material,n=64){
  return profile(root,name,[[r-w,y-h/2],[r-.018,y-h/2],[r,y-h*.24],[r,y+h*.23],[r-.023,y+h/2],[r-w,y+h/2],[r-w,y-h/2]],material,n);
 }
+export function writeNebulaColor(buffer,index,cloud,violet,fine){
+ buffer[index]=6+cloud*(21+77*violet)+fine;
+ buffer[index+1]=10+cloud*(52-17*violet)+fine;
+ buffer[index+2]=29+cloud*(112+22*violet)+fine;
+ buffer[index+3]=255;
+}
 function skyTexture(low){
  const w=low?384:640,h=w/2;
  const c=document.createElement('canvas');c.width=w;c.height=h;
@@ -42,10 +48,7 @@ function skyTexture(low){
    const violet=.54+.46*Math.sin(2*a+.86+v*3);
    const fine=grain(nx*11,ny*11)*2;
    const i=(y*w+x)*4;
-   img.data[i]=6+cloud*(21+77*violet)+fine;
-   img.data[i]=10+cloud*(52-17*violet)+fine;
-   img.data[i]=29+cloud*(112+22*violet)+fine;
-   img.data[i+3]=255;
+   writeNebulaColor(img.data,i,cloud,violet,fine);
   }
  }
  ctx.putImageData(img,0,0);

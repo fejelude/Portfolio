@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {ASPECTS,manilaParts,handAngles} from '../js/feje-tourbillon.mjs';
 import {MOVEMENT as m,TAU,movementAt} from '../js/feje-tourbillon-mechanism.mjs';
 import {astrolabeTime,SKY_PERIOD} from '../js/feje-tourbillon-astrolabe.mjs';
-import {celestialPhase} from '../js/feje-tourbillon-celestial.mjs';
+import {celestialPhase,writeNebulaColor} from '../js/feje-tourbillon-celestial.mjs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const close=(actual,expected)=>assert.ok(Math.abs(actual-expected)<1e-9,`${actual} != ${expected}`);
 
@@ -77,4 +77,12 @@ test('the 20-second sky and the Manila astrolabe track independent timelines',()
  close(morning.hourPhase,6.5/24);
  close(evening.hourPhase,18.5/24);
  close(morning.minutePhase,.5);
+});
+
+test('nebula pixels retain blue, violet and green channels',()=>{
+ const p=new Uint8ClampedArray(8);
+ writeNebulaColor(p,4,.7,.8,1);
+ assert.ok(p[6]>p[4]&&p[4]>p[5]&&p[5]>10);
+ assert.equal(p[7],255);
+ assert.deepEqual([...p.slice(0,4)],[0,0,0,0]);
 });

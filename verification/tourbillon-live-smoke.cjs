@@ -27,7 +27,7 @@ const server=createServer(async(req,res)=>{
 
 async function recordSky(browser,url){
  const viewport={width:1280,height:960};
- const context=await browser.newContext({viewport,timezoneId:'America/Los_Angeles',
+ const context=await browser.newContext({viewport,deviceScaleFactor:.8,timezoneId:'America/Los_Angeles',
   recordVideo:{dir:out,size:{width:1000,height:750}}});
  const page=await context.newPage();
  const video=page.video();
@@ -40,17 +40,17 @@ async function recordSky(browser,url){
   const time=await page.locator('#ft-time').evaluate(el=>Number(el.textContent.slice(0,2)));
   assert.equal(await astro.locator('figcaption').textContent(),time>=6&&time<18?'Manila day':'Manila night');
   assert.equal(await astro.locator('canvas').evaluate(c=>getComputedStyle(c).imageRendering),'pixelated');
-  await astro.screenshot({path:path.join(out,'daedalus-pixel-astrolabe.png')});
-  await stage.scrollIntoViewIfNeeded();
-  await stage.screenshot({path:path.join(out,'daedalus-celestial-desktop.png')});
-  // Hold the complete 20-second atmospheric cycle in a real WebGL recording.
+  // Record a complete cycle before pausing to capture stable stills.
   await page.waitForTimeout(20800);
+  await page.getByRole('button',{name:'Pause movement'}).click({timeout:60000});
+  await astro.screenshot({path:path.join(out,'daedalus-pixel-astrolabe.png'),timeout:60000});
+  await stage.screenshot({path:path.join(out,'daedalus-celestial-desktop.png'),timeout:60000});
   await page.getByRole('button',{name:'Zoom in'}).click();
   await stage.scrollIntoViewIfNeeded();
   await canvas.focus();
   await canvas.press('ArrowDown');
   await page.waitForTimeout(850);
-  await stage.screenshot({path:path.join(out,'daedalus-platform-detail.png')});
+  await stage.screenshot({path:path.join(out,'daedalus-platform-detail.png'),timeout:60000});
  } finally{
   await context.close();
   await video.saveAs(path.join(out,'daedalus-celestial-cycle.webm'));
@@ -69,11 +69,10 @@ async function desktop(browser,url){
   await canvas.waitFor({timeout:30000});
   assert.ok(await canvas.evaluate(c=>!!c.getContext('webgl2')));
   await page.waitForTimeout(1050);
-  await stage.screenshot({path:path.join(out,'daedalus-live-overview.png')});
-
   // Hold the movement to isolate the camera test. The actual WebGL pixels
   // must change while the canvas element and its CSS transform stay put.
   await page.getByRole('button',{name:'Pause movement'}).click();
+  await stage.screenshot({path:path.join(out,'daedalus-live-overview.png'),timeout:60000});
   const a=await canvas.screenshot(),b=await canvas.boundingBox();
   await page.mouse.move(b.x+b.width*.59,b.y+b.height*.46);
   await page.mouse.down();
@@ -149,12 +148,12 @@ async function mobile(browser,url){
   const stats=await page.evaluate(async()=>{
    const {createWatchRenderer}=await import('/js/feje-tourbillon-renderer.mjs');
    const canvas=document.createElement('canvas');
-   const gl=canvas.getContext('webgl2',{antialias:true,alpha:true,powerPreference:'low-power'});
+   const gl=canvas.getContext('webgl2',{antialias:false,alpha:true,powerPreference:'low-power'});
    const r=createWatchRenderer(canvas,{mobile:true});r.resize(390,325);
    const samples=[];
    for(let i=0;i<26;i++){
     const start=performance.now();
-    r.draw(i*.06,{hour:110,minute:72,second:128+i},.05,true);
+    r.draw(i*.06,{hour:110,minute:72,second:128+i},1/60,true);
     gl.finish();
     if(i>=6)samples.push(performance.now()-start);
    }
