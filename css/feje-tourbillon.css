@@ -1,0 +1,77 @@
+/* Daedalus, an original interactive tourbillon exhibit. Scoped to the homepage only. */
+.feje-world-home .ft-section{padding-block:clamp(34px,6vw,74px)}
+.feje-world-home .ft-section>.container{max-width:1100px}
+.feje-world-home .ft-card{position:relative;isolation:isolate;min-width:0;overflow:hidden;padding:clamp(15px,3.5vw,36px);border:1px solid #745772;border-radius:23px;color:#fff1f9;background:radial-gradient(ellipse at 88% 5%,#6a3c6178,transparent 46%),radial-gradient(ellipse at 8% 85%,#3735596a,transparent 51%),linear-gradient(145deg,#23192c,#100e19 70%);box-shadow:inset 0 1px 0 #fff0f23c,0 18px 64px #08051082}
+.feje-world-home .ft-card:before{content:"";position:absolute;top:0;left:0;right:0;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,#ecc5d7,transparent)}
+.feje-world-home .ft-top{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:14px 25px;margin-bottom:19px}
+.feje-world-home .ft-title-block{min-width:0;flex:1 1 280px}
+.feje-world-home .ft-kicker{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 11px;color:#e6b9d2;font:600 .69rem/1.5 ui-monospace,monospace;letter-spacing:.16em}
+.feje-world-home .ft-kicker>span:first-child{color:#f2d9af;font:700 1.35rem/1 Georgia,serif;text-shadow:0 0 14px #dfc7c466}
+.feje-world-home .ft-slash{color:#9c809b}
+.feje-world-home .ft-title-block h2{margin:0 0 10px;font:700 clamp(1.8rem,4vw,3.6rem)/1.06 'Space Grotesk',sans-serif;letter-spacing:-.05em;color:#fbebf6}
+.feje-world-home .ft-title-block>p:last-child{margin:0;max-width:48ch;color:#dec9d8;font:400 clamp(.91rem,1.6vw,1.03rem)/1.65 Inter,sans-serif}
+.feje-world-home .ft-timeblock{display:flex;flex-direction:column;align-items:flex-end;gap:4px;padding:10px 0;font-variant-numeric:tabular-nums}
+.feje-world-home .ft-pht,.feje-world-home .ft-zone{white-space:nowrap;font:600 .64rem/1.25 ui-monospace,monospace;letter-spacing:.14em;color:#e9b9d0}
+.feje-world-home .ft-zone{font-size:.6rem;color:#b5a1b3}
+.feje-world-home .ft-pht i{display:inline-block;width:7px;height:7px;margin-right:5px;border-radius:50%;background:#a4ebe9;box-shadow:0 0 9px #a4ebe980}
+.feje-world-home #ft-time{color:#fff1e9;font:500 clamp(1.55rem,3.2vw,2.25rem)/1.15 ui-monospace,monospace;letter-spacing:.04em}
+.feje-world-home .ft-settings{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-bottom:14px}
+.feje-world-home .ft-settings-label{margin-right:9px;color:#bba6bb;font:600 .63rem/1.3 ui-monospace,monospace;letter-spacing:.16em}
+.feje-world-home .ft-aspect{appearance:none;min-height:44px;padding:8px 12px;border:1px solid #694e78;border-radius:8px;background:#261e32;color:#e8d6e2;font:600 .77rem/1.2 Inter,sans-serif;cursor:pointer;white-space:nowrap}
+.feje-world-home .ft-aspect[aria-pressed=true]{background:#65416b;color:#fff6f3;border-color:#e5b2cf;box-shadow:inset 0 0 0 1px #ffdfea45}
+.feje-world-home .ft-aspect:focus-visible,.feje-world-home .ft-hotspot:focus-visible{outline:2px solid #ffe0f1;outline-offset:3px}
+@media(hover:hover){.feje-world-home .ft-aspect:hover{border-color:#e5b2cf}}
+.feje-world-home .ft-stage{position:relative;isolation:isolate;display:grid;place-items:center;width:100%;max-width:880px;aspect-ratio:4/3;margin:0 auto;overflow:hidden;border:1px solid #765c7e;border-radius:15px;background:radial-gradient(ellipse at 50% 45%,#6642716b 0%,#2e213b 35%,#12101d 75%,#0d0a14 100%);transition:max-width .23s ease}
+.feje-world-home .ft-stage[data-aspect=landscape]{aspect-ratio:16/9;max-width:960px}
+.feje-world-home .ft-stage[data-aspect=portrait]{aspect-ratio:3/4;max-width:520px}
+.feje-world-home .ft-stage[data-aspect=square]{aspect-ratio:1;max-width:650px}
+.feje-world-home .ft-stage:after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;box-shadow:inset 0 0 60px #04030a99,inset 0 1px 0 #f8e1fb3c}
+.feje-world-home .ft-grid-etch{position:absolute;inset:0;pointer-events:none;opacity:.35;background-image:linear-gradient(#deb7df17 1px,transparent 1px),linear-gradient(90deg,#deb7df17 1px,transparent 1px);background-size:36px 36px;mask-image:radial-gradient(ellipse at center,transparent 12%,#000 100%)}
+.feje-world-home .ft-corner{position:absolute;z-index:2;color:#a58aa9;font:400 17px/1 ui-monospace,monospace;opacity:.68;pointer-events:none}
+.feje-world-home .ft-tl{top:14px;left:17px}.feje-world-home .ft-tr{top:14px;right:17px}
+.feje-world-home .ft-bl{bottom:14px;left:17px}.feje-world-home .ft-br{bottom:14px;right:17px}
+.feje-world-home .ft-watch{position:relative;z-index:1;width:min(74%,630px);aspect-ratio:1;filter:drop-shadow(0 14px 20px #000c);transform:perspective(1200px) rotateX(var(--ft-x,0deg)) rotateY(var(--ft-y,0deg));transition:transform .24s ease-out;touch-action:pan-y}
+.feje-world-home .ft-stage[data-aspect=landscape] .ft-watch{width:min(50%,545px)}
+.feje-world-home .ft-stage[data-aspect=portrait] .ft-watch{width:min(92%,510px)}
+.feje-world-home .ft-stage[data-aspect=square] .ft-watch{width:min(87%,575px)}
+.feje-world-home .ft-dial{display:block;width:100%;height:100%;overflow:visible;pointer-events:none}
+.feje-world-home .ft-watch-poster{display:grid;place-items:center;width:100%;height:100%;border:7px double #deb8d8;border-radius:50%;background:radial-gradient(#382547,#161123);box-shadow:0 0 60px #98659b59;color:#e4b5d0;font:700 clamp(3rem,12vw,7rem) Georgia,serif}
+.feje-world-home .ft-side{position:absolute;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;color:#b19bb2;font:500 .62rem/1.35 ui-monospace,monospace;letter-spacing:.14em;pointer-events:none}
+.feje-world-home .ft-side strong{color:#f3cade;font:600 .8rem/1.35 ui-monospace,monospace}
+.feje-world-home .ft-side-left{left:3%}.feje-world-home .ft-side-right{right:3%;align-items:flex-end;text-align:right}
+.feje-world-home .ft-stage[data-aspect=portrait] .ft-side{top:auto;bottom:5%;gap:6px;transform:none}
+.feje-world-home .ft-stage[data-aspect=square] .ft-side{display:none}
+.feje-world-home .ft-footmark{position:absolute;bottom:11px;left:50%;transform:translateX(-50%);color:#a78fae;font:500 .59rem ui-monospace,monospace;letter-spacing:.13em;pointer-events:none}
+.feje-world-home .ft-hotspot{appearance:none;position:absolute;z-index:4;display:grid;place-items:center;transform:translate(-50%,-50%);width:clamp(24px,3.1vw,32px);height:clamp(24px,3.1vw,32px);border:1px solid #ebbcda;border-radius:50%;padding:0;background:#1d1726e6;color:#ffe8f3;font:600 16px ui-monospace,monospace;box-shadow:0 0 13px #e4a7cb55;cursor:pointer}
+.feje-world-home .ft-hotspot[aria-pressed=true]{background:#e5a8ce;color:#20142e}
+.feje-world-home .ft-hotspot-orbit{top:24%;left:50%}
+.feje-world-home .ft-hotspot-gears{top:42%;left:34%}
+.feje-world-home .ft-hotspot-cage{top:68%;left:50%}
+.feje-world-home .ft-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px 18px;padding-top:14px}
+.feje-world-home .ft-footer p{margin:0;max-width:64ch;color:#dac2d8;font:400 .84rem/1.6 Inter,sans-serif}
+.feje-world-home .ft-footer>span{color:#bda5ba;font:500 .72rem/1.5 ui-monospace,monospace}
+.feje-world-home .ft-nojs{font:400 .8rem/1.5 Inter,sans-serif;color:#eac4d5}
+@media(prefers-reduced-motion:no-preference){
+ .feje-world-home .ft-stage[data-running] .ft-spin-a{animation:ft-spin 24s linear infinite}
+ .feje-world-home .ft-stage[data-running] .ft-spin-b{animation:ft-spin-back 31s linear infinite}
+ .feje-world-home .ft-stage[data-running] .ft-tourb-cage{animation:ft-spin 12s linear infinite}
+ .feje-world-home .ft-stage[data-running] .ft-orbit{animation:ft-spin-back 36s linear infinite}
+}
+@keyframes ft-spin{to{transform:rotate(360deg)}}
+@keyframes ft-spin-back{to{transform:rotate(-360deg)}}
+@media(prefers-reduced-motion:reduce){.feje-world-home .ft-stage,.feje-world-home .ft-watch{transition:none}}
+@media(max-width:760px){
+ .feje-world-home .ft-section{padding-block:35px}
+ .feje-world-home .ft-card{border-radius:17px;padding:clamp(13px,3.6vw,23px)}
+ .feje-world-home .ft-top{gap:9px;margin-bottom:13px}
+ .feje-world-home .ft-timeblock{align-items:flex-start;flex:1 1 145px;padding:3px 0}
+ .feje-world-home .ft-side{display:none}
+ .feje-world-home .ft-stage[data-aspect=normal] .ft-watch{width:74%}
+ .feje-world-home .ft-stage[data-aspect=landscape] .ft-watch{width:50%}
+ .feje-world-home .ft-stage[data-aspect=portrait] .ft-watch{width:90%}
+ .feje-world-home .ft-stage[data-aspect=square] .ft-watch{width:88%}
+ .feje-world-home .ft-settings-label{flex-basis:100%;margin:0 0 2px}
+ .feje-world-home .ft-aspect{padding:8px 10px}
+ .feje-world-home .ft-hotspot{width:25px;height:25px;font-size:12px}
+}
+@media(max-width:350px){.feje-world-home .ft-aspect{font-size:.68rem;padding-inline:7px}.feje-world-home .ft-settings{gap:4px}}

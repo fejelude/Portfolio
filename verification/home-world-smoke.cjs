@@ -28,6 +28,33 @@ const server=createServer(async(req,res)=>{
         if(mode==='no-webgl')await page.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return /^webgl/.test(type)?null:original.call(this,type,...args);};});
         await page.goto(url,{waitUntil:'domcontentloaded'});
         assert.equal(await page.locator('h1').count(),1);
+        const watch=page.locator('#tourbillon');
+        assert.equal(await watch.count(),1);
+        assert.equal(await watch.locator('[data-ft-ratio]').count(),4);
+        await watch.scrollIntoViewIfNeeded();
+        const tourbStage=watch.locator('[data-ft-stage]');
+        if(mode!=='no-js'){
+          await page.waitForFunction(()=>/^\d{2}:\d{2}:\d{2}$/.test(document.querySelector('#ft-time')?.textContent||''));
+          assert.equal(await watch.locator('.ft-dial').count(),1);
+          const live=await watch.locator('#ft-time').textContent();
+          const local=await page.evaluate(()=>new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Manila',hourCycle:'h23',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date()));
+          const secs=t=>t.split(':').map(Number).reduce((s,n,i)=>s+n*[3600,60,1][i],0);
+          assert.ok(Math.min(Math.abs(secs(live)-secs(local)),86400-Math.abs(secs(live)-secs(local)))<=2,'clock does not match Manila');
+          for(const [name,ratio] of [['landscape',16/9],['portrait',3/4],['square',1],['normal',4/3]]){
+            await watch.locator('[data-ft-ratio="'+name+'"]').click();
+            const box=await tourbStage.boundingBox();
+            assert.ok(Math.abs(box.width/box.height-ratio)<.02,'bad ratio: '+name);
+            assert.equal(await watch.locator('[data-ft-ratio="'+name+'"]').getAttribute('aria-pressed'),'true');
+            assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
+          }
+          await watch.locator('[data-ft-inspect="tourbillon"]').click();
+          assert.match(await watch.locator('#ft-detail').textContent(),/Tourbillon-inspired/);
+          if(mode==='reduced')assert.equal(await watch.locator('.ft-tourb-cage').evaluate(el=>getComputedStyle(el).animationName),'none');
+        }else{
+          assert.equal(await watch.locator('.ft-watch-poster').count(),1);
+          assert.equal(await watch.locator('#ft-time').textContent(),'--:--:--');
+        }
+
         assert.equal(await page.locator('.brand-mark svg path').count(),3);
         assert.match(await page.locator('.footer-bottom .footer-links a').textContent(),/November 22, 2026/);
         assert.equal(await page.locator('#surprise-trigger').count(),1);
