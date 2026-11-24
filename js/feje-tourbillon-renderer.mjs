@@ -50,7 +50,7 @@ function disposeScene(scene){
  for(const t of textures)t.dispose();
 }
 
-export function createWatchRenderer(canvas,{mobile=false,quality='default'}={}){
+export function createWatchRenderer(canvas,{mobile=false,quality='high'}={}){
  const antialias=!mobile;
  const context=canvas.getContext('webgl2',{alpha:true,antialias,depth:true,powerPreference:'low-power'});
  if(!context)return null;

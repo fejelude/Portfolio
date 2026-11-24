@@ -41,7 +41,7 @@ export function mountTourbillon(root){
  };
  const defaultNote='Drag to orbit. Pinch or use + and − to zoom.';
  let visible=alwaysVisible,onStage=alwaysVisible,suspended=false,paused=false,contextLost=false;
- let quality='default';
+ let quality='high';
  let observer,resizer,load,model,selected='',clock=0,frame=0,clockParts,elapsed=0,skySeconds=0,last=0,lastPaint=-Infinity,dirty=true;
  const pointers=new Map();
  const live=()=>visible&&!document.hidden&&!suspended;
@@ -96,8 +96,8 @@ export function mountTourbillon(root){
  }
  try{
   const saved=localStorage.getItem(QUALITY_STORAGE_KEY);
-  setQuality(normalizeQuality(saved),false);
- }catch{setQuality('default',false)}
+  setQuality(saved===null?'high':normalizeQuality(saved),false);
+ }catch{setQuality('high',false)}
  on(qualityTrigger,'click',()=>qualityPanel.hidden?openQuality():closeQuality());
  for(const option of qualityOptions)on(option,'click',()=>{setQuality(option.dataset.ftQuality);closeQuality(true)});
  on(qualityPanel,'keydown',event=>{
