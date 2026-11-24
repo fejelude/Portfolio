@@ -9,6 +9,8 @@ on:
       - 'assets/interactives/**'
       - 'js/interactive-worlds/**'
       - 'tests/interactive-worlds.test.mjs'
+      - 'js/visual-quality.mjs'
+      - 'tests/visual-quality.test.mjs'
       - 'verification/interactive-worlds-smoke.cjs'
       - '.github/workflows/interactive-worlds-ci.yml'
 permissions:
@@ -22,7 +24,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/interactive-worlds.test.mjs tests/interactives.test.cjs
+      - run: node --test tests/interactive-worlds.test.mjs tests/interactives.test.cjs tests/visual-quality.test.mjs
       - run: npm install --no-save --package-lock=false playwright@1.62.1
       - run: npx playwright install --with-deps chromium firefox webkit
       - run: node verification/interactive-worlds-smoke.cjs

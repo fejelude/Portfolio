@@ -121,15 +121,19 @@ export function mount(api){
    const x=10+i*153+offset;
    if(x>=-20&&x<=480)reflection(x+14,224,10,'#ffd3ba',i);
   }
-  if(traffic){const count=api.tier()==='Low'?3:6;for(let i=0;i<count;i++){
+  if(traffic){const count=api.tier()==='Low'?3:api.tier()==='High'?8:6;for(let i=0;i<count;i++){
    const right=i%2===0,px=(i*147+Math.floor(time*(right?37:23)))%560-40,x=right?px:480-px,y=right?231:258;
    const col=colors[i%3];poly(ctx,[[x,y],[x+10,y-7],[x+26,y-7],[x+34,y],[x+40,y+2],[x+40,y+10],[x,y+10]],col);
    rect(ctx,x+11,y-5,15,6,'#232136');rect(ctx,x+5,y+7,7,5,'#12101d');rect(ctx,x+30,y+7,7,5,'#12101d');rect(ctx,right?x+37:x,y+2,4,2,'#fff0bc');rect(ctx,right?x:x+37,y+2,4,2,'#f4779d');
    rect(ctx,x+18,y-4,2,5,'#62526c');rect(ctx,x+4,y+5,31,1,'#e9d3e280');
    reflection(x+21,y+14,31,col,i);reflection(right?x+38:x+2,y+13,8,'#ffe1a1',i);
   }}
+  if(api.tier()==='High'){
+   for(let i=0;i<26;i++){const x=(i*73+19)%478,y=270+(i*17)%27;rect(ctx,x,y,3+i%8,1,'#b9a1dc38')}
+   if(rainLevel>8)for(let i=0;i<16;i++){const x=(i*83+41)%480,y=225+(i*31)%73,p=(Math.floor(time*12)+i)%9;if(p<5){line(ctx,x-p,y,x+p,y,'#b7c7e454');rect(ctx,x,y-1,1,1,'#d6e9fa80')}}
+  }
   // Foreground rain uses deterministic, integer-pixel streaks.
-  const count=Math.floor(rainLevel*(api.tier()==='Low'?.65:1.3));for(let i=0;i<count;i++){let x=(i*97+Math.floor(time*17))%480,y=(i*59+Math.floor(time*(72+i%7*9)))%300;line(ctx,x,y,x-2,y+5+i%4,'#c0b7e35e')}
+  const count=Math.floor(rainLevel*(api.tier()==='Low'?.65:api.tier()==='High'?1.85:1.3));for(let i=0;i<count;i++){let x=(i*97+Math.floor(time*17))%480,y=(i*59+Math.floor(time*(72+i%7*9)))%300;line(ctx,x,y,x-2,y+5+i%4,'#c0b7e35e')}
   rect(ctx,9,8,150,22,'#130e23cc');rect(ctx,365,8,106,22,'#130e23cc');label(ctx,districts[district].toUpperCase(),17,22,colors[0],10);label(ctx,'NEO / '+(hour===0?'00:17':hour===1?'05:42':'18:30'),371,22,'#e5c9ee',9);
  }
  return {draw};

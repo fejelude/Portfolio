@@ -144,6 +144,9 @@ const server=createServer(async(req,res)=>{
         if(name==='chromium'&&mode==='desktop')assert.equal(state,'live','Chromium must render the real scene');
         if(state==='live'){
           const canvas=page.locator('#world-canvas-host canvas');
+          const graphics=page.locator('#world-quality');assert.equal(await graphics.inputValue(),'High');
+          await graphics.selectOption('Low');assert.equal(await page.evaluate(()=>localStorage.getItem('fejelude.collectibles.quality.v1')),'Low');
+          await graphics.selectOption('High');
           await canvas.focus();await page.keyboard.press('ArrowLeft');
           if(mode==='reduced')assert.equal(await page.locator('#world-motion').getAttribute('aria-pressed'),'true');
           await page.locator('[data-world-view="workshop"]').click();

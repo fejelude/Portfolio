@@ -8,6 +8,9 @@ const gold=mat(0xd99066,.88,.24);
 const edge=mat(0xf5bf96,.91,.16);
 const brush=mat(0xa56148,.81,.37);
 const steel=mat(0xb5cce4,.86,.21);
+const blued=mat(0x355e9c,.92,.18);
+const polished=mat(0xe3e9f5,.98,.115);
+const grain=mat(0x344e7f,.65,.40);
 const dark=mat(0x253344,.72,.37);
 const blue=mat(0x123477,.47,.34);
 const ruby=new T.MeshPhysicalMaterial({color:0x8e0f3b,metalness:.36,roughness:.19,clearcoat:1});
@@ -52,17 +55,17 @@ function box(parent,name,p,size,material){
 }
 function screw(parent,x,y,z,r=.045){
  // Two semicircular caps leave a real slot across the head.
- cylinder(parent,'Screw shank',x,y-.009,z,r,.09,steel,16);
+ cylinder(parent,'Screw shank',x,y-.009,z,r,.09,steel,24);
+ ring(parent,'Polished screw seat',x,y+.025,z,r*1.14,r*.16,.012,polished,24);
  for(const side of [-1,1]){
-  const cap=new T.CylinderGeometry(r,r,.014,12,1,false,side<0?.13:Math.PI+.13,Math.PI-.26);
-  mesh(parent,'Slotted screw cap',cap,steel,x,y+.036,z);
+  const cap=new T.CylinderGeometry(r,r,.014,20,1,false,side<0?.13:Math.PI+.13,Math.PI-.26);
+  mesh(parent,'Slotted blued screw cap',cap,blued,x,y+.036,z);
  }
 }
 function jewel(parent,x,y,z,r=.079){
  ring(parent,'Gold jewel bezel',x,y,z,r,.014,.026,edge,24);
- const gem=new T.IcosahedronGeometry(r*.63,1);
- gem.scale(1,.48,1);
- mesh(parent,'Ruby bearing',gem,ruby,x,y+.02,z);
+ ring(parent,'Annular ruby hole jewel',x,y+.020,z,r*.66,r*.43,.021,ruby,32);
+ cylinder(parent,'Polished pivot end',x,y+.035,z,r*.17,.018,polished,16);
 }
 function gear(parent,name,count,pitch,y,material,{inner=pitch*.58,depth=.078,escape=false}={}){
  // Tooth centers sit at zero and at integral pitches. A circular rim and
@@ -82,9 +85,10 @@ function gear(parent,name,count,pitch,y,material,{inner=pitch*.58,depth=.078,esc
  shape.closePath();
  const hole=new T.Path();
  hole.absarc(0,0,inner,0,TAU,true);shape.holes.push(hole);
- const geom=new T.ExtrudeGeometry(shape,{depth,curveSegments:18,bevelEnabled:true,bevelSegments:1,bevelSize:depth*.12,bevelThickness:depth*.12});
+ const geom=new T.ExtrudeGeometry(shape,{depth,curveSegments:32,bevelEnabled:true,bevelSegments:2,bevelSize:depth*.12,bevelThickness:depth*.12});
  geom.rotateX(-Math.PI/2);
  mesh(parent,name,geom,material,0,y-depth/2,0);
+ if(!escape&&pitch>.16)ring(parent,'Circular grained wheel rim',0,y+depth*.56,0,pitch*.85,.013,.008,edge,64);
  const core=pitch*.29;
  const spokes=pitch>.28?6:4;
  cylinder(parent,'Pinion hub',0,y,0,core,depth*1.25,material);
@@ -170,6 +174,10 @@ function plate(root){
   dummy.scale.setScalar(.38+random()*.86);dummy.updateMatrix();flecks.setMatrixAt(i,dummy.matrix);
  }
  root.add(flecks);
+ // Repeated overlapping circular-grain impressions (perlage-inspired), beneath the train.
+ const points=[];for(let row=-8;row<=8;row++)for(let col=-8;col<=8;col++){const x=(col+(row%2)*.5)*.215,z=row*.19,r=Math.hypot(x,z);if(r<1.74&&r>.22)points.push([x,z]);}
+ const perlage=new T.InstancedMesh(new T.RingGeometry(.083,.091,32),grain,points.length),stamp=new T.Object3D();
+ points.forEach(([x,z],i)=>{stamp.position.set(x,.101,z);stamp.rotation.x=-Math.PI/2;stamp.updateMatrix();perlage.setMatrixAt(i,stamp.matrix)});root.add(perlage);
  label(root,'D A E D A L U S',[0,.114,1.87],1.32,.24);
  label(root,'F E J E L U D E  /  0 0 1',[0,.114,2.06],1.11,.15);
  for(const a of [Math.PI/4,3*Math.PI/4,5*Math.PI/4,7*Math.PI/4]){
@@ -181,8 +189,10 @@ function plate(root){
 }
 
 function bridge(parent,name,a,b){
- rod(parent,name,a,b,.073,brush,8);
- rod(parent,'Polished bridge edge',[a[0],a[1]+.064,a[2]],[b[0],b[1]+.064,b[2]],.022,edge,8);
+ rod(parent,name,a,b,.073,brush,16);
+ rod(parent,'Polished bridge edge',[a[0],a[1]+.064,a[2]],[b[0],b[1]+.064,b[2]],.022,edge,16);
+ const dx=b[0]-a[0],dz=b[2]-a[2],len=Math.hypot(dx,dz)||1;
+ for(const side of [-1,1])rod(parent,'Anglage-inspired polished shoulder',[a[0]+side*dz/len*.048,a[1]+.039,a[2]-side*dx/len*.048],[b[0]+side*dz/len*.048,b[1]+.039,b[2]-side*dx/len*.048],.012,polished,10);
 }
 function pillar(parent,x,z,height){
  cylinder(parent,'Stepped pivot pedestal',x,.23,z,.187,.23,brush);
@@ -262,9 +272,13 @@ function regulator(root,x,z){
  for(const dz of [-.105,.13])cylinder(cage,'Lever banking pin',.299,.33,dz,.018,.09,dark,10);
 
  const balance=group(cage,'Oscillating balance wheel',0,.411,0);
- ring(balance,'Balance rim',0,0,0,.276,.034,.047,edge,48);
+ ring(balance,'Balance rim',0,0,0,.276,.034,.047,edge,96);
+ ring(balance,'Polished balance bevel',0,.022,0,.270,.009,.010,polished,96);
+ cylinder(balance,'Hairspring collet',0,.096,0,.036,.034,blued,24);
  const roller=group(balance,'Balance roller');
- cylinder(roller,'Balance staff',0,0,0,.040,.22,steel,12);
+ cylinder(roller,'Balance staff',0,0,0,.040,.22,steel,24);
+ cylinder(roller,'Impulse roller table',0,-.063,0,.128,.019,polished,40);
+ cylinder(roller,'Safety roller',0,-.092,0,.070,.014,steel,32);
  jewel(roller,-.113,-.062,-.025,.032);
  for(let i=0;i<6;i++){
   const [dx,dz]=polar(.254,i*TAU/6);
@@ -272,11 +286,12 @@ function regulator(root,x,z){
   screw(balance,dx,.015,dz,.027);
  }
  // Interpolate a spiral whose outer stud stays fixed while the collet moves.
- // A line is used for the thin steel ribbon to keep its updates inexpensive.
- const springPoints=241,positions=new Float32Array(springPoints*3);
+ // A thin double-sided ribbon shows the spring in side-on macro inspection.
+ const springPoints=321,positions=new Float32Array(springPoints*4*3),indices=[];
+ for(let i=0;i<springPoints-1;i++)for(let side=0;side<4;side++){const j=i*4+side,k=i*4+(side+1)%4;indices.push(j,k,j+4,k,k+4,j+4)}
  const springGeom=new T.BufferGeometry();
- springGeom.setAttribute('position',new T.BufferAttribute(positions,3).setUsage(T.DynamicDrawUsage));
- const spring=new T.Line(springGeom,new T.LineBasicMaterial({color:0x9ccfe9}));
+ springGeom.setAttribute('position',new T.BufferAttribute(positions,3).setUsage(T.DynamicDrawUsage));springGeom.setIndex(indices);
+ const spring=new T.Mesh(springGeom,new T.MeshBasicMaterial({color:0x9ccfe9,side:T.DoubleSide}));
  spring.name='Breathing hairspring';spring.frustumCulled=false;cage.add(spring);
  const springAngles=Array.from({length:springPoints},(_,i)=>i/(springPoints-1));
  for(const y of [.476,.51])cylinder(cage,'Hairspring outer stud',.232,y,0,.029,.029,gold,10);
@@ -287,7 +302,7 @@ function regulator(root,x,z){
   springAngles.forEach((u,i)=>{
    const r=.026+u*.205+s.spring*.011*Math.sin(Math.PI*u);
    const a=u*TAU*5.5+s.balance*(1-u)*(1-u)+Math.PI;
-   positions[3*i]=r*Math.cos(a);positions[3*i+1]=.522;positions[3*i+2]=-r*Math.sin(a);
+   for(let side=0;side<4;side++){const j=12*i+side*3,rad=r+(side===0||side===3?-.002:.002);positions[j]=rad*Math.cos(a);positions[j+1]=.522+(side<2?-.007:.007);positions[j+2]=-rad*Math.sin(a)}
   });
   springGeom.attributes.position.needsUpdate=true;
  }};

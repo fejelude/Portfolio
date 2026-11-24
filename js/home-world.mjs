@@ -1,3 +1,4 @@
+import {CAR_QUALITY_KEY,readPreset,writePreset} from './visual-quality.mjs';
 import { COLLECTION, collectibleAt } from './home-collectibles.mjs';
 /* Progressive enhancement: native navigation never depends on graphics. */
 const stage=document.querySelector('#world-stage');
@@ -5,7 +6,8 @@ if(stage){
   const $=id=>document.getElementById(id);
   const host=$('world-canvas-host'), launch=$('world-launch'), controls=$('world-controls'), instructions=$('world-instructions');
   const motionQuery=matchMedia('(prefers-reduced-motion: reduce)'), coarse=matchMedia('(pointer: coarse)');
-  const low=coarse.matches||innerWidth<=900||(navigator.deviceMemory&&navigator.deviceMemory<=4)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=4)||navigator.connection?.saveData;
+  const launchOnDemand=coarse.matches||innerWidth<=900||(navigator.deviceMemory&&navigator.deviceMemory<=4)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=4)||navigator.connection?.saveData;
+  let quality=readPreset(CAR_QUALITY_KEY);const qualitySelect=$('world-quality');qualitySelect.value=quality;
   let sceneEvents=null,markerNodes=[],renderer=null,canvas=null,api=null,loading=false,visible=true,paused=motionQuery.matches,lights=true,frame=0,last=0,time=0,goal,current,drag,active='arrival',sizeObserver,slowFrames=0;
   const cleanup=new AbortController(),signal=cleanup.signal;
   let selected=0,queued=0,switchTimer=0,showcase=false;
@@ -101,7 +103,7 @@ if(stage){
       if(signal.aborted)return;
       sceneEvents=new AbortController();
       canvas=document.createElement('canvas');canvas.tabIndex=0;canvas.setAttribute('aria-label','Hypercar collection scene. Drag or use arrow keys to orbit. Destination buttons below.');
-      host.append(canvas);renderer=new api.TerminalRenderer(canvas,!!low,selected);
+      host.append(canvas);renderer=new api.TerminalRenderer(canvas,quality==='Low',selected);renderer.setQuality(quality);
       current=api.copyView(api.STATIONS[active]);goal=api.copyView(current);
       renderer.draw(current,lights,time);
       makeMarkers();updateMarkers();stage.dataset.state='live';launch.hidden=true;controls.hidden=false;instructions.hidden=false;updateMotion();select(active);
@@ -145,6 +147,8 @@ if(stage){
   buttons.forEach(b=>listen(b,'click',()=>select(b.dataset.worldView)));
   listen($('world-lights'),'click',()=>{lights=!lights;$('world-lights').setAttribute('aria-pressed',String(lights));request();});
   listen($('world-motion'),'click',()=>{paused=!paused;if(paused)setShowcase(false);updateMotion();request();});
+  listen(qualitySelect,'change',()=>{quality=qualitySelect.value;writePreset(CAR_QUALITY_KEY,quality);try{renderer?.setQuality(quality);slowFrames=0;request()}catch{fallback('Graphics are not available rn. Try again ↗')}});
+  listen(window,'storage',e=>{if(e.key===CAR_QUALITY_KEY||e.key===null){quality=readPreset(CAR_QUALITY_KEY);qualitySelect.value=quality;try{renderer?.setQuality(quality);request()}catch{fallback('Graphics are not available rn. Try again ↗')}}});
   listen(launch,'click',start);
   listen(window,'resize',request);
   listen(document,'visibilitychange',()=>{if(document.hidden)stop();else request();});
@@ -167,5 +171,5 @@ if(stage){
   listen(window,'pageshow',()=>request());
   showLaunch();
   // On touch, data saver, lower-end devices and reduced motion, users opt in.
-  if(!low&&!motionQuery.matches){if('requestIdleCallback' in window)requestIdleCallback(start,{timeout:1200});else setTimeout(start,250);}
+  if(!launchOnDemand&&!motionQuery.matches){if('requestIdleCallback' in window)requestIdleCallback(start,{timeout:1200});else setTimeout(start,250);}
 }

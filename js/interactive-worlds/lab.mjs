@@ -212,7 +212,7 @@ export function mount(api){
   e.preventDefault();changeZoom(zoom-e.deltaY*.001);api.invalidate();
  },{passive:false});
  function resize(){
-  canvas.width={Low:480,Medium:800,High:1200}[api.tier()]||800;
+  canvas.width={Low:480,Medium:800,High:1440}[api.tier()]||800;
   canvas.height=Math.round(canvas.width/1.6);
   backdrop=radial(ctx,canvas.width*.48,canvas.height*.54,canvas.height*.93,[[0,'#23414c'],[.58,'#132933'],[1,'#0a1520']]);
  }
@@ -240,6 +240,12 @@ export function mount(api){
   explode=dt?explode+(targetExplode-explode)*(1-Math.exp(-dt*12)):targetExplode;
   const w=canvas.width,h=canvas.height,P=camera(yaw,pitch,zoom/(1+explode*(index===2?.45:.26)),w,h);
   ctx.fillStyle=backdrop;ctx.fillRect(0,0,w,h);
+  if(api.tier()==='High'){
+   ctx.strokeStyle='#83d3dd20';ctx.lineWidth=1;ctx.beginPath();
+   for(let i=1;i<16;i++){const x=w*i/16;ctx.moveTo(x,0);ctx.lineTo(x,h)}
+   for(let i=1;i<10;i++){const y=h*i/10;ctx.moveTo(0,y);ctx.lineTo(w,y)}
+   ctx.stroke();
+  }
   for(let i=-5;i<=5;i++){
    const a=P(i,-1.05,-5),b=P(i,-1.05,5),c=P(-5,-1.05,i),d=P(5,-1.05,i);
    line(ctx,a[0],a[1],b[0],b[1],'#4b657436');line(ctx,c[0],c[1],d[0],d[1],'#4b657436');

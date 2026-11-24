@@ -2,6 +2,7 @@
 export const TAU = 2 * Math.PI;
 export const MOVEMENT = Object.freeze({
  beatsPerSecond: 5,
+ balanceAmplitude: 250 * Math.PI / 180,
  escapeTeeth: 15,
  escapePinion: 8,
  fixedFourth: 80,
@@ -32,11 +33,11 @@ export function movementAt(seconds) {
  const cage = escape * m.escapePinion / m.fixedFourth;
  const third = -cage * m.cagePinion / m.thirdWheel;
  const barrel = -third * m.thirdPinion / m.barrel;
- const balance = 1.36 * Math.sin(Math.PI * beats);
+ const balance = m.balanceAmplitude * Math.sin(Math.PI * beats);
  return {
   cage, escape, third, barrel, balance,
   fork: (lock % 2 ? -1 : 1) * .22 * (2 * forkTravel - 1),
-  spring: balance / 1.36,
+  spring: balance / m.balanceAmplitude,
   earth: -barrel * m.earthDriver / m.earthWheel,
   moon: -barrel * m.moonDriver / m.moonWheel
  };
