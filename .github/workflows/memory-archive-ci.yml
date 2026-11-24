@@ -27,7 +27,12 @@ jobs:
         run: |
           command -v google-chrome
           google-chrome --version
-      - run: sudo apt-get install -y ffmpeg pulseaudio
+      - name: Prepare media verification tools
+        run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v pulseaudio >/dev/null || ! command -v pactl >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends ffmpeg pulseaudio pulseaudio-utils
+          fi
       - run: |
           pulseaudio --start --exit-idle-time=-1
           pactl load-module module-null-sink sink_name=ci_audio
