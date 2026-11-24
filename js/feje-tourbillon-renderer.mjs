@@ -19,8 +19,8 @@ function roomEnvironment(renderer){
  const panel=new T.PlaneGeometry(1,1);
  const sources=[
   [[-3,6,4],[5.8,2.8],0xffded0,3.6],
-  [[4,2,2],[1.1,4.6],0xd6e8ff,2.9],
-  [[-1,5,-4],[4.8,3.0],0xdce7ff,2.8],
+  [[4,2,2],[1.5,4.6],0xd6e8ff,2.7],
+  [[-1,5,-4],[4.8,3.0],0xdce7ff,3.2],
   [[0,.4,7],[4.1,2],0xffe7c9,1.7],
   [[-6,1,-.5],[.8,3.9],0xf1fff9,2.0]
  ];
@@ -50,13 +50,13 @@ function disposeScene(scene){
  for(const t of textures)t.dispose();
 }
 
-export function createWatchRenderer(canvas,{mobile=false,quality='high'}={}){
+export function createWatchRenderer(canvas,{mobile=false,quality='default'}={}){
  const antialias=!mobile;
  const context=canvas.getContext('webgl2',{alpha:true,antialias,depth:true,powerPreference:'low-power'});
  if(!context)return null;
  const renderer=new T.WebGLRenderer({canvas,context,alpha:true,antialias});
  renderer.toneMapping=T.ACESFilmicToneMapping;
- renderer.toneMappingExposure=1.14;
+ renderer.toneMappingExposure=1.21;
  renderer.setClearColor(0x000000,0);
  const scene=new T.Scene(),camera=new T.PerspectiveCamera(38,1,.10,82);
  let reflection;
@@ -74,7 +74,7 @@ export function createWatchRenderer(canvas,{mobile=false,quality='high'}={}){
  scene.add(new T.HemisphereLight(0xd9e9ff,0x654133,1.1));
  let qualityMode=normalizeQuality(quality);
  const observatory=buildCelestialObservatory(scene,{mobile,quality:qualityMode});
- const watch=buildWatch(scene);watch.setQuality(qualityMode);
+ const watch=buildWatch(scene);
  rebuildReflections();
 
  const {overview}=views;
@@ -95,7 +95,7 @@ export function createWatchRenderer(canvas,{mobile=false,quality='high'}={}){
   pixelRatio=config.pixelRatio;economy=config.economy;
   stats.pixelRatio=pixelRatio;stats.quality=mode;stats.economy=economy;
   samples=0;cost=0;slowFrames=0;
-  observatory.setQuality(mode);watch.setQuality(mode);
+  observatory.setQuality(mode);
   renderer.setPixelRatio(pixelRatio);
   if(width>0&&height>0)renderer.setSize(width,height,false);
  }
@@ -151,15 +151,15 @@ export function createWatchRenderer(canvas,{mobile=false,quality='high'}={}){
    if(delta>.045)slowFrames++;
    // Lower fill cost after sustained slow frame submissions. Keep mesh detail
    // and the case structure intact in the coarse/mobile profile.
-   if(samples===60||(qualityMode==='high'&&samples>=18&&slowFrames/samples>.7)){
+   if(samples===60){
     if(qualityMode==='high'){
      // Preserve the requested detailed sky/geometry. A persistent >26ms
      // GPU/CPU render cost may trim supersampling but never drop below the
      // old Default pixel ratio on an ordinary viewport.
-     if(cost/samples>26||slowFrames/samples>.55){
+     if(cost/samples>26){
       const floor=Math.min(pixelRatio,qualityConfiguration('default',params()).pixelRatio);
       if(pixelRatio>floor+.035){
-       pixelRatio=Math.max(floor,pixelRatio*.82);
+       pixelRatio=Math.max(floor,pixelRatio*.9);
        stats.pixelRatio=pixelRatio;renderer.setPixelRatio(pixelRatio);
       }
      }

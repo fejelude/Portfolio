@@ -34,14 +34,14 @@ export function mountTourbillon(root){
  const alwaysVisible=!('IntersectionObserver' in window);
  const controls=[pause,...viewButtons,...hotspots];
  const details={
-  tourbillon:'One revolution per minute. The carriage carries a 2.5 Hz balance, flat hairspring and lever escapement around a fixed fourth wheel.',
-  escapement:'The impulse roller and ruby pallet fork alternate locking and release. The illustrative balance oscillates at 18,000 beats/hour with a nominal 250° amplitude.',
-  gears:'The cutaway barrel reveals its mainspring. The 48:16 and 36:12 wheel pairs transmit motion to the carriage; rounded teeth illustrate horological gearing.',
+  tourbillon:'The carriage makes one turn per minute around a fixed fourth wheel.',
+  escapement:'Each beat unlocks one ruby pallet, advances the escape wheel half a tooth, and locks on the other pallet.',
+  gears:'A 48-tooth barrel drives a 16-tooth pinion. Its 36-tooth wheel drives the 12-tooth carriage pinion.',
   orbit:'Two gear pairs drive the globe and crystal on separate tilted axes.'
  };
  const defaultNote='Drag to orbit. Pinch or use + and − to zoom.';
  let visible=alwaysVisible,onStage=alwaysVisible,suspended=false,paused=false,contextLost=false;
- let quality='high';
+ let quality='default';
  let observer,resizer,load,model,selected='',clock=0,frame=0,clockParts,elapsed=0,skySeconds=0,last=0,lastPaint=-Infinity,dirty=true;
  const pointers=new Map();
  const live=()=>visible&&!document.hidden&&!suspended;
@@ -96,8 +96,8 @@ export function mountTourbillon(root){
  }
  try{
   const saved=localStorage.getItem(QUALITY_STORAGE_KEY);
-  setQuality(saved===null?'high':normalizeQuality(saved),false);
- }catch{setQuality('high',false)}
+  setQuality(normalizeQuality(saved),false);
+ }catch{setQuality('default',false)}
  on(qualityTrigger,'click',()=>qualityPanel.hidden?openQuality():closeQuality());
  for(const option of qualityOptions)on(option,'click',()=>{setQuality(option.dataset.ftQuality);closeQuality(true)});
  on(qualityPanel,'keydown',event=>{
