@@ -28,10 +28,13 @@ export function mountTourbillon(root){
  const alwaysVisible=!('IntersectionObserver' in window);
  const controls=[pause,...viewButtons,...hotspots];
  const details={
-  tourbillon:'The carriage makes one turn per minute around a fixed fourth wheel.',
+  tourbillon:'The inner cage makes one turn per minute. Its transverse yoke turns every five minutes.',
   escapement:'Each beat unlocks one ruby pallet, advances the escape wheel half a tooth, and locks on the other pallet.',
   gears:'A 48-tooth barrel drives a 16-tooth pinion. Its 36-tooth wheel drives the 12-tooth carriage pinion.',
-  orbit:'Two gear pairs drive the globe and crystal on separate tilted axes.'
+  orbit:'Earth and moon each turn on two axes once per minute.',
+  carrier:'Four arms orbit the centre every 20 minutes. The dial turns against the carrier to stay upright.',
+  case:'Rose-gold lugs hold steel spring bars under the domed sapphire.',
+  back:'Turn the case over to see the engraved plate, inset winding bows and folding clasp.'
  };
  const defaultNote='Drag to orbit. Pinch or use + and − to zoom.';
  let visible=alwaysVisible,onStage=alwaysVisible,suspended=false,paused=false,contextLost=false;

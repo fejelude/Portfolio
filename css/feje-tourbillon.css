@@ -271,3 +271,50 @@
  .feje-world-home .ft-title-block h2{font-size:1.87rem}
  .feje-world-home .ft-card-zodiac{opacity:.15}
 }
+
+@font-face{
+ font-family:"Pinyon Signature";src:url("/assets/tourbillon/pinyon-signature.woff") format("woff");
+ font-style:normal;font-weight:400;font-display:swap;
+}
+.feje-world-home #tourbillon{
+ --ft-porcelain:#f3f1e9;--ft-aqua:#83dfd8;--ft-silver:#c6d8e7;--ft-champagne:#e4c79a;
+}
+.feje-world-home #tourbillon .ft-card{
+ border-color:#a4896a;border-radius:15px;
+ background:radial-gradient(ellipse at 93% 1%,#123c4b77,transparent 58%),#091729;
+ box-shadow:inset 0 0 0 4px #102638,0 23px 55px #050b15a0;
+}
+.feje-world-home #tourbillon .ft-card::before{border-color:#bfaa8064}
+.feje-world-home #tourbillon .ft-top{padding:5px 4px 19px;gap:16px 24px;border-color:#b5a68a44}
+.feje-world-home #tourbillon .ft-title-block h2{
+ color:var(--ft-porcelain);
+ font:400 clamp(2.9rem,6.8vw,5.25rem)/1.13 "Pinyon Signature","Cormorant Garamond",Georgia,serif;
+ letter-spacing:0;text-shadow:0 2px 19px #96a8c321;text-wrap:initial;
+}
+.feje-world-home #tourbillon .ft-title-block>p:last-child{color:var(--ft-silver)}
+.feje-world-home #tourbillon .ft-kicker{color:var(--ft-champagne);letter-spacing:.118em}
+.feje-world-home #tourbillon .ft-pht i{background:var(--ft-aqua)}
+.feje-world-home #tourbillon .ft-pht{color:var(--ft-aqua)}
+.feje-world-home #tourbillon #ft-time{color:var(--ft-porcelain)}
+.feje-world-home #tourbillon .ft-astrolabe{
+ padding-inline:12px;border-inline-start:1px solid #83dfd832;color:var(--ft-silver);
+}
+.feje-world-home #tourbillon .ft-stage{
+ border-color:#aa9274;background:radial-gradient(ellipse at 48% 43%,#123856,#070d17 83%);
+}
+.feje-world-home #tourbillon .ft-stage::after{box-shadow:inset 0 0 0 1px #a3eed02a}
+.feje-world-home #tourbillon .ft-settings{background:#081523;border-color:#506877}
+.feje-world-home #tourbillon :is(.ft-aspect,.ft-hotspot){
+ border-color:#506573;background:#10263a;color:#e8eff2;
+}
+.feje-world-home #tourbillon :is(.ft-aspect,.ft-hotspot)[aria-pressed=true]{
+ border-color:var(--ft-aqua);background:#143b48;color:#f8f5eb;box-shadow:inset 0 -2px #7fcbc0;
+}
+.feje-world-home #tourbillon :is(.ft-aspect,.ft-hotspot):focus-visible{outline-color:#a3f4f1}
+.feje-world-home #tourbillon .ft-footer{align-items:start;gap:8px 14px}
+@media(max-width:760px){
+ .feje-world-home #tourbillon .ft-title-block h2{font-size:clamp(2.50rem,9.7vw,4.35rem)}
+ .feje-world-home #tourbillon .ft-almanac{grid-template-columns:minmax(0,1fr) auto}
+ .feje-world-home #tourbillon .ft-astrolabe{margin-inline:0;justify-self:end}
+ .feje-world-home #tourbillon .ft-inspect{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
