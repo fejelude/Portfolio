@@ -22,6 +22,7 @@ const server=createServer(async(req,res)=>{
     const browser=await type.launch(name==='chromium'?{headless:true,args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']}:{headless:true});
     try{
       for(const mode of ['desktop','mobile','reduced','no-webgl','no-js']){
+        console.log('Checking',name,mode);
         const mobile=mode==='mobile';
         const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1440,height:900},hasTouch:mobile,timezoneId:'America/Los_Angeles',reducedMotion:mode==='reduced'?'reduce':'no-preference',javaScriptEnabled:mode!=='no-js'});
         const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -114,7 +115,18 @@ const server=createServer(async(req,res)=>{
         assert.equal(await page.locator('.iw-main a.ix-return').getAttribute('href'),'/#interactives-entry');
         await page.locator('.ix-return').click();await page.waitForURL(url+'/#interactives-entry');
         await page.goto(url,{waitUntil:'domcontentloaded'});
-        if(mode==='no-js'){assert.equal(await page.locator('#about').isVisible(),true);assert.equal(await page.locator('#world-collection').isVisible(),false);await context.close();continue;}
+        if(mode==='no-js'){
+          // Fragment navigation may commit before the next document has
+          // completed layout, especially without script-blocking stylesheets.
+          await page.locator('#about').waitFor({state:'visible'});
+          const collection=page.locator('#world-collection');
+          assert.equal(await collection.count(),1);
+          assert.equal(await collection.getAttribute('hidden'),'');
+          assert.equal(await collection.isVisible(),false);
+          console.log(name,mode,'native content');
+          await context.close();
+          continue;
+        }
         await page.locator('#world-collection').waitFor({state:'visible'});
         assert.equal(await page.locator('[data-collectible-choice]').count(),10);
         assert.equal(await page.locator('#collection-name').textContent(),'Aspark Owl');
