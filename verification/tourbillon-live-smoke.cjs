@@ -32,6 +32,7 @@ async function recordSky(browser,url){
  const page=await context.newPage();
  const video=page.video();
  try{
+  await page.addInitScript(()=>localStorage.setItem('fejelude.tourbillon.quality.v1','default'));
   await page.goto(url);
   const stage=page.locator('[data-ft-stage]'),canvas=page.locator('.ft-model');
   const astro=page.locator('.ft-astrolabe');
@@ -77,6 +78,7 @@ async function desktop(browser,url){
   const canvas=page.locator('.ft-model'),stage=page.locator('[data-ft-stage]');
   await canvas.waitFor({timeout:30000});
   assert.ok(await canvas.evaluate(c=>!!c.getContext('webgl2')));
+  assert.equal(await stage.getAttribute('data-quality'),'high','fresh visit starts in High');
   await page.waitForTimeout(1050);
   // Hold the movement to isolate the camera test. The actual WebGL pixels
   // must change while the canvas element and its CSS transform stay put.
