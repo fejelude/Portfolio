@@ -59,8 +59,9 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
  renderer.toneMappingExposure=1.21;
  renderer.setClearColor(0x000000,0);
  const scene=new T.Scene(),camera=new T.PerspectiveCamera(38,1,.10,82);
- let reflection;
+ let reflection,pendingFrame;
  const rebuildReflections=()=>{
+  pendingFrame=null;
   reflection?.dispose();
   reflection=roomEnvironment(renderer);
   scene.environment=reflection.texture;
@@ -121,21 +122,30 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
  }
  return {
   resize,focus,stats,rebuildReflections,
+  canDraw(){
+   if(!pendingFrame)return true;
+   if(context.clientWaitSync(pendingFrame,0,0)===context.TIMEOUT_EXPIRED)return false;
+   context.deleteSync(pendingFrame);pendingFrame=null;
+   return true;
+  },
   orbit(dx,dy){
    goal.azimuth+=dx;
    goal.elevation=fit(goal.elevation+dy,.08,1.49);
   },
   zoom(factor){goal.distance=fit(goal.distance*factor,1.65,15)},
-  draw(seconds,angles,delta,immediate=false,skySeconds=seconds){
+  draw(seconds,angles,delta,immediate=false,skySeconds=seconds,paintInterval=delta){
    const start=performance.now();
    watch.update(movementAt(seconds));
    observatory.update(skySeconds,{economy,focus:focusDetail});
    for(const [name,angle] of Object.entries(angles))watch.hands[name].rotation.y=-angle*Math.PI/180;
    const settling=settleCamera(delta,immediate);
    renderer.render(scene,camera);
+   if(pendingFrame)context.deleteSync(pendingFrame);
+   pendingFrame=context.fenceSync(context.SYNC_GPU_COMMANDS_COMPLETE,0);
+   context.flush();
    stats.frames++;stats.triangles=renderer.info.render.triangles;stats.drawCalls=renderer.info.render.calls;
    samples++;cost+=performance.now()-start;
-   if(delta>.045)slowFrames++;
+   if(paintInterval>.066&&paintInterval<.8)slowFrames++;
    if(samples===90){
     if(cost/samples>26||slowFrames>63){
      headroom=0;
@@ -153,6 +163,9 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
    }
    return settling;
   },
-  dispose(){reflection?.dispose();disposeScene(scene);renderer.dispose()}
+  dispose(){
+   if(pendingFrame)context.deleteSync(pendingFrame);
+   reflection?.dispose();disposeScene(scene);renderer.dispose();
+  }
  };
 }

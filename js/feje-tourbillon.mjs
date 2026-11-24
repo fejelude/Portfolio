@@ -109,8 +109,12 @@ export function mountTourbillon(root){
   last=now;
   const animate=moving(),interval=mobile?40:32;
   if(dirty||!animate||now-lastPaint>=interval){
+   // Skip this submission while the GPU still has the previous frame queued.
+   // Camera input, the movement clock and the time display stay current.
+   if(!model.canDraw()){frame=requestAnimationFrame(tick);return;}
    const ms=animate?new Date().getUTCMilliseconds():0;
-   dirty=model.draw(elapsed,handAngles({...clockParts,millisecond:ms}),delta,reduced.matches,skySeconds);
+   dirty=model.draw(elapsed,handAngles({...clockParts,millisecond:ms}),delta,reduced.matches,skySeconds,
+    Number.isFinite(lastPaint)?(now-lastPaint)/1000:0);
    astrolabe(clockParts,skySeconds);
    lastPaint=now;
    if(canvas.hidden){setReady(true);fallback.hidden=true}

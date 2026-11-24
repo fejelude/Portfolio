@@ -26,7 +26,7 @@ const server=createServer(async(req,res)=>{
 });
 
 async function recordSky(browser,url){
- const viewport={width:1280,height:960};
+ const viewport={width:920,height:900};
  const context=await browser.newContext({viewport,deviceScaleFactor:.8,timezoneId:'America/Los_Angeles',
   recordVideo:{dir:out,size:{width:1000,height:750}}});
  const page=await context.newPage();
@@ -58,7 +58,7 @@ async function recordSky(browser,url){
 }
 
 async function desktop(browser,url){
- const viewport={width:1360,height:980};
+ const viewport={width:1000,height:900};
  const context=await browser.newContext({viewport,recordVideo:{dir:out,size:{width:1040,height:750}},timezoneId:'America/Los_Angeles'});
  const page=await context.newPage();
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -86,7 +86,10 @@ async function desktop(browser,url){
   assert.equal(await watchCard.getAttribute('data-ft-card-motion'),null,'card ambience must pause with the watch');
 
   await stage.screenshot({path:path.join(out,'daedalus-live-overview.png'),timeout:60000});
-  const a=await canvas.screenshot(),b=await canvas.boundingBox();
+  const b=await canvas.boundingBox();
+  const clip={x:b.x,y:b.y,width:b.width,height:b.height};
+  const sample=()=>page.screenshot({clip,timeout:60000});
+  const a=await sample();
   await page.mouse.move(b.x+b.width*.59,b.y+b.height*.46);
   await page.mouse.down();
   await page.mouse.move(b.x+b.width*.29,b.y+b.height*.53,{steps:22});
@@ -94,7 +97,7 @@ async function desktop(browser,url){
   await page.waitForTimeout(560);
   assert.equal((await canvas.boundingBox()).width,b.width);
   assert.equal(await canvas.evaluate(c=>getComputedStyle(c).transform),'none');
-  assert.notDeepEqual(await canvas.screenshot(),a,'orbit did not change the rendered geometry');
+  assert.notDeepEqual(await sample(),a,'orbit did not change the rendered geometry');
 
   await page.getByRole('button',{name:'Resume movement'}).click();
   await page.waitForFunction(()=>document.querySelector('#tourbillon').hasAttribute('data-ft-card-motion'));
@@ -105,9 +108,11 @@ async function desktop(browser,url){
   await page.getByRole('button',{name:'Tourbillon',exact:true}).click();
   await stage.scrollIntoViewIfNeeded();
   await page.waitForTimeout(1700);
-  const animatedA=await canvas.screenshot();
+  const animatedFrame=await canvas.boundingBox();
+  const animationSample=()=>page.screenshot({clip:animatedFrame,timeout:60000});
+  const animatedA=await animationSample();
   await page.waitForTimeout(430);
-  assert.notDeepEqual(await canvas.screenshot(),animatedA,'movement pixels did not advance');
+  assert.notDeepEqual(await animationSample(),animatedA,'movement pixels did not advance');
   for(const [name,id] of [['Escapement','escapement'],['Gear train','train'],['Earth & moon','astronomy']]){
    await page.getByRole('button',{name,exact:true}).click();
    await stage.scrollIntoViewIfNeeded();

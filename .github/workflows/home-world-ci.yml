@@ -52,7 +52,6 @@ jobs:
       - run: node --check js/roblox-creations.mjs && node --test tests/roblox-creations.test.cjs
       - run: npm install --no-save --package-lock=false playwright@1.62.1
       - run: npx playwright install chromium
-      - run: node verification/tourbillon-live-smoke.cjs
       - run: npx playwright install --with-deps firefox webkit
       - run: node verification/roblox-creations-smoke.cjs
       - run: node verification/hero-pixels-smoke.cjs
@@ -62,6 +61,23 @@ jobs:
         if: always()
         with:
           name: home-world-browser-previews
+          path: verification/home-world-results/
+
+  tourbillon:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install chromium
+      - run: node verification/tourbillon-live-smoke.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tourbillon-browser-previews
           path: verification/home-world-results/
 
   fidelity:
