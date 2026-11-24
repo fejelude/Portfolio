@@ -164,7 +164,7 @@ const server=createServer(async(req,res)=>{
             assert.equal(await page.locator('#collection-name').textContent(),expected[slot]);
             assert.equal(await page.locator('[data-collectible-choice][aria-pressed="true"]').count(),1);
             assert.equal(await page.locator('#world-canvas-host canvas').count(),1);
-            assert.equal(await canvas.evaluate(c=>c.getContext('webgl').getError()),0);
+            assert.equal(await canvas.evaluate(c=>(c.getContext('webgl2')||c.getContext('webgl')).getError()),0);
             if(name==='chromium'&&mode==='desktop')await page.locator('#world-viewport').screenshot({path:path.join(out,'collectible-'+(slot+1)+'.png')});
           }
           await page.locator('#collection-prev').click();
@@ -181,7 +181,7 @@ const server=createServer(async(req,res)=>{
             await page.locator('[data-collectible-choice="0"]').click();
           }
           // Paused movement still updates the camera; verify the actual context and visible frame.
-          const sample=await canvas.evaluate(c=>{const gl=c.getContext('webgl');return {width:gl.drawingBufferWidth,height:gl.drawingBufferHeight,error:gl.getError()};});
+          const sample=await canvas.evaluate(c=>{const gl=(c.getContext('webgl2')||c.getContext('webgl'));return {width:gl.drawingBufferWidth,height:gl.drawingBufferHeight,error:gl.getError()};});
           assert.ok(sample.width>0&&sample.height>0);assert.equal(sample.error,0);
           // Real GL validation on a fresh canvas before screenshots. The branch's
           // shader sources, both framebuffer passes and final composite run here.
@@ -204,19 +204,21 @@ const server=createServer(async(req,res)=>{
                 };
                 const final=sample(null),mirror=sample(reflection),base=sample(scene);
                 gl.bindFramebuffer(gl.FRAMEBUFFER,null);
-                return {targets:true,final,mirror,base,ratio:reflection.w/scene.w,error:gl.getError()};
+                return {targets:true,final,mirror,base,ratio:reflection.w/scene.w,error:gl.getError(),sizes:renderer.stats,
+                  complete:scene.w===c.width&&scene.h===c.height&&renderer.multisample?.samples>=2};
               }finally{renderer?.dispose();c.remove();}
             },mobile);
             assert.ok(render.targets,JSON.stringify(render));assert.equal(render.error,0);
             for(const s of [render.final,render.mirror,render.base])assert.ok(s.bins>8&&s.lit>0,JSON.stringify(render));
-            assert.ok(render.ratio>=.35&&render.ratio<=.55,JSON.stringify(render));
+            assert.ok(render.complete,JSON.stringify(render));
+            assert.ok(render.ratio>=.60&&render.ratio<=.67,JSON.stringify(render));
           }
           await page.locator('#world-viewport').screenshot({path:path.join(out,name+'-'+mode+'-neon-city.png')});
           await page.screenshot({path:path.join(out,name+'-'+mode+'.png')});
           if(mode==='desktop'){
-            const canLose=await canvas.evaluate(c=>Boolean(c.getContext('webgl').getExtension('WEBGL_lose_context')));
+            const canLose=await canvas.evaluate(c=>Boolean((c.getContext('webgl2')||c.getContext('webgl')).getExtension('WEBGL_lose_context')));
             if(canLose){
-              await canvas.evaluate(c=>c.getContext('webgl').getExtension('WEBGL_lose_context').loseContext());
+              await canvas.evaluate(c=>(c.getContext('webgl2')||c.getContext('webgl')).getExtension('WEBGL_lose_context').loseContext());
               await page.waitForFunction(()=>document.querySelector('#world-stage').dataset.state==='fallback');
               assert.equal(await launch.isVisible(),true);
             }

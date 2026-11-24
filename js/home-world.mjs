@@ -5,8 +5,8 @@ if(stage){
   const $=id=>document.getElementById(id);
   const host=$('world-canvas-host'), launch=$('world-launch'), controls=$('world-controls'), instructions=$('world-instructions');
   const motionQuery=matchMedia('(prefers-reduced-motion: reduce)'), coarse=matchMedia('(pointer: coarse)');
-  const low=coarse.matches||innerWidth<=900||(navigator.deviceMemory&&navigator.deviceMemory<=4)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=4)||navigator.connection?.saveData;
-  let sceneEvents=null,markerNodes=[],renderer=null,canvas=null,api=null,loading=false,visible=true,paused=motionQuery.matches,lights=true,frame=0,last=0,time=0,goal,current,drag,active='arrival',sizeObserver,slowFrames=0;
+  const deferLoading=coarse.matches||innerWidth<=900||(navigator.deviceMemory&&navigator.deviceMemory<=4)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=4)||navigator.connection?.saveData;
+  let sceneEvents=null,markerNodes=[],renderer=null,canvas=null,api=null,loading=false,visible=true,paused=motionQuery.matches,lights=true,frame=0,last=0,time=0,goal,current,drag,active='arrival',sizeObserver;
   const cleanup=new AbortController(),signal=cleanup.signal;
   let selected=0,queued=0,switchTimer=0,showcase=false;
   const collection=$('world-collection'),choiceButtons=[...collection.querySelectorAll('[data-collectible-choice]')],poster=stage.querySelector('.world-poster');
@@ -49,7 +49,7 @@ if(stage){
       switchTimer=0;selected=queued;setShowcase(false);updateCollection();
       if(renderer){
         try{
-          renderer.setCollectible(selected);time=0;slowFrames=0;
+          renderer.setCollectible(selected);time=0;
           const reveal=!paused&&!motionQuery.matches&&visible&&!document.hidden;
           current=api.copyView(api.STATIONS.arrival);
           if(reveal){current.yaw-=.24;current.radius+=1.05;current.pitch+=.045;}
@@ -83,8 +83,7 @@ if(stage){
     if(Math.abs(current.yaw)>Math.PI*32){const turn=Math.trunc(current.yaw/(2*Math.PI))*2*Math.PI;current.yaw-=turn;goal.yaw-=turn;}
     if(!paused)time+=dt;
     renderer.draw(current,lights,time);updateMarkers();
-    if(dt>.035&&!paused){if(++slowFrames>=24){renderer.ratio=Math.max(.85,renderer.ratio-.15);slowFrames=0;}}
-    else slowFrames=Math.max(0,slowFrames-1);
+    if(!paused)renderer.observeFrame(dt);
     if(!paused||distance>.002)request();else last=0;
   }
   function fallback(message){
@@ -101,7 +100,7 @@ if(stage){
       if(signal.aborted)return;
       sceneEvents=new AbortController();
       canvas=document.createElement('canvas');canvas.tabIndex=0;canvas.setAttribute('aria-label','Hypercar collection scene. Drag or use arrow keys to orbit. Destination buttons below.');
-      host.append(canvas);renderer=new api.TerminalRenderer(canvas,!!low,selected);
+      host.append(canvas);renderer=new api.TerminalRenderer(canvas,false,selected);
       current=api.copyView(api.STATIONS[active]);goal=api.copyView(current);
       renderer.draw(current,lights,time);
       makeMarkers();updateMarkers();stage.dataset.state='live';launch.hidden=true;controls.hidden=false;instructions.hidden=false;updateMotion();select(active);
@@ -167,5 +166,5 @@ if(stage){
   listen(window,'pageshow',()=>request());
   showLaunch();
   // On touch, data saver, lower-end devices and reduced motion, users opt in.
-  if(!low&&!motionQuery.matches){if('requestIdleCallback' in window)requestIdleCallback(start,{timeout:1200});else setTimeout(start,250);}
+  if(!deferLoading&&!motionQuery.matches){if('requestIdleCallback' in window)requestIdleCallback(start,{timeout:1200});else setTimeout(start,250);}
 }

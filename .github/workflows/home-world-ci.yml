@@ -32,6 +32,7 @@ on:
       - assets/home-world/**
       - tests/home-world.test.mjs
       - verification/home-world-smoke.cjs
+      - verification/automotive-fidelity.cjs
       - .github/workflows/home-world-ci.yml
 permissions:
   contents: read
@@ -62,3 +63,28 @@ jobs:
         with:
           name: home-world-browser-previews
           path: verification/home-world-results/
+
+  fidelity:
+    if: startsWith(github.head_ref, 'feat/automotive-ultra-fidelity')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install chromium
+      - name: Capture matched baseline and new car renders
+        env:
+          BASE_REVISION: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/portfolio-baseline" "$BASE_REVISION"
+          node verification/automotive-fidelity.cjs "$RUNNER_TEMP/portfolio-baseline"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: automotive-fidelity-comparison
+          path: verification/automotive-fidelity-results/

@@ -33,9 +33,135 @@ const curve=(p,detail)=>{
   for(let j=0;j<detail;j++){const t=j/detail,t2=t*t,t3=t2*t;out.push([b[0]+(c[0]-b[0])*t,...b.slice(1).map((v,k)=>{const n=k+1;return .5*(2*v+(-a[n]+c[n])*t+(2*a[n]-5*v+4*c[n]-d[n])*t2+(-a[n]+3*v-3*c[n]+d[n])*t3);})]);}
  }out.push(p.at(-1).slice());return out;
 };
-export function buildCar(solid,lamps,index,low){
+// Each wheel has its own spoke count, sweep, split, finish and caliper color.
+const wheelDesigns=[
+ [8,.14,true,0x8e8ca2,0xd0a7ff], [8,.12,false,0x788ca2,0x99e0ff],
+ [5,.19,true,0x34333b,0xe9864a], [7,.06,true,0x859895,0xc4ffb1],
+ [6,.25,true,0x71949c,0xe2ffbf], [5,.05,false,0x39343c,0xffd067],
+ [7,.11,false,0xa19b88,0xd7b57c], [5,.25,true,0x50464b,0xff9a48],
+ [5,.18,true,0x777e68,0xe4f285], [9,.07,false,0x747e8a,0xff5765]
+];
+const frontSignatures=[
+ [[.32,.47,.04],[.76,.52,.14],[.98,.64,.56]],
+ [[.50,.64,.05],[.61,.65,.08],[.74,.67,.14],[.87,.70,.23]],
+ [[.43,.46,.05],[.87,.51,.20],[1.01,.67,.65]],
+ [[.58,.49,.17],[.82,.55,.30],[1.05,.69,.73]],
+ [[.43,.50,.12],[.80,.54,.22],[.94,.60,.43],[.91,.68,.60]],
+ [[.19,.60,-.12],[.89,.60,-.12]],
+ [[.60,.62,.05],[.90,.65,.13]],
+ [[.53,.45,.12],[.85,.47,.12],[1.02,.63,.55],[.90,.69,.68]],
+ [[.44,.52,.08],[.71,.56,.18],[.99,.58,.32],[1.04,.67,.63]],
+ [[.35,.46,.08],[.82,.48,.19],[1.04,.63,.62]]
+];
+const rearSignatures=[
+ [[.18,.64,0],[.87,.65,0],[1.00,.70,.12]],
+ [[.02,.72,-.03],[.83,.72,-.03],[1.02,.76,.16]],
+ [[.43,.65,-.02],[.83,.67,-.01],[.98,.72,.18]],
+ [[.50,.64,.01],[1.02,.73,.15]],
+ [],
+ [[.35,.68,-.03],[.89,.69,0],[1.05,.73,.15]],
+ [],
+ [[.58,.62,-.03],[.97,.63,.04]],
+ [[.04,.67,-.02],[.90,.67,0],[1.04,.68,.16]],
+ [[.25,.61,0],[.83,.63,.02],[1.01,.68,.18]]
+];
+const tireRadius=.435, axleHeight=.435, axlePositions=[-1.62,1.54];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const sub=(a,b)=>a.map((v,i)=>v-b[i]);
+const unit=a=>{const length=Math.hypot(...a)||1;return a.map(v=>v/length);};
+
+// Continuous shoulders use shared normals across neighboring surface cells.
+// Fender openings remove the sidewall right over each tire.
+function sculptSkin(batch,profile,color,material,body=false){
+ const contour=curve([[0,0,1],[1,.37,.988],[2,.67,.90],[3,.87,.74],[4,.98,.53],[5,1,.32],[6,.97,.12],[7,.89,0]],2);
+ const rows=curve(profile,5);
+ for(const side of [-1,1]){
+  const surface=rows.map(([z,w,bottom,top])=>{
+   const axle=Math.min(...axlePositions.map(position=>Math.abs(position-z)));
+   const opening=body&&axle<.475?Math.max(0,axleHeight+Math.sqrt(.475**2-axle**2)-bottom)*.91:0;
+   return contour.map(([,x,y])=>[side*w*x,bottom+(top-bottom)*y+opening*(1-y)**3,z]);
+  });
+  const normal=(i,j)=>{
+   const along=sub(surface[Math.min(i+1,rows.length-1)][j],surface[Math.max(0,i-1)][j]);
+   const across=sub(surface[i][Math.min(j+1,contour.length-1)],surface[i][Math.max(0,j-1)]);
+   const n=unit(cross(along,across)).map(v=>side*v);
+   if(j===0)return [0,1,0];
+   return n;
+  };
+  const normals=surface.map((row,i)=>row.map((_,j)=>normal(i,j)));
+  for(let i=0;i<surface.length-1;i++)for(let j=0;j<contour.length-1;j++){
+   const a=surface[i][j],b=surface[i+1][j],c=surface[i+1][j+1],d=surface[i][j+1];
+   const [na,nb,nc,nd]=[normals[i][j],normals[i+1][j],normals[i+1][j+1],normals[i][j+1]];
+   if(side>0){batch.tri(a,b,c,color,material,[na,nb,nc]);batch.tri(a,c,d,color,material,[na,nc,nd]);}
+   else{batch.tri(a,c,b,color,material,[na,nc,nb]);batch.tri(a,d,c,color,material,[na,nd,nc]);}
+  }
+  for(const i of [0,surface.length-1]){
+   const row=surface[i],base=[0,row.at(-1)[1],row[0][2]],dir=i===0?-1:1;
+   for(let j=0;j<row.length-1;j++){
+    if(dir*side>0)batch.tri(base,row[j+1],row[j],color,material,[0,0,dir]);
+    else batch.tri(base,row[j],row[j+1],color,material,[0,0,dir]);
+   }
+  }
+  if(body)for(let i=0;i<surface.length-1;i++){
+   const a=surface[i].at(-1),b=surface[i+1].at(-1);
+   const inner=p=>[p[0]*.88,p[1]-.012,p[2]];
+   batch.quad(a,b,inner(b),inner(a),dark,13);
+  }
+ }
+}
+
+function wheelSurface(batch,side,z,profile,color,material,segments=36){
+ const point=(x,r,a)=>[side*x,axleHeight+r*Math.cos(a),z+r*Math.sin(a)];
+ for(let j=0;j<profile.length-1;j++){
+  const [x,r]=profile[j],[nextX,nextR]=profile[j+1];
+  const axis=r-nextR,radial=nextX-x;
+  const normal=a=>unit([side*axis,radial*Math.cos(a),radial*Math.sin(a)]);
+  for(let i=0;i<segments;i++){
+   const a=i*Math.PI*2/segments,b=(i+1)*Math.PI*2/segments;
+   const A=point(x,r,a),B=point(nextX,nextR,a),C=point(nextX,nextR,b),D=point(x,r,b);
+   const n=normal(a),m=normal(b);
+   if(side>0){batch.tri(A,C,B,color,material,[n,m,n]);batch.tri(A,D,C,color,material,[n,m,m]);}
+   else{batch.tri(A,B,C,color,material,[n,n,m]);batch.tri(A,C,D,color,material,[n,m,m]);}
+  }
+ }
+}
+function buildWheel(batch,index,side,z,paint){
+ const [count,sweep,split,finish,caliper]=wheelDesigns[index],alloy=hex(finish);
+ const {beam,box,cylinderX}=batch;
+ wheelSurface(batch,side,z,[[.89,.310],[.89,.365],[.91,.413],[.947,tireRadius],[1.224,tireRadius],[1.276,.422],[1.304,.398],[1.317,.342],[1.304,.316]],rubber,8);
+ wheelSurface(batch,side,z,[[1.002,.312],[1.312,.314],[1.335,.321],[1.351,.316],[1.353,.297],[1.331,.285],[1.10,.285]],alloy,10);
+ wheelSurface(batch,side,z,[[1.253,.268],[1.279,.268],[1.281,.107]],silver,12);
+ const point=(x,r,a)=>[side*x,axleHeight+r*Math.cos(a),z+r*Math.sin(a)];
+ for(let i=0;i<count;i++){
+  const a=i*Math.PI*2/count,knee=a+sweep*.46;
+  const low=point(1.342,.083,a),mid=point(1.325,.177,knee);
+  beam(low,mid,split?.047:.057,alloy,10);
+  beam(mid,point(1.342,.301,a+sweep),split?.033:.055,alloy,10);
+  if(split)beam(mid,point(1.339,.300,a+sweep-.20),.029,alloy,10);
+ }
+ for(let i=0;i<16;i++){
+  const a=i*Math.PI/8,[x,y,pz]=point(1.283,.235,a);
+  cylinderX(x,y,pz,.009,.004,dark,13,6);
+ }
+ // Fasteners and a separate caliper bracket sit behind the outer spokes.
+ cylinderX(side*1.342,axleHeight,z,.090,.051,alloy,10,24);
+ cylinderX(side*1.371,axleHeight,z,.051,.021,paint,9,20);
+ for(let i=0;i<5;i++){
+  const [x,y,pz]=point(1.371,.069,i*Math.PI*.4);
+  cylinderX(x,y,pz,.011,.012,silver,10,6);
+ }
+ box(side*1.288,.478,z-.223,.052,.146,.076,hex(caliper),11);
+}
+function lens(steel,lights,points,ink,glow,width){
+ for(let i=1;i<points.length;i++){
+  steel.beam(points[i-1],points[i],width*2.3,ink,13);
+  lights.beam(points[i-1].map((v,j)=>j===1?v+.011:v),points[i].map((v,j)=>j===1?v+.011:v),width,glow,3);
+ }
+}
+
+export function buildCar(solid,lamps,index){
  const c=collectibleAt(index),paint=hex(c.paint),trim=hex(c.trim),accent=hex(c.neon),white=hex(0xe9efff);
- const {box,beam,loft,cylinderX}=solid;
+ const {box,beam}=solid;
  const tail=[-2.76,-2.72,-2.85,-2.62,-2.65,-2.84,-2.65,-2.93,-2.79,-2.88][index],nose=[2.75,2.72,2.86,2.68,2.70,2.84,2.68,2.80,2.77,2.78][index];
  const z=[tail,-2.24,-1.55,-.53,.55,1.52,2.23,nose];
  const heights=[
@@ -44,39 +170,56 @@ export function buildCar(solid,lamps,index,low){
  ][index];
  const profile=z.map((v,i)=>[v,c.widths[i],index===3?.34:.26,heights[i]]);
  const roof=c.cabin[5],cabin=[[-1.56,c.cabin[0],.74,.80],[-.79,c.cabin[1],.74,roof-.10],[.10,c.cabin[2],.72,roof],[.84,c.cabin[3],.70,roof-.23],[1.32,c.cabin[4],.68,.76]];
- loft(curve(profile,low?2:4),paint,4);loft(curve(cabin,low?2:4),glass,7);
+ sculptSkin(solid,profile,paint,9,true);sculptSkin(solid,cabin,glass,7);
  for(const s of [-1,1]){
   box(s*1.015,.27,-.05,.16,.10,2.35,trim,7);box(s*.94,.83,.57,.26,.085,.28,paint,4);
   beam([s*c.cabin[2],roof-.15,.10],[s*c.cabin[4],.77,1.32],.025,silver,4);
-  for(const zz of [-1.62,1.54]){
-   cylinderX(s*1.10,.435,zz,.435,.39,rubber,8,low?26:48);
-   cylinderX(s*1.306,.435,zz,.318,.035,trim,4,low?20:32);
-   cylinderX(s*1.329,.435,zz,.267,.026,silver,4,low?20:32);
-   cylinderX(s*1.347,.435,zz,.242,.027,trim,4,low?20:32);
-   const spokes=index===6?7:5;
-   for(let i=0;i<spokes;i++){const a=i*Math.PI*2/spokes;beam([s*1.37,.435+.07*Math.cos(a),zz+.07*Math.sin(a)],[s*1.37,.435+.258*Math.cos(a+.1),zz+.258*Math.sin(a+.1)],.048,silver,4);}
-   cylinderX(s*1.383,.435,zz,.075,.042,paint,4,16);box(s*1.354,.49,zz-.19,.03,.14,.085,accent,4);
-   for(let i=0;i<16;i++){const a=-1.38+i*2.76/16,b=a+2.76/16;beam([s*1.16,.435+.452*Math.cos(a),zz+.452*Math.sin(a)],[s*1.16,.435+.452*Math.cos(b),zz+.452*Math.sin(b)],.036,paint,4);}
-  }
-  beam([s*.55,.78,1.23],[s*.48,.57,nose-.44],.018,trim,7);
-  for(let k=0;k<4;k++)box(s*1.04,.40+k*.055,-.95+k*.1,.035,.025,.30,trim,7);
-  // Every model has its own lamp signature instead of a shared light bar.
-  if(index===0||index===4){lamps.beam([s*.30,.49,nose-.015],[s*.78,.52,nose-.10],.045,white,3);lamps.beam([s*.78,.52,nose-.10],[s*.99,.60,nose-.52],.035,white,3);}
-  else if(index===1){for(let k=0;k<4;k++)lamps.box(s*(.58+k*.13),.63,nose-.02-k*.08,.09,.065,.042,white,3);}
-  else if(index===2||index===7){lamps.beam([s*.41,.47,nose-.03],[s*.90,.52,nose-.17],.040,white,3);lamps.beam([s*.90,.52,nose-.17],[s*.99,.66,nose-.68],.05,white,3);box(s*.77,.40,nose-.08,.42,.09,.16,trim,7);}
-  else if(index===3){lamps.beam([s*.52,.50,nose-.14],[s*1.06,.68,nose-.77],.045,white,3);}
-  else if(index===8||index===9){lamps.beam([s*.36,.50,nose-.04],[s*.94,.57,nose-.29],.035,white,3);lamps.beam([s*.89,.62,nose-.32],[s*1.08,.67,nose-.64],.027,white,3);}
-  if(index!==4){lamps.beam([s*.15,.65,tail-.03],[s*.90,.66,tail+.01],.048,hex(0xff6d92),3);}
+  for(const zz of axlePositions)buildWheel(solid,index,s,zz,paint);
+  const hood=profile[6];
+  beam([s*c.cabin[4],.782,1.29],[s*hood[1]*.51,hood[3]+.008,hood[0]],.012,trim,13);
+  // Slim sill, mirror with a reflective face, and brake duct trim.
+  beam([s*.78,.324,-.96],[s*1.05,.325,.93],.028,trim,13);
+  beam([s*(c.cabin[2]-.04),.93,.65],[s*.98,.94,.64],.045,trim,13);
+  box(s*.997,.945,.64,.145,.069,.16,paint,9);
+  box(s*.997,.945,.551,.115,.045,.017,silver,10);
+  for(let k=0;k<4;k++)box(s*(c.widths[3]+.01),.42+k*.041,-.93+k*.09,.035,.014,.25,trim,13);
+  const head=frontSignatures[index].map(([x,y,d])=>[s*x,y,nose-d]);
+  const rear=rearSignatures[index].map(([x,y,d])=>[s*x,y,tail+d]);
+  if(index===1||index===6){
+   for(const [x,y,pz] of head){
+    box(x,y,pz,.12,.068,.065,trim,13);
+    lamps.box(x,y+.012,pz+.03,index===6?.062:.082,.024,.039,white,3);
+   }
+  }else lens(solid,lamps,head,trim,white,index===5?.021:.028);
+  if(index===6){
+   for(const [y,x,z] of [[.70,.91,.02],[.58,.87,-.035]])circle(lamps,[s*x,y,tail+z],.062,.043,.017,hex(0xff6d83),3,16);
+  }else lens(solid,lamps,rear,trim,hex(0xff526c),.025);
   if(index===2||index===7||index===9){beam([s*.71,.86,-1.56],[s*.52,.78,-.78],.043,trim,7);beam([s*.52,.78,-.78],[s*.84,.76,.65],.038,trim,7);}
   if(index===3){beam([s*.91,.33,-1.84],[s*.78,.30,.72],.065,silver,4);box(s*.75,.35,-.83,.14,.13,1.25,trim,7);}
   lamps.beam([s*.95,.25,-.65],[s*.95,.25,.70],.018,accent,3);
  }
- box(0,.24,nose-.18,1.87,.075,.60,trim,7);box(0,.23,tail+.15,1.86,.09,.55,trim,7);
- for(let j=-3;j<=3;j++)box(j*.24,.26,tail+.06,.045,.19,.42,trim,7);
+ box(0,.24,nose-.18,1.87,.075,.60,trim,13);box(0,.23,tail+.15,1.86,.09,.55,trim,13);
+ for(let j=-3;j<=3;j++)box(j*.24,.26,tail+.06,.045,.19,.42,trim,13);
  const wing=(height,span,z,split=false)=>{
-  for(const s of [-1,1]){beam([s*.62,.81,z+.24],[s*.67,height,z],.068,trim,4);box(s*(span/2-.025),height,z,.07,.28,.63,paint,4);}
-  box(0,height,z,span,.09,.58,paint,4);if(split)box(0,height-.16,z+.11,span*.82,.055,.31,trim,4);
-  lamps.beam([-span*.43,height+.055,z-.25],[span*.43,height+.055,z-.25],.025,accent,3);
+  // Swept airfoil with a rounded leading edge and an actual trailing lip.
+  const blade=(level,half,chord,offset,color)=>{
+   const ribs=Array.from({length:13},(_,i)=>{
+    const t=i/6-1,x=t*half,edge=t*t,pz=z+offset+edge*.15,y=level+edge*.085,d=chord*(1-edge*.22);
+    return [[x,y-.010,pz-d*.53],[x,y+.019,pz-d*.18],[x,y+.054,pz+d*.16],
+     [x,y+.032,pz+d*.43],[x,y-.004,pz+d*.48],[x,y-.025,pz+d*.25]];
+   });
+   for(let i=1;i<ribs.length;i++)for(let j=0;j<6;j++){
+    const next=(j+1)%6;solid.quad(ribs[i-1][j],ribs[i][j],ribs[i][next],ribs[i-1][next],color,j===0?13:9);
+   }
+   for(const end of [ribs[0],ribs.at(-1)])for(let i=1;i<5;i++)solid.tri(end[0],end[i],end[i+1],trim,13);
+  };
+  for(const s of [-1,1]){
+   beam([s*.60,.78,z+.23],[s*.69,height,z+.05],.058,trim,13);
+   const x=s*(span/2-.035);
+   solid.quad([x,height-.097,z-.18],[x,height+.145,z-.19],[x,height+.17,z+.24],[x,height-.055,z+.37],paint,9);
+  }
+  blade(height,span/2,.64,0,paint);
+  if(split)blade(height-.12,span*.42,.41,.07,trim);
  };
  switch(c.feature){
   case "blade":box(0,.37,nose-.01,1.40,.13,.16,trim,7);for(let i=-3;i<=3;i++)box(i*.14,.37,nose+.08,.045,.11,.018,trim,7);box(0,.90,tail+.24,1.8,.055,.27,paint,4);break;
@@ -85,8 +228,8 @@ export function buildCar(solid,lamps,index,low){
   case "wing":wing(1.57,2.60,tail+.29,true);for(const s of [-1,1]){box(s*.84,.34,nose+.06,.48,.09,.30,trim);beam([s*.86,.63,nose-.38],[s*1.26,.37,nose-.10],.064,trim,4);}break;
   case "tunnels":for(const s of [-1,1]){box(s*.86,.37,0,.39,.21,2.23,trim,7);beam([s*.62,.55,-1.01],[s*1.05,.23,-2.19],.16,paint,4);beam([s*.66,.52,.91],[s*1.17,.36,1.95],.14,paint,4);}wing(1.13,2.10,tail+.32);break;
   case "vents":for(const s of [-1,1]){box(s*.67,.57,tail-.05,.74,.43,.05,dark,7);circle(solid,[s*.67,.58,tail-.085],.37,.23,.044,paint,4);circle(lamps,[s*.67,.58,tail-.115],.30,.17,.036,hex(0xff6c9d),3);}break;
-  case "visor":box(0,.56,nose+.04,1.89,.21,.13,trim,7);for(const s of [-1,1])lamps.beam([s*.24,.60,nose+.12],[s*.89,.60,nose+.12],.035,white,3);wing(1.27,2.39,tail+.36,true);break;
-  case "quad":for(const x of [-.105,.105])for(const y of [.59,.80]){box(x,y,tail-.045,.16,.16,.13,trim,7);circle(solid,[x,y,tail-.12],.078,.078,.028,silver,4,18);}for(const s of [-1,1])for(const x of [.61,.89])circle(lamps,[s*x,.61,nose-.07],.095,.065,.032,white,3,16);box(0,.91,tail+.24,1.65,.06,.26,paint,4);break;
+  case "visor":box(0,.56,nose+.04,1.89,.21,.13,trim,7);wing(1.27,2.39,tail+.36,true);break;
+  case "quad":for(const x of [-.105,.105])for(const y of [.59,.80]){box(x,y,tail-.045,.16,.16,.13,trim,7);circle(solid,[x,y,tail-.12],.078,.078,.028,silver,4,18);}box(0,.91,tail+.24,1.65,.06,.26,paint,4);break;
   case "longtail":wing(1.16,2.34,tail+.13,true);box(0,.73,tail+.25,2.12,.07,.66,paint,4);for(const s of [-1,1])beam([s*.81,.64,-.76],[s*1.17,.35,-1.93],.13,trim,7);break;
   case "split":wing(1.34,2.31,tail+.30);box(0,.32,nose+.04,1.52,.15,.15,trim,7);lamps.beam([-.85,.58,nose-.02],[.85,.58,nose-.02],.03,accent,3);break;
   case "tandem":wing(1.52,2.55,tail+.30,true);beam([0,roof-.05,.10],[0,.87,-2.34],.1,paint,4);for(const s of [-1,1]){box(s*.85,.36,nose-.05,.44,.10,.37,trim);beam([s*.56,.60,-.7],[s*1.02,.78,-1.56],.085,paint,4);}break;
