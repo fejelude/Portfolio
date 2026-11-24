@@ -267,13 +267,18 @@ export class TerminalRenderer{
     this.m=uniforms(gl,this.mesh,['uVP','uOffset','uEye','uLights','uReflectPass','uReflectionEnabled','uViewport','uReflection','uHaze','uGround','uAccent','uWet','uWorld','uTime']);this.s=uniforms(gl,this.sky,['uForward','uRight','uUp','uAspect','uSkyTop','uHorizon','uSkyAccent','uWorld','uTime']);
     const buffer=arr=>{const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,arr,gl.STATIC_DRAW);return {b,count:arr.length/10};};
     this.upload=buffer;this.batches=[];this.selected=collectibleAt(index);this.screen=buffer(new Float32Array([-1,-1,3,-1,-1,3]));
-    this.lastMatrix=null;this.eye=[0,0,0];this.limit=low?1.35:1.8;this.ratio=this.limit;this.low=low;this.destroyed=false;this.sceneTarget=null;this.reflectionTarget=null;this.targetWidth=0;this.targetHeight=0;
+    this.lastMatrix=null;this.eye=[0,0,0];this.limit=low?.85:2.25;this.ratio=this.limit;this.low=low;this.quality=low?'Low':'High';this.destroyed=false;this.sceneTarget=null;this.reflectionTarget=null;this.targetWidth=0;this.targetHeight=0;
     this.black=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,this.black);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([0,0,0,255]));gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);gl.bindTexture(gl.TEXTURE_2D,null);
     this.p=uniforms(gl,this.post,['uScene','uPixel']);
     gl.disable(gl.CULL_FACE);this.setCollectible(index);
   }
-  setCollectible(index){
-    const next=collectibleAt(index);if(this.batches.length&&next.index===this.selected.index)return;
+  setQuality(value){
+    const next=['Low','Medium','High'].includes(value)?value:'High';if(next===this.quality)return;
+    this.quality=next;this.low=next==='Low';this.limit=this.low?.85:next==='Medium'?1.5:2.25;this.ratio=this.limit;
+    this.setCollectible(this.selected.index,true);this.targetWidth=0;this.targetHeight=0;
+  }
+  setCollectible(index,force=false){
+    const next=collectibleAt(index);if(!force&&this.batches.length&&next.index===this.selected.index)return;
     const geometry=buildWorld(this.low,next.index),fresh=[];
     try{for(const data of geometry)fresh.push(this.upload(data));}catch(error){for(const {b} of fresh)this.gl.deleteBuffer(b);throw error;}
     for(const {b} of this.batches)this.gl.deleteBuffer(b);
@@ -281,8 +286,9 @@ export class TerminalRenderer{
     this.palette={skyTop:hex(next.top),horizon:hex(next.horizon),haze:hex(next.fog),ground:hex(next.ground),accent:hex(next.neon)};
   }
   resize(){
-    const c=this.canvas,ratio=Math.min(this.ratio,window.devicePixelRatio||1);
-    const resolution=Math.min(ratio,1800/Math.max(1,c.clientWidth),1400/Math.max(1,c.clientHeight));
+    const c=this.canvas,high=this.quality==='High',ratio=Math.min(this.ratio,high?Math.max(1.8,window.devicePixelRatio||1):(window.devicePixelRatio||1));
+    const cw=Math.max(1,c.clientWidth),ch=Math.max(1,c.clientHeight),limit=this.gl.getParameter(this.gl.MAX_TEXTURE_SIZE);
+    const resolution=Math.min(ratio,Math.min(limit,high?2200:1800)/cw,Math.min(limit,high?1700:1400)/ch,Math.sqrt((high?2400000:1500000)/(cw*ch)));
     const w=Math.max(1,Math.round(c.clientWidth*resolution)),h=Math.max(1,Math.round(c.clientHeight*resolution));
     if(c.width!==w||c.height!==h){c.width=w;c.height=h;}
     this.gl.viewport(0,0,c.width,c.height);
@@ -292,7 +298,7 @@ export class TerminalRenderer{
     this.targetWidth=c.width;this.targetHeight=c.height;
     disposeTarget(gl,this.sceneTarget);disposeTarget(gl,this.reflectionTarget);
     this.sceneTarget=renderTarget(gl,c.width,c.height);
-    const fraction=this.low?.40:.50;
+    const fraction=this.low?.32:this.quality==='High'?.62:.45;
     this.reflectionTarget=renderTarget(gl,Math.max(1,Math.round(c.width*fraction)),Math.max(1,Math.round(c.height*fraction)));
   }
   drawPass(eye,target,lights,time,dest,reflection){

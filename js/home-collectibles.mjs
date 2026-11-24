@@ -44,15 +44,21 @@ export function buildCar(solid,lamps,index,low){
  ][index];
  const profile=z.map((v,i)=>[v,c.widths[i],index===3?.34:.26,heights[i]]);
  const roof=c.cabin[5],cabin=[[-1.56,c.cabin[0],.74,.80],[-.79,c.cabin[1],.74,roof-.10],[.10,c.cabin[2],.72,roof],[.84,c.cabin[3],.70,roof-.23],[1.32,c.cabin[4],.68,.76]];
- loft(curve(profile,low?2:4),paint,4);loft(curve(cabin,low?2:4),glass,7);
+ loft(curve(profile,low?2:7),paint,4);loft(curve(cabin,low?2:6),glass,7);
  for(const s of [-1,1]){
   box(s*1.015,.27,-.05,.16,.10,2.35,trim,7);box(s*.94,.83,.57,.26,.085,.28,paint,4);
   beam([s*c.cabin[2],roof-.15,.10],[s*c.cabin[4],.77,1.32],.025,silver,4);
   for(const zz of [-1.62,1.54]){
-   cylinderX(s*1.10,.435,zz,.435,.39,rubber,8,low?26:48);
+   cylinderX(s*1.10,.435,zz,.435,.39,rubber,8,low?26:64);
    cylinderX(s*1.306,.435,zz,.318,.035,trim,4,low?20:32);
    cylinderX(s*1.329,.435,zz,.267,.026,silver,4,low?20:32);
    cylinderX(s*1.347,.435,zz,.242,.027,trim,4,low?20:32);
+   if(!low){
+    cylinderX(s*1.353,.435,zz,.213,.012,hex(0x88919e),4,48);
+    for(let i=0;i<16;i++){const a=i*Math.PI/8;box(s*1.362,.435+.174*Math.cos(a),zz+.174*Math.sin(a),.008,.019,.019,dark,7)}
+    for(let i=0;i<5;i++){const a=i*Math.PI*2/5;box(s*1.409,.435+.057*Math.cos(a),zz+.057*Math.sin(a),.012,.018,.018,silver,4)}
+    for(let i=0;i<32;i++){const a=i*Math.PI/16,b=a+Math.PI/16;beam([s*1.302,.435+.407*Math.cos(a),zz+.407*Math.sin(a)],[s*1.302,.435+.407*Math.cos(b),zz+.407*Math.sin(b)],.009,trim,8)}
+   }
    const spokes=index===6?7:5;
    for(let i=0;i<spokes;i++){const a=i*Math.PI*2/spokes;beam([s*1.37,.435+.07*Math.cos(a),zz+.07*Math.sin(a)],[s*1.37,.435+.258*Math.cos(a+.1),zz+.258*Math.sin(a+.1)],.048,silver,4);}
    cylinderX(s*1.383,.435,zz,.075,.042,paint,4,16);box(s*1.354,.49,zz-.19,.03,.14,.085,accent,4);
@@ -60,6 +66,7 @@ export function buildCar(solid,lamps,index,low){
   }
   beam([s*.55,.78,1.23],[s*.48,.57,nose-.44],.018,trim,7);
   for(let k=0;k<4;k++)box(s*1.04,.40+k*.055,-.95+k*.1,.035,.025,.30,trim,7);
+  if(!low){for(let i=0;i<6;i++)box(s*(.70+i*.036),.29,nose-.19,.016,.038,.22,trim,7);beam([s*.75,.34,tail+.18],[s*.92,.33,tail+.08],.018,silver,4);}
   // Every model has its own lamp signature instead of a shared light bar.
   if(index===0||index===4){lamps.beam([s*.30,.49,nose-.015],[s*.78,.52,nose-.10],.045,white,3);lamps.beam([s*.78,.52,nose-.10],[s*.99,.60,nose-.52],.035,white,3);}
   else if(index===1){for(let k=0;k<4;k++)lamps.box(s*(.58+k*.13),.63,nose-.02-k*.08,.09,.065,.042,white,3);}
@@ -104,7 +111,7 @@ export function buildCar(solid,lamps,index,low){
 }
 // Nine independent architectural compositions; Tokyo retains the existing city.
 export function buildEnvironment(solid,lamps,ambient,index,low){
- const c=collectibleAt(index),rng=rngFor(901+index*117),tone=hex(c.fog),neon=hex(c.neon),metal=hex(c.trim),stone=mix(tone,hex(0x171b26),.48),count=low?10:17;
+ const c=collectibleAt(index),rng=rngFor(901+index*117),tone=hex(c.fog),neon=hex(c.neon),metal=hex(c.trim),stone=mix(tone,hex(0x171b26),.48),count=low?10:23;
  const {box,beam,tri,quad}=solid;
  const crystal=(x,y,z,r,h,col)=>{const n=6,ring=Array.from({length:n},(_,i)=>[x+Math.cos(i*2*Math.PI/n)*r,y,z+Math.sin(i*2*Math.PI/n)*r]);for(let i=0;i<n;i++)tri(ring[i],ring[(i+1)%n],[x,y+h,z],mix(col,neon,i%2*.23),4);};
  const loop=(p,x,y,w,col)=>circle(solid,p,x,y,w,col,4,low?18:32);

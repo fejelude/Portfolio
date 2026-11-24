@@ -181,3 +181,5 @@
 @media(min-width:1380px){.feje-world-home .collection-slots{grid-template-columns:repeat(10,minmax(0,1fr))}}
 @media(max-width:350px){.feje-world-home .world-view-label{font-size:.53rem;inset-inline:10px}.feje-world-home .collection-header{gap:6px}}
 @media(prefers-reduced-motion:reduce){.feje-world-home .world-collection-transition,.feje-world-home .collection-arrow,.feje-world-home .collection-slots button{transition:none}}
+
+.world-quality-label{display:inline-flex;align-items:center;gap:5px;font:inherit;font-size:.72rem;color:inherit}.world-quality-label select{color:#f2eaff;background:#20182c;border:1px solid #846a9b;border-radius:5px;padding:5px;font:inherit;max-width:100%}
