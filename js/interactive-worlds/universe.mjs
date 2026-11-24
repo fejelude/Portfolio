@@ -8,7 +8,7 @@ precision highp float;
 precision mediump float;
 #endif
 uniform vec2 res;
-uniform float time, yaw, pitch, zoom, strength, mode;
+uniform float time, yaw, pitch, zoom, strength, mode, detail;
 float hash(vec2 p){vec2 q=fract(p*vec2(.1031,.0973));q+=dot(q,q.yx+19.19);return fract((q.x+q.y)*q.x);}
 float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
 float fbm(vec2 p){float n=0.,a=.5;for(int i=0;i<4;i++){n+=noise(p)*a;p=mat2(1.6,1.2,-1.2,1.6)*p;a*=.5;}return n;}
@@ -25,13 +25,13 @@ void main(){
  }
  float cloud=fbm(d*3.+vec2(.32,-.2));float band=exp(-abs(d.y+.3*sin(d.x*2.))*5.);
  vec3 col=vec3(.014,.012,.038)+vec3(.13,.055,.22)*cloud*band+vec3(.025,.032,.083)*fbm(d*7.);
- float st=stars(d,85.)+stars(d+9.,170.)*.65;col+=vec3(.69,.75,1.)*st;
+ float st=stars(d,85.)+stars(d+9.,170.)*.65; if(detail>1.5){st+=stars(d+31.,250.)*.38;col+=vec3(.09,.035,.17)*pow(fbm(d*12.),2.)*band;}col+=vec3(.69,.75,1.)*st;
  if(mode<.5){
   float tilt=clamp(.29+pitch*.2,.14,.65);vec2 q=rot(-.23)*p;vec2 disk=vec2(q.x,q.y/tilt);float rr=length(disk),a=atan(disk.y,disk.x);
   float inner=.16,outer=.54;
   float mask=smoothstep(inner,inner+.024,rr)*(1.-smoothstep(outer-.07,outer,rr));
   float spiral=fbm(vec2(a*3.+time*.42,rr*28.-a*1.6));
-  float strands=.55+.45*sin(rr*115.+a*.8+spiral*5.);
+  float strands=.55+.45*sin(rr*115.+a*.8+spiral*5.); if(detail>1.5)strands*=.78+.22*sin(rr*215.-a*2.+spiral*8.);
   vec3 hot=mix(vec3(.37,.15,.8),vec3(1.,.62,.31),exp(-abs(rr-.24)*7.));
   vec3 emission=hot*mask*(.30+.9*spiral)*(.55+.45*strands)*(1.+.4*cos(a)) ;
   // A brighter far-side arc bends above the shadow as the view tilts.
@@ -73,7 +73,7 @@ export function mount(api){
    program=gl.createProgram();gl.attachShader(program,compile(gl.VERTEX_SHADER,vertex));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));
    gl.useProgram(program);buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
    const a=gl.getAttribLocation(program,'a');gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
-   for(const key of ['res','time','yaw','pitch','zoom','strength','mode'])uniforms[key]=gl.getUniformLocation(program,key);
+   for(const key of ['res','time','yaw','pitch','zoom','strength','mode','detail'])uniforms[key]=gl.getUniformLocation(program,key);
   }catch{disposeGL();gl=null;resetCanvas();}
  }
  function disposeGL(){if(gl){if(buffer)gl.deleteBuffer(buffer);if(program)gl.deleteProgram(program);for(const s of resources)gl.deleteShader(s)}resources=[];buffer=null;program=null;uniforms={}}
@@ -115,10 +115,10 @@ export function mount(api){
    api.say(gl?'WebGL restored.':'Using the Canvas renderer.');
   });
  }
- function resize(){const w={Low:480,Medium:800,High:1200}[api.tier()]||800;c.width=w;c.height=Math.round(w/1.6);if(gl&&!lost)gl.viewport(0,0,c.width,c.height)}
+ function resize(){const w={Low:480,Medium:800,High:1440}[api.tier()]||800;c.width=w;c.height=Math.round(w/1.6);if(gl&&!lost)gl.viewport(0,0,c.width,c.height)}
  function draw(dt){
   phase+=dt*speed;
-  if(gl&&!lost){gl.useProgram(program);gl.uniform2f(uniforms.res,c.width,c.height);for(const [key,value] of Object.entries({time:phase,yaw,pitch,zoom,strength,mode}))gl.uniform1f(uniforms[key],value);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);return}
+  if(gl&&!lost){gl.useProgram(program);gl.uniform2f(uniforms.res,c.width,c.height);for(const [key,value] of Object.entries({time:phase,yaw,pitch,zoom,strength,mode,detail:api.tier()==='High'?2:api.tier()==='Low'?0:1}))gl.uniform1f(uniforms[key],value);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);return}
   if(!ctx)return;
   const w=c.width,h=c.height;ctx.fillStyle='#080817';ctx.fillRect(0,0,w,h);ctx.fillStyle=radial(ctx,w*.48,h*.45,w*.55,[[0,'#43205f'],[.5,'#201635'],[1,'#080817']]);ctx.fillRect(0,0,w,h);
   for(const [a,b,s] of stars){let x=((a+yaw*.04)%1+1)%1*w,y=((b+pitch*.04)%1+1)%1*h;ctx.globalAlpha=.35+s*.65;ctx.fillStyle='#e4d9ff';ctx.fillRect(x,y,1+s*1.3,1+s*1.3)}ctx.globalAlpha=1;

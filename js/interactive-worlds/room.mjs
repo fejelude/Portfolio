@@ -36,7 +36,7 @@ export function mount(api){
   else{rect(ctx,106,59,17,17,'#ffe5aa');rect(ctx,107,57,13,21,'#ffe5aa')}
   for(let i=0;i<10;i++){const x=40+i*10,h=12+(i*13)%30;rect(ctx,x,134-h,9,h,night?'#302b49':'#6d7b9f');for(let y=136-h;y<131;y+=6)if((i+y)%3!==0)rect(ctx,x+3,y,2,2,night?'#e4ae88':'#b3b8d6')}
   if(rainLevel>.01){
-   const count={Low:15,Medium:25,High:40}[api.tier()]||25;
+   const count={Low:15,Medium:25,High:64}[api.tier()]||25;
    ctx.save();ctx.globalAlpha=rainLevel;ctx.beginPath();ctx.rect(40,50,100,84);ctx.clip();
    for(let i=0;i<count;i++){
     const depth=i%4,x=40+(i*31+Math.floor(t*(3+depth)))%104,y=46+(i*17+Math.floor(t*(32+depth*10)))%94;
@@ -60,6 +60,11 @@ export function mount(api){
    line(ctx,mix(ax,bx,joint),mix(ay,by,joint),nextX,nextY,night?'#493649':'#9c7780');
   }
   line(ctx,218,10,218,183,'#211729',3);line(ctx,20,216,218,184,'#a080a6',3);line(ctx,218,184,459,216,'#a080a6',3);
+  if(api.tier()==='High'){
+   for(let i=0;i<42;i++){const x=25+(i*43)%181,y=49+(i*29)%110;rect(ctx,x,y,2,1,night?'#c7a0df12':'#fce3df2c')}
+   for(let i=0;i<32;i++){const x=228+(i*53)%220,y=57+(i*37)%116;rect(ctx,x,y,3,1,night?'#d2a6e01a':'#fce3df38')}
+   for(let i=0;i<16;i++){const u=(i+.5)/16;line(ctx,mix(22,266,u),mix(219,289,u),mix(220,452,u),mix(186,217,u),'#f4c7d312')}
+  }
   windowArt(t);
   // The two-by-two window falls across the floor beyond the foot of the bed.
   for(let row=0;row<2;row++)for(let col=0;col<2;col++){
@@ -104,6 +109,10 @@ export function mount(api){
    if(Math.floor(t*2)%2===0)rect(ctx,287,113,3,2,'#efdefa');
   }
   poly(ctx,[[272,150],[325,145],[344,154],[291,160]],'#252035');for(let i=0;i<7;i++)rect(ctx,281+i*6,151,4,2,'#b99bdc');
+  if(api.tier()==='High'){
+   for(let i=0;i<8;i++)for(let j=0;j<3;j++)rect(ctx,280+i*6+j,150+j*2,3,1,'#e8c9ff55');
+   if(computer){for(let i=0;i<4;i++)rect(ctx,259,87+i*8,1,5,'#a4eaff');rect(ctx,324,127,41,1,'#cab5ed88')}
+  }
   // Ceramic mug, handle and the dark lip of the desktop.
   rect(ctx,362,137,8,9,'#c39faa');rect(ctx,363,137,6,2,'#695160');rect(ctx,370,139,3,5,'#c39faa');rect(ctx,370,140,2,2,'#82637b');
   line(ctx,289,169,438,152,'#dbb0c4');

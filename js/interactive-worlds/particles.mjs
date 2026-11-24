@@ -12,7 +12,7 @@ export function integrate(p,well,dt,mode,power,width,height){
  return p;
 }
 export function mount(api){
- const c=api.canvas(800,500),ctx=c.getContext('2d',{alpha:false});let pool=[],mode='Attraction',palette='Aurora',density=1100,power=1.2,speed=1,trails=true,pointerId=null,manual=false,groups=[],well={x:400,y:250},dirty=true;
+ const c=api.canvas(800,500),ctx=c.getContext('2d',{alpha:false});let pool=[],mode='Attraction',palette='Aurora',density=1800,power=1.2,speed=1,trails=true,pointerId=null,manual=false,groups=[],well={x:400,y:250},dirty=true;
  const random=seeded(614);
  function spawn(){let r=random()*Math.min(c.width,c.height)*.43,a=random()*Math.PI*2;return {x:c.width/2+Math.cos(a)*r,y:c.height/2+Math.sin(a)*r,vx:-Math.sin(a)*r*.5,vy:Math.cos(a)*r*.5,h:Math.floor(random()*12)}}
  function count(){return Math.min(density,{Low:650,Medium:1400,High:2400}[api.tier()]||1400)}
@@ -22,7 +22,7 @@ export function mount(api){
  }
  function setCount(){const n=count();while(pool.length<n)pool.push(spawn());if(pool.length>n)pool.length=n;groupByColor()}
  function clear(){ctx.fillStyle='#071019';ctx.fillRect(0,0,c.width,c.height);dirty=false}
- function resize(){const before=[c.width,c.height];c.width={Low:480,Medium:800,High:1200}[api.tier()]||800;c.height=Math.round(c.width/1.6);for(const p of pool){p.x=p.x/before[0]*c.width;p.y=p.y/before[1]*c.height;p.vx*=c.width/before[0];p.vy*=c.height/before[1]}well.x*=c.width/before[0];well.y*=c.height/before[1];setCount();dirty=true}
+ function resize(){const before=[c.width,c.height];c.width={Low:480,Medium:800,High:1440}[api.tier()]||800;c.height=Math.round(c.width/1.6);for(const p of pool){p.x=p.x/before[0]*c.width;p.y=p.y/before[1]*c.height;p.vx*=c.width/before[0];p.vy*=c.height/before[1]}well.x*=c.width/before[0];well.y*=c.height/before[1];setCount();dirty=true}
  api.select('Force',['Attraction','Repulsion','Vortex'],v=>{mode=v;api.discover(v,v+' force discovered.')});
  api.button('Discover this force',()=>api.discover(mode,mode+' force discovered.'));
  api.select('Palette',Object.keys(colors),v=>{palette=v;groupByColor();dirty=true});
@@ -46,7 +46,7 @@ export function mount(api){
   const pal=colors[palette],step=Math.min(.05,dt*speed);
   if(step>0)for(const p of pool)integrate(p,well,step,mode,power,c.width,c.height);
   ctx.globalCompositeOperation='lighter';
-  for(let j=0;j<pal.length;j++){ctx.fillStyle=pal[j];ctx.globalAlpha=.13;for(const p of groups[j])ctx.fillRect(p.x-2,p.y-2,5,5);
+  for(let j=0;j<pal.length;j++){ctx.fillStyle=pal[j];ctx.globalAlpha=.13;for(const p of groups[j])ctx.fillRect(p.x-2,p.y-2,5,5);if(api.tier()==='High'){ctx.globalAlpha=.035;for(const p of groups[j])ctx.fillRect(p.x-4,p.y-4,9,9)}
    ctx.globalAlpha=.65;for(const p of groups[j])ctx.fillRect(p.x,p.y,1.65,1.65)}
   ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
   const g=ctx.createRadialGradient(well.x,well.y,0,well.x,well.y,25);g.addColorStop(0,'#c7f6e54d');g.addColorStop(1,'#c7f6e500');ctx.fillStyle=g;ctx.fillRect(well.x-25,well.y-25,50,50);
