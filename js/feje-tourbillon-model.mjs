@@ -242,13 +242,18 @@ function train(root){
  const u={x:.80,z:-.60};
  const module=.025,step=teeth=>module*teeth*.5;
  const phase=Math.atan2(-u.z,u.x);
- const thirdPos={x:cagePoint.x+.6*u.x,z:cagePoint.z+.6*u.z};
- const barrelPos={x:thirdPos.x+.8*u.x,z:thirdPos.z+.8*u.z};
+ const d1=step(m.cagePinion)+step(m.thirdWheel),d2=step(m.thirdPinion)+step(m.barrel);
+ const thirdPos={x:cagePoint.x+d1*u.x,z:cagePoint.z+d1*u.z};
+ const barrelPos={x:thirdPos.x+d2*u.x,z:thirdPos.z+d2*u.z};
  const third=wheelAt(root,'Compound third shaft',thirdPos.x,thirdPos.z,phase+Math.PI+Math.PI/m.thirdWheel);
  const barrel=wheelAt(root,'Barrel shaft',barrelPos.x,barrelPos.z,phase+Math.PI+Math.PI/m.barrel);
  const pinion=wheelAt(root,'Carriage input shaft',cagePoint.x,cagePoint.z,phase);
  gear(third,'36-tooth third wheel',m.thirdWheel,step(m.thirdWheel),.395,edge);
- gear(third,'16-tooth third pinion',m.thirdPinion,step(m.thirdPinion),.225,steel,{depth:.060});
+ // The compound shaft's two tooth sets require separate indexing: the
+ // third wheel has a gap toward the cage, the pinion a tooth toward the barrel.
+ const thirdPinion=group(third,'Indexed third pinion');thirdPinion.rotation.y=-Math.PI/m.thirdWheel;
+ gear(thirdPinion,'16-tooth third pinion',m.thirdPinion,step(m.thirdPinion),.225,steel,{depth:.060});
+ flattenRigidGroup(third,thirdPinion);
  gear(barrel,'48-tooth barrel',m.barrel,step(m.barrel),.225,gold,{inner:.36,open:false});
  // Open drum exposes the mainspring while retaining the original driven wheel.
  cylinder(barrel,'Barrel bottom',0,.174,0,.355,.024,brush,64);

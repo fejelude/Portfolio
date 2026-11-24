@@ -32,7 +32,7 @@ export function hairspringPoint(u,balance){
  return [r*Math.cos(a),.522,-r*Math.sin(a)];
 }
 
-// Closed rectangular ribbon cross-section, with analytic tangent normals.
+// Rectangular ribbon cross-section, with analytic tangent normals.
 // Reuses preallocated arrays during playback; no allocation per vertex.
 export function fillHairspring(positions,normals,count,balance){
  const b=clamp(balance,-BALANCE_AMPLITUDE,BALANCE_AMPLITUDE);
