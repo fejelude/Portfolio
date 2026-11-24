@@ -84,18 +84,21 @@ async function review(browser,url,version,device,report){
   }
   result.orbit=await page.evaluate(view=>{
    const r=window.fidelityRenderer,gl=r.gl,samples=[];
+   const pixel=new Uint8Array(4);
    r.setCollectible(0);
    for(let i=0;i<30;i++){
     const start=performance.now();
     r.draw({...view,yaw:view.yaw+i*.014},true,3.25+i/60);
-    gl.finish();
+    // Readback waits for the measured frame instead of just timing the
+    // command submission on browsers that optimize finish().
+    gl.readPixels(r.canvas.width>>1,r.canvas.height>>1,1,1,gl.RGBA,gl.UNSIGNED_BYTE,pixel);
     if(i>5)samples.push(performance.now()-start);
    }
    samples.sort((a,b)=>a-b);
    const buffers=r.batches.map(({b})=>b),reflection=r.reflectionTarget,scene=r.sceneTarget;
    const error=gl.getError();
    r.dispose();
-   return {samples:samples.length,p50:samples[11],p95:samples[22],error,
+   return {samples:samples.length,method:"render + synchronous pixel readback",p50:samples[11],p95:samples[22],error,
      released:buffers.every(b=>!gl.isBuffer(b))&&[reflection,scene].every(target=>!target||!gl.isFramebuffer(target.frame))};
   },poses.front);
   assert.equal(result.orbit.error,0);
