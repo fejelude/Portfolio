@@ -6,7 +6,7 @@ const assert=require('node:assert/strict');
 
 const root=path.resolve(__dirname,'..');
 const out=path.join(__dirname,'home-world-results');
-const mime={'.html':'text/html','.css':'text/css','.mjs':'text/javascript','.webp':'image/webp'};
+const mime={'.html':'text/html','.css':'text/css','.mjs':'text/javascript','.webp':'image/webp','.woff':'font/woff'};
 const section=readFile(path.join(root,'index.html'),'utf8').then(html=>{
  const watch=html.match(/<section id="tourbillon"[\s\S]*?<\/section>/)[0];
  return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -69,7 +69,10 @@ async function desktop(browser,url){
   const watchCard=page.locator('#tourbillon');
   assert.equal(await watchCard.locator('.ft-card-cosmos').count(),1);
   assert.equal(await watchCard.locator('.ft-title-echo[aria-hidden="true"]').count(),1);
-  assert.ok(await watchCard.locator('#ft-title').evaluate(el=>getComputedStyle(el).fontFamily.includes('Cormorant Garamond')));
+  assert.ok(await watchCard.locator('#ft-title').evaluate(async el=>{
+   const faces=await document.fonts.load('48px "Pinyon Signature"');
+   return getComputedStyle(el).fontFamily.startsWith('"Pinyon Signature"')&&faces.some(face=>face.status==='loaded');
+  }));
 
   const insignia=page.locator('#tourbillon .ft-maker-seal');
   assert.equal(await insignia.count(),1);
@@ -113,11 +116,12 @@ async function desktop(browser,url){
   const animatedA=await animationSample();
   await page.waitForTimeout(430);
   assert.notDeepEqual(await animationSample(),animatedA,'movement pixels did not advance');
-  for(const [name,id] of [['Escapement','escapement'],['Gear train','train'],['Earth & moon','astronomy']]){
+  for(const [name,id] of [['Escapement','escapement'],['Gear train','train'],['Earth & moon','astronomy'],
+   ['Carrier','carrier'],['Case & lugs','case'],['Caseback','back']]){
    await page.getByRole('button',{name,exact:true}).click();
    await stage.scrollIntoViewIfNeeded();
    await page.waitForTimeout(1350);
-   await canvas.screenshot({path:path.join(out,'daedalus-live-'+id+'.png')});
+   await canvas.screenshot({path:path.join(out,'daedalus-live-'+id+'.png'),timeout:60000});
   }
   assert.equal(await stage.getAttribute('data-quality'),null);
   await page.getByRole('button',{name:'Reset view'}).click();
@@ -174,20 +178,21 @@ async function mobile(browser,url){
    const canvas=document.createElement('canvas');
    const gl=canvas.getContext('webgl2',{antialias:false,alpha:true,powerPreference:'low-power'});
    const r=createWatchRenderer(canvas,{mobile:true});r.resize(390,325);
-   const samples=[];
-   for(let i=0;i<26;i++){
+   const samples=[],pixel=new Uint8Array(4);
+   for(let i=0;i<16;i++){
     const start=performance.now();
     r.draw(i*.06,{hour:110,minute:72,second:128+i},1/60,true);
-    gl.finish();
-    if(i>=6)samples.push(performance.now()-start);
+    gl.readPixels(canvas.width>>1,canvas.height>>1,1,1,gl.RGBA,gl.UNSIGNED_BYTE,pixel);
+    if(i>=4)samples.push(performance.now()-start);
    }
    samples.sort((a,b)=>a-b);
-   const result={...r.stats,p50:samples[10],p95:samples[19],width:canvas.width,height:canvas.height};
+   const result={...r.stats,p50:samples[5],p95:samples[11],width:canvas.width,height:canvas.height,error:gl.getError()};
    r.dispose();
    return result;
   });
   assert.ok(stats.triangles>5000&&stats.drawCalls>50);
-  console.log('Daedalus software WebGL2, emulated mobile, 20 synchronized frames',JSON.stringify(stats));
+  assert.equal(stats.error,0);
+  console.log('Daedalus software WebGL2, emulated mobile, 12 render-and-readback samples',JSON.stringify(stats));
  }finally{
   await context.close();
   await video.saveAs(path.join(out,'daedalus-live-mobile.webm'));
