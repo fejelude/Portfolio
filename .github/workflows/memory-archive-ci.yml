@@ -14,7 +14,7 @@ permissions:
   contents: read
 jobs:
   archive:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -23,7 +23,10 @@ jobs:
           node-version: '24'
       - run: node --test tests/*.test.* api/sofra/*.test.js
       - run: npm install --no-save --package-lock=false playwright@1.56.1
-      - run: npx playwright install --with-deps chrome
+      - name: Verify AAC-capable Chrome
+        run: |
+          command -v google-chrome
+          google-chrome --version
       - run: sudo apt-get install -y ffmpeg pulseaudio
       - run: |
           pulseaudio --start --exit-idle-time=-1
