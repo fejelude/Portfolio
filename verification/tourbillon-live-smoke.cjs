@@ -1,4 +1,4 @@
-const {chromium}=require('playwright');
+const {chromium,firefox,webkit}=require('playwright');
 const {createServer}=require('node:http');
 const {readFile,mkdir}=require('node:fs/promises');
 const path=require('node:path');
@@ -198,10 +198,58 @@ async function mobile(browser,url){
   await video.saveAs(path.join(out,'daedalus-live-mobile.webm'));
  }
 }
+async function crossEngine(url){
+ for(const [name,engine] of [['firefox',firefox],['webkit',webkit]]){
+  const browser=await engine.launch({headless:true});
+  try{
+   for(const viewport of [{width:1000,height:900},{width:390,height:844}]){
+    const page=await browser.newPage({viewport,reducedMotion:'reduce',timezoneId:'America/Los_Angeles'});
+    const issues=[];
+    page.on('pageerror',e=>issues.push(e.message));
+    page.on('console',message=>{
+     if(/THREE\.WebGLProgram.*(?:error|invalid)/i.test(message.text()))issues.push(message.text());
+    });
+    try{
+     await page.goto(url,{waitUntil:'domcontentloaded'});
+     const stage=page.locator('[data-ft-stage]'),canvas=stage.locator('.ft-model');
+     await stage.scrollIntoViewIfNeeded();
+     await page.waitForFunction(()=>document.querySelector('[data-ft-stage]').hasAttribute('data-ft-live')
+      ||!document.querySelector('[data-ft-fallback]').hidden);
+     const live=(await stage.getAttribute('data-ft-live'))!==null;
+     if(live)assert.ok(await canvas.evaluate(c=>!!c.getContext('webgl2')));
+     else{
+      assert.equal(await canvas.isHidden(),true);
+      await page.waitForFunction(()=>document.querySelector('.ft-watch-poster').naturalWidth===820);
+     }
+     for(const [id,ratio] of [['normal',4/3],['portrait',3/4],['square',1],['landscape',16/9]]){
+      await page.locator('[data-ft-ratio="'+id+'"]').click();
+      const bounds=await stage.boundingBox();
+      assert.ok(Math.abs(bounds.width/bounds.height-ratio)<.02,id+' was distorted');
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+     }
+     await page.locator('[data-ft-ratio="normal"]').click();
+     await stage.scrollIntoViewIfNeeded();
+     if(live)await page.waitForFunction(()=>{
+      const c=document.querySelector('.ft-model');
+      return Math.abs(c.width/c.height-c.clientWidth/c.clientHeight)<.015;
+     });
+     const actual=await page.locator('#ft-time').evaluate(el=>[el.textContent,
+      new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Manila',hour:'2-digit',minute:'2-digit',second:'2-digit',
+       hourCycle:'h23'}).format(new Date(el.dateTime))]);
+     assert.equal(actual[0],actual[1]);
+     assert.deepEqual(issues,[]);
+     await page.locator('#tourbillon').screenshot({path:path.join(out,'daedalus-'+name+'-'+viewport.width+'.png'),timeout:60000});
+     console.log('Daedalus',name,viewport.width,live?'live WebGL2':'static fallback','clock and four ratios passed');
+    }finally{await page.close();}
+   }
+  }finally{await browser.close();}
+ }
+}
 (async()=>{
  await mkdir(out,{recursive:true});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const url='http://127.0.0.1:'+server.address().port;
+ if(process.argv.includes('--cross-engine')){await crossEngine(url);return;}
  const browser=await chromium.launch({headless:true,args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  try{await recordSky(browser,url);await desktop(browser,url);await mobile(browser,url)}
  finally{await browser.close()}
