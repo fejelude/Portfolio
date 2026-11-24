@@ -1,0 +1,11 @@
+{
+  "codec": "aac",
+  "channels": 2,
+  "sample_rate": "44100",
+  "duration_seconds": 97.706667,
+  "packet_count": 4210,
+  "identical_audio_packet_payloads": true,
+  "identical_audio_packet_timing": true,
+  "file_bytes": 1552350,
+  "sha256": "69136c48e78e790ef334be90266f4649b29f4fe4c2bbc4b8021e2dc1778f8600"
+}

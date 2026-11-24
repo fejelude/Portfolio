@@ -3,93 +3,253 @@
   "headers": [
     {
       "source": "/sofhias-songs-67",
-      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
     },
     {
       "source": "/sofhias-songs-67.html",
-      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
-    },
-    {
-      "source": "/assets/album/:file.mp3",
-      "headers": [{ "key": "Content-Type", "value": "audio/mpeg" }, { "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
-    },
-    {
-      "source": "/assets/album/:file.mp4",
-      "headers": [{ "key": "Content-Type", "value": "audio/mp4" }, { "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
-    },
-    {
-      "source": "/assets/album/:file.m4a",
-      "headers": [{ "key": "Content-Type", "value": "audio/mp4" }, { "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
     },
     {
       "source": "/sofhia-franchesca-16",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/sofhia-franchesca-16.html",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "no-store" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
       ]
     },
     {
       "source": "/admin",
       "headers": [
-        { "key": "Cache-Control", "value": "no-store" }
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
       ]
     },
     {
       "source": "/sofra",
       "headers": [
-        { "key": "Cache-Control", "value": "no-store" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'" }
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'"
+        }
       ]
     },
     {
       "source": "/sofra/about",
       "headers": [
-        { "key": "Cache-Control", "value": "no-store" },
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'" }
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'"
+        }
       ]
     },
     {
       "source": "/SofraMaintenance",
-      "headers": [{ "key": "Cache-Control", "value": "no-store" }, { "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/assets/memory/archive.mp4",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "audio/mp4"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/compendium",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/compendium.html",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
     }
   ],
   "redirects": [
-    { "source": "/arcade", "destination": "/#surprise", "permanent": false },
-    { "source": "/Arcade", "destination": "/#surprise", "permanent": false },
-    { "source": "/Arcade.html", "destination": "/#surprise", "permanent": false },
-    { "source": "/SofraPanel", "destination": "/sofra", "permanent": false },
-    { "source": "/SofraPanel.html", "destination": "/sofra", "permanent": false }
+    {
+      "source": "/arcade",
+      "destination": "/#surprise",
+      "permanent": false
+    },
+    {
+      "source": "/Arcade",
+      "destination": "/#surprise",
+      "permanent": false
+    },
+    {
+      "source": "/Arcade.html",
+      "destination": "/#surprise",
+      "permanent": false
+    },
+    {
+      "source": "/SofraPanel",
+      "destination": "/sofra",
+      "permanent": false
+    },
+    {
+      "source": "/SofraPanel.html",
+      "destination": "/sofra",
+      "permanent": false
+    },
+    {
+      "source": "/sofhias-songs-67",
+      "destination": "/sofhia-franchesca-16",
+      "permanent": false
+    },
+    {
+      "source": "/sofhias-songs-67.html",
+      "destination": "/sofhia-franchesca-16",
+      "permanent": false
+    },
+    {
+      "source": "/compendium",
+      "destination": "/sofhia-franchesca-16",
+      "permanent": false
+    },
+    {
+      "source": "/compendium.html",
+      "destination": "/sofhia-franchesca-16",
+      "permanent": false
+    }
   ],
   "rewrites": [
-    { "source": "/sofra/about", "destination": "/SofraMaintenance" },
-    { "source": "/admin", "destination": "/api/admin-page" },
-    { "source": "/Admin", "destination": "/api/admin-page" },
-    { "source": "/Admin.html", "destination": "/api/admin-page" },
-    { "source": "/crush", "destination": "/api/admin-page" },
-    { "source": "/crush.html", "destination": "/api/admin-page" },
-    { "source": "/sofra", "destination": "/SofraMaintenance" }
-  ]
+    {
+      "source": "/sofra/about",
+      "destination": "/SofraMaintenance"
+    },
+    {
+      "source": "/admin",
+      "destination": "/api/admin-page"
+    },
+    {
+      "source": "/Admin",
+      "destination": "/api/admin-page"
+    },
+    {
+      "source": "/Admin.html",
+      "destination": "/api/admin-page"
+    },
+    {
+      "source": "/crush",
+      "destination": "/api/admin-page"
+    },
+    {
+      "source": "/crush.html",
+      "destination": "/api/admin-page"
+    },
+    {
+      "source": "/sofra",
+      "destination": "/SofraMaintenance"
+    }
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "feat/grade-11-memory-archive": false
+    }
+  }
 }
-
