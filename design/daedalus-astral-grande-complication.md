@@ -17,6 +17,8 @@ The JCAM10 technical sheet for the Astronomia Stallion documents a four-satellit
 
 The animation solves local angular displacement from the release phase of the lever. The wheel rests against each pallet before a eased half-pitch release. The lock, unlock, impulse and drop are kinematic phases. Diametrically opposite complications share a carrier. The source-of-motion equations and the relative transforms are testable without a browser. Shaft placement and envelope checks use scene units with a 2.45-unit inner case radius.
 
+The local 48:16 pair has a 0.80-unit centre distance and the 36:12 pair has a 0.60-unit centre distance, both with a 0.025-unit module. The nominal cylinder radius of the sapphire glazing is 2.453 units. The dial was set inboard to maintain at least 0.20 units of sampled vertical clearance under the dome during the carrier orbit.
+
 The geometry illustrates the visible local train and planetary interface. Transfer through the transverse stage, the central reduction, the satellite reversers and the dial differential is idealized. The model has no force propagation, friction, exact involute contact or validated shock/drop behaviour. The dial counter-rotates to keep its display orientation. The movement cannot be treated as a manufacturing design. The wall-clock time and the artistic celestial cycle have independent sources.
 
 ## Reference decisions
@@ -27,9 +29,11 @@ The geometry illustrates the visible local train and planetary interface. Transf
 | [Jacob & Co. Astronomia Tourbillon](https://jacobandco.com/timepieces/astronomia-tourbillon) | Exterior and front/rear movement images, lateral transparency and raised satellites |
 | [Jacob & Co. Astronomia Sky](https://jacobandco.com/timepieces/astronomia-sky) and [Astronomia Solar Zodiac](https://jacobandco.jp/timepieces/astronomia-solar-zodiac/) | Compare case glazing and calibre layouts. These variants use different mechanisms and supplied no Daedalus rates |
 | [Detached lever escapement, Horology Atlas](https://atlas.watchmuseum.org/encyclopedia/lever-escapement) | Locking pallets, roller, guard and banks |
+| [Patek Philippe hand finishing](https://www.patek.com/en/manufacture/artisans-of-time/hand-finishing) | Polished bevels, overlapping circular graining and localized stripes on bridges |
 | [GIA round brilliant anatomy](https://www.gia.edu/diamond-cut/diamond-cut-anatomy-round-brilliant) | Ordered crown, girdle and pavilion facets in an original rounded cut |
 | [JWST Cosmic Cliffs](https://science.nasa.gov/asset/webb/cosmic-cliffs-in-the-carina-nebula-nircam-image/) and [ESA/Webb Tarantula Nebula](https://esawebb.org/images/weic2212a/) | Layered dust cavities, thin illuminated fronts and quieter star fields |
 | [University of Wisconsin Orion](https://www.astro.wisc.edu/~dolan/constellations/constellations/Orion.html) and [Cassiopeia](https://www.astro.wisc.edu/~dolan/constellations/constellations/Cassiopeia.html) | Recognizable connected bright-star patterns, projected individually into a decorative composition |
+| [Natural Earth 1:110m land](https://github.com/nvkelso/natural-earth-vector/blob/master/geojson/ne_110m_land.geojson) and [public-domain terms](https://www.naturalearthdata.com/about/terms-of-use/) | Simplified coastline polygons for the gilt enamel globe |
 | [Pinyon Script](https://fonts.google.com/specimen/Pinyon+Script), [Great Vibes](https://fonts.google.com/specimen/Great+Vibes) and [Cormorant Garamond](https://fonts.google.com/specimen/Cormorant+Garamond) | Script proportions and complementary functional serif. The card uses Pinyon Script with a serif fallback |
 
 The astronomical environment is decorative and does not represent the sky over Manila. Current Philippine time remains a live civil-time display.

@@ -10,7 +10,7 @@ export const SATELLITES=Object.freeze({
  regulator:Object.freeze([-1.41,1.10,.22]),
  earth:Object.freeze([-.20,1.37,-1.41]),
  moon:Object.freeze([1.41,1.36,-.22]),
- dial:Object.freeze([.22,1.12,1.41])
+ dial:Object.freeze([.22,1.12,1.36])
 });
 export const pitchRadius=(teeth,module)=>teeth*module/2;
 export const meshRatio=(input,inputTeeth,outputTeeth)=>-input*inputTeeth/outputTeeth;

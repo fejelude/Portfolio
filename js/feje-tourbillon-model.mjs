@@ -8,6 +8,18 @@ const mat = (color,metalness,roughness,extra={}) =>
 const gold=mat(0xd8a083,.91,.25);
 const edge=mat(0xf5d0a7,.95,.15);
 const brush=mat(0xab725c,.87,.34);
+const striped=mat(0xc0a291,.86,.36);
+striped.onBeforeCompile=shader=>{
+ shader.vertexShader='varying vec3 bridgePosition;\n'+shader.vertexShader;
+ shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nbridgePosition=position;');
+ shader.fragmentShader='varying vec3 bridgePosition;\n'+shader.fragmentShader;
+ shader.fragmentShader=shader.fragmentShader.replace('#include <roughnessmap_fragment>',`
+  #include <roughnessmap_fragment>
+  float stripe = cos(bridgePosition.z * 43.0);
+  float detail = 1.0 - smoothstep(.04, .20, fwidth(bridgePosition.z) * 9.0);
+  roughnessFactor = clamp(roughnessFactor + stripe * .074 * detail, .18, .6);
+ `);
+};
 const steel=mat(0xb5cce4,.86,.21);
 const dark=mat(0x253344,.72,.37);
 const blue=mat(0x0b315b,.49,.29);
@@ -212,7 +224,7 @@ function bridge(parent,name,a,b){
  shape.lineTo(.097,length*.28);shape.quadraticCurveTo(.16,length*.12,.118,0);shape.closePath();
  const geom=new T.ExtrudeGeometry(shape,{depth:.057,bevelEnabled:true,bevelSize:.016,bevelThickness:.018,bevelSegments:2,curveSegments:4});
  geom.rotateX(Math.PI/2);
- const pivot=mesh(parent,name,geom,[brush,edge],...a);
+ const pivot=mesh(parent,name,geom,[striped,edge],...a);
  pivot.rotation.y=Math.atan2(direction.x,direction.z);
  return pivot;
 }
@@ -403,7 +415,7 @@ function astronomy(carrier){
 function timeDial(root){
  const swivel=group(root,'Counter-rotating dial swivel',...SATELLITES.dial);
  const face=group(swivel,'Raised Roman numeral time dial');
- face.rotation.x=.69;face.rotation.y=-.18;
+ face.rotation.set(.69,.88,0,'YXZ');
  const [x,y,z]=SATELLITES.dial;
  for(const side of [-1,1]){
   rod(root,'Dial bearing support',[x+side*.16,.39,z],[x+side*.16,y-.051,z],.049,steel);

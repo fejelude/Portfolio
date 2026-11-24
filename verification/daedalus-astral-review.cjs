@@ -55,6 +55,10 @@ async function capture(browser,url,revision,device){
   await surface.waitFor({timeout:45000});
   for(const name of mobile?['normal','portrait','square','landscape']:['normal','landscape']){
    await card.locator('[data-ft-ratio="'+name+'"]').click();
+   await stage.scrollIntoViewIfNeeded();
+   await page.waitForFunction(()=>{const c=document.querySelector('.ft-model');return !c.hidden
+    &&Math.abs(c.width/c.height-c.clientWidth/c.clientHeight)<.015;});
+   await page.evaluate(()=>new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done))));
    await stage.screenshot({path:path.join(output,revision+'-'+device+'-'+name+'-stage.png'),timeout:60000});
    if(name==='normal')await card.screenshot({path:path.join(output,revision+'-'+device+'-card.png'),timeout:60000});
   }
@@ -63,9 +67,9 @@ async function capture(browser,url,revision,device){
    antialias:c.getContext('webgl2').getContextAttributes().antialias,dpr:devicePixelRatio}));
   await page.goto(url+'/'+revision+'/probe');
   const timing=await page.evaluate(async mobile=>{
-   const {createWatchRenderer}=await import('./js/feje-tourbillon-renderer.mjs');
+   const {createWatchRenderer,overviewFraming}=await import('./js/feje-tourbillon-renderer.mjs');
    const canvas=document.querySelector('canvas');
-   const gl=canvas.getContext('webgl2',{alpha:true,antialias:!mobile,depth:true,powerPreference:'low-power'});
+   const gl=canvas.getContext('webgl2',{alpha:true,antialias:typeof overviewFraming==='function'||!mobile,depth:true,powerPreference:'low-power'});
    const probe=createWatchRenderer(canvas,{mobile});
    const frame=mobile?[390,293]:[620,465];
    probe.resize(...frame);
@@ -82,13 +86,23 @@ async function capture(browser,url,revision,device){
    const result={...probe.stats,buffer:[canvas.width,canvas.height],warmAndSampleMs:performance.now()-start,
     count:times.length,p50:times[6],p95:times[13],rgba:[...pixel],error:gl.getError(),
     driver:debug?gl.getParameter(debug.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER)};
+   // Product galleries intentionally use the new overview composition.
+   // This additional frame holds yaw, elevation, camera distance and time
+   // steady so the reconstruction can also be compared from one pose.
+   const reference=overviewFraming?.(frame[0]/frame[1])??{azimuth:.13,elevation:.58,distance:8.95};
+   probe.orbit(.82-reference.azimuth,.55-reference.elevation);
+   probe.zoom(14.3/reference.distance);
+   probe.draw(0,angles,1/60,true,0);
+   const fixedPose=canvas.toDataURL('image/png').split(',')[1];
    probe.dispose();
-   return result;
+   return {result,fixedPose};
   },mobile);
-  assert.equal(timing.error,0,JSON.stringify(timing));
-  assert.ok(timing.rgba.some((x,i)=>i<3&&x>0),'rendered pixel is empty');
+  assert.equal(timing.result.error,0,JSON.stringify(timing.result));
+  assert.ok(timing.result.rgba.some((x,i)=>i<3&&x>0),'rendered pixel is empty');
+  assert.ok(timing.fixedPose.length>2000,'matched orbit image is empty');
+  await writeFile(path.join(output,revision+'-'+device+'-matched-camera.png'),Buffer.from(timing.fixedPose,'base64'));
   assert.deepEqual(errors,[]);
-  return {sample,timing};
+  return {sample,timing:timing.result};
  }finally{await context.close();}
 }
 

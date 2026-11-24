@@ -19,7 +19,7 @@ const yAxis=new T.Vector3(0,1,0);
 
 export function overviewFraming(aspect){
  const blend=fit((aspect-1)/(16/9-1),0,1);
- return {...views.overview,azimuth:.62+.42*blend,elevation:.57-.07*blend,distance:15.35-2.45*blend};
+ return {...views.overview,azimuth:.86+.55*blend,elevation:.62-.12*blend,distance:16.7-3.8*blend};
 }
 
 function roomEnvironment(renderer){
@@ -61,7 +61,7 @@ function disposeScene(scene){
 }
 
 export function createWatchRenderer(canvas,{mobile=false}={}){
- const antialias=!mobile;
+ const antialias=true;
  const context=canvas.getContext('webgl2',{alpha:true,antialias,depth:true,powerPreference:'low-power'});
  if(!context)return null;
  const renderer=new T.WebGLRenderer({canvas,context,alpha:true,antialias});
@@ -91,7 +91,7 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
  let overviewPose=overviewFraming(4/3);
  const target=new T.Vector3(...overviewPose.target),desiredTarget=target.clone();
  const current={...overviewPose},goal={...overviewPose};
- let width=0,height=0;
+ let width=0,height=0,bufferDirty=true;
  const deviceDpr=typeof devicePixelRatio==='number'?devicePixelRatio:1;
  const maxRenderSize=context.getParameter(context.MAX_RENDERBUFFER_SIZE)||8192;
  const params=()=>({dpr:deviceDpr,mobile,width,height,maxRenderSize});
@@ -102,7 +102,7 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
  function applyResolution(){
   pixelRatio=watchPixelRatio(params())*scale;
   stats.pixelRatio=pixelRatio;
-  renderer.setPixelRatio(pixelRatio);
+  bufferDirty=true;
   observatory.setPixelRatio(pixelRatio);
  }
  function resize(w,h){
@@ -117,7 +117,7 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
   overviewPose=next;
   camera.fov=2*Math.atan(Math.tan(38*Math.PI/360)/Math.min(1,camera.aspect))*180/Math.PI;
   camera.updateProjectionMatrix();
-  applyResolution();renderer.setSize(width,height,false);
+  applyResolution();
  }
  function focus(name){
   focusDetail=Object.hasOwn(views,name)&&name!=='overview';
@@ -155,6 +155,12 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
   zoom(factor){goal.distance=fit(goal.distance*factor,1.65,21)},
   draw(seconds,angles,delta,immediate=false,skySeconds=seconds,paintInterval=delta){
    const start=performance.now();
+   if(bufferDirty&&width>0&&height>0){
+    // Resize and draw in one task so a compositor never receives a cleared
+    // backing buffer while the stage changes aspect or settles on screen.
+    renderer.setDrawingBufferSize(width,height,pixelRatio);
+    bufferDirty=false;
+   }
    watch.update(movementAt(seconds));
    if(activeView.tracking)desiredTarget.set(...activeView.target).applyAxisAngle(yAxis,watch.carrier.rotation.y);
    observatory.update(skySeconds,{economy,focus:focusDetail});

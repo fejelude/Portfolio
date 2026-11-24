@@ -69,6 +69,10 @@ test('wearable geometry has valid indices and tracks the nested movement through
   assert.equal(watch.axle.parent.parent,watch.carrier);
   assert.equal(watch.movement.cage.parent.parent,watch.axle);
   assert.equal(watch.swivel.parent,watch.carrier);
+  const moving=[];
+  watch.carrier.traverse(object=>{if(object.isMesh&&!object.isInstancedMesh)moving.push(object);});
+  const vertex=new T.Vector3();
+  let smallestGap=Infinity;
   for(let seconds=0;seconds<=1200;seconds+=17.57){
    const s=movementAt(seconds);
    watch.update(s);scene.updateMatrixWorld(true);
@@ -79,7 +83,19 @@ test('wearable geometry has valid indices and tracks the nested movement through
     const centre=scene.getObjectByName(name).getWorldPosition(new T.Vector3());
     close(Math.hypot(centre.x,centre.z),Math.hypot(SATELLITES[key][0],SATELLITES[key][2]));
    }
+   for(const object of moving){
+    const positions=object.geometry.getAttribute('position');
+    const stride=Math.max(1,Math.floor(positions.count/160));
+    for(let i=0;i<positions.count;i+=stride){
+     vertex.fromBufferAttribute(positions,i).applyMatrix4(object.matrixWorld);
+     const radius=Math.hypot(vertex.x,vertex.z);
+     assert.ok(radius<2.44,object.name+' crossed the sidewall envelope');
+     const ceiling=.705+1.89*Math.sqrt(1-(radius/2.453)**2);
+     smallestGap=Math.min(smallestGap,ceiling-vertex.y);
+    }
+   }
   }
+  assert.ok(smallestGap>.20,'carrier approached the sapphire dome too closely');
   const spring=scene.getObjectByName('Breathing rectangular steel hairspring').geometry.attributes.position;
   const endpoint=()=>Array.from(spring.array.slice(-12));
   const a=endpoint();watch.update(movementAt(43.17));

@@ -12,11 +12,11 @@ const random=(seed)=>()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/429496
 // Approximate J2000 hours, degrees and visual magnitude. Each pattern is
 // rotated as a rigid group to compose the observatory's decorative sky.
 export const CHARTS=[
- {name:'Orion',target:[-1.04,-.31,-.79],
+ {name:'Orion',target:[-1.16,-.43,-.94],
   stars:[[5.9195,7.407,.50],[5.4189,6.349,1.64],[5.5334,-.299,2.23],[5.6036,-1.202,1.69],
    [5.6793,-1.943,1.77],[5.7959,-9.670,2.07],[5.2423,-8.202,.13]],
   lines:[[0,1],[1,2],[2,3],[3,4],[4,0],[4,5],[5,6],[6,2]]},
- {name:'Cassiopeia',target:[-.36,-.21,-1.1],
+ {name:'Cassiopeia',target:[-.55,-.28,-.97],
   stars:[[0.1529,59.150,2.27],[0.6751,56.537,2.23],[.9451,60.717,2.47],
    [1.4303,60.235,2.68],[1.9066,63.670,3.38]],
   lines:[[0,1],[1,2],[2,3],[3,4]]},
@@ -64,10 +64,11 @@ void main(){
  float ridge=max(0.,1.-abs(sheet+(turbulence-.46)*.16)*5.7);
  float lace=pow(max(0.,1.-abs(cloud-.60)*3.15),5.)*front*ridge;
  float ash=smoothstep(.40,.69,cloud*.55+turbulence*.27+fine*.18);
- float veins=pow(max(0.,1.-abs(turbulence-.53)*3.0),7.)*ridge*front*(.31+.69*fine);
+ float striation=pow(max(0.,1.-abs(fine-.51)*4.2),5.);
+ float veins=pow(max(0.,1.-abs(turbulence-.53)*3.0),7.)*ridge*front*(.24+.56*fine+.20*striation);
  vec3 ink=mix(vec3(.006,.017,.039),vec3(.015,.049,.107),broad.g);
  vec3 cobalt=vec3(.010,.061,.143)*front*(.47+ridge*.70);
- vec3 turquoise=vec3(.016,.128,.139)*(lace*.74+veins*.68);
+ vec3 turquoise=vec3(.015,.174,.168)*(lace*.74+veins*.82);
  vec3 veil=vec3(.009,.029,.055)*fine*ridge;
  vec3 color=ink+cobalt*(.55+.58*ash)+turquoise+veil;
  color*=.76+.24*ash;
@@ -104,7 +105,7 @@ varying vec3 ink;
 void main(){
  gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);
  gl_PointSize=(1.15+2.0*intensity)*pixelRatio;
- light=(.44+.52*intensity)*(.88+.12*cos(phase+sparkle));
+ light=(.46+.56*intensity)*(.87+.13*cos(phase+sparkle));
  ink=mix(vec3(.32,.65,.82),vec3(1.,.91,.75),step(5.,sparkle)*.57);
 }`;
 const pointFragment=`

@@ -176,7 +176,7 @@ async function mobile(browser,url){
   const stats=await page.evaluate(async()=>{
    const {createWatchRenderer}=await import('/js/feje-tourbillon-renderer.mjs');
    const canvas=document.createElement('canvas');
-   const gl=canvas.getContext('webgl2',{antialias:false,alpha:true,powerPreference:'low-power'});
+   const gl=canvas.getContext('webgl2',{antialias:true,alpha:true,powerPreference:'low-power'});
    const r=createWatchRenderer(canvas,{mobile:true});r.resize(390,325);
    const samples=[],pixel=new Uint8Array(4);
    for(let i=0;i<16;i++){
