@@ -31,6 +31,8 @@ on:
       - js/home-collectibles.mjs
       - assets/home-world/**
       - tests/home-world.test.mjs
+      - js/visual-quality.mjs
+      - tests/visual-quality.test.mjs
       - verification/home-world-smoke.cjs
       - .github/workflows/home-world-ci.yml
 permissions:
@@ -44,6 +46,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - run: node --check js/visual-quality.mjs && node --check js/feje-tourbillon-model.mjs && node --test tests/visual-quality.test.mjs
       - run: node --check js/hero-pixels.mjs && node --check js/sofra-feature.mjs && node --check js/home-collectibles.mjs && node --check js/home-world.mjs && node --check js/home-world-renderer.mjs && node --test tests/home-world.test.mjs
       - run: node --check js/interactives-entry.mjs && node --test tests/interactives.test.cjs
       - run: node --check js/feje-tourbillon.mjs && node --check js/feje-tourbillon-renderer.mjs && node --test tests/feje-tourbillon.test.mjs

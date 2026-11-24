@@ -287,8 +287,8 @@ function regulator(root,x,z){
  }
  // Interpolate a spiral whose outer stud stays fixed while the collet moves.
  // A thin double-sided ribbon shows the spring in side-on macro inspection.
- const springPoints=321,positions=new Float32Array(springPoints*2*3),indices=[];
- for(let i=0;i<springPoints-1;i++){const j=i*2;indices.push(j,j+1,j+2,j+1,j+3,j+2)}
+ const springPoints=321,positions=new Float32Array(springPoints*4*3),indices=[];
+ for(let i=0;i<springPoints-1;i++)for(let side=0;side<4;side++){const j=i*4+side,k=i*4+(side+1)%4;indices.push(j,k,j+4,k,k+4,j+4)}
  const springGeom=new T.BufferGeometry();
  springGeom.setAttribute('position',new T.BufferAttribute(positions,3).setUsage(T.DynamicDrawUsage));springGeom.setIndex(indices);
  const spring=new T.Mesh(springGeom,new T.MeshBasicMaterial({color:0x9ccfe9,side:T.DoubleSide}));
@@ -302,7 +302,7 @@ function regulator(root,x,z){
   springAngles.forEach((u,i)=>{
    const r=.026+u*.205+s.spring*.011*Math.sin(Math.PI*u);
    const a=u*TAU*5.5+s.balance*(1-u)*(1-u)+Math.PI;
-   for(let side=0;side<2;side++){const j=6*i+side*3;positions[j]=r*Math.cos(a);positions[j+1]=.522+(side-.5)*.014;positions[j+2]=-r*Math.sin(a)}
+   for(let side=0;side<4;side++){const j=12*i+side*3,rad=r+(side===0||side===3?-.002:.002);positions[j]=rad*Math.cos(a);positions[j+1]=.522+(side<2?-.007:.007);positions[j+2]=-rad*Math.sin(a)}
   });
   springGeom.attributes.position.needsUpdate=true;
  }};

@@ -100,6 +100,7 @@ async function desktop(browser,url){
   await page.getByRole('button',{name:'Reset view'}).click();
   // The new graphics selector replaces Hide case and must affect canvas pixels.
   const graphics=page.locator('[data-ft-quality-toggle]');
+  assert.equal(await stage.getAttribute('data-quality'),'high','fresh visitor starts on High');
   assert.equal(await graphics.getAttribute('aria-expanded'),'false');
   await graphics.click();
   assert.equal(await graphics.getAttribute('aria-expanded'),'true');

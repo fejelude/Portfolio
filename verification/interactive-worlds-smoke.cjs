@@ -57,9 +57,12 @@ const server=createServer(async(req,res)=>{
      assert.equal(await page.locator('[data-iw-card="room"] .ix-rain').evaluate(el=>getComputedStyle(el).animationName),'iw-rain');
      await click('Pause motion');assert.equal(await page.locator('[data-iw-card="room"] .ix-rain').evaluate(el=>getComputedStyle(el).animationName),'none');await click('Resume motion');
      await page.screenshot({path:path.join(out,engine+'-'+size.width+'-hub.png'),fullPage:true});
+     assert.equal(await page.locator('#iw-quality').inputValue(),'High');
+     await page.locator('#iw-quality').selectOption('Medium');
      for(const id of ids){
       await page.locator('[data-iw-card="'+id+'"]').click();await page.waitForURL(base+'/interactives/'+id);
       await page.locator('#iw-stage '+(id==='os'?'.iw-os':'canvas')).waitFor();await checkWidth();
+      assert.equal(await page.locator('#iw-quality').inputValue(),await page.evaluate(()=>localStorage.getItem('fejelude.worlds.quality.v2')));
       await click('Pause');assert.equal(await page.locator('#iw-pause').getAttribute('aria-pressed'),'true');
       if(id==='room'){
        await click('Pet cat');await click('Pet cat');
