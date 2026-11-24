@@ -146,7 +146,10 @@ const server=createServer(async(req,res)=>{
         if((await stage.getAttribute('data-state'))!=='live') {
           // Automatic desktop startup may race an explicit click; success in
           // either path is equivalent. Do not swallow a failed launch.
-          try{await launch.click({timeout:2500});}catch(error){if((await stage.getAttribute('data-state'))!=='live')throw error;}
+          // Software GL and shared runners can take several frames to
+          // stabilize the control after scrolling. Require a native click
+          // or an already-live renderer under the ordinary action deadline.
+          try{await launch.click();}catch(error){if((await stage.getAttribute('data-state'))!=='live')throw error;}
         }
         await page.waitForFunction(()=>['live','fallback'].includes(document.querySelector('#world-stage').dataset.state));
         const state=await stage.getAttribute('data-state');

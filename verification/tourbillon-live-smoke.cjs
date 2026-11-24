@@ -1,4 +1,4 @@
-const {chromium}=require('playwright');
+const {chromium,firefox,webkit}=require('playwright');
 const {createServer}=require('node:http');
 const {readFile,mkdir}=require('node:fs/promises');
 const path=require('node:path');
@@ -6,7 +6,7 @@ const assert=require('node:assert/strict');
 
 const root=path.resolve(__dirname,'..');
 const out=path.join(__dirname,'home-world-results');
-const mime={'.html':'text/html','.css':'text/css','.mjs':'text/javascript','.webp':'image/webp'};
+const mime={'.html':'text/html','.css':'text/css','.mjs':'text/javascript','.webp':'image/webp','.woff':'font/woff'};
 const section=readFile(path.join(root,'index.html'),'utf8').then(html=>{
  const watch=html.match(/<section id="tourbillon"[\s\S]*?<\/section>/)[0];
  return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -69,7 +69,10 @@ async function desktop(browser,url){
   const watchCard=page.locator('#tourbillon');
   assert.equal(await watchCard.locator('.ft-card-cosmos').count(),1);
   assert.equal(await watchCard.locator('.ft-title-echo[aria-hidden="true"]').count(),1);
-  assert.ok(await watchCard.locator('#ft-title').evaluate(el=>getComputedStyle(el).fontFamily.includes('Cormorant Garamond')));
+  assert.ok(await watchCard.locator('#ft-title').evaluate(async el=>{
+   const faces=await document.fonts.load('48px "Pinyon Signature"');
+   return getComputedStyle(el).fontFamily.startsWith('"Pinyon Signature"')&&faces.some(face=>face.status==='loaded');
+  }));
 
   const insignia=page.locator('#tourbillon .ft-maker-seal');
   assert.equal(await insignia.count(),1);
@@ -113,11 +116,12 @@ async function desktop(browser,url){
   const animatedA=await animationSample();
   await page.waitForTimeout(430);
   assert.notDeepEqual(await animationSample(),animatedA,'movement pixels did not advance');
-  for(const [name,id] of [['Escapement','escapement'],['Gear train','train'],['Earth & moon','astronomy']]){
+  for(const [name,id] of [['Escapement','escapement'],['Gear train','train'],['Earth & moon','astronomy'],
+   ['Carrier','carrier'],['Case & lugs','case'],['Caseback','back']]){
    await page.getByRole('button',{name,exact:true}).click();
    await stage.scrollIntoViewIfNeeded();
    await page.waitForTimeout(1350);
-   await canvas.screenshot({path:path.join(out,'daedalus-live-'+id+'.png')});
+   await canvas.screenshot({path:path.join(out,'daedalus-live-'+id+'.png'),timeout:60000});
   }
   assert.equal(await stage.getAttribute('data-quality'),null);
   await page.getByRole('button',{name:'Reset view'}).click();
@@ -172,31 +176,80 @@ async function mobile(browser,url){
   const stats=await page.evaluate(async()=>{
    const {createWatchRenderer}=await import('/js/feje-tourbillon-renderer.mjs');
    const canvas=document.createElement('canvas');
-   const gl=canvas.getContext('webgl2',{antialias:false,alpha:true,powerPreference:'low-power'});
+   const gl=canvas.getContext('webgl2',{antialias:true,alpha:true,powerPreference:'low-power'});
    const r=createWatchRenderer(canvas,{mobile:true});r.resize(390,325);
-   const samples=[];
-   for(let i=0;i<26;i++){
+   const samples=[],pixel=new Uint8Array(4);
+   for(let i=0;i<16;i++){
     const start=performance.now();
     r.draw(i*.06,{hour:110,minute:72,second:128+i},1/60,true);
-    gl.finish();
-    if(i>=6)samples.push(performance.now()-start);
+    gl.readPixels(canvas.width>>1,canvas.height>>1,1,1,gl.RGBA,gl.UNSIGNED_BYTE,pixel);
+    if(i>=4)samples.push(performance.now()-start);
    }
    samples.sort((a,b)=>a-b);
-   const result={...r.stats,p50:samples[10],p95:samples[19],width:canvas.width,height:canvas.height};
+   const result={...r.stats,p50:samples[5],p95:samples[11],width:canvas.width,height:canvas.height,error:gl.getError()};
    r.dispose();
    return result;
   });
   assert.ok(stats.triangles>5000&&stats.drawCalls>50);
-  console.log('Daedalus software WebGL2, emulated mobile, 20 synchronized frames',JSON.stringify(stats));
+  assert.equal(stats.error,0);
+  console.log('Daedalus software WebGL2, emulated mobile, 12 render-and-readback samples',JSON.stringify(stats));
  }finally{
   await context.close();
   await video.saveAs(path.join(out,'daedalus-live-mobile.webm'));
+ }
+}
+async function crossEngine(url){
+ for(const [name,engine] of [['firefox',firefox],['webkit',webkit]]){
+  const browser=await engine.launch({headless:true});
+  try{
+   for(const viewport of [{width:1000,height:900},{width:390,height:844}]){
+    const page=await browser.newPage({viewport,reducedMotion:'reduce',timezoneId:'America/Los_Angeles'});
+    const issues=[];
+    page.on('pageerror',e=>issues.push(e.message));
+    page.on('console',message=>{
+     if(/THREE\.WebGLProgram.*(?:error|invalid)/i.test(message.text()))issues.push(message.text());
+    });
+    try{
+     await page.goto(url,{waitUntil:'domcontentloaded'});
+     const stage=page.locator('[data-ft-stage]'),canvas=stage.locator('.ft-model');
+     await stage.scrollIntoViewIfNeeded();
+     await page.waitForFunction(()=>document.querySelector('[data-ft-stage]').hasAttribute('data-ft-live')
+      ||!document.querySelector('[data-ft-fallback]').hidden);
+     const live=(await stage.getAttribute('data-ft-live'))!==null;
+     if(live)assert.ok(await canvas.evaluate(c=>!!c.getContext('webgl2')));
+     else{
+      assert.equal(await canvas.isHidden(),true);
+      await page.waitForFunction(()=>document.querySelector('.ft-watch-poster').naturalWidth===820);
+     }
+     for(const [id,ratio] of [['normal',4/3],['portrait',3/4],['square',1],['landscape',16/9]]){
+      await page.locator('[data-ft-ratio="'+id+'"]').click();
+      const bounds=await stage.boundingBox();
+      assert.ok(Math.abs(bounds.width/bounds.height-ratio)<.02,id+' was distorted');
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+     }
+     await page.locator('[data-ft-ratio="normal"]').click();
+     await stage.scrollIntoViewIfNeeded();
+     if(live)await page.waitForFunction(()=>{
+      const c=document.querySelector('.ft-model');
+      return Math.abs(c.width/c.height-c.clientWidth/c.clientHeight)<.015;
+     });
+     const actual=await page.locator('#ft-time').evaluate(el=>[el.textContent,
+      new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Manila',hour:'2-digit',minute:'2-digit',second:'2-digit',
+       hourCycle:'h23'}).format(new Date(el.dateTime))]);
+     assert.equal(actual[0],actual[1]);
+     assert.deepEqual(issues,[]);
+     await page.locator('#tourbillon').screenshot({path:path.join(out,'daedalus-'+name+'-'+viewport.width+'.png'),timeout:60000});
+     console.log('Daedalus',name,viewport.width,live?'live WebGL2':'static fallback','clock and four ratios passed');
+    }finally{await page.close();}
+   }
+  }finally{await browser.close();}
  }
 }
 (async()=>{
  await mkdir(out,{recursive:true});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const url='http://127.0.0.1:'+server.address().port;
+ if(process.argv.includes('--cross-engine')){await crossEngine(url);return;}
  const browser=await chromium.launch({headless:true,args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  try{await recordSky(browser,url);await desktop(browser,url);await mobile(browser,url)}
  finally{await browser.close()}

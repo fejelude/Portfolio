@@ -1,27 +1,41 @@
 import * as T from './vendor/three-r160.1.mjs';
-import {MOVEMENT as m, TAU} from './feje-tourbillon-mechanism.mjs';
+import {MOVEMENT as m, TAU, SATELLITES, pitchRadius} from './feje-tourbillon-mechanism.mjs';
 
+import {buildStrap} from './feje-tourbillon-strap.mjs';
 import {coastlines} from './feje-tourbillon-coastlines.mjs';
 const mat = (color,metalness,roughness,extra={}) =>
  new T.MeshStandardMaterial({color,metalness,roughness,...extra});
-const gold=mat(0xd99066,.88,.24);
-const edge=mat(0xf5bf96,.91,.16);
-const brush=mat(0xa56148,.81,.37);
+const gold=mat(0xd8a083,.91,.25);
+const edge=mat(0xf5d0a7,.95,.15);
+const brush=mat(0xab725c,.87,.34);
+const striped=mat(0xc0a291,.86,.36);
+striped.onBeforeCompile=shader=>{
+ shader.vertexShader='varying vec3 bridgePosition;\n'+shader.vertexShader;
+ shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nbridgePosition=position;');
+ shader.fragmentShader='varying vec3 bridgePosition;\n'+shader.fragmentShader;
+ shader.fragmentShader=shader.fragmentShader.replace('#include <roughnessmap_fragment>',`
+  #include <roughnessmap_fragment>
+  float stripe = cos(bridgePosition.z * 43.0);
+  float detail = 1.0 - smoothstep(.04, .20, fwidth(bridgePosition.z) * 9.0);
+  roughnessFactor = clamp(roughnessFactor + stripe * .074 * detail, .18, .6);
+ `);
+};
 const steel=mat(0xb5cce4,.86,.21);
 const dark=mat(0x253344,.72,.37);
-const blue=mat(0x123477,.47,.34);
+const blue=mat(0x0b315b,.49,.29);
+const blued=mat(0x345979,.91,.19);
 const ruby=new T.MeshPhysicalMaterial({color:0x8e0f3b,metalness:.36,roughness:.19,clearcoat:1});
 const crystal=new T.MeshPhysicalMaterial({
- color:0xdde8fc,metalness:.44,roughness:.12,flatShading:true,clearcoat:.9
+ color:0xd4e5f1,metalness:.62,roughness:.095,flatShading:true,clearcoat:.9,ior:2.41
 });
 const dialInk=new T.MeshBasicMaterial({color:0xf9d3ab});
 const sapphire=new T.MeshPhysicalMaterial({
- color:0x9eb8ef,metalness:.56,roughness:.12,transparent:true,opacity:.22,depthWrite:false,clearcoat:1
+ color:0xa6d1e4,metalness:.19,roughness:.13,transparent:true,opacity:.28,depthWrite:false,clearcoat:1,ior:1.76,side:T.DoubleSide,forceSinglePass:true
 });
 sapphire.onBeforeCompile=shader=>{
  shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>',`
    float rim = pow(1.0 - max(0.0, dot(normal, normalize(vViewPosition))), 3.0);
-   diffuseColor.a *= 0.20 + 0.80 * rim;
+   diffuseColor.a *= 0.065 + 0.76 * rim;
    #include <opaque_fragment>`);
 };
 
@@ -55,7 +69,7 @@ function screw(parent,x,y,z,r=.045){
  cylinder(parent,'Screw shank',x,y-.009,z,r,.09,steel,16);
  for(const side of [-1,1]){
   const cap=new T.CylinderGeometry(r,r,.014,12,1,false,side<0?.13:Math.PI+.13,Math.PI-.26);
-  mesh(parent,'Slotted screw cap',cap,steel,x,y+.036,z);
+  mesh(parent,'Blued slotted screw cap',cap,blued,x,y+.036,z);
  }
 }
 function jewel(parent,x,y,z,r=.079){
@@ -64,21 +78,19 @@ function jewel(parent,x,y,z,r=.079){
  gem.scale(1,.48,1);
  mesh(parent,'Ruby bearing',gem,ruby,x,y+.02,z);
 }
-function gear(parent,name,count,pitch,y,material,{inner=pitch*.58,depth=.078,escape=false}={}){
- // Tooth centers sit at zero and at integral pitches. A circular rim and
- // open spokes let visitors see the shafts behind the wheels.
- const root=pitch*(escape?.77:.91),tip=pitch*(escape?1.06:1.071);
- const section=escape?4:6;
- const radial=Array.from({length:count*section},(_,i)=>{
-  if(escape)return [root,root,tip,root][i%4];
-  return [tip,tip,pitch,root,root,pitch][i%6];
- });
+function gear(parent,name,count,pitch,y,material,{inner=pitch*.58,depth=.078,escape=false,phase=0}={}){
+ // Root and addendum follow the module. The pitch flank passes through
+ // the nominal pitch circle and leaves clearance for the opposite tooth.
+ const module=2*pitch/count;
+ const root=escape?pitch*.77:pitch-module*1.08;
+ const tip=escape?pitch*1.06:pitch+module*.86;
+ const profile=escape?[[-.48,root],[-.18,root],[.09,tip],[.34,root]]:
+  [[-.50,root],[-.31,root],[-.235,pitch],[-.13,tip],[.13,tip],[.235,pitch],[.31,root]];
  const shape=new T.Shape();
- radial.forEach((r,i)=>{
-  const a=(i-.5)*TAU/radial.length;
-  if(i===0)shape.moveTo(r*Math.cos(a),r*Math.sin(a));
-  else shape.lineTo(r*Math.cos(a),r*Math.sin(a));
- });
+ for(let i=0;i<count;i++)for(const [j,[fraction,r]] of profile.entries()){
+  const a=(i+fraction)*TAU/count+phase;
+  shape[i||j?'lineTo':'moveTo'](r*Math.cos(a),r*Math.sin(a));
+ }
  shape.closePath();
  const hole=new T.Path();
  hole.absarc(0,0,inner,0,TAU,true);shape.holes.push(hole);
@@ -135,7 +147,7 @@ function casework(root){
   [.713,2.484,.024,.018,steel]
  ])ring(shell,'Beveled case moulding',0,y,0,r,w,h,material,104);
  profile(shell,'Transparent sidewall',[[2.493,.18],[2.471,.62],[2.446,.70]],sapphire,0,0,104).renderOrder=6;
- const arc=Array.from({length:24},(_,i)=>[2.453*Math.cos(i*Math.PI/46),.705+1.65*Math.sin(i*Math.PI/46)]);
+ const arc=Array.from({length:24},(_,i)=>[2.453*Math.cos(i*Math.PI/46),.705+1.89*Math.sin(i*Math.PI/46)]);
  profile(shell,'Curved sapphire dome',arc,sapphire,0,0,104).renderOrder=7;
  for(let i=0;i<8;i++){
   const a=i*TAU/8+.23,x=2.451*Math.cos(a),z=2.451*Math.sin(a);
@@ -143,11 +155,25 @@ function casework(root){
   for(const y of [.206,.606])cylinder(shell,'Column collar',x,y,z,.088,.074,gold,18);
   screw(shell,x,.7,z,.047);
  }
- for(const x of [-1.52,1.52])for(const z of [-1,1]){
-  const lug=profile(shell,'Sculpted attachment lug',[[0,-.08],[.282,-.08],[.35,-.04],[.35,.09],[.285,.13],[0,.13]],gold,0,0,24);
-  lug.position.set(x,-.235,2.15*z);lug.scale.set(.81,1,1.27);
-  rod(shell,'Lug pin',[x-.19,-.20,2.38*z],[x+.19,-.2,2.38*z],.043,steel);
+ buildStrap(shell,{gold,edge,steel,rod,cylinder});
+ const back=group(shell,'Caseback medallion',0,-.39,0);
+ back.rotation.x=Math.PI;
+ cylinder(back,'Midnight display caseback',0,0,0,2.17,.065,blue,104);
+ for(const [r,w,material] of [[2.36,.16,brush],[2.20,.02,edge],[1.92,.017,steel],[1.32,.014,edge],[.77,.018,steel]]){
+  ring(back,'Caseback engraved radial frame',0,.041,0,r,w,.036,material,96);
  }
+ ticks(back,72,2.10,.058,1.08);
+ for(let i=0;i<8;i++){
+  const [x,z]=polar(2.265,i*TAU/8+.13);
+  screw(back,x,.027,z,.067);
+ }
+ for(const side of [-1,1]){
+  const bow=ring(back,'Recessed folding adjustment bow',side*.80,.072,.21,.42,.032,.038,edge,44);
+  bow.scale.x=.77;
+  label(back,side<0?'WIND':'SET',[side*.80,.061,.21],.43,.16);
+ }
+ label(back,'ΔΑΙΔΑΛΟΣ',[0,.058,-1.16],2.05,.40);
+ label(back,'ASTRAL  /  No. 001',[0,.058,1.36],1.65,.23);
  const crown=group(shell,'Fluted crown',2.73,.012,0);crown.rotation.z=-Math.PI/2;
  cylinder(crown,'Crown stem',0,-.16,0,.084,.20,steel);
  gear(crown,'Crown flutes',30,.16,0,edge,{inner:.078,depth:.19});
@@ -161,6 +187,15 @@ function plate(root){
   ring(root,'Fine engraved track',0,.102,0,radius,.009,.006,material,96);
  }
  ticks(root,120,2.295,.113,1.45);
+ const burnish=new T.InstancedMesh(new T.RingGeometry(.065,.073,18),mat(0x3a6083,.75,.46),190);
+ burnish.name='Overlapping perlage on the enamel border';
+ const stamp=new T.Object3D();stamp.rotation.x=-Math.PI/2;
+ for(let i=0;i<190;i++){
+  const row=i<90?0:1,a=(row?i-90+.5:i)*TAU/(row?100:90),r=1.79+row*.108;
+  stamp.position.set(r*Math.cos(a),.101,r*Math.sin(a));stamp.updateMatrix();
+  burnish.setMatrixAt(i,stamp.matrix);
+ }
+ root.add(burnish);
  const flecks=new T.InstancedMesh(new T.BoxGeometry(.012,.002,.012),steel,270),dummy=new T.Object3D();
  let randomSeed=173;
  const random=()=>{randomSeed=(Math.imul(1664525,randomSeed)+1013904223)>>>0;return randomSeed/2**32};
@@ -181,8 +216,17 @@ function plate(root){
 }
 
 function bridge(parent,name,a,b){
- rod(parent,name,a,b,.073,brush,8);
- rod(parent,'Polished bridge edge',[a[0],a[1]+.064,a[2]],[b[0],b[1]+.064,b[2]],.022,edge,8);
+ const direction=new T.Vector3().fromArray(b).sub(new T.Vector3().fromArray(a));
+ const length=direction.length(),shape=new T.Shape();
+ shape.moveTo(-.118,0);shape.quadraticCurveTo(-.16,length*.12,-.097,length*.28);
+ shape.lineTo(-.078,length*.74);shape.quadraticCurveTo(-.13,length*.96,-.073,length);
+ shape.lineTo(.073,length);shape.quadraticCurveTo(.13,length*.96,.078,length*.74);
+ shape.lineTo(.097,length*.28);shape.quadraticCurveTo(.16,length*.12,.118,0);shape.closePath();
+ const geom=new T.ExtrudeGeometry(shape,{depth:.057,bevelEnabled:true,bevelSize:.016,bevelThickness:.018,bevelSegments:2,curveSegments:4});
+ geom.rotateX(Math.PI/2);
+ const pivot=mesh(parent,name,geom,[striped,edge],...a);
+ pivot.rotation.y=Math.atan2(direction.x,direction.z);
+ return pivot;
 }
 function pillar(parent,x,z,height){
  cylinder(parent,'Stepped pivot pedestal',x,.23,z,.187,.23,brush);
@@ -195,24 +239,24 @@ function wheelAt(parent,name,x,z,angle=0){
  return wheel;
 }
 function train(root){
- const cagePoint={x:-1.08,z:.86};
+ const [x,,z]=SATELLITES.regulator,cagePoint={x,z};
  const u={x:.80,z:-.60};
- const module=.025,step=teeth=>module*teeth*.5;
+ const module=.025,step=teeth=>pitchRadius(teeth,module);
  const phase=Math.atan2(-u.z,u.x);
  const thirdPos={x:cagePoint.x+.6*u.x,z:cagePoint.z+.6*u.z};
  const barrelPos={x:thirdPos.x+.8*u.x,z:thirdPos.z+.8*u.z};
  const third=wheelAt(root,'Compound third shaft',thirdPos.x,thirdPos.z,phase+Math.PI+Math.PI/m.thirdWheel);
- const barrel=wheelAt(root,'Barrel shaft',barrelPos.x,barrelPos.z,phase+Math.PI+Math.PI/m.barrel);
+ const barrel=wheelAt(root,'Barrel shaft',barrelPos.x,barrelPos.z,phase+Math.PI);
  const pinion=wheelAt(root,'Carriage input shaft',cagePoint.x,cagePoint.z,phase);
  gear(third,'36-tooth third wheel',m.thirdWheel,step(m.thirdWheel),.395,edge);
- gear(third,'16-tooth third pinion',m.thirdPinion,step(m.thirdPinion),.225,steel,{depth:.060});
+ gear(third,'16-tooth third pinion',m.thirdPinion,step(m.thirdPinion),.225,steel,{depth:.060,phase:-Math.PI+Math.PI/m.thirdPinion-Math.PI/m.thirdWheel});
  gear(barrel,'48-tooth barrel',m.barrel,step(m.barrel),.225,gold,{inner:.36});
  gear(pinion,'12-tooth tourbillon pinion',m.cagePinion,step(m.cagePinion),.395,steel,{depth:.058});
  for(const [axis,x,z,h] of [[third,thirdPos.x,thirdPos.z,.52],[barrel,barrelPos.x,barrelPos.z,.69],[pinion,cagePoint.x,cagePoint.z,.81]]){
   rod(axis,'Turning arbor',[0,.126,0],[0,h,0],.047,steel);
   jewel(root,x,h,z,.077);
  }
- bridge(root,'Sculpted transmission bridge',[barrelPos.x-.15,.68,barrelPos.z-.08],[thirdPos.x,.50,thirdPos.z]);
+ bridge(root,'Anglage on the transmission bridge',[barrelPos.x-.15,.68,barrelPos.z-.08],[thirdPos.x,.50,thirdPos.z]);
  for(const [x,z] of [[barrelPos.x-.15,barrelPos.z-.08],[thirdPos.x+.15,thirdPos.z-.17]]){
   pillar(root,x,z,.50);screw(root,x,.58,z);
  }
@@ -226,18 +270,14 @@ function train(root){
 
 const polar=(r,a)=>[Math.cos(a)*r,-Math.sin(a)*r];
 function regulator(root,x,z){
- const fixedY=.755,pitch=.44,orbit=pitch*(1+m.escapePinion/m.fixedFourth);
+ const fixedY=.755,pitch=.399,orbit=pitch*(1+m.escapePinion/m.fixedFourth);
  const fixed=group(root,'Fixed fourth wheel plate',x,0,z);
  gear(fixed,'Fixed 80-tooth fourth wheel',m.fixedFourth,pitch,fixedY,steel,{depth:.051});
- for(let i=0;i<3;i++){
-  const [dx,dz]=polar(.56,i*TAU/3);
-  bridge(root,'Fixed cage bearing bridge',[x+dx,.47,z+dz],[x+dx*.38,.71,z+dz*.38]);
-  pillar(root,x+dx,z+dz,.49);screw(root,x+dx,.55,z+dz,.047);
- }
+ ring(fixed,'Fixed fourth wheel bearing',0,fixedY-.037,0,.459,.042,.029,edge,48);
  const cage=group(root,'One-minute carriage',x,fixedY,z);
- for(const [height,material] of [[.134,steel],[.168,edge],[.659,edge],[.695,steel]])ring(cage,'Carriage ring',0,height,0,.627,.033,.034,material,64);
+ for(const [height,material] of [[.134,steel],[.168,edge],[.659,edge],[.695,steel]])ring(cage,'Carriage ring',0,height,0,.545,.027,.034,material,64);
  for(let i=0;i<3;i++){
-  const [dx,dz]=polar(.595,.53+i*TAU/3);
+  const [dx,dz]=polar(.521,.53+i*TAU/3);
   rod(cage,'Carriage upright',[dx,.145,dz],[dx,.685,dz],.046,steel);
   rod(cage,'Carriage upper Y bridge',[dx,.693,dz],[0,.735,0],.031,gold,8);
   screw(cage,dx,.694,dz,.035);
@@ -265,105 +305,123 @@ function regulator(root,x,z){
  ring(balance,'Balance rim',0,0,0,.276,.034,.047,edge,48);
  const roller=group(balance,'Balance roller');
  cylinder(roller,'Balance staff',0,0,0,.040,.22,steel,12);
+ cylinder(roller,'Polished roller table',0,-.053,0,.126,.021,steel,24);
+ cylinder(roller,'Safety roller',0,-.084,0,.084,.022,blued,24);
+ cylinder(fork,'Guard pin',-.151,-.036,-.043,.012,.051,steel,8);
  jewel(roller,-.113,-.062,-.025,.032);
  for(let i=0;i<6;i++){
   const [dx,dz]=polar(.254,i*TAU/6);
   rod(balance,'Balance spoke',[0,0,0],[dx,0,dz],.018,steel,8);
   screw(balance,dx,.015,dz,.027);
  }
- // Interpolate a spiral whose outer stud stays fixed while the collet moves.
- // A line is used for the thin steel ribbon to keep its updates inexpensive.
- const springPoints=241,positions=new Float32Array(springPoints*3);
- const springGeom=new T.BufferGeometry();
+ // The winding is a four-cornered ribbon. The outer endpoint is fixed
+ // to the stud and the inner endpoint rotates with the collet.
+ const springPoints=157,positions=new Float32Array(springPoints*12);
+ const springGeom=new T.BufferGeometry(),indices=[];
  springGeom.setAttribute('position',new T.BufferAttribute(positions,3).setUsage(T.DynamicDrawUsage));
- const spring=new T.Line(springGeom,new T.LineBasicMaterial({color:0x9ccfe9}));
- spring.name='Breathing hairspring';spring.frustumCulled=false;cage.add(spring);
- const springAngles=Array.from({length:springPoints},(_,i)=>i/(springPoints-1));
- for(const y of [.476,.51])cylinder(cage,'Hairspring outer stud',.232,y,0,.029,.029,gold,10);
+ for(let i=0;i<springPoints-1;i++)for(let edge=0;edge<4;edge++){
+  const a=i*4+edge,b=i*4+(edge+1)%4;
+  indices.push(a,b,a+4,b,b+4,a+4);
+ }
+ springGeom.setIndex(indices);
+ const spring=new T.Mesh(springGeom,mat(0x86b4d0,.72,.25,{side:T.DoubleSide}));
+ spring.name='Breathing rectangular steel hairspring';spring.frustumCulled=false;cage.add(spring);
+ cylinder(cage,'Hairspring outer stud',.231,.506,0,.024,.051,gold,14);
+ ring(balance,'Fixed collet on balance staff',0,.111,0,.050,.015,.022,blued,20);
  return {cage,balance,fork,escape,update(s){
   cage.rotation.y=s.cage;
   escape.rotation.y=s.escape+Math.PI/m.escapePinion;
   balance.rotation.y=s.balance;fork.rotation.y=s.fork;
-  springAngles.forEach((u,i)=>{
-   const r=.026+u*.205+s.spring*.011*Math.sin(Math.PI*u);
-   const a=u*TAU*5.5+s.balance*(1-u)*(1-u)+Math.PI;
-   positions[3*i]=r*Math.cos(a);positions[3*i+1]=.522;positions[3*i+2]=-r*Math.sin(a);
-  });
-  springGeom.attributes.position.needsUpdate=true;
+  for(let i=0;i<springPoints;i++){
+   const u=i/(springPoints-1);
+   const r=.035+u*.196+s.balance*.007*Math.sin(Math.PI*u),a=u*TAU*5.5+s.balance*(1-u)**2+Math.PI;
+   const x=Math.cos(a),z=-Math.sin(a);
+   for(let corner=0;corner<4;corner++){
+    const index=i*12+corner*3,radius=r+(corner===0||corner===3?-.0023:.0023);
+    positions[index]=radius*x;positions[index+1]=.522+(corner<2?-.006:.006);positions[index+2]=radius*z;
+   }
+  }
+  springGeom.attributes.position.needsUpdate=true;springGeom.computeVertexNormals();
  }};
 }
 
 function earthMap(){
- const canvas=document.createElement('canvas');
- canvas.width=768;canvas.height=384;
- const ctx=canvas.getContext('2d');
- ctx.fillStyle='#0e4296';ctx.fillRect(0,0,768,384);
- ctx.fillStyle='#c88a53';
- for(const coast of coastlines){
-  ctx.beginPath();coast.forEach(([lon,lat],i)=>ctx[i?'lineTo':'moveTo']((lon+180)/360*768,(90-lat)/180*384));
-  ctx.closePath();ctx.fill();
+ const canvas=document.createElement('canvas'),w=1536,h=768;
+ canvas.width=w;canvas.height=h;
+ const ctx=canvas.getContext('2d'),ocean=ctx.createLinearGradient(0,0,0,h);
+ ocean.addColorStop(0,'#103761');ocean.addColorStop(.49,'#075185');ocean.addColorStop(1,'#10315c');
+ ctx.fillStyle=ocean;ctx.fillRect(0,0,w,h);
+ ctx.strokeStyle='#8dd4df4a';ctx.lineWidth=1;
+ for(let x=0;x<w;x+=w/24){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+ for(let y=h/12;y<h;y+=h/12){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+ ctx.fillStyle='#dab779';ctx.strokeStyle='#f8d8a1';ctx.lineWidth=1.4;
+ for(const polygon of coastlines){
+  ctx.beginPath();
+  for(const coast of polygon){
+   coast.forEach(([lon,lat],i)=>ctx[i?'lineTo':'moveTo']((lon+180)/360*w,(90-lat)/180*h));
+   ctx.closePath();
+  }
+  ctx.fill('evenodd');ctx.stroke();
  }
- const map=new T.CanvasTexture(canvas);map.colorSpace=T.SRGBColorSpace;map.anisotropy=4;
+ const map=new T.CanvasTexture(canvas);map.colorSpace=T.SRGBColorSpace;map.anisotropy=6;
  return map;
 }
-function astronomy(root,base){
- const earthPoint=[-1.08,-.78],moonPoint=[.79,-1.04];
- const outputs=[];
- const positions=[{point:earthPoint,driver:m.earthDriver,teeth:m.earthWheel,y:.192},
-                  {point:moonPoint,driver:m.moonDriver,teeth:m.moonWheel,y:.314}];
- for(const {point:[x,z],driver,teeth,y} of positions){
-  const distance=Math.hypot(x-base.x,z-base.z),ratio=distance/(driver+teeth);
-  const lineAngle=Math.atan2(base.z-z,x-base.x);
-  const driverAxis=wheelAt(root,'Astronomical driving wheel',base.x,base.z,lineAngle);
-  const satelliteAxis=wheelAt(root,'Astronomical satellite output',x,z,lineAngle+Math.PI+Math.PI/teeth);
-  const driverPhase=driverAxis.rotation.y,satellitePhase=satelliteAxis.rotation.y;
-  gear(driverAxis,'Astronomical driver '+driver+' teeth',driver,driver*ratio,y,steel,{depth:.049});
-  gear(satelliteAxis,'Astronomical output '+teeth+' teeth',teeth,teeth*ratio,y,gold,{depth:.049});
-  rod(satelliteAxis,'Complication output arbor',[0,.13,0],[0,.39,0],.051,steel);
-  outputs.push((barrel,output)=>{
-   driverAxis.rotation.y=driverPhase+barrel;
-   satelliteAxis.rotation.y=satellitePhase+output;
-  });
-  pillar(root,x,z,.54);
-  for(const side of [-1,1]){
-   bridge(root,'Satellite yoke',[base.x+side*.12,.562,base.z],[x+side*.13,.51,z]);
-   screw(root,x+side*.12,.594,z,.039);
+function cutMoon(radius){
+ const values=[],circles=[
+  [.39,.41,.5],[.69,.61,0],[.91,.32,.5],[1,0,0],[.91,-.32,.5],[.69,-.61,0],[.39,-.41,.5]
+ ];
+ // Distinct table, crown and pavilion bands. Staggering the rings alternates
+ // bright and dark triangular faces without a tone painted on the material.
+ circles[0][1]=.92;circles[1][1]=.70;circles[5][1]=-.70;circles[6][1]=-.92;
+ const at=(i,k)=>{
+  const [r,y,phase]=circles[i],a=(k+phase)*TAU/12;
+  return [r*radius*Math.cos(a),y*radius,radius*r*Math.sin(a)];
+ };
+ for(let i=0;i<circles.length-1;i++)for(let k=0;k<12;k++){
+  const a=at(i,k),b=at(i,k+1),c=at(i+1,k),d=at(i+1,k+1);
+  values.push(...a,...b,...c,...b,...d,...c);
+ }
+ for(let k=1;k<11;k++){values.push(...at(0,0),...at(0,k+1),...at(0,k),...at(6,0),...at(6,k),...at(6,k+1));}
+ const geometry=new T.BufferGeometry();
+ geometry.setAttribute('position',new T.Float32BufferAttribute(values,3));
+ geometry.computeVertexNormals();return geometry;
+}
+function astronomy(carrier){
+ const elements=[];
+ for(const [key,position] of [['earth',SATELLITES.earth],['moon',SATELLITES.moon]]){
+  const [x,y,z]=position,post=group(carrier,key+' satellite',x,y,z);
+  rod(post,'Hardened satellite arbor',[0,-.94,0],[0,-.35,0],.058,steel);
+  ring(post,'Rotating satellite collet',0,-.43,0,.132,.034,.06,edge,32);
+  const gimbal=group(post,key+' gimbal');
+  const loop=ring(gimbal,'Brushed polar yoke',0,0,0,.506,.025,.043,gold,64);
+  loop.rotation.z=Math.PI/2;
+  for(const sign of [-1,1]){
+   rod(gimbal,'Polished polar spindle',[0,sign*.35,0],[0,sign*.51,0],.027,steel);
+   cylinder(gimbal,'Polar pivot bezel',0,sign*.493,0,.062,.052,edge,20);
   }
+  const material=key==='earth'?new T.MeshPhysicalMaterial({map:earthMap(),metalness:.48,roughness:.22,clearcoat:.89,clearcoatRoughness:.11}):crystal;
+  const output=mesh(gimbal,key==='earth'?'Enamel Earth and gilt coastlines':'Brilliant-cut faceted moon',
+   key==='earth'?new T.SphereGeometry(.403,64,42):cutMoon(.405),material);
+  elements.push({key,gimbal,output});
  }
- const earthSupport=group(root,'Earth pole support',earthPoint[0],1.245,earthPoint[1]);
- earthSupport.rotation.z=-.32;
- rod(earthSupport,'Polished polar axis',[0,-.64,0],[0,.52,0],.034,edge);
- for(const y of [-.51,.487])cylinder(earthSupport,'Earth polar collet',0,y,0,.067,.07,steel,18);
- const globe=mesh(earthSupport,'Enamel Earth and gold continents',new T.SphereGeometry(.453,56,36),
-  new T.MeshPhysicalMaterial({map:earthMap(),metalness:.54,roughness:.26,clearcoat:.74,clearcoatRoughness:.17}));
- const moonSupport=group(root,'Lunar spindle support',moonPoint[0],1.41,moonPoint[1]);
- moonSupport.rotation.z=.13;
- rod(moonSupport,'Lunar polished axis',[0,-.82,0],[0,.45,0],.034,steel);
- for(const y of [-.452,.403])cylinder(moonSupport,'Lunar bearing cap',0,y,0,.060,.056,edge,18);
- const lunarGeom=new T.IcosahedronGeometry(.387,2);
- const color=[],count=lunarGeom.attributes.position.count;
- for(let i=0;i<count/3;i++){
-  const c=new T.Color([0xffffff,0xbbcfea,0xc8def6,0xcdd0e3,0xeed8ce][Math.floor(i*13.7)%5]);
-  for(let j=0;j<3;j++)color.push(c.r,c.g,c.b);
- }
- lunarGeom.setAttribute('color',new T.Float32BufferAttribute(color,3));crystal.vertexColors=true;
- const moon=mesh(moonSupport,'Faceted lunar crystal',lunarGeom,crystal);
- return {globe,moon,update(s){
-  globe.rotation.y=s.earth+.3;
-  moon.rotation.y=s.moon+.45;
-  outputs[0](s.barrel,s.earth);
-  outputs[1](s.barrel,s.moon);
+ return {update(state){
+  for(const {key,gimbal,output} of elements){
+   gimbal.rotation.z=.26+state[key+'Tilt'];
+   output.rotation.y=state[key]+(key==='earth'?.3:.45);
+  }
  }};
 }
 
 function timeDial(root){
- const face=group(root,'Raised Roman numeral time dial',1.075,1.205,.705);
- face.rotation.x=.70;face.rotation.y=-.16;
+ const swivel=group(root,'Counter-rotating dial swivel',...SATELLITES.dial);
+ const face=group(swivel,'Raised Roman numeral time dial');
+ face.rotation.set(.69,.88,0,'YXZ');
+ const [x,y,z]=SATELLITES.dial;
  for(const side of [-1,1]){
-  pillar(root,1.075+side*.40,.66,.55);
-  bridge(root,'Floating dial support fork',[1.075+side*.40,.51,.60],[1.075+side*.51,1.11,.68]);
-  screw(root,1.075+side*.40,.59,.62,.046);
+  rod(root,'Dial bearing support',[x+side*.16,.39,z],[x+side*.16,y-.051,z],.049,steel);
+  jewel(root,x+side*.16,y-.08,z,.064);
  }
+ ring(swivel,'Differential dial bearing',0,-.09,0,.209,.031,.039,edge,38);
  for(const [y,r,w,h,material] of [[0,.743,.11,.103,brush],[.049,.742,.058,.048,edge],[.076,.696,.020,.025,steel],[.085,.674,.111,.038,blue],[.10,.566,.018,.021,edge]]){
   ring(face,'Machined dial moulding',0,y,0,r,w,h,material,72);
  }
@@ -388,7 +446,7 @@ function timeDial(root){
   hands[name]=h;
  }
  jewel(face,0,.221,0,.068);
- return hands;
+ return {hands,swivel};
 }
 
 // Batch opaque details that share a material and direct rigid parent.
@@ -400,7 +458,7 @@ function batchMachinedDetails(root){
   const buckets=new Map();
   for(const child of [...parent.children]){
    if(child.isGroup){batch(child);continue}
-   if(!child.isMesh||child.isInstancedMesh||child.material.transparent||child.material.vertexColors)continue;
+   if(!child.isMesh||child.isInstancedMesh||Array.isArray(child.material)||child.material.transparent||child.material.vertexColors)continue;
    const keys=Object.keys(child.geometry.attributes).sort();
    if(!keys.includes('normal'))continue;
    if(!buckets.has(child.material))buckets.set(child.material,new Map());
@@ -439,14 +497,38 @@ function batchMachinedDetails(root){
  for(const g of candidates)g.dispose();
 }
 export function buildWatch(scene){
- const root=group(scene,'ΔΑΙΔΑΛΟΣ · Fejelude astronomical movement');
- const shell=casework(root);
+ const root=group(scene,'ΔΑΙΔΑΛΟΣ · Fejelude astronomical movement'),shell=casework(root);
  plate(root);
- for(const [x,z,r,alpha] of [[-.98,.85,.87,.51],[1,.71,.86,.47],[-1.08,-.78,.61,.47],[.79,-1.04,.63,.50],[0,0,.75,.48]])softOcclusion(root,x,z,r,alpha);
- const drive=train(root);
- const movement=regulator(root,drive.cagePoint.x,drive.cagePoint.z);
- const orbit=astronomy(root,drive.barrelPos);
- const hands=timeDial(root);
+ softOcclusion(root,0,0,2.04,.38);
+ const carrier=group(root,'Four-arm orbital carrier');
+ cylinder(root,'Fixed seat of the orbital bearing',0,.16,0,.50,.145,steel,48);
+ ring(root,'Chamfered bearing race',0,.22,0,.465,.065,.058,edge,48);
+ cylinder(carrier,'Satellite centre shaft',0,.32,0,.298,.206,gold,48);
+ ring(carrier,'Carrier bearing collar',0,.425,0,.343,.056,.043,edge,48);
+ jewel(carrier,0,.455,0,.116);
+ for(const [x,,z] of Object.values(SATELLITES)){
+  bridge(carrier,'Rose-gold satellite bridge',[0,.373,0],[x,.373,z]);
+  cylinder(carrier,'Satellite foot seat',x,.37,z,.19,.117,brush,24);
+  ring(carrier,'Polished arm bearing',x,.435,z,.161,.032,.032,steel,28);
+  screw(carrier,x*.83,.40,z*.83,.040);
+ }
+ const drive=train(carrier),[x,y,z]=SATELLITES.regulator;
+ const station=group(carrier,'Fixed transverse axle forks',x,y,z);
+ const axle=group(station,'Five-minute transverse yoke');
+ for(const side of [-1,1]){
+  rod(station,'Yoke bearing column',[side*.575,-.69,0],[side*.575,0,0],.042,brush);
+  const cap=cylinder(station,'Transverse bearing bezel',side*.586,0,0,.101,.075,edge,24);
+  cap.rotation.z=Math.PI/2;
+ }
+ const yokeRing=ring(axle,'Transverse polished cage frame',0,0,0,.687,.027,.035,steel,72);
+ yokeRing.rotation.z=Math.PI/2;
+ rod(axle,'Transverse pivot axle',[-.60,0,0],[.60,0,0],.032,steel);
+ const suspension=group(axle,'Inner cage mounting frame',0,-1.063,0);
+ const movement=regulator(suspension,0,0),orbit=astronomy(carrier),{hands,swivel}=timeDial(carrier);
  batchMachinedDetails(root);
- return {root,shell,hands,movement,orbit,update(state){drive.update(state);movement.update(state);orbit.update(state)}};
+ const watch={root,shell,carrier,hands,movement,orbit,axle,swivel,update(state){
+  carrier.rotation.y=state.carrier;axle.rotation.x=state.yoke;swivel.rotation.y=state.dial;
+  drive.update(state);movement.update(state);orbit.update(state);
+ }};
+ return watch;
 }
