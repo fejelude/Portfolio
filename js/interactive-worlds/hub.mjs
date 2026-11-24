@@ -1,3 +1,4 @@
+import {bindWorldQuality} from '../visual-quality.mjs';
 import {getProgress,clearProgress,deviceStorage} from './progress.mjs';
 const storage=deviceStorage(),body=document.body,cards=[...document.querySelectorAll('[data-iw-card]')],motion=matchMedia('(prefers-reduced-motion: reduce)'),toggle=document.getElementById('iw-motion');
 const dragon=document.querySelector('[data-iw-dragon]');
@@ -21,3 +22,5 @@ const stars=document.querySelector('.iw-stars');for(let i=0;i<35;i++){const star
 if('IntersectionObserver' in window){observer=new IntersectionObserver(items=>{for(const item of items)item.target.toggleAttribute('data-visible',item.isIntersecting);syncSerpent()},{threshold:.1});observed.forEach(item=>observer.observe(item))}else observed.forEach(item=>item.setAttribute('data-visible',''));
 toggle.addEventListener('click',()=>{paused=!paused;sync()});const clear=document.getElementById('iw-clear');clear.disabled=false;clear.addEventListener('click',()=>{if(confirm('Reset your six world badges on this device?')){clearProgress(storage);progress()}});
 motion.addEventListener('change',sync);document.addEventListener('visibilitychange',sync);window.addEventListener('pageshow',()=>{suspended=false;progress();sync()});window.addEventListener('pagehide',e=>{suspended=true;syncSerpent();if(!e.persisted)observer?.disconnect()});window.addEventListener('storage',progress);progress();sync();
+
+bindWorldQuality(document.getElementById('iw-quality'),()=>{});

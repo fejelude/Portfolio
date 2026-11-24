@@ -1,3 +1,4 @@
+import {bindWorldQuality} from '../visual-quality.mjs';
 import {earn,getProgress,deviceStorage,IDS,getDiscoveries,saveDiscoveries} from './progress.mjs';
 const world=document.body.dataset.world,stage=document.getElementById('iw-stage'),controls=document.getElementById('iw-controls'),consoleEl=document.getElementById('iw-console');
 const pause=document.getElementById('iw-pause'),full=document.getElementById('iw-full'),quality=document.getElementById('iw-quality'),sound=document.getElementById('iw-sound'),reset=document.getElementById('iw-reset');
@@ -6,8 +7,7 @@ const loaders={room:()=>import('./room.mjs'),universe:()=>import('./universe.mjs
 const goals={room:5,universe:3,lab:3,os:5,tokyo:3,particles:3};
 const storage=deviceStorage(),motion=matchMedia('(prefers-reduced-motion: reduce)');
 let paused=motion.matches,manualPause=false,suspended=false,visible=true,raf=0,last=0,elapsed=0,dirty=true,simulation=null,module=null,soundOn=false,audio=null,found=new Set(),generation=0;
-let autoTier=innerWidth<650?'Low':'Medium',samples=0,slow=0;
-function tier(){return quality.value==='Auto'?autoTier:quality.value}
+function tier(){return quality.value||'High'}
 let wakeTimer=0;
 function active(){return !!simulation&&!paused&&!suspended&&visible&&!document.hidden}
 function stopFrames(){
@@ -17,7 +17,6 @@ function invalidate(){dirty=true;schedule()}
 function schedule(){if(!raf&&simulation&&visible&&!suspended&&!document.hidden&&(active()||dirty))raf=requestAnimationFrame(frame)}
 function frame(now){
  raf=0;const dt=last?Math.min(.05,(now-last)/1000):0;
- if(active()&&last&&quality.value==='Auto'&&samples<120){samples++;if(now-last>27)slow++;if(samples===120&&slow>40&&autoTier!=='Low'){autoTier='Low';simulation?.resize?.();}}
  last=active()?now:0;
  if(active())elapsed+=dt;
  if(simulation&&(active()||dirty)){dirty=false;simulation.draw?.(active()?dt:0,elapsed);}
@@ -95,7 +94,7 @@ document.addEventListener('keydown',e=>{
  }
 });
 pause.addEventListener('click',()=>{manualPause=true;paused=!paused;sync()});motion.addEventListener('change',()=>{if(motion.matches){paused=true;manualPause=false}else if(!manualPause)paused=false;sync()});
-quality.addEventListener('change',()=>{simulation?.resize?.();say('Graphics quality: '+tier());invalidate()});reset.addEventListener('click',()=>mount(true));
+bindWorldQuality(quality,()=>{simulation?.resize?.();say('Graphics quality: '+tier()+' · all worlds');invalidate()});reset.addEventListener('click',()=>mount(true));
 sound.addEventListener('click',async()=>{if(!soundOn){try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)throw Error('audio unavailable');audio=audio||new Audio();await audio.resume();soundOn=true}catch{say('Audio is not available on this device.');return}}else{soundOn=false;audio?.suspend?.().catch(()=>{})}sound.setAttribute('aria-pressed',String(soundOn));sound.textContent=soundOn?'Sound on':'Sound off';beep()});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){stopFrames();}else invalidate()});
 window.addEventListener('pagehide',e=>{suspended=true;stopFrames();if(!e.persisted){generation++;simulation?.dispose?.();simulation=null;audio?.close?.().catch(()=>{})}});
@@ -106,4 +105,4 @@ function restoreProgress(){
 window.addEventListener('storage',restoreProgress);
 window.addEventListener('pageshow',()=>{suspended=false;restoreProgress();invalidate()});
 if('IntersectionObserver' in window){new IntersectionObserver(items=>{visible=items[0].isIntersecting;stopFrames();if(visible)invalidate()},{threshold:.05}).observe(stage)}
-if(IDS.includes(world)){[pause,full,quality,sound,reset].forEach(el=>el.disabled=false);if(world==='os'){quality.disabled=true;quality.title='Desktop apps use native HTML rather than a graphics quality setting.';}sync();mount()}
+if(IDS.includes(world)){[pause,full,quality,sound,reset].forEach(el=>el.disabled=false);quality.title='Shared graphics preference for all six worlds';sync();mount()}
