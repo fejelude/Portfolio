@@ -1,0 +1,40 @@
+name: Grade 11 archive CI
+on:
+  pull_request:
+    paths:
+      - 'sofhia-franchesca-16.html'
+      - 'assets/memory/**'
+      - 'css/memory-archive.css'
+      - 'js/memory-archive.mjs'
+      - 'tests/memory-archive.test.mjs'
+      - 'verification/memory-archive-smoke.cjs'
+      - 'vercel.json'
+      - '.github/workflows/memory-archive-ci.yml'
+permissions:
+  contents: read
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/*.test.* api/sofra/*.test.js
+      - run: npm install --no-save --package-lock=false playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - run: sudo apt-get install -y ffmpeg pulseaudio
+      - run: |
+          pulseaudio --start --exit-idle-time=-1
+          pactl load-module module-null-sink sink_name=ci_audio
+          pactl set-default-sink ci_audio
+      - run: ffmpeg -nostdin -v error -xerror -i assets/memory/archive.mp4 -f null -
+      - run: node verification/memory-archive-smoke.cjs
+        env:
+          MEMORY_SCREENSHOTS: ${{ runner.temp }}/memory-archive-results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: memory-archive-browser-checks
+          path: ${{ runner.temp }}/memory-archive-results/
