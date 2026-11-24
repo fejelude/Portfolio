@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import { buildWorld, STATIONS, copyView, blendView, COLLECTION, collectibleAt } from '../js/home-world-renderer.mjs';
+import { buildWorld, STATIONS, copyView, blendView, COLLECTION, collectibleAt, worldBufferSize, TerminalRenderer } from '../js/home-world-renderer.mjs';
 test('procedural geometry is deterministic, finite and bounded',()=>{
   const a=buildWorld(false),b=buildWorld(false),low=buildWorld(true);
   assert.equal(a.length,3);
@@ -58,4 +58,21 @@ test('all ten collectibles have unique models, palettes and world geometry in bo
     signatures.add(hash>>>0);
   }
   assert.equal(signatures.size,10);
+});
+
+test('backing buffers preserve device pixels inside the area and hardware limits',()=>{
+  assert.deepEqual(worldBufferSize(390,290,3,8192),[1170,870]);
+  assert.deepEqual(worldBufferSize(960,540,2,8192),[1920,1080]);
+  assert.deepEqual(worldBufferSize(1000,500,2,1024),[1024,512]);
+  const [width,height]=worldBufferSize(4000,2000,3,8192);
+  assert.ok(width*height<=2200000);
+  assert.ok(Math.abs(width/height-2)<.004);
+});
+test('sustained pressure reduces reflections before scene resolution, with recovery',()=>{
+  const renderer=Object.assign(Object.create(TerminalRenderer.prototype),{scale:1,reflectionTier:0,frameWindow:[],steadyWindows:0});
+  const run=(n,seconds)=>{for(let i=0;i<n*90;i++)renderer.observeFrame(seconds);};
+  run(1,.044);assert.equal(renderer.reflectionTier,1);assert.equal(renderer.scale,1);
+  run(1,.044);assert.equal(renderer.reflectionTier,2);assert.equal(renderer.scale,1);
+  run(6,.044);assert.equal(renderer.scale,.78);
+  run(18,.016);assert.equal(renderer.scale,1);assert.equal(renderer.reflectionTier,0);
 });

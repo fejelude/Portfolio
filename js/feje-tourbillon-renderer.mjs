@@ -2,7 +2,7 @@ import * as T from './vendor/three-r160.1.mjs';
 import {buildWatch} from './feje-tourbillon-model.mjs';
 import {movementAt} from './feje-tourbillon-mechanism.mjs';
 import {buildCelestialObservatory} from './feje-tourbillon-celestial.mjs';
-import {qualityConfiguration,normalizeQuality} from './feje-tourbillon-quality.mjs';
+import {watchPixelRatio} from './feje-tourbillon-quality.mjs';
 
 const fit=(n,min,max)=>Math.min(max,Math.max(min,n));
 const views={
@@ -50,7 +50,7 @@ function disposeScene(scene){
  for(const t of textures)t.dispose();
 }
 
-export function createWatchRenderer(canvas,{mobile=false,quality='default'}={}){
+export function createWatchRenderer(canvas,{mobile=false}={}){
  const antialias=!mobile;
  const context=canvas.getContext('webgl2',{alpha:true,antialias,depth:true,powerPreference:'low-power'});
  if(!context)return null;
@@ -59,8 +59,9 @@ export function createWatchRenderer(canvas,{mobile=false,quality='default'}={}){
  renderer.toneMappingExposure=1.21;
  renderer.setClearColor(0x000000,0);
  const scene=new T.Scene(),camera=new T.PerspectiveCamera(38,1,.10,82);
- let reflection;
+ let reflection,pendingFrame;
  const rebuildReflections=()=>{
+  pendingFrame=null;
   reflection?.dispose();
   reflection=roomEnvironment(renderer);
   scene.environment=reflection.texture;
@@ -72,8 +73,7 @@ export function createWatchRenderer(canvas,{mobile=false,quality='default'}={}){
  areaLight(0xc7dcff,1.8,3,4,-4);
  areaLight(0xfff5e5,.65,3,1,4);
  scene.add(new T.HemisphereLight(0xd9e9ff,0x654133,1.1));
- let qualityMode=normalizeQuality(quality);
- const observatory=buildCelestialObservatory(scene,{mobile,quality:qualityMode});
+ const observatory=buildCelestialObservatory(scene,{mobile});
  const watch=buildWatch(scene);
  rebuildReflections();
 
@@ -84,34 +84,22 @@ export function createWatchRenderer(canvas,{mobile=false,quality='default'}={}){
  const deviceDpr=typeof devicePixelRatio==='number'?devicePixelRatio:1;
  const maxRenderSize=context.getParameter(context.MAX_RENDERBUFFER_SIZE)||8192;
  const params=()=>({dpr:deviceDpr,mobile,width,height,maxRenderSize});
- const initial=qualityConfiguration(qualityMode,params());
- let pixelRatio=initial.pixelRatio;
- let samples=0,cost=0,slowFrames=0,economy=initial.economy,focusDetail=false;
- const stats={frames:0,triangles:0,drawCalls:0,pixelRatio,quality:qualityMode,economy};
- function setQuality(value){
-  const mode=normalizeQuality(value);
-  qualityMode=mode;
-  const config=qualityConfiguration(mode,params());
-  pixelRatio=config.pixelRatio;economy=config.economy;
-  stats.pixelRatio=pixelRatio;stats.quality=mode;stats.economy=economy;
-  samples=0;cost=0;slowFrames=0;
-  observatory.setQuality(mode);
+ let scale=1,economy=false,focusDetail=false;
+ let pixelRatio=watchPixelRatio(params());
+ let samples=0,cost=0,slowFrames=0,headroom=0;
+ const stats={frames:0,triangles:0,drawCalls:0,pixelRatio,economy};
+ function applyResolution(){
+  pixelRatio=watchPixelRatio(params())*scale;
+  stats.pixelRatio=pixelRatio;
   renderer.setPixelRatio(pixelRatio);
-  if(width>0&&height>0)renderer.setSize(width,height,false);
  }
  function resize(w,h){
   if(w<1||h<1||w===width&&h===height)return;
   width=w;height=h;
-  // High's pixel budget depends on the visible frame area. Recalculate
-  // after changing Normal/Landscape/Portrait/Square without resetting orbit.
-  if(qualityMode==='high'){
-   pixelRatio=qualityConfiguration(qualityMode,params()).pixelRatio;
-   stats.pixelRatio=pixelRatio;
-  }
   camera.aspect=w/h;
   camera.fov=2*Math.atan(Math.tan(38*Math.PI/360)/Math.min(1,camera.aspect))*180/Math.PI;
   camera.updateProjectionMatrix();
-  renderer.setPixelRatio(pixelRatio);renderer.setSize(width,height,false);
+  applyResolution();renderer.setSize(width,height,false);
  }
  function focus(name){
   focusDetail=Object.hasOwn(views,name)&&name!=='overview';
@@ -133,49 +121,51 @@ export function createWatchRenderer(canvas,{mobile=false,quality='default'}={}){
   return moving;
  }
  return {
-  resize,focus,stats,rebuildReflections,setQuality,
+  resize,focus,stats,rebuildReflections,
+  canDraw(){
+   if(!pendingFrame)return true;
+   if(context.clientWaitSync(pendingFrame,0,0)===context.TIMEOUT_EXPIRED)return false;
+   context.deleteSync(pendingFrame);pendingFrame=null;
+   return true;
+  },
   orbit(dx,dy){
    goal.azimuth+=dx;
    goal.elevation=fit(goal.elevation+dy,.08,1.49);
   },
   zoom(factor){goal.distance=fit(goal.distance*factor,1.65,15)},
-  draw(seconds,angles,delta,immediate=false,skySeconds=seconds){
+  draw(seconds,angles,delta,immediate=false,skySeconds=seconds,paintInterval=delta){
    const start=performance.now();
    watch.update(movementAt(seconds));
    observatory.update(skySeconds,{economy,focus:focusDetail});
    for(const [name,angle] of Object.entries(angles))watch.hands[name].rotation.y=-angle*Math.PI/180;
    const settling=settleCamera(delta,immediate);
    renderer.render(scene,camera);
+   if(pendingFrame)context.deleteSync(pendingFrame);
+   pendingFrame=context.fenceSync(context.SYNC_GPU_COMMANDS_COMPLETE,0);
+   context.flush();
    stats.frames++;stats.triangles=renderer.info.render.triangles;stats.drawCalls=renderer.info.render.calls;
    samples++;cost+=performance.now()-start;
-   if(delta>.045)slowFrames++;
-   // Lower fill cost after sustained slow frame submissions. Keep mesh detail
-   // and the case structure intact in the coarse/mobile profile.
-   if(samples===60){
-    if(qualityMode==='high'){
-     // Preserve the requested detailed sky/geometry. A persistent >26ms
-     // GPU/CPU render cost may trim supersampling but never drop below the
-     // old Default pixel ratio on an ordinary viewport.
-     if(cost/samples>26){
-      const floor=Math.min(pixelRatio,qualityConfiguration('default',params()).pixelRatio);
-      if(pixelRatio>floor+.035){
-       pixelRatio=Math.max(floor,pixelRatio*.9);
-       stats.pixelRatio=pixelRatio;renderer.setPixelRatio(pixelRatio);
-      }
+   if(paintInterval>.066&&paintInterval<.8)slowFrames++;
+   if(samples===90){
+    if(cost/samples>26||slowFrames>63){
+     headroom=0;
+     if(!economy)economy=true;
+     else if(scale>.76){scale=Math.max(.76,scale-.08);applyResolution();}
+    }else if(cost/samples<11&&slowFrames<5){
+     if(++headroom===3){
+      if(scale<1){scale=Math.min(1,scale+.08);applyResolution();}
+      else economy=false;
+      headroom=0;
      }
-    }else if(cost/samples>16||slowFrames/samples>.24){
-     // Exactly the prior adaptive Default behavior; Low may also recover.
-     economy=true;
-     if(pixelRatio>.78){
-      pixelRatio=Math.max(.72,pixelRatio*.80);
-      stats.pixelRatio=pixelRatio;renderer.setPixelRatio(pixelRatio);
-     }
-    }
+    }else headroom=0;
     stats.economy=economy;
     samples=0;cost=0;slowFrames=0;
    }
    return settling;
   },
-  dispose(){observatory.dispose();reflection?.dispose();disposeScene(scene);renderer.dispose()}
+  dispose(){
+   if(pendingFrame)context.deleteSync(pendingFrame);
+   reflection?.dispose();disposeScene(scene);renderer.dispose();
+  }
  };
 }

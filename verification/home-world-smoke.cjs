@@ -22,6 +22,7 @@ const server=createServer(async(req,res)=>{
     const browser=await type.launch(name==='chromium'?{headless:true,args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']}:{headless:true});
     try{
       for(const mode of ['desktop','mobile','reduced','no-webgl','no-js']){
+        console.log('Checking',name,mode);
         const mobile=mode==='mobile';
         const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1440,height:900},hasTouch:mobile,timezoneId:'America/Los_Angeles',reducedMotion:mode==='reduced'?'reduce':'no-preference',javaScriptEnabled:mode!=='no-js'});
         const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -52,12 +53,18 @@ const server=createServer(async(req,res)=>{
           const local=await page.evaluate(()=>new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Manila',hourCycle:'h23',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date()));
           const secs=t=>t.split(':').map(Number).reduce((s,n,i)=>s+n*[3600,60,1][i],0);
           assert.ok(Math.min(Math.abs(secs(live)-secs(local)),86400-Math.abs(secs(live)-secs(local)))<=2,'clock does not match Manila');
-          for(const [name,ratio] of [['landscape',16/9],['portrait',3/4],['square',1],['normal',4/3]]){
-            await watch.locator('[data-ft-ratio="'+name+'"]').click();
+          for(const [aspect,ratio] of [['landscape',16/9],['portrait',3/4],['square',1],['normal',4/3]]){
+            await watch.locator('[data-ft-ratio="'+aspect+'"]').click();
             const box=await tourbStage.boundingBox();
-            assert.ok(Math.abs(box.width/box.height-ratio)<.02,'bad ratio: '+name);
-            assert.equal(await watch.locator('[data-ft-ratio="'+name+'"]').getAttribute('aria-pressed'),'true');
-            assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
+            assert.ok(Math.abs(box.width/box.height-ratio)<.02,'bad ratio: '+aspect);
+            assert.equal(await watch.locator('[data-ft-ratio="'+aspect+'"]').getAttribute('aria-pressed'),'true');
+            const layout=await page.evaluate(()=>{
+              const width=document.documentElement.scrollWidth;
+              return {width,viewport:innerWidth,outliers:width<=innerWidth+1?[]:[...document.body.querySelectorAll('*')]
+                .filter(el=>el.getBoundingClientRect().right>innerWidth+1)
+                .slice(0,8).map(el=>({tag:el.localName,id:el.id,class:el.getAttribute('class')}))};
+            });
+            assert.ok(layout.width<=layout.viewport+1,JSON.stringify({browser:name,mode,aspect,...layout}));
             if(supports3D){
               const view=await canvas.boundingBox();
               assert.ok(Math.abs(view.width/view.height-ratio)<.02,'camera surface does not follow the frame');
@@ -108,7 +115,18 @@ const server=createServer(async(req,res)=>{
         assert.equal(await page.locator('.iw-main a.ix-return').getAttribute('href'),'/#interactives-entry');
         await page.locator('.ix-return').click();await page.waitForURL(url+'/#interactives-entry');
         await page.goto(url,{waitUntil:'domcontentloaded'});
-        if(mode==='no-js'){assert.equal(await page.locator('#about').isVisible(),true);assert.equal(await page.locator('#world-collection').isVisible(),false);await context.close();continue;}
+        if(mode==='no-js'){
+          // Fragment navigation may commit before the next document has
+          // completed layout, especially without script-blocking stylesheets.
+          await page.locator('#about').waitFor({state:'visible'});
+          const collection=page.locator('#world-collection');
+          assert.equal(await collection.count(),1);
+          assert.equal(await collection.getAttribute('hidden'),'');
+          assert.equal(await collection.isVisible(),false);
+          console.log(name,mode,'native content');
+          await context.close();
+          continue;
+        }
         await page.locator('#world-collection').waitFor({state:'visible'});
         assert.equal(await page.locator('[data-collectible-choice]').count(),10);
         assert.equal(await page.locator('#collection-name').textContent(),'Aspark Owl');
@@ -164,7 +182,7 @@ const server=createServer(async(req,res)=>{
             assert.equal(await page.locator('#collection-name').textContent(),expected[slot]);
             assert.equal(await page.locator('[data-collectible-choice][aria-pressed="true"]').count(),1);
             assert.equal(await page.locator('#world-canvas-host canvas').count(),1);
-            assert.equal(await canvas.evaluate(c=>c.getContext('webgl').getError()),0);
+            assert.equal(await canvas.evaluate(c=>(c.getContext('webgl2')||c.getContext('webgl')).getError()),0);
             if(name==='chromium'&&mode==='desktop')await page.locator('#world-viewport').screenshot({path:path.join(out,'collectible-'+(slot+1)+'.png')});
           }
           await page.locator('#collection-prev').click();
@@ -181,7 +199,7 @@ const server=createServer(async(req,res)=>{
             await page.locator('[data-collectible-choice="0"]').click();
           }
           // Paused movement still updates the camera; verify the actual context and visible frame.
-          const sample=await canvas.evaluate(c=>{const gl=c.getContext('webgl');return {width:gl.drawingBufferWidth,height:gl.drawingBufferHeight,error:gl.getError()};});
+          const sample=await canvas.evaluate(c=>{const gl=(c.getContext('webgl2')||c.getContext('webgl'));return {width:gl.drawingBufferWidth,height:gl.drawingBufferHeight,error:gl.getError()};});
           assert.ok(sample.width>0&&sample.height>0);assert.equal(sample.error,0);
           // Real GL validation on a fresh canvas before screenshots. The branch's
           // shader sources, both framebuffer passes and final composite run here.
@@ -204,19 +222,21 @@ const server=createServer(async(req,res)=>{
                 };
                 const final=sample(null),mirror=sample(reflection),base=sample(scene);
                 gl.bindFramebuffer(gl.FRAMEBUFFER,null);
-                return {targets:true,final,mirror,base,ratio:reflection.w/scene.w,error:gl.getError()};
+                return {targets:true,final,mirror,base,ratio:reflection.w/scene.w,error:gl.getError(),sizes:renderer.stats,
+                  complete:scene.w===c.width&&scene.h===c.height&&renderer.multisample?.samples>=2};
               }finally{renderer?.dispose();c.remove();}
             },mobile);
             assert.ok(render.targets,JSON.stringify(render));assert.equal(render.error,0);
             for(const s of [render.final,render.mirror,render.base])assert.ok(s.bins>8&&s.lit>0,JSON.stringify(render));
-            assert.ok(render.ratio>=.35&&render.ratio<=.55,JSON.stringify(render));
+            assert.ok(render.complete,JSON.stringify(render));
+            assert.ok(render.ratio>=.60&&render.ratio<=.67,JSON.stringify(render));
           }
           await page.locator('#world-viewport').screenshot({path:path.join(out,name+'-'+mode+'-neon-city.png')});
           await page.screenshot({path:path.join(out,name+'-'+mode+'.png')});
           if(mode==='desktop'){
-            const canLose=await canvas.evaluate(c=>Boolean(c.getContext('webgl').getExtension('WEBGL_lose_context')));
+            const canLose=await canvas.evaluate(c=>Boolean((c.getContext('webgl2')||c.getContext('webgl')).getExtension('WEBGL_lose_context')));
             if(canLose){
-              await canvas.evaluate(c=>c.getContext('webgl').getExtension('WEBGL_lose_context').loseContext());
+              await canvas.evaluate(c=>(c.getContext('webgl2')||c.getContext('webgl')).getExtension('WEBGL_lose_context').loseContext());
               await page.waitForFunction(()=>document.querySelector('#world-stage').dataset.state==='fallback');
               assert.equal(await launch.isVisible(),true);
             }
