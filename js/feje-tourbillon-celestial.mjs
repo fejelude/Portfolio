@@ -216,23 +216,12 @@ function orbitArc(parent,r,length,color,y){
  });
  return patternedLine(parent,'Platform energy trail',pts,color,.55);
 }
-export function buildCelestialObservatory(scene,{mobile=false,quality='default'}={}){
+export function buildCelestialObservatory(scene,{mobile=false}={}){
  const root=new T.Group();root.name='Daedalus Celestial Observatory';scene.add(root);
  const skyGroup=new T.Group();skyGroup.name='Distant nebula and constellations';root.add(skyGroup);
- const balancedSky=skyTexture(mobile);
- let detailedSky=mobile&&quality==='high'?skyTexture(false):null;
  const skyMesh=place(skyGroup,'Layered sapphire nebula dome',new T.SphereGeometry(55,32,20),
-  new T.MeshBasicMaterial({map:detailedSky||balancedSky,side:T.BackSide,depthWrite:false,toneMapped:false}));
+  new T.MeshBasicMaterial({map:skyTexture(false),side:T.BackSide,depthWrite:false,toneMapped:false}));
  skyMesh.renderOrder=-20;
- function setQuality(mode){
-  if(!mobile)return;
-  if(mode==='high'&&!detailedSky)detailedSky=skyTexture(false);
-  const next=mode==='high'?detailedSky:balancedSky;
-  if(skyMesh.material.map!==next){
-   skyMesh.material.map=next;
-   skyMesh.material.needsUpdate=true;
-  }
- }
  const gold=alloy(0xd4a970);
  const gem=new T.MeshStandardMaterial({color:0x56cdf2,metalness:.42,roughness:.19,emissive:0x0c8bc3,emissiveIntensity:.7});
  const texture=softStar();
@@ -254,13 +243,6 @@ export function buildCelestialObservatory(scene,{mobile=false,quality='default'}
  const warm=orbitArc(orbiter,3.05,.87,0xf2cb82,-.355);warm.rotation.y=Math.PI;
  const fill=new T.PointLight(0x3ab8ff,1.8,8,2);fill.position.set(0,.24,2.05);scene.add(fill);
  return {
- setQuality,
- // disposeScene() releases the map currently in the material. The inactive
- // mobile-resolution map must also be freed on navigation/context teardown.
- dispose(){
-  if(balancedSky!==skyMesh.material.map)balancedSky.dispose();
-  if(detailedSky&&detailedSky!==skyMesh.material.map)detailedSky.dispose();
- },
  update(seconds,{economy=false,focus=false}={}){
   const {angle,breath,pulse}=celestialPhase(seconds);
   skyGroup.rotation.y=.012*Math.sin(angle);skyGroup.rotation.x=.004*Math.sin(angle+.7);
