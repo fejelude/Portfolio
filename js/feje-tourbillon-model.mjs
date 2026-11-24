@@ -1,28 +1,22 @@
 import * as T from './vendor/three-r160.1.mjs';
 import {MOVEMENT as m, TAU} from './feje-tourbillon-mechanism.mjs';
 
-import {wheelOutline,fillHairspring,ribbonIndices,barrelSpiral} from './feje-tourbillon-geometry.mjs';
-import {perlageFinish,guillocheFinish,brushedFinish} from './feje-tourbillon-finishes.mjs';
 import {coastlines} from './feje-tourbillon-coastlines.mjs';
 const mat = (color,metalness,roughness,extra={}) =>
  new T.MeshStandardMaterial({color,metalness,roughness,...extra});
 const gold=mat(0xd99066,.88,.24);
 const edge=mat(0xf5bf96,.91,.16);
 const brush=mat(0xa56148,.81,.37);
-const steel=mat(0xb5cce4,.89,.23);
-const mirror=mat(0xe2e8f1,.98,.115);
-const blued=mat(0x355788,.95,.19);
-const springSteel=mat(0x7895c8,.9,.27,{side:T.DoubleSide});
-const rosePolish=mat(0xf0ac87,.96,.15);
+const steel=mat(0xb5cce4,.86,.21);
 const dark=mat(0x253344,.72,.37);
 const blue=mat(0x123477,.47,.34);
-const ruby=new T.MeshPhysicalMaterial({color:0xa20d39,metalness:.12,roughness:.14,clearcoat:1,clearcoatRoughness:.12});
+const ruby=new T.MeshPhysicalMaterial({color:0x8e0f3b,metalness:.36,roughness:.19,clearcoat:1});
 const crystal=new T.MeshPhysicalMaterial({
  color:0xdde8fc,metalness:.44,roughness:.12,flatShading:true,clearcoat:.9
 });
 const dialInk=new T.MeshBasicMaterial({color:0xf9d3ab});
 const sapphire=new T.MeshPhysicalMaterial({
- color:0xc3d8ff,metalness:.18,roughness:.075,transparent:true,opacity:.18,depthWrite:false,clearcoat:1
+ color:0x9eb8ef,metalness:.56,roughness:.12,transparent:true,opacity:.22,depthWrite:false,clearcoat:1
 });
 sapphire.onBeforeCompile=shader=>{
  shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>',`
@@ -34,25 +28,13 @@ sapphire.onBeforeCompile=shader=>{
 function group(parent,name,x=0,y=0,z=0){
  const g=new T.Group();g.name=name;g.position.set(x,y,z);parent.add(g);return g;
 }
-function flattenRigidGroup(parent,sub){
- sub.updateMatrix();
- for(const o of [...sub.children]){
-  o.updateMatrix();o.matrix.premultiply(sub.matrix);o.matrix.decompose(o.position,o.quaternion,o.scale);
-  parent.add(o);
- }
- parent.remove(sub);
-}
 function mesh(parent,name,geom,material,x=0,y=0,z=0){
  const obj=new T.Mesh(geom,material);obj.name=name;obj.position.set(x,y,z);parent.add(obj);return obj;
 }
 const profile=(parent,name,points,material,x=0,z=0,detail=72)=>
  mesh(parent,name,new T.LatheGeometry(points.map(p=>new T.Vector2(...p)),detail),material,x,0,z);
-function ring(parent,name,x,y,z,r,w,h,material,detail=64){
- // Scale the bevel to the part, not the case. Tiny jewels and thin tracks
- // no longer get an oversized fixed bevel that collapses their profile.
- const b=Math.min(w*.28,h*.32,r*.08);
- return profile(parent,name,[[r-w+b,y-h/2],[r-b,y-h/2],[r,y-h/2+b],[r,y+h/2-b],[r-b,y+h/2],[r-w+b,y+h/2],[r-w,y+h/2-b],[r-w,y-h/2+b],[r-w+b,y-h/2]],material,x,z,detail);
-}
+const ring=(parent,name,x,y,z,r,w,h,material,detail=64)=>
+ profile(parent,name,[[r-w,y-h/2],[r,y-h/2],[r+.008,y-h*.28],[r+.008,y+h*.28],[r-.012,y+h/2],[r-w+.008,y+h/2],[r-w,y+h*.28],[r-w,y-h/2]],material,x,z,detail);
 const cylinders=new Map();
 function cylinder(parent,name,x,y,z,r,h,material,sides=24){
  const key=[r,h,sides].join(':');
@@ -69,53 +51,48 @@ function box(parent,name,p,size,material){
  return mesh(parent,name,new T.BoxGeometry(...size),material,...p);
 }
 function screw(parent,x,y,z,r=.045){
- // Real recessed slot: separate clipped circular segments, not a painted line.
- const head=group(parent,'Blued slotted screw',x,y,z);
- cylinder(head,'Screw shank',0,-.012,0,r*.68,.074,steel,20);
- ring(head,'Polished countersink',0,.015,0,r*1.19,r*.21,.015,mirror,32);
- cylinder(head,'Dark slot floor',0,.023,0,r*.93,.010,dark,32);
- const gap=.18,angle=Math.asin(gap);
- for(const side of [0,1]){
-  const shape=new T.Shape(),a0=angle+side*Math.PI,a1=Math.PI-angle+side*Math.PI;
-  for(let i=0;i<=22;i++){const a=a0+(a1-a0)*i/22;shape[i?'lineTo':'moveTo'](r*Math.cos(a),r*Math.sin(a))}
-  shape.closePath();
-  const geo=new T.ExtrudeGeometry(shape,{depth:.013,bevelEnabled:true,bevelSize:r*.06,bevelThickness:.003,bevelSegments:1,curveSegments:12});
-  geo.rotateX(-Math.PI/2);mesh(head,'Chamfered screw half',geo,blued,0,.026,0);
+ // Two semicircular caps leave a real slot across the head.
+ cylinder(parent,'Screw shank',x,y-.009,z,r,.09,steel,16);
+ for(const side of [-1,1]){
+  const cap=new T.CylinderGeometry(r,r,.014,12,1,false,side<0?.13:Math.PI+.13,Math.PI-.26);
+  mesh(parent,'Slotted screw cap',cap,steel,x,y+.036,z);
  }
- flattenRigidGroup(parent,head);
 }
 function jewel(parent,x,y,z,r=.079){
- const bearing=group(parent,'Jewelled bearing',x,y,z);
- ring(bearing,'Gold chaton',0,0,0,r,r*.25,.027,rosePolish,40);
- ring(bearing,'Annular ruby hole jewel',0,.014,0,r*.73,r*.49,.023,ruby,40);
- cylinder(bearing,'Pivot end',0,.025,0,r*.17,.022,mirror,24);
- flattenRigidGroup(parent,bearing);
+ ring(parent,'Gold jewel bezel',x,y,z,r,.014,.026,edge,24);
+ const gem=new T.IcosahedronGeometry(r*.63,1);
+ gem.scale(1,.48,1);
+ mesh(parent,'Ruby bearing',gem,ruby,x,y+.02,z);
 }
-function shapedSpoke(parent,a,core,inner,depth,y,material,pitch){
- // Tapered swept spokes are real bevelled solids attached to the wheel.
- const w=Math.min(pitch*.16,(inner-core)*.35),overlap=Math.min(.012,pitch*.08),s=new T.Shape();
- s.moveTo(core,-w*.5);s.quadraticCurveTo((core+inner)*.52,-w*.32,inner+overlap,-w*.78);
- s.lineTo(inner+overlap,w*.78);s.quadraticCurveTo((core+inner)*.52,w*.32,core,w*.5);s.closePath();
- const g=new T.ExtrudeGeometry(s,{depth:depth*.57,bevelEnabled:true,bevelSegments:1,bevelSize:w*.09,bevelThickness:depth*.045,curveSegments:5});g.rotateX(-Math.PI/2);
- const o=mesh(parent,'Tapered wheel spoke',g,material,0,y-depth*.285,0);o.rotation.y=a;
-}
-function gear(parent,name,count,pitch,y,material,{inner=pitch*.58,depth=.078,escape=false,ornamental=false,open=true}={}){
- const outline=wheelOutline(count,pitch,{escape,ornamental});
- inner=Math.min(inner,outline.root*.82);
+function gear(parent,name,count,pitch,y,material,{inner=pitch*.58,depth=.078,escape=false}={}){
+ // Tooth centers sit at zero and at integral pitches. A circular rim and
+ // open spokes let visitors see the shafts behind the wheels.
+ const root=pitch*(escape?.77:.91),tip=pitch*(escape?1.06:1.071);
+ const section=escape?4:6;
+ const radial=Array.from({length:count*section},(_,i)=>{
+  if(escape)return [root,root,tip,root][i%4];
+  return [tip,tip,pitch,root,root,pitch][i%6];
+ });
  const shape=new T.Shape();
- outline.points.forEach(([x,z],i)=>shape[i?'lineTo':'moveTo'](x,z));shape.closePath();
- const hole=new T.Path();hole.absarc(0,0,inner,0,TAU,true);shape.holes.push(hole);
- // Small teeth need a bevel smaller than the pitch, or the teeth disappear.
- const bevel=Math.min(depth*.11,outline.module*.105);
- const geom=new T.ExtrudeGeometry(shape,{depth,curveSegments:24,bevelEnabled:true,bevelSegments:1,bevelSize:bevel,bevelThickness:bevel});
- geom.rotateX(-Math.PI/2);mesh(parent,name,geom,material,0,y-depth/2,0);
- const core=Math.min(pitch*.29,inner*.64);
- cylinder(parent,'Turned wheel hub',0,y,0,core,depth*1.25,material,28);
- if(pitch>.16){
-  ring(parent,'Polished wheel rim',0,y+depth*.54,0,outline.root*.95,Math.min(.012,pitch*.045),.006,material,48);
-  ring(parent,'Wheel hub shoulder',0,y+depth*.61,0,core,core*.20,.009,mirror,24);
+ radial.forEach((r,i)=>{
+  const a=(i-.5)*TAU/radial.length;
+  if(i===0)shape.moveTo(r*Math.cos(a),r*Math.sin(a));
+  else shape.lineTo(r*Math.cos(a),r*Math.sin(a));
+ });
+ shape.closePath();
+ const hole=new T.Path();
+ hole.absarc(0,0,inner,0,TAU,true);shape.holes.push(hole);
+ const geom=new T.ExtrudeGeometry(shape,{depth,curveSegments:18,bevelEnabled:true,bevelSegments:1,bevelSize:depth*.12,bevelThickness:depth*.12});
+ geom.rotateX(-Math.PI/2);
+ mesh(parent,name,geom,material,0,y-depth/2,0);
+ const core=pitch*.29;
+ const spokes=pitch>.28?6:4;
+ cylinder(parent,'Pinion hub',0,y,0,core,depth*1.25,material);
+ for(let i=0;i<spokes;i++){
+  const a=TAU*i/spokes;
+  const spoke=box(parent,'Wheel spoke',[Math.cos(a)*(inner+core)/2,y,-Math.sin(a)*(inner+core)/2],[inner-core+.04,depth*.68,pitch*.12],material);
+  spoke.rotation.y=a;
  }
- if(open)for(let i=0;i<(pitch>.28?6:4);i++)shapedSpoke(parent,i*TAU/(pitch>.28?6:4),core,inner,depth,y,material,pitch);
 }
 function softOcclusion(parent,x,z,r,opacity){
  const c=document.createElement('canvas');c.width=c.height=64;
@@ -139,10 +116,10 @@ function ticks(parent,count,r,y,scale=1){
  parent.add(mark);
 }
 function label(parent,text,position,w,h,{angle=0}={}){
- const c=document.createElement('canvas');c.width=512;c.height=128;
- const ctx=c.getContext('2d');ctx.fillStyle='#f4d7b0';ctx.font='96px Georgia';
- ctx.textBaseline='middle';ctx.textAlign='center';ctx.fillText(text,256,68,494);
- const map=new T.CanvasTexture(c);map.colorSpace=T.SRGBColorSpace;map.anisotropy=4;
+ const c=document.createElement('canvas');c.width=256;c.height=64;
+ const ctx=c.getContext('2d');ctx.fillStyle='#f4d7b0';ctx.font='48px Georgia';
+ ctx.textBaseline='middle';ctx.textAlign='center';ctx.fillText(text,128,34,247);
+ const map=new T.CanvasTexture(c);map.colorSpace=T.SRGBColorSpace;
  const ink=new T.MeshBasicMaterial({map,transparent:true,depthWrite:false});
  const o=mesh(parent,text,new T.PlaneGeometry(w,h),ink,...position);
  o.rotation.set(-Math.PI/2,0,angle);
@@ -150,21 +127,16 @@ function label(parent,text,position,w,h,{angle=0}={}){
 }
 
 function casework(root){
- const shell=group(root,'Sapphire and sculpted case');
- const caseBrush=brush.clone();caseBrush.bumpMap=brushedFinish();caseBrush.bumpScale=.009;
- profile(shell,'Sculpted rose-gold case',[[2.12,-.38],[2.42,-.38],[2.55,-.33],[2.6,-.22],[2.62,-.08],[2.58,.08],[2.49,.14],[2.36,.12],[2.36,-.33],[2.12,-.38]],caseBrush,0,0,144);
+ const shell=group(root,'Removable sapphire and case');
+ profile(shell,'Sculpted rose-gold case',[[2.12,-.38],[2.42,-.38],[2.55,-.33],[2.6,-.22],[2.62,-.08],[2.58,.08],[2.49,.14],[2.36,.12],[2.36,-.33],[2.12,-.38]],brush,0,0,112);
  for(const [y,r,w,h,material] of [
   [-.32,2.51,.052,.035,edge],[-.22,2.6,.045,.029,gold],[-.075,2.62,.041,.032,edge],
   [.102,2.56,.057,.052,gold],[.168,2.526,.05,.039,edge],[.62,2.50,.070,.042,gold],[.676,2.515,.074,.050,edge],
   [.713,2.484,.024,.018,steel]
  ])ring(shell,'Beveled case moulding',0,y,0,r,w,h,material,104);
  profile(shell,'Transparent sidewall',[[2.493,.18],[2.471,.62],[2.446,.70]],sapphire,0,0,104).renderOrder=6;
- const arc=Array.from({length:40},(_,i)=>[2.453*Math.cos(i*Math.PI/78),.705+1.65*Math.sin(i*Math.PI/78)]);
+ const arc=Array.from({length:24},(_,i)=>[2.453*Math.cos(i*Math.PI/46),.705+1.65*Math.sin(i*Math.PI/46)]);
  profile(shell,'Curved sapphire dome',arc,sapphire,0,0,104).renderOrder=7;
- // Recessed polished case-back seams and discrete milled edge detail.
- for(const y of [-.342,-.305,.132])ring(shell,'Polished case seam',0,y,0,2.50,.016,.012,rosePolish,112);
- const knurl=new T.InstancedMesh(new T.BoxGeometry(.024,.033,.010),rosePolish,96),pose=new T.Object3D();
- for(let i=0;i<96;i++){const a=i*TAU/96;pose.position.set(2.575*Math.cos(a),-.185,-2.575*Math.sin(a));pose.rotation.y=a-Math.PI/2;pose.updateMatrix();knurl.setMatrixAt(i,pose.matrix)}shell.add(knurl);
  for(let i=0;i<8;i++){
   const a=i*TAU/8+.23,x=2.451*Math.cos(a),z=2.451*Math.sin(a);
   cylinder(shell,'Sapphire support column',x,.39,z,.050,.48,brush);
@@ -178,14 +150,13 @@ function casework(root){
  }
  const crown=group(shell,'Fluted crown',2.73,.012,0);crown.rotation.z=-Math.PI/2;
  cylinder(crown,'Crown stem',0,-.16,0,.084,.20,steel);
- gear(crown,'Crown flutes',30,.16,0,edge,{inner:.078,depth:.19,ornamental:true});
+ gear(crown,'Crown flutes',30,.16,0,edge,{inner:.078,depth:.19});
  cylinder(crown,'Polished crown face',0,.108,0,.142,.033,gold);
  label(crown,'Δ',[0,.128,0],.18,.18);
  return shell;
 }
 function plate(root){
- const plateMaterial=blue.clone();plateMaterial.bumpMap=perlageFinish();plateMaterial.bumpScale=.014;plateMaterial.roughness=.31;
- cylinder(root,'Circular-grained royal blue movement plate',0,-.026,0,2.405,.25,plateMaterial,128);
+ cylinder(root,'Royal blue enamel plate',0,-.026,0,2.405,.25,blue,104);
  for(const [radius,material] of [[1.40,dark],[1.85,steel],[1.91,dark],[2.07,gold],[2.21,steel],[2.36,steel]]){
   ring(root,'Fine engraved track',0,.102,0,radius,.009,.006,material,96);
  }
@@ -210,22 +181,8 @@ function plate(root){
 }
 
 function bridge(parent,name,a,b){
- const dx=b[0]-a[0],dz=b[2]-a[2],len=Math.hypot(dx,dz)||1;
- // Bridge is a bevelled, curved plate with broad bearing ends, not a tube.
- const mid=[(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2];
- const support=group(parent,name,...mid);
- support.rotation.y=Math.atan2(-dz,dx);
- support.rotation.z=Math.atan2(b[1]-a[1],len);
- const span=Math.hypot(len,b[1]-a[1]),half=span/2,w=.072,shape=new T.Shape();
- shape.moveTo(-half-.075,0);shape.quadraticCurveTo(-half-.075,w*1.6,-half,w*1.6);
- shape.bezierCurveTo(-half*.55,w*1.6,-half*.32,w,0,w);
- shape.bezierCurveTo(half*.32,w,half*.55,w*1.6,half,w*1.6);shape.quadraticCurveTo(half+.075,w*1.6,half+.075,0);
- shape.quadraticCurveTo(half+.075,-w*1.6,half,-w*1.6);shape.bezierCurveTo(half*.55,-w*1.6,half*.32,-w,0,-w);
- shape.bezierCurveTo(-half*.32,-w,-half*.55,-w*1.6,-half,-w*1.6);shape.quadraticCurveTo(-half-.075,-w*1.6,-half-.075,0);shape.closePath();
- const g=new T.ExtrudeGeometry(shape,{depth:.052,bevelEnabled:true,bevelSegments:2,bevelSize:.014,bevelThickness:.012,curveSegments:6});
- g.rotateX(-Math.PI/2);mesh(support,'Anglage bridge body',g,brush,0,-.026,0);
- for(const side of [-1,1])rod(support,'Polished shoulder',[-half,.035,side*w*.88],[half,.035,side*w*.88],.009,mirror,8);
- flattenRigidGroup(parent,support);
+ rod(parent,name,a,b,.073,brush,8);
+ rod(parent,'Polished bridge edge',[a[0],a[1]+.064,a[2]],[b[0],b[1]+.064,b[2]],.022,edge,8);
 }
 function pillar(parent,x,z,height){
  cylinder(parent,'Stepped pivot pedestal',x,.23,z,.187,.23,brush);
@@ -242,27 +199,14 @@ function train(root){
  const u={x:.80,z:-.60};
  const module=.025,step=teeth=>module*teeth*.5;
  const phase=Math.atan2(-u.z,u.x);
- const d1=step(m.cagePinion)+step(m.thirdWheel),d2=step(m.thirdPinion)+step(m.barrel);
- const thirdPos={x:cagePoint.x+d1*u.x,z:cagePoint.z+d1*u.z};
- const barrelPos={x:thirdPos.x+d2*u.x,z:thirdPos.z+d2*u.z};
+ const thirdPos={x:cagePoint.x+.6*u.x,z:cagePoint.z+.6*u.z};
+ const barrelPos={x:thirdPos.x+.8*u.x,z:thirdPos.z+.8*u.z};
  const third=wheelAt(root,'Compound third shaft',thirdPos.x,thirdPos.z,phase+Math.PI+Math.PI/m.thirdWheel);
  const barrel=wheelAt(root,'Barrel shaft',barrelPos.x,barrelPos.z,phase+Math.PI+Math.PI/m.barrel);
  const pinion=wheelAt(root,'Carriage input shaft',cagePoint.x,cagePoint.z,phase);
  gear(third,'36-tooth third wheel',m.thirdWheel,step(m.thirdWheel),.395,edge);
- // The compound shaft's two tooth sets require separate indexing: the
- // third wheel has a gap toward the cage, the pinion a tooth toward the barrel.
- const thirdPinion=group(third,'Indexed third pinion');thirdPinion.rotation.y=-Math.PI/m.thirdWheel;
- gear(thirdPinion,'16-tooth third pinion',m.thirdPinion,step(m.thirdPinion),.225,steel,{depth:.060});
- flattenRigidGroup(third,thirdPinion);
- gear(barrel,'48-tooth barrel',m.barrel,step(m.barrel),.225,gold,{inner:.36,open:false});
- // Open drum exposes the mainspring while retaining the original driven wheel.
- cylinder(barrel,'Barrel bottom',0,.174,0,.355,.024,brush,64);
- ring(barrel,'Barrel drum wall',0,.236,0,.359,.021,.092,gold,64);
- ring(barrel,'Polished drum lip',0,.282,0,.359,.014,.012,rosePolish,64);
- const points=barrelSpiral().map(p=>new T.Vector3(...p));
- const curve=new T.CatmullRomCurve3(points);
- mesh(barrel,'Exposed coiled mainspring',new T.TubeGeometry(curve,192,.009,5,false),blued);
- cylinder(barrel,'Barrel arbor collar',0,.270,0,.106,.035,mirror,32);
+ gear(third,'16-tooth third pinion',m.thirdPinion,step(m.thirdPinion),.225,steel,{depth:.060});
+ gear(barrel,'48-tooth barrel',m.barrel,step(m.barrel),.225,gold,{inner:.36});
  gear(pinion,'12-tooth tourbillon pinion',m.cagePinion,step(m.cagePinion),.395,steel,{depth:.058});
  for(const [axis,x,z,h] of [[third,thirdPos.x,thirdPos.z,.52],[barrel,barrelPos.x,barrelPos.z,.69],[pinion,cagePoint.x,cagePoint.z,.81]]){
   rod(axis,'Turning arbor',[0,.126,0],[0,h,0],.047,steel);
@@ -295,7 +239,7 @@ function regulator(root,x,z){
  for(let i=0;i<3;i++){
   const [dx,dz]=polar(.595,.53+i*TAU/3);
   rod(cage,'Carriage upright',[dx,.145,dz],[dx,.685,dz],.046,steel);
-  bridge(cage,'Sculpted carriage arm',[dx,.675,dz],[0,.713,0]);
+  rod(cage,'Carriage upper Y bridge',[dx,.693,dz],[0,.735,0],.031,gold,8);
   screw(cage,dx,.694,dz,.035);
  }
  jewel(cage,0,.754,0,.070);
@@ -318,54 +262,47 @@ function regulator(root,x,z){
  for(const dz of [-.105,.13])cylinder(cage,'Lever banking pin',.299,.33,dz,.018,.09,dark,10);
 
  const balance=group(cage,'Oscillating balance wheel',0,.411,0);
- ring(balance,'Balance rim',0,0,0,.276,.034,.047,edge,96);
- ring(balance,'Polished balance rim lip',0,.023,0,.273,.010,.010,mirror,72);
- cylinder(balance,'Hairspring collet',0,.111,0,.034,.036,blued,24);
- cylinder(balance,'Collet anchor',-.034,.111,0,.007,.025,rosePolish,12);
+ ring(balance,'Balance rim',0,0,0,.276,.034,.047,edge,48);
  const roller=group(balance,'Balance roller');
- cylinder(roller,'Balance staff',0,0,0,.026,.24,mirror,24);
- cylinder(roller,'Impulse roller table',0,-.048,0,.125,.018,mirror,40);
- cylinder(roller,'Safety roller',0,-.083,0,.067,.014,steel,32);
- // Impulse jewel faces the fork at zero crossing, not the opposite side.
- box(roller,'Ruby impulse pin',[.111,-.073,.019],[.027,.038,.020],ruby);
+ cylinder(roller,'Balance staff',0,0,0,.040,.22,steel,12);
+ jewel(roller,-.113,-.062,-.025,.032);
  for(let i=0;i<6;i++){
   const [dx,dz]=polar(.254,i*TAU/6);
-  rod(balance,'Balance spoke',[0,0,0],[dx,0,dz],.014,steel,12);
-  cylinder(balance,'Rim timing mass',dx,.031,dz,.020,.018,rosePolish,16);
+  rod(balance,'Balance spoke',[0,0,0],[dx,0,dz],.018,steel,8);
+  screw(balance,dx,.015,dz,.027);
  }
- // Rectangular-section hairspring with a fixed stud and moving collet.
- const springPoints=241,positions=new Float32Array(springPoints*8*3),normals=new Float32Array(positions.length);
+ // Interpolate a spiral whose outer stud stays fixed while the collet moves.
+ // A line is used for the thin steel ribbon to keep its updates inexpensive.
+ const springPoints=241,positions=new Float32Array(springPoints*3);
  const springGeom=new T.BufferGeometry();
  springGeom.setAttribute('position',new T.BufferAttribute(positions,3).setUsage(T.DynamicDrawUsage));
- springGeom.setAttribute('normal',new T.BufferAttribute(normals,3).setUsage(T.DynamicDrawUsage));
- springGeom.setIndex(ribbonIndices(springPoints));fillHairspring(positions,normals,springPoints,0);
- const spring=mesh(cage,'Breathing flat hairspring ribbon',springGeom,springSteel);spring.frustumCulled=false;
- for(const y of [.476,.51])cylinder(cage,'Hairspring outer stud',.232,y,0,.018,.029,gold,16);
- box(cage,'Outer stud clamp',[.232,.522,0],[.024,.023,.026],mirror);
+ const spring=new T.Line(springGeom,new T.LineBasicMaterial({color:0x9ccfe9}));
+ spring.name='Breathing hairspring';spring.frustumCulled=false;cage.add(spring);
+ const springAngles=Array.from({length:springPoints},(_,i)=>i/(springPoints-1));
+ for(const y of [.476,.51])cylinder(cage,'Hairspring outer stud',.232,y,0,.029,.029,gold,10);
  return {cage,balance,fork,escape,update(s){
   cage.rotation.y=s.cage;
   escape.rotation.y=s.escape+Math.PI/m.escapePinion;
   balance.rotation.y=s.balance;fork.rotation.y=s.fork;
-  fillHairspring(positions,normals,springPoints,s.balance);
-  springGeom.attributes.normal.needsUpdate=true;
+  springAngles.forEach((u,i)=>{
+   const r=.026+u*.205+s.spring*.011*Math.sin(Math.PI*u);
+   const a=u*TAU*5.5+s.balance*(1-u)*(1-u)+Math.PI;
+   positions[3*i]=r*Math.cos(a);positions[3*i+1]=.522;positions[3*i+2]=-r*Math.sin(a);
+  });
   springGeom.attributes.position.needsUpdate=true;
  }};
 }
 
 function earthMap(){
  const canvas=document.createElement('canvas');
- canvas.width=1024;canvas.height=512;
+ canvas.width=768;canvas.height=384;
  const ctx=canvas.getContext('2d');
- ctx.fillStyle='#0e4296';ctx.fillRect(0,0,1024,512);
+ ctx.fillStyle='#0e4296';ctx.fillRect(0,0,768,384);
  ctx.fillStyle='#c88a53';
  for(const coast of coastlines){
-  ctx.beginPath();coast.forEach(([lon,lat],i)=>ctx[i?'lineTo':'moveTo']((lon+180)/360*1024,(90-lat)/180*512));
+  ctx.beginPath();coast.forEach(([lon,lat],i)=>ctx[i?'lineTo':'moveTo']((lon+180)/360*768,(90-lat)/180*384));
   ctx.closePath();ctx.fill();
  }
- // Fine latitude/longitude engraving on the enamel globe.
- ctx.strokeStyle='#a2c7e02e';ctx.lineWidth=1;
- for(let x=0;x<1024;x+=1024/24){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,512);ctx.stroke()}
- for(let y=512/12;y<512;y+=512/12){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(1024,y);ctx.stroke()}
  const map=new T.CanvasTexture(canvas);map.colorSpace=T.SRGBColorSpace;map.anisotropy=4;
  return map;
 }
@@ -397,13 +334,13 @@ function astronomy(root,base){
  earthSupport.rotation.z=-.32;
  rod(earthSupport,'Polished polar axis',[0,-.64,0],[0,.52,0],.034,edge);
  for(const y of [-.51,.487])cylinder(earthSupport,'Earth polar collet',0,y,0,.067,.07,steel,18);
- const globe=mesh(earthSupport,'Enamel Earth and gold continents',new T.SphereGeometry(.453,72,48),
+ const globe=mesh(earthSupport,'Enamel Earth and gold continents',new T.SphereGeometry(.453,56,36),
   new T.MeshPhysicalMaterial({map:earthMap(),metalness:.54,roughness:.26,clearcoat:.74,clearcoatRoughness:.17}));
  const moonSupport=group(root,'Lunar spindle support',moonPoint[0],1.41,moonPoint[1]);
  moonSupport.rotation.z=.13;
  rod(moonSupport,'Lunar polished axis',[0,-.82,0],[0,.45,0],.034,steel);
  for(const y of [-.452,.403])cylinder(moonSupport,'Lunar bearing cap',0,y,0,.060,.056,edge,18);
- const lunarGeom=new T.IcosahedronGeometry(.387,3);
+ const lunarGeom=new T.IcosahedronGeometry(.387,2);
  const color=[],count=lunarGeom.attributes.position.count;
  for(let i=0;i<count/3;i++){
   const c=new T.Color([0xffffff,0xbbcfea,0xc8def6,0xcdd0e3,0xeed8ce][Math.floor(i*13.7)%5]);
@@ -430,13 +367,9 @@ function timeDial(root){
  for(const [y,r,w,h,material] of [[0,.743,.11,.103,brush],[.049,.742,.058,.048,edge],[.076,.696,.020,.025,steel],[.085,.674,.111,.038,blue],[.10,.566,.018,.021,edge]]){
   ring(face,'Machined dial moulding',0,y,0,r,w,h,material,72);
  }
- const dialMaterial=blue.clone();dialMaterial.bumpMap=guillocheFinish();dialMaterial.bumpScale=.009;dialMaterial.roughness=.29;
- cylinder(face,'Sunken engine-turned guilloché dial',0,.047,0,.577,.055,dialMaterial,96);
- ring(face,'Guilloché border',0,.079,0,.544,.009,.008,rosePolish,80);
- ring(face,'Minute chapter inner border',0,.112,0,.592,.006,.006,mirror,80);
+ cylinder(face,'Sunken blue guilloché dial',0,.047,0,.577,.055,blue,72);
+ for(let i=0;i<13;i++)ring(face,'Guilloché hairline',0,.077,0,.149+i*.030,.004,.004,i%3?dark:steel,48);
  ticks(face,60,.642,.115,.69);
- const applied=new T.InstancedMesh(new T.BoxGeometry(.022,.014,.011),rosePolish,12),markerPose=new T.Object3D();
- for(let i=0;i<12;i++){const a=i*TAU/12;markerPose.position.set(.661*Math.cos(a),.120,-.661*Math.sin(a));markerPose.rotation.y=a;markerPose.updateMatrix();applied.setMatrixAt(i,markerPose.matrix)}face.add(applied);
  const numerals=['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
  numerals.forEach((n,i)=>{
   const a=i*TAU/12;
@@ -449,11 +382,9 @@ function timeDial(root){
   const h=group(face,'Live '+name+' hand',0,y,0);
   const shape=new T.Shape();
   shape.moveTo(-width*.45,-.08);shape.lineTo(width*.45,-.08);
-  shape.lineTo(width,length*.58);shape.lineTo(width*.45,length*.82);shape.lineTo(0,length);shape.lineTo(-width*.45,length*.82);shape.lineTo(-width,length*.58);shape.closePath();
+  shape.lineTo(width,length*.68);shape.lineTo(0,length);shape.lineTo(-width,length*.68);shape.closePath();
   const body=new T.ExtrudeGeometry(shape,{depth:.012,bevelEnabled:true,bevelSize:.003,bevelThickness:.002,bevelSegments:1});
   body.rotateX(-Math.PI/2);mesh(h,'Beveled '+name+' hand',body,material);
-  if(name!=='second')rod(h,'Polished hand ridge',[0,.015,-.08],[0,.015,-length*.80],.004,mirror,8);
-  else ring(h,'Seconds counterweight',0,.006,.068,.030,.009,.009,rosePolish,24);
   hands[name]=h;
  }
  jewel(face,0,.221,0,.068);
@@ -508,7 +439,6 @@ function batchMachinedDetails(root){
  for(const g of candidates)g.dispose();
 }
 export function buildWatch(scene){
- cylinders.clear(); // Per-build geometry cache; no stale disposed buffers.
  const root=group(scene,'ΔΑΙΔΑΛΟΣ · Fejelude astronomical movement');
  const shell=casework(root);
  plate(root);
@@ -518,7 +448,5 @@ export function buildWatch(scene){
  const orbit=astronomy(root,drive.barrelPos);
  const hands=timeDial(root);
  batchMachinedDetails(root);
- const finishMaterials=new Set();root.traverse(o=>{if(o.material?.bumpMap)finishMaterials.add(o.material)});
- const scales=new Map([...finishMaterials].map(m=>[m,m.bumpScale]));
- return {root,shell,hands,movement,orbit,setQuality(mode){for(const m of finishMaterials)m.bumpScale=scales.get(m)*(mode==='low'?.30:mode==='default'?.72:1)},update(state){drive.update(state);movement.update(state);orbit.update(state)}};
+ return {root,shell,hands,movement,orbit,update(state){drive.update(state);movement.update(state);orbit.update(state)}};
 }
