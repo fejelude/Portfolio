@@ -52,12 +52,18 @@ const server=createServer(async(req,res)=>{
           const local=await page.evaluate(()=>new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Manila',hourCycle:'h23',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date()));
           const secs=t=>t.split(':').map(Number).reduce((s,n,i)=>s+n*[3600,60,1][i],0);
           assert.ok(Math.min(Math.abs(secs(live)-secs(local)),86400-Math.abs(secs(live)-secs(local)))<=2,'clock does not match Manila');
-          for(const [name,ratio] of [['landscape',16/9],['portrait',3/4],['square',1],['normal',4/3]]){
-            await watch.locator('[data-ft-ratio="'+name+'"]').click();
+          for(const [aspect,ratio] of [['landscape',16/9],['portrait',3/4],['square',1],['normal',4/3]]){
+            await watch.locator('[data-ft-ratio="'+aspect+'"]').click();
             const box=await tourbStage.boundingBox();
-            assert.ok(Math.abs(box.width/box.height-ratio)<.02,'bad ratio: '+name);
-            assert.equal(await watch.locator('[data-ft-ratio="'+name+'"]').getAttribute('aria-pressed'),'true');
-            assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);
+            assert.ok(Math.abs(box.width/box.height-ratio)<.02,'bad ratio: '+aspect);
+            assert.equal(await watch.locator('[data-ft-ratio="'+aspect+'"]').getAttribute('aria-pressed'),'true');
+            const layout=await page.evaluate(()=>{
+              const width=document.documentElement.scrollWidth;
+              return {width,viewport:innerWidth,outliers:width<=innerWidth+1?[]:[...document.body.querySelectorAll('*')]
+                .filter(el=>el.getBoundingClientRect().right>innerWidth+1)
+                .slice(0,8).map(el=>({tag:el.localName,id:el.id,class:el.getAttribute('class')}))};
+            });
+            assert.ok(layout.width<=layout.viewport+1,JSON.stringify({browser:name,mode,aspect,...layout}));
             if(supports3D){
               const view=await canvas.boundingBox();
               assert.ok(Math.abs(view.width/view.height-ratio)<.02,'camera surface does not follow the frame');
