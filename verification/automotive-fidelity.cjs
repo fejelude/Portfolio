@@ -104,6 +104,31 @@ async function review(browser,url,version,device,report){
  }finally{await context.close();}
 }
 
+async function verifyWebGL1(browser,url){
+ const context=await browser.newContext({viewport:{width:480,height:330},deviceScaleFactor:2});
+ try{
+  const page=await context.newPage();
+  await page.addInitScript(()=>{
+   const original=HTMLCanvasElement.prototype.getContext;
+   HTMLCanvasElement.prototype.getContext=function(type,...options){
+    return type==='webgl2'?null:original.call(this,type,...options);
+   };
+  });
+  await page.goto(url+'/after/');
+  return await page.evaluate(async view=>{
+   const {TerminalRenderer}=await import('./js/home-world-renderer.mjs');
+   const renderer=new TerminalRenderer(document.querySelector('canvas'));
+   try{
+    renderer.draw(view,true,0);
+    const gl=renderer.gl;
+    const pixels=new Uint8Array(4*12*12);
+    gl.readPixels(460,300,12,12,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
+    return {api:gl.getParameter(gl.VERSION),size:renderer.stats.canvas,visible:pixels.some((v,i)=>i%4!==3&&v>0),error:gl.getError()};
+   }finally{renderer.dispose();}
+  },poses.front);
+ }finally{await context.close();}
+}
+
 (async()=>{
  await mkdir(output,{recursive:true});
  await new Promise(done=>server.listen(0,'127.0.0.1',done));
@@ -111,7 +136,13 @@ async function review(browser,url,version,device,report){
  const browser=await chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  const report={before:{},after:{}};
  try{
-  for(const version of Object.keys(report))for(const device of ['desktop','mobile'])await review(browser,url,version,device,report);
+  for(const version of ['before','after'])for(const device of ['desktop','mobile'])await review(browser,url,version,device,report);
+  report.webgl1=await verifyWebGL1(browser,url);
+  assert.match(report.webgl1.api,/WebGL 1/);
+  assert.deepEqual(report.webgl1.size,[960,660]);
+  assert.equal(report.webgl1.error,0);
+  assert.equal(report.webgl1.visible,true);
+  console.log('WebGL 1 fallback',JSON.stringify(report.webgl1));
  }finally{
   await writeFile(resolve(output,'measurements.json'),JSON.stringify(report,null,2)+'\n');
   await browser.close();

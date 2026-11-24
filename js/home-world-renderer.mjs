@@ -206,7 +206,7 @@ const FRAG=[
 'precision mediump float;varying vec3 vPosition,vNormal,vColor;varying float vMaterial;uniform vec3 uEye,uHaze,uGround,uAccent;uniform float uLights,uReflectPass,uReflectionEnabled,uWet,uWorld,uTime;uniform vec2 uViewport;uniform sampler2D uReflection;',
 'float hash(vec2 p){p=mod(p,64.);return fract(sin(dot(p,vec2(1.271,3.117)))*437.585);}',
 // Analytic environment lobe: soft studio panels and a world-colored horizon.
-'vec3 studio(vec3 r,float rough){float spread=.025+rough*.34;float panel=(1.-smoothstep(.06,.06+spread,abs(r.x+.30)))*smoothstep(.08,.65,r.y);float kicker=pow(max(dot(r,normalize(vec3(.63,.37,-.49))),0.),mix(54.,6.,rough));float sky=smoothstep(-.28,.68,r.y);return mix(vec3(.022,.018,.026),vec3(.26,.30,.38),sky)+vec3(1.,.91,.83)*panel*.95+mix(vec3(.62,.74,1.),pow(uAccent,vec3(2.2)),.52)*kicker*.75;}',
+'vec3 studio(vec3 r,float rough){float spread=.024+rough*.30;float panel=(1.-smoothstep(.045,.045+spread,abs(r.x+.29)))*smoothstep(.02,.48,r.y);float kicker=pow(max(dot(r,normalize(vec3(.63,.37,-.49))),0.),mix(54.,6.,rough));float sky=smoothstep(-.28,.68,r.y);return mix(vec3(.022,.018,.026),vec3(.26,.30,.38),sky)+vec3(1.,.94,.89)*panel*1.65+mix(vec3(.68,.77,1.),pow(uAccent,vec3(2.2)),.65)*kicker*1.28;}',
 'vec3 schlick(vec3 f0,float angle){return f0+(1.-f0)*pow(1.-clamp(angle,0.,1.),5.);}',
 'float ggx(float nh,float nv,float nl,float rough){float a2=pow(rough,4.);float nd=nh*nh*(a2-1.)+1.;float lv=nl*sqrt(nv*nv*(1.-a2)+a2);float ll=nv*sqrt(nl*nl*(1.-a2)+a2);return a2/(max(.001,3.14159*nd*nd)*max(.001,2.*(lv+ll)));}',
 'void main(){if(uReflectPass>.5&&vPosition.y<.025)discard;vec3 n=normalize(vNormal);if(!gl_FrontFacing)n=-n;vec3 view=normalize(uEye-vPosition);float sun=max(dot(n,normalize(vec3(-.5,.7,.4))),0.);float rim=pow(1.-max(dot(n,view),0.),3.);',
@@ -219,7 +219,7 @@ const FRAG=[
 'float rough=glazing?.19:tire?.80:paint?.31:alloy?.25:rotor?.48:carbon?.58:.45;float metal=paint?.39:alloy?.86:rotor?.72:0.;rough=sqrt(min(1.,rough*rough+min(.23,normalVariation*.9)));',
 'vec3 L=normalize(vec3(-.43,.73,.50)),H=normalize(L+view),R=reflect(-view,n);float nv=max(.04,dot(n,view)),nl=max(0.,dot(n,L)),nh=max(0.,dot(n,H));vec3 f0=mix(vec3(glazing?.065:.04),base,metal);vec3 f=schlick(f0,nv);',
 'vec3 diffuse=base*(1.-metal)*(1.-f)*(.24+.74*nl+max(n.y,0.)*.24);vec3 energy=diffuse+studio(R,rough)*f*.84+schlick(f0,dot(view,H))*min(1.1,ggx(nh,nv,nl,rough)*nl)*.35;',
-'if(paint){float coat=sqrt(.035+min(.22,normalVariation*.85));vec3 cf=schlick(vec3(.048),nv);energy=energy*(1.-cf)+studio(R,coat)*cf*.96;}if(glazing)energy=base*.24+studio(R,.16)*f*.66+vec3(.008,.010,.013);',
+'if(paint){float coat=sqrt(.030+min(.22,normalVariation*.85));vec3 cf=schlick(vec3(.052),nv);vec3 floorBounce=pow(uAccent,vec3(2.2))*pow(max(-R.y,0.),2.)*.065;energy=energy*(1.-cf)+studio(R,coat)*cf*1.3+floorBounce;}if(glazing)energy=base*.32+studio(R,.16)*f*.53+vec3(.006,.008,.013)+pow(uAccent,vec3(2.2))*f*.064;',
 'if(tire)energy=base*(.22+.82*nl+.42*max(n.y,0.))+vec3(.0025)+studio(R,rough)*f*.034;',
 'if(carbon)energy=base*(.43+.68*nl)+studio(R,rough)*f*.20+vec3(.0013);',
 'col=pow(max(vec3(0.),energy/(1.+energy*.36)),vec3(1./2.2));}',

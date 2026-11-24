@@ -78,14 +78,16 @@ function sculptSkin(batch,profile,color,material,body=false){
  for(const side of [-1,1]){
   const surface=rows.map(([z,w,bottom,top])=>{
    const axle=Math.min(...axlePositions.map(position=>Math.abs(position-z)));
-   const opening=body&&axle<.475?Math.max(0,axleHeight+Math.sqrt(.475**2-axle**2)-bottom)*.91:0;
-   return contour.map(([,x,y])=>[side*w*x,bottom+(top-bottom)*y+opening*(1-y)**3,z]);
+   const opening=body&&axle<.477?Math.max(0,axleHeight+Math.sqrt(.477**2-axle**2)-bottom)*.98:0;
+   const shoulder=body?.14*Math.exp(-((axle/.54)**2)):0;
+   return contour.map(([,x,y])=>[side*(w+shoulder*.43)*x,bottom+(top-bottom)*y+opening*(1-y)**4
+    +shoulder*Math.sin(Math.PI*y)*x,z]);
   });
   const normal=(i,j)=>{
    const along=sub(surface[Math.min(i+1,rows.length-1)][j],surface[Math.max(0,i-1)][j]);
    const across=sub(surface[i][Math.min(j+1,contour.length-1)],surface[i][Math.max(0,j-1)]);
    const n=unit(cross(along,across)).map(v=>side*v);
-   if(j===0)return [0,1,0];
+   if(j===0)return unit([0,along[2],-along[1]]);
    return n;
   };
   const normals=surface.map((row,i)=>row.map((_,j)=>normal(i,j)));
@@ -152,10 +154,19 @@ function buildWheel(batch,index,side,z,paint){
  }
  box(side*1.288,.478,z-.223,.052,.146,.076,hex(caliper),11);
 }
-function lens(steel,lights,points,ink,glow,width){
+function lens(steel,lights,points,ink,glow,width,face){
+ const offset=(p,up,out)=>[p[0],p[1]+up,p[2]+face*out];
  for(let i=1;i<points.length;i++){
-  steel.beam(points[i-1],points[i],width*2.3,ink,13);
-  lights.beam(points[i-1].map((v,j)=>j===1?v+.011:v),points[i].map((v,j)=>j===1?v+.011:v),width,glow,3);
+  const a=points[i-1],b=points[i];
+  if(face>0){
+   // The lens lies above the housing along the hood.
+   steel.beam(a,b,width*1.65,ink,13);
+   lights.beam(offset(a,width*.71,.006),offset(b,width*.71,.006),width,glow,3);
+  }else{
+   const back=offset(a,0,width*.52),end=offset(b,0,width*.52);
+   steel.beam(back,end,width*1.95,ink,13);
+   lights.beam(offset(back,0,width*.85),offset(end,0,width*.85),width,glow,3);
+  }
  }
 }
 
@@ -173,7 +184,6 @@ export function buildCar(solid,lamps,index){
  sculptSkin(solid,profile,paint,9,true);sculptSkin(solid,cabin,glass,7);
  for(const s of [-1,1]){
   box(s*1.015,.27,-.05,.16,.10,2.35,trim,7);box(s*.94,.83,.57,.26,.085,.28,paint,4);
-  beam([s*c.cabin[2],roof-.15,.10],[s*c.cabin[4],.77,1.32],.025,silver,4);
   for(const zz of axlePositions)buildWheel(solid,index,s,zz,paint);
   const hood=profile[6];
   beam([s*c.cabin[4],.782,1.29],[s*hood[1]*.51,hood[3]+.008,hood[0]],.012,trim,13);
@@ -190,10 +200,10 @@ export function buildCar(solid,lamps,index){
     box(x,y,pz,.12,.068,.065,trim,13);
     lamps.box(x,y+.012,pz+.03,index===6?.062:.082,.024,.039,white,3);
    }
-  }else lens(solid,lamps,head,trim,white,index===5?.021:.028);
+  }else lens(solid,lamps,head,trim,white,index===5?.021:.028,1);
   if(index===6){
    for(const [y,x,z] of [[.70,.91,.02],[.58,.87,-.035]])circle(lamps,[s*x,y,tail+z],.062,.043,.017,hex(0xff6d83),3,16);
-  }else lens(solid,lamps,rear,trim,hex(0xff526c),.025);
+  }else lens(solid,lamps,rear,trim,hex(0xff526c),.025,-1);
   if(index===2||index===7||index===9){beam([s*.71,.86,-1.56],[s*.52,.78,-.78],.043,trim,7);beam([s*.52,.78,-.78],[s*.84,.76,.65],.038,trim,7);}
   if(index===3){beam([s*.91,.33,-1.84],[s*.78,.30,.72],.065,silver,4);box(s*.75,.35,-.83,.14,.13,1.25,trim,7);}
   lamps.beam([s*.95,.25,-.65],[s*.95,.25,.70],.018,accent,3);
