@@ -68,7 +68,7 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
  renderer.toneMapping=T.ACESFilmicToneMapping;
  renderer.toneMappingExposure=1.21;
  renderer.setClearColor(0x000000,0);
- const scene=new T.Scene(),camera=new T.PerspectiveCamera(38,1,.10,82);
+ const scene=new T.Scene(),camera=new T.PerspectiveCamera(38,1,.10,110);
  let reflection,pendingFrame;
  const rebuildReflections=()=>{
   pendingFrame=null;
