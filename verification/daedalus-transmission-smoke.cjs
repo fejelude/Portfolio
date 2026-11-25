@@ -27,7 +27,7 @@ const server = createServer(async(req,res)=>{
 async function inspect(browser,url,mobile){
  const viewport = mobile ? {width:390,height:844} : {width:930,height:770};
  const context=await browser.newContext({viewport,deviceScaleFactor:mobile?3:1,isMobile:mobile,hasTouch:mobile,
-  timezoneId:'America/Los_Angeles',reducedMotion:'reduce'});
+  timezoneId:'America/Los_Angeles',reducedMotion:'no-preference'});
  const page=await context.newPage(),errors=[];
  page.on('pageerror',error=>errors.push(error.message));
  await context.route('**/*',route=>route.request().url().startsWith(url)?route.continue():route.abort());
@@ -70,7 +70,6 @@ async function inspect(browser,url,mobile){
   assert.equal(await dial.getAttribute('aria-pressed'),'true');
   assert.equal(await gear.getAttribute('aria-pressed'),'false');
   const clock=watch.locator('#ft-time');
-  await page.emulateMedia({reducedMotion:'no-preference'});
   const pause=watch.locator('[data-ft-pause]');
   await pause.click();
   assert.equal(await pause.getAttribute('aria-pressed'),'true');
