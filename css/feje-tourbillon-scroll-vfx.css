@@ -1,0 +1,18 @@
+/* The homepage's main, header and footer stack above this canvas. */
+.feje-world-home .daedalus-scroll-sky {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  contain: strict;
+}
+
+.feje-world-home .daedalus-scroll-sky canvas {
+  position: absolute;
+  display: block;
+}
+
+.feje-world-home .daedalus-scroll-sky[hidden],
+.feje-world-home .daedalus-scroll-sky canvas[hidden] {
+  display: none;
+}
