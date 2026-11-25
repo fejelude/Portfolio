@@ -1,0 +1,19 @@
+/* A separate, non-interactive layer behind all homepage content. */
+.feje-world-home .sofra-sakura-sky {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  contain: strict; overflow: hidden;
+}
+.feje-world-home .sofra-sakura-wash {
+  position: absolute; inset: 0;
+  opacity: var(--sakura-strength, 0);
+  background:
+    radial-gradient(ellipse at 5% 24%, #e87ca744, transparent 48%),
+    radial-gradient(ellipse at 92% 76%, #b86aa843, transparent 53%),
+    radial-gradient(ellipse at 80% 9%, #b7a1e52b, transparent 45%),
+    linear-gradient(155deg, #291426e8, #21162ddb 58%, #30182ce8);
+}
+.feje-world-home .sofra-sakura-sky canvas {
+  position: absolute; display: block; image-rendering: pixelated;
+}
+.feje-world-home .sofra-sakura-sky[hidden],
+.feje-world-home .sofra-sakura-sky canvas[hidden] { display: none; }
