@@ -1,6 +1,7 @@
 import * as T from './vendor/three-r160.1.mjs';
 import {MOVEMENT as m, TAU, SATELLITES, pitchRadius} from './feje-tourbillon-mechanism.mjs';
 
+import {TIME_TRAIN,meshPhase,radialTrain,timingTooth} from './feje-tourbillon-transmission.mjs';
 import {buildStrap} from './feje-tourbillon-strap.mjs';
 import {coastlines} from './feje-tourbillon-coastlines.mjs';
 const mat = (color,metalness,roughness,extra={}) =>
@@ -78,13 +79,18 @@ function jewel(parent,x,y,z,r=.079){
  gem.scale(1,.48,1);
  mesh(parent,'Ruby bearing',gem,ruby,x,y+.02,z);
 }
-function gear(parent,name,count,pitch,y,material,{inner=pitch*.58,depth=.078,escape=false,phase=0}={}){
+function tube(parent,name,inner,outer,bottom,top,material){
+ const bevel=Math.min(.005,(outer-inner)*.36);
+ return profile(parent,name,[[inner,bottom],[outer-bevel,bottom],[outer,bottom+bevel],
+  [outer,top-bevel],[outer-bevel,top],[inner,top],[inner,bottom]],material,0,0,24);
+}
+function gear(parent,name,count,pitch,y,material,{inner=pitch*.58,depth=.078,escape=false,phase=0,cone=0,bore=0,fine=false}={}){
  // Root and addendum follow the module. The pitch flank passes through
  // the nominal pitch circle and leaves clearance for the opposite tooth.
  const module=2*pitch/count;
  const root=escape?pitch*.77:pitch-module*1.08;
  const tip=escape?pitch*1.06:pitch+module*.86;
- const profile=escape?[[-.48,root],[-.18,root],[.09,tip],[.34,root]]:
+ const profile=fine?timingTooth(count,pitch):escape?[[-.48,root],[-.18,root],[.09,tip],[.34,root]]:
   [[-.50,root],[-.31,root],[-.235,pitch],[-.13,tip],[.13,tip],[.235,pitch],[.31,root]];
  const shape=new T.Shape();
  for(let i=0;i<count;i++)for(const [j,[fraction,r]] of profile.entries()){
@@ -94,12 +100,22 @@ function gear(parent,name,count,pitch,y,material,{inner=pitch*.58,depth=.078,esc
  shape.closePath();
  const hole=new T.Path();
  hole.absarc(0,0,inner,0,TAU,true);shape.holes.push(hole);
- const geom=new T.ExtrudeGeometry(shape,{depth,curveSegments:18,bevelEnabled:true,bevelSegments:1,bevelSize:depth*.12,bevelThickness:depth*.12});
+ const bevelSize=fine?Math.min(depth*.12,module*.055):depth*.12;
+ const geom=new T.ExtrudeGeometry(shape,{depth,curveSegments:18,bevelEnabled:true,bevelSegments:1,bevelSize,bevelThickness:depth*.12});
  geom.rotateX(-Math.PI/2);
+ if(cone){
+  const p=geom.getAttribute('position');
+  for(let i=0;i<p.count;i++){
+   const taper=1-(p.getY(i)-depth/2)/cone;
+   p.setXYZ(i,p.getX(i)*taper,p.getY(i),p.getZ(i)*taper);
+  }
+  geom.computeVertexNormals();
+ }
  mesh(parent,name,geom,material,0,y-depth/2,0);
  const core=pitch*.29;
  const spokes=pitch>.28?6:4;
- cylinder(parent,'Pinion hub',0,y,0,core,depth*1.25,material);
+ if(bore)tube(parent,'Bored pinion hub',bore,Math.max(core,bore+.01),y-depth*.625,y+depth*.625,material);
+ else cylinder(parent,'Pinion hub',0,y,0,core,depth*1.25,material);
  for(let i=0;i<spokes;i++){
   const a=TAU*i/spokes;
   const spoke=box(parent,'Wheel spoke',[Math.cos(a)*(inner+core)/2,y,-Math.sin(a)*(inner+core)/2],[inner-core+.04,depth*.68,pitch*.12],material);
@@ -261,7 +277,7 @@ function train(root){
   pillar(root,x,z,.50);screw(root,x,.58,z);
  }
  const pinionPhase=pinion.rotation.y,thirdPhase=third.rotation.y,barrelPhase=barrel.rotation.y;
- return {cagePoint,barrelPos,update(s){
+ return {cagePoint,barrelPos,pinionPhase,update(s){
   pinion.rotation.y=pinionPhase+s.cage;
   third.rotation.y=thirdPhase+s.third;
   barrel.rotation.y=barrelPhase+s.barrel;
@@ -272,7 +288,7 @@ const polar=(r,a)=>[Math.cos(a)*r,-Math.sin(a)*r];
 function regulator(root,x,z){
  const fixedY=.755,pitch=.399,orbit=pitch*(1+m.escapePinion/m.fixedFourth);
  const fixed=group(root,'Fixed fourth wheel plate',x,0,z);
- gear(fixed,'Fixed 80-tooth fourth wheel',m.fixedFourth,pitch,fixedY,steel,{depth:.051});
+ gear(fixed,'Fixed 96-tooth fourth wheel',m.fixedFourth,pitch,fixedY,steel,{depth:.051});
  ring(fixed,'Fixed fourth wheel bearing',0,fixedY-.037,0,.459,.042,.029,edge,48);
  const cage=group(root,'One-minute carriage',x,fixedY,z);
  for(const [height,material] of [[.134,steel],[.168,edge],[.659,edge],[.695,steel]])ring(cage,'Carriage ring',0,height,0,.545,.027,.034,material,64);
@@ -412,16 +428,138 @@ function astronomy(carrier){
  }};
 }
 
-function timeDial(root){
+const axisAngle=(x,z)=>Math.atan2(-z,x);
+
+function transmissionRow(parent,fixed,start,end,spec,phase,names,depth,bores=[]){
+ const {points,module,direction}=radialTrain(start,end,spec.teeth);
+ const row=points.map(([x,z],i)=>wheelAt(i===0&&fixed?fixed:parent,names[i],x,z));
+ const phases=[phase];
+ for(let i=0;i<row.length;i++){
+  if(i>0)phases.push(meshPhase(direction,phases[i-1],spec.teeth[i-1],spec.teeth[i]));
+  row[i].rotation.y=phases[i];
+  gear(row[i],names[i]+' teeth',spec.teeth[i],pitchRadius(spec.teeth[i],module),spec.height,i===1?edge:steel,{depth,bore:bores[i],fine:true});
+ }
+ const [ix,iz]=points[1];
+ rod(row[1],'Polished idler arbor',[0,spec.height-.055,0],[0,spec.height+.054,0],.026,steel);
+ jewel(parent,ix,spec.height+.045,iz,.041);
+ return {phases,points,row,update(angles){
+  for(let i=fixed?1:0;i<row.length;i++)row[i].rotation.y=phases[i]+angles[i];
+ }};
+}
+
+function dialFeed(base,carrier,{cagePoint,pinionPhase}){
+ const centre=[0,0],dial=[SATELLITES.dial[0],SATELLITES.dial[2]];
+ const {pickup,transfer,orientation}=TIME_TRAIN;
+ const seconds=transmissionRow(carrier,null,[cagePoint.x,cagePoint.z],centre,pickup,pinionPhase,
+  ['Regulated seconds take-off','Take-off idler','Central seconds wheel'],.034,[0,0,.023]);
+ const ratio=transmissionRow(carrier,null,centre,dial,transfer,seconds.phases[2]+.18,
+  ['38-tooth central feed wheel','Carrier feed idler','40-tooth dial feed wheel'],.034,[.023]);
+ const swivel=transmissionRow(carrier,base,centre,dial,orientation,.20,
+  ['Fixed orientation sun','Orbiting orientation idler','Equal-tooth dial orientation wheel'],.032,[0,0,.037]);
+ const [x,z]=dial;
+ const feed=ratio.row[2];
+ const sleeve=swivel.row[2];
+ rod(base,'Fixed sun arbor through the centre wheels',[0,.169,0],[0,.695,0],.021,steel);
+ tube(seconds.row[2],'Hollow compound seconds arbor',.023,.044,.471,.603,steel);
+ profile(sleeve,'Flanged counter-rotating swivel tube',[[.036,.621],[.087,.621],[.091,.655],[.074,.698],[.067,.739],[.036,.739],[.036,.621]],brush);
+ rod(feed,'Seconds feed through swivel tube',[0,.464,0],[0,1.017,0],.023,steel);
+ ring(base,'Seat of fixed orientation sun',0,.695,0,.155,.058,.033,brush,32);
+ for(const [i,[sx,sz]] of [seconds.points[1],ratio.points[1],swivel.points[1]].entries()){
+  const h=[pickup,transfer,orientation][i].height;
+  const side=i===0?-1:1;
+  bridge(carrier,'Skeleton bridge over transfer pivot',[sx+side*.23,h+.073,sz+.14],[sx,h+.073,sz]);
+  rod(carrier,'Bridge abutment',[sx+side*.23,.42,sz+.14],[sx+side*.23,h+.056,sz+.14],.035,brush);
+  screw(carrier,sx+side*.23,h+.044,sz+.14,.028);
+ }
+ for(const side of [-1,1]){
+  const sx=x+side*.24,sz=z+.22;
+  rod(carrier,'Dial swivel bridge pillar',[sx,.396,sz],[sx,.742,sz],.043,brush);
+  bridge(carrier,'Dial swivel bearing arm',[sx,.747,sz],[x,.747,z]);
+  screw(carrier,sx,.746,sz,.036);
+ }
+ ring(carrier,'Stationary bearing around the dial swivel',x,.745,z,.115,.047,.032,edge,32);
+ return {feed,phase:ratio.phases[2],swivel,
+  update(time){seconds.update(time.central);ratio.update(time.feed);swivel.update(time.swivel);}};
+}
+
+function motionWorks(face,drive,y){
+ const {bevel,seconds,hours}=TIME_TRAIN;
+ const main=wheelAt(face,'Seconds staff and bevel output',0,0);
+ const minute=wheelAt(face,'Cannon pinion and minute tube',0,0);
+ const hour=wheelAt(face,'Hour wheel and outer hour pipe',0,0);
+ const intermediate=wheelAt(face,'60-tooth seconds reduction countershaft',...seconds.intermediate);
+ const countershaft=wheelAt(face,'Compound minute input shaft',...seconds.countershaft);
+ const minuteLink=radialTrain(seconds.countershaft,[0,0],seconds.last);
+ const idler=wheelAt(face,'Final minute reduction idler',...minuteLink.points[1]);
+ const motionWheel=wheelAt(face,'Compound motion wheel',...hours.intermediate);
+ const angles=new Map();
+ const setPhase=(shaft,value)=>{angles.set(shaft,value);shaft.rotation.y=value;};
+ const planar=(driver,from,driven,to,teeth,height,names,{module,alreadyCut=false,bores=[]}={})=>{
+  const [a,b]=teeth;
+  const x=to[0]-from[0],z=to[1]-from[1],direction=axisAngle(x,z);
+  module??=2*Math.hypot(x,z)/(a+b);
+  const phase=meshPhase(direction,angles.get(driver),a,b);
+  setPhase(driven,phase);
+  if(!alreadyCut)gear(driver,names[0],a,pitchRadius(a,module),height,steel,{depth:.022,bore:bores[0],fine:true});
+  gear(driven,names[1],b,pitchRadius(b,module),height,edge,{depth:.024,bore:bores[1],fine:true});
+ };
+ const axle=new T.Vector3(0,1,0).applyEuler(face.rotation);
+ const inward=axle.clone().negate();
+ const drivingDirection=axisAngle(inward.x,inward.z);
+ const outputDirection=new T.Vector3(0,-1,0).applyQuaternion(new T.Quaternion().setFromEuler(face.rotation).invert());
+ const outgoing=axisAngle(outputDirection.x,outputDirection.z);
+ const pitch=bevel.distance*Math.tan(bevel.tilt/2);
+ const bevelPhase=outgoing+drivingDirection-drive.phase-Math.PI/bevel.teeth;
+ setPhase(main,bevelPhase);
+ gear(drive.feed,'Input bevel pinion',bevel.teeth,pitch,y-bevel.distance,edge,{depth:bevel.depth,cone:bevel.distance,fine:true});
+ gear(main,'Inclined dial bevel pinion',bevel.teeth,pitch,-bevel.distance,steel,{depth:bevel.depth,cone:bevel.distance,fine:true});
+ const centre=[0,0];
+ planar(main,centre,intermediate,seconds.intermediate,seconds.first,seconds.heights[0],['Seconds pinion','First reduction wheel']);
+ planar(intermediate,seconds.intermediate,countershaft,seconds.countershaft,seconds.second,seconds.heights[1],['Compound steel pinion','Second reduction wheel']);
+ planar(countershaft,seconds.countershaft,idler,minuteLink.points[1],seconds.last.slice(0,2),seconds.heights[2],['Minute transfer pinion','Minute idler'],{module:minuteLink.module});
+ planar(idler,minuteLink.points[1],minute,centre,seconds.last.slice(1),seconds.heights[2],['','Cannon-wheel drive'],{module:minuteLink.module,alreadyCut:true,bores:[0,.019]});
+ planar(minute,centre,motionWheel,hours.intermediate,hours.first,hours.heights[0],['Cannon pinion','36-tooth minute wheel'],{bores:[.019]});
+ planar(motionWheel,hours.intermediate,hour,centre,hours.second,hours.heights[1],['Motion-wheel pinion','40-tooth hour wheel'],{bores:[0,.031]});
+ rod(main,'Continuous polished seconds arbor',[0,-.396,0],[0,.209,0],.017,steel);
+ for(const [shaft,name,inner,r,foot,tip,material] of [
+  [minute,'Open cannon pinion tube',.019,.029,-.183,.178,steel],
+  [hour,'Concentric hour pipe',.031,.046,-.065,.157,gold]
+ ]){
+  tube(shaft,name,inner,r,foot,tip,material);
+ }
+ for(const [shaft,pt,low] of [[intermediate,seconds.intermediate,-.325],[countershaft,seconds.countershaft,-.260],[idler,minuteLink.points[1],-.203],[motionWheel,hours.intermediate,-.132]]){
+  rod(shaft,'Motion-work shaft',[0,low,0],[0,-.019,0],.017,steel);
+  jewel(face,pt[0],-.027,pt[1],.039);
+ }
+ for(const [pt,foot] of [[seconds.intermediate,[.46,-.08]],[seconds.countershaft,[.45,.30]],[hours.intermediate,[-.47,-.09]]]){
+  bridge(face,'Sculpted motion-work bridge',[foot[0],-.005,foot[1]],[pt[0],-.005,pt[1]]);
+  screw(face,foot[0],-.027,foot[1],.029);
+ }
+ const shafts={second:main,minute,hour,intermediate,countershaft,minuteIdler:idler,motionWheel};
+ return {shafts,update(time){
+  for(const [key,shaft] of Object.entries(shafts))shaft.rotation.y=angles.get(shaft)+time[key];
+ }};
+}
+
+function timeDial(root,drive){
  const swivel=group(root,'Counter-rotating dial swivel',...SATELLITES.dial);
  const face=group(swivel,'Raised Roman numeral time dial');
- face.rotation.set(.69,.88,0,'YXZ');
- const [x,y,z]=SATELLITES.dial;
+ const {tilt,yaw}=TIME_TRAIN.bevel;
+ face.rotation.set(tilt,yaw,0,'YXZ');
+ const works=motionWorks(face,drive,SATELLITES.dial[1]);
+ const away=new T.Vector3(0,1,0).applyEuler(face.rotation);
+ away.y=0;away.normalize();
+ const across=new T.Vector3(away.z,0,-away.x);
+ // The yoke takes the structural load around the bevels instead of through them.
  for(const side of [-1,1]){
-  rod(root,'Dial bearing support',[x+side*.16,.39,z],[x+side*.16,y-.051,z],.049,steel);
-  jewel(root,x+side*.16,y-.08,z,.064);
+  const foot=away.clone().multiplyScalar(.043).addScaledVector(across,.051*side);
+  const knee=away.clone().multiplyScalar(.224).addScaledVector(across,.123*side);
+  const neck=away.clone().multiplyScalar(.298).addScaledVector(across,.144*side);
+  rod(swivel,'Splayed dial yoke',[foot.x,-.395,foot.z],[knee.x,-.29,knee.z],.026,brush);
+  rod(swivel,'Dial yoke upright',[knee.x,-.29,knee.z],[neck.x,-.153,neck.z],.027,brush);
+  rod(swivel,'Polished yoke shoulder',[neck.x,-.153,neck.z],[across.x*.15*side,-.037,across.z*.15*side],.025,steel);
  }
- ring(swivel,'Differential dial bearing',0,-.09,0,.209,.031,.039,edge,38);
+ ring(swivel,'Polished dial yoke bearing',0,-.09,0,.109,.031,.039,edge,38);
  for(const [y,r,w,h,material] of [[0,.743,.11,.103,brush],[.049,.742,.058,.048,edge],[.076,.696,.020,.025,steel],[.085,.674,.111,.038,blue],[.10,.566,.018,.021,edge]]){
   ring(face,'Machined dial moulding',0,y,0,r,w,h,material,72);
  }
@@ -437,7 +575,9 @@ function timeDial(root){
  for(const [name,length,width,y,material] of [
   ['hour',.385,.039,.150,edge],['minute',.526,.027,.173,edge],['second',.578,.009,.195,steel]
  ]){
-  const h=group(face,'Live '+name+' hand',0,y,0);
+  const shaft=works.shafts[name];
+  const h=group(shaft,'Live '+name+' hand',0,y,0);
+  h.rotation.y=-shaft.rotation.y;
   const shape=new T.Shape();
   shape.moveTo(-width*.45,-.08);shape.lineTo(width*.45,-.08);
   shape.lineTo(width,length*.68);shape.lineTo(0,length);shape.lineTo(-width,length*.68);shape.closePath();
@@ -446,7 +586,7 @@ function timeDial(root){
   hands[name]=h;
  }
  jewel(face,0,.221,0,.068);
- return {hands,swivel};
+ return {hands,swivel,works};
 }
 
 // Batch opaque details that share a material and direct rigid parent.
@@ -513,6 +653,7 @@ export function buildWatch(scene){
   screw(carrier,x*.83,.40,z*.83,.040);
  }
  const drive=train(carrier),[x,y,z]=SATELLITES.regulator;
+ const feed=dialFeed(root,carrier,drive);
  const station=group(carrier,'Fixed transverse axle forks',x,y,z);
  const axle=group(station,'Five-minute transverse yoke');
  for(const side of [-1,1]){
@@ -524,11 +665,12 @@ export function buildWatch(scene){
  yokeRing.rotation.z=Math.PI/2;
  rod(axle,'Transverse pivot axle',[-.60,0,0],[.60,0,0],.032,steel);
  const suspension=group(axle,'Inner cage mounting frame',0,-1.063,0);
- const movement=regulator(suspension,0,0),orbit=astronomy(carrier),{hands,swivel}=timeDial(carrier);
+ const movement=regulator(suspension,0,0),orbit=astronomy(carrier),{hands,swivel,works}=timeDial(carrier,feed);
  batchMachinedDetails(root);
- const watch={root,shell,carrier,hands,movement,orbit,axle,swivel,update(state){
+ const watch={root,shell,carrier,hands,movement,orbit,axle,swivel,works,update(state){
   carrier.rotation.y=state.carrier;axle.rotation.x=state.yoke;swivel.rotation.y=state.dial;
   drive.update(state);movement.update(state);orbit.update(state);
+  feed.update(state.time);works.update(state.time);
  }};
  return watch;
 }

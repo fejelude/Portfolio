@@ -1,3 +1,6 @@
+import {meshRatio,timeTransmission} from './feje-tourbillon-transmission.mjs';
+export {meshRatio};
+
 // Angles are radians in each shaft's parent frame.
 export const TAU = 2 * Math.PI;
 export const MOVEMENT = Object.freeze({
@@ -13,7 +16,6 @@ export const SATELLITES=Object.freeze({
  dial:Object.freeze([.22,1.12,1.36])
 });
 export const pitchRadius=(teeth,module)=>teeth*module/2;
-export const meshRatio=(input,inputTeeth,outputTeeth)=>-input*inputTeeth/outputTeeth;
 export const RELEASE=Object.freeze({unlock:.12,impulse:.24,drop:.37,bank:.45});
 const smooth=x=>{
  const t=Math.max(0,Math.min(1,x));
@@ -37,6 +39,7 @@ export function movementAt(seconds){
  const yoke=meshRatio(cage,m.yokePinion,m.yokeWheel);
  const carrier=meshRatio(yoke,m.carrierPinion,m.carrierWheel);
  const balance=m.balanceAmplitude*Math.sin(Math.PI*beat);
- return {escape,cage,third,barrel,yoke,carrier,dial:-carrier,balance,
+ const time=timeTransmission(cage,carrier);
+ return {escape,cage,third,barrel,yoke,carrier,dial:time.swivel[2],balance,time,
   fork:handed*.22*(2*palletTravel-1),earth:cage,earthTilt:-cage,moon:-cage,moonTilt:cage};
 }

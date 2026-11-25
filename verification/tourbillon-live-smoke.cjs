@@ -181,7 +181,7 @@ async function mobile(browser,url){
    const samples=[],pixel=new Uint8Array(4);
    for(let i=0;i<16;i++){
     const start=performance.now();
-    r.draw(i*.06,{hour:110,minute:72,second:128+i},1/60,true);
+    r.draw(2*3600+5*60+i*.06,1/60,true);
     gl.readPixels(canvas.width>>1,canvas.height>>1,1,1,gl.RGBA,gl.UNSIGNED_BYTE,pixel);
     if(i>=4)samples.push(performance.now()-start);
    }

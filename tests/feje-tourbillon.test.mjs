@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {ASPECTS,manilaParts,handAngles} from '../js/feje-tourbillon.mjs';
+import {ASPECTS,manilaParts,movementSeconds} from '../js/feje-tourbillon.mjs';
 import {MOVEMENT as m,TAU,movementAt,meshRatio,pitchRadius,RELEASE,SATELLITES} from '../js/feje-tourbillon-mechanism.mjs';
 import {astrolabeTime,SKY_PERIOD} from '../js/feje-tourbillon-astrolabe.mjs';
 import {celestialPhase,skyCoordinate,chartCoordinates,CHARTS} from '../js/feje-tourbillon-celestial.mjs';
@@ -9,16 +9,17 @@ import {watchPixelRatio} from '../js/feje-tourbillon-quality.mjs';
 import * as T from '../js/vendor/three-r160.1.mjs';
 import {overviewFraming} from '../js/feje-tourbillon-renderer.mjs';
 import {buildWatch} from '../js/feje-tourbillon-model.mjs';
+import {TIME_TRAIN,meshPhase,radialTrain,timingTooth} from '../js/feje-tourbillon-transmission.mjs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const close=(actual,expected)=>assert.ok(Math.abs(actual-expected)<1e-9,`${actual} != ${expected}`);
 
 test('Manila clock is independent of the visitor timezone and simulation',()=>{
  const parts=manilaParts(new Date('2026-11-23T13:12:34.500Z'));
  assert.deepEqual(parts,{hour:21,minute:12,second:34,millisecond:500});
- const angles=handAngles(parts);
- close(angles.hour,276.2875);close(angles.minute,75.45);close(angles.second,207);
+ close(movementSeconds(parts),9*3600+12*60+34.5);
+ close(movementSeconds({...parts,millisecond:0}),9*3600+12*60+34);
  const midnight=manilaParts(new Date('2026-11-22T16:00:00Z'));
- assert.equal(midnight.hour,0);assert.equal(handAngles(midnight).hour,0);
+ assert.equal(midnight.hour,0);assert.equal(movementSeconds(midnight),0);
 });
 
 test('the JCAM10-inspired axes complete their documented periods and maintain local gear ratios',()=>{
@@ -55,6 +56,106 @@ test('the lever unlocks before impulse and drop, then reverses smoothly at the n
  assert.ok(at(0,.5).balance>1&&at(1,.5).balance<-1);
 });
 
+test('the escapement drives the hands through the carrier, bevel and motion works',()=>{
+ const start=movementAt(0).time;
+ for(const [hand,period] of [['second',60],['minute',3600],['hour',43200]]){
+  close(movementAt(period).time[hand]-start[hand],-TAU);
+ }
+ for(let seconds=0;seconds<43800;seconds+=9.173){
+  const state=movementAt(seconds),time=state.time;
+  close(time.central[2],state.cage);
+  close(time.feed[2],state.cage*38/40);
+  close(time.swivel[2]+state.carrier,0);
+  close(time.second,-(time.feed[2]-time.swivel[2]));
+  close(time.minute,time.second/60);
+  close(time.hour,time.minute/12);
+  const idealSecond=-TAU*seconds/60;
+  assert.ok(Math.abs(time.second-idealSecond)<TAU/(60*m.beatsPerSecond),
+   'the analog seconds indication must stay within one beat of Manila time');
+ }
+});
+
+test('the regulated display holds while locked and repeats its geometry at Manila midnight and noon',()=>{
+ const state=movementAt(0),held=movementAt(RELEASE.unlock/m.beatsPerSecond);
+ assert.deepEqual(held.time,state.time);
+ const unlocked=movementAt(RELEASE.impulse/m.beatsPerSecond);
+ assert.ok(unlocked.time.second<state.time.second);
+ const next=movementAt(43200);
+ for(const [key,start] of Object.entries(state.time)){
+  const end=[next.time[key]].flat();
+  for(const [i,angle] of [start].flat().entries()){
+   const shift=end[i]-angle;
+   close(shift/TAU,Math.round(shift/TAU));
+  }
+ }
+ const west=manilaParts(new Date('2026-11-22T15:59:59.999Z'));
+ const east=manilaParts(new Date('2026-11-22T16:00:00.001Z'));
+ for(const key of ['second','minute','hour']){
+  const a=movementAt(movementSeconds(west)).time[key],b=movementAt(movementSeconds(east)).time[key];
+  assert.ok(Math.abs(Math.atan2(Math.sin(a-b),Math.cos(a-b)))<.0002);
+ }
+});
+
+test('new gear centres and indexed pitch flanks engage on the correct tooth gaps',()=>{
+ const {pickup,transfer,orientation,seconds,hours,bevel}=TIME_TRAIN;
+ const origin=[0,0],polarPosition=([x,,z])=>[x,z];
+ for(const [start,end,spec] of [[polarPosition(SATELLITES.regulator),origin,pickup],
+  [origin,polarPosition(SATELLITES.dial),transfer],[origin,polarPosition(SATELLITES.dial),orientation],
+  [seconds.countershaft,origin,{teeth:seconds.last}]]){
+  const {module,points,direction}=radialTrain(start,end,spec.teeth);
+  let phase=.387;
+  for(let i=0;i<2;i++){
+   const [a,b]=spec.teeth.slice(i,i+2),[x,z]=points[i],[u,v]=points[i+1];
+   close(Math.hypot(u-x,v-z),pitchRadius(a,module)+pitchRadius(b,module));
+   const driven=meshPhase(direction,phase,a,b);
+   for(const angle of [.178,1.406,20.07]){
+    const joint=(direction-phase-angle)*a+(direction+Math.PI-driven-meshRatio(angle,a,b))*b;
+    close(Math.cos(joint),-1);
+   }
+   phase=driven;
+  }
+ }
+ const h=Math.hypot(...hours.intermediate);
+ for(const [a,b] of [hours.first,hours.second])close(pitchRadius(a,2*h/(a+b))+pitchRadius(b,2*h/(a+b)),h);
+ const radius=bevel.distance*Math.tan(bevel.tilt/2);
+ close(2*radius*Math.cos(bevel.tilt/2),2*bevel.distance*Math.sin(bevel.tilt/2));
+ for(const count of [10,12,18,20,24,36,38,40,60]){
+  const module=.008,pitch=pitchRadius(count,module),tooth=timingTooth(count,pitch);
+  assert.ok(tooth.every(([fraction,r],i)=>Number.isFinite(r)&&(i===0||fraction>tooth[i-1][0])));
+  close(tooth[2][1],pitch);
+  assert.ok(2*pitch-tooth[0][1]-tooth[3][1]>module*.29,'root clearance at the opposing tip');
+ }
+});
+
+test('nominal spur profiles clear one another through a complete tooth engagement',()=>{
+ const {pickup,transfer,orientation,seconds,hours}=TIME_TRAIN;
+ const pairs=[seconds.first,seconds.second,hours.first,hours.second];
+ for(const teeth of [pickup.teeth,transfer.teeth,orientation.teeth,seconds.last]){
+  pairs.push(teeth.slice(0,2),teeth.slice(1));
+ }
+ const cross=([a,b],[c,d],[x,y])=>(c-a)*(y-b)-(d-b)*(x-a);
+ const intersects=([a,b],[c,d])=>cross(a,b,c)*cross(a,b,d)<-1e-10&&cross(c,d,a)*cross(c,d,b)<-1e-10;
+ function nearbyEdges(teeth,x,phase,contact){
+  const tooth=timingTooth(teeth,teeth/2),points=[];
+  for(let i=0;i<teeth;i++)for(const [fraction,radius] of tooth){
+   const angle=(i+fraction)*TAU/teeth+phase;
+   points.push([x+Math.cos(angle)*radius,Math.sin(angle)*radius]);
+  }
+  return points.map((point,i)=>[point,points[(i+1)%points.length]])
+   .filter(([a,b])=>Math.abs(a[0]-contact)<1.8||Math.abs(b[0]-contact)<1.8);
+ }
+ for(const [a,b] of pairs){
+  const indexed=meshPhase(0,0,a,b);
+  for(let i=0;i<36;i++){
+   const angle=i*TAU/(a*36);
+   const first=nearbyEdges(a,0,angle,a/2);
+   const second=nearbyEdges(b,(a+b)/2,indexed+meshRatio(angle,a,b),a/2);
+   assert.ok(!first.some(edge=>second.some(other=>intersects(edge,other))),
+    a+' : '+b+' nominal outlines cross at engagement step '+i);
+  }
+ }
+});
+
 test('wearable geometry has valid indices and tracks the nested movement throughout the carrier orbit',()=>{
  const noop=()=>{};
  const ctx={fillRect:noop,fillText:noop,beginPath:noop,moveTo:noop,lineTo:noop,closePath:noop,fill:noop,stroke:noop,
@@ -69,6 +170,11 @@ test('wearable geometry has valid indices and tracks the nested movement through
   assert.equal(watch.axle.parent.parent,watch.carrier);
   assert.equal(watch.movement.cage.parent.parent,watch.axle);
   assert.equal(watch.swivel.parent,watch.carrier);
+  const face=scene.getObjectByName('Raised Roman numeral time dial');
+  const sun=scene.getObjectByName('Fixed orientation sun rotating hub');
+  assert.ok(sun);
+  assert.equal(sun.parent.parent,watch.root);
+  for(const key of ['second','minute','hour'])assert.equal(watch.hands[key].parent,watch.works.shafts[key]);
   const moving=[];
   watch.carrier.traverse(object=>{if(object.isMesh&&!object.isInstancedMesh)moving.push(object);});
   const vertex=new T.Vector3();
@@ -79,6 +185,11 @@ test('wearable geometry has valid indices and tracks the nested movement through
    close(watch.axle.rotation.x,s.yoke);
    close(watch.movement.cage.rotation.y,s.cage);
    close(watch.swivel.getWorldQuaternion(new T.Quaternion()).angleTo(new T.Quaternion()),0);
+   for(const key of ['second','minute','hour']){
+    const hand=watch.hands[key],origin=face.getWorldPosition(new T.Vector3());
+    close(hand.getWorldPosition(new T.Vector3()).distanceTo(origin),hand.position.y);
+    close(hand.parent.rotation.y+hand.rotation.y,s.time[key]);
+   }
    for(const [name,key] of [['earth satellite','earth'],['moon satellite','moon']]){
     const centre=scene.getObjectByName(name).getWorldPosition(new T.Vector3());
     close(Math.hypot(centre.x,centre.z),Math.hypot(SATELLITES[key][0],SATELLITES[key][2]));

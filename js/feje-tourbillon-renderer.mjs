@@ -1,6 +1,6 @@
 import * as T from './vendor/three-r160.1.mjs';
 import {buildWatch} from './feje-tourbillon-model.mjs';
-import {movementAt} from './feje-tourbillon-mechanism.mjs';
+import {movementAt,SATELLITES} from './feje-tourbillon-mechanism.mjs';
 import {buildCelestialObservatory} from './feje-tourbillon-celestial.mjs';
 import {watchPixelRatio} from './feje-tourbillon-quality.mjs';
 
@@ -10,7 +10,8 @@ const views={
  carrier:{target:[0,.62,0],azimuth:.78,elevation:1.23,distance:6.50},
  tourbillon:{target:[-1.41,1.10,.22],azimuth:.11,elevation:.68,distance:3.20,tracking:true},
  escapement:{target:[-1.37,1.14,.22],azimuth:.28,elevation:1.18,distance:2.67,tracking:true},
- gears:{target:[-.76,.31,-.09],azimuth:-.41,elevation:1.15,distance:3.17,tracking:true},
+ gears:{target:[-.48,.57,.52],azimuth:-1.08,elevation:.88,distance:3.82,tracking:true,relative:true},
+ dial:{target:[SATELLITES.dial[0],.965,SATELLITES.dial[2]],azimuth:-2.78,elevation:.15,distance:1.80,tracking:true},
  orbit:{target:[.57,1.32,-.8],azimuth:.82,elevation:.62,distance:5.85,tracking:true},
  case:{target:[.26,.29,.82],azimuth:1.37,elevation:.16,distance:7.15},
  back:{target:[0,-.38,0],azimuth:1.28,elevation:-1.13,distance:7.28}
@@ -121,7 +122,10 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
  }
  function focus(name){
   focusDetail=Object.hasOwn(views,name)&&name!=='overview';
+  const oldFrame=activeView.relative?watch.carrier.rotation.y:0;
   activeView=views[name]??overview;
+  const newFrame=activeView.relative?watch.carrier.rotation.y:0;
+  current.azimuth+=oldFrame-newFrame;
   const pose=activeView===overview?overviewPose:activeView;
   desiredTarget.set(...pose.target);
   const turn=pose.azimuth-current.azimuth;
@@ -135,7 +139,7 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
    current[key]+=(goal[key]-current[key])*weight;
    moving ||= Math.abs(goal[key]-current[key])>.001;
   }
-  const e=current.elevation,a=current.azimuth,d=current.distance;
+  const e=current.elevation,a=current.azimuth+(activeView.relative?watch.carrier.rotation.y:0),d=current.distance;
   camera.position.set(target.x+d*Math.cos(e)*Math.sin(a),target.y+d*Math.sin(e),target.z+d*Math.cos(e)*Math.cos(a));
   camera.lookAt(target);
   return moving;
@@ -153,7 +157,7 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
    goal.elevation=fit(goal.elevation+dy,-1.40,1.49);
   },
   zoom(factor){goal.distance=fit(goal.distance*factor,1.65,21)},
-  draw(seconds,angles,delta,immediate=false,skySeconds=seconds,paintInterval=delta){
+  draw(seconds,delta,immediate=false,skySeconds=seconds,paintInterval=delta){
    const start=performance.now();
    if(bufferDirty&&width>0&&height>0){
     // Resize and draw in one task so a compositor never receives a cleared
@@ -164,7 +168,6 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
    watch.update(movementAt(seconds));
    if(activeView.tracking)desiredTarget.set(...activeView.target).applyAxisAngle(yAxis,watch.carrier.rotation.y);
    observatory.update(skySeconds,{economy,focus:focusDetail});
-   for(const [name,angle] of Object.entries(angles))watch.hands[name].rotation.y=-angle*Math.PI/180;
    const settling=settleCamera(delta,immediate);
    renderer.render(scene,camera);
    if(pendingFrame)context.deleteSync(pendingFrame);

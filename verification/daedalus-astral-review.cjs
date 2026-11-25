@@ -74,10 +74,11 @@ async function capture(browser,url,revision,device){
    const frame=mobile?[390,293]:[620,465];
    probe.resize(...frame);
    const pixel=new Uint8Array(4),times=[],angles={hour:266.2,minute:74,second:186};
+   const draw=(seconds,sky)=>probe.draw.length===2?probe.draw(seconds,1/60,true,sky):probe.draw(seconds,angles,1/60,true,sky);
    const start=performance.now();
    for(let i=0;i<18;i++){
     const at=performance.now();
-    probe.draw(i*71.3,angles,1/60,true,i*.6);
+    draw(i*71.3,i*.6);
     gl.readPixels(canvas.width>>1,canvas.height>>1,1,1,gl.RGBA,gl.UNSIGNED_BYTE,pixel);
     if(i>=4)times.push(performance.now()-at);
    }
@@ -92,7 +93,7 @@ async function capture(browser,url,revision,device){
    const reference=overviewFraming?.(frame[0]/frame[1])??{azimuth:.13,elevation:.58,distance:8.95};
    probe.orbit(.82-reference.azimuth,.55-reference.elevation);
    probe.zoom(14.3/reference.distance);
-   probe.draw(0,angles,1/60,true,0);
+   draw(0,0);
    const fixedPose=canvas.toDataURL('image/png').split(',')[1];
    probe.dispose();
    return {result,fixedPose};
