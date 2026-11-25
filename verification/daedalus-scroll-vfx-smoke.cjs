@@ -129,6 +129,8 @@ async function verify(browser, url, engine, mobile, capture) {
     if (cadence.frames > 1) assert.ok(cadence.paintsPerSecond <= (mobile ? 26 : 33));
 
     const pause = page.locator('[data-ft-pause]');
+    await page.waitForFunction(()=>!document.querySelector('[data-ft-stage]').hasAttribute('data-ft-live') ||
+      !document.querySelector('[data-ft-pause]').disabled);
     const liveWatch = await page.locator('[data-ft-stage]').evaluate(stage=>stage.hasAttribute('data-ft-live'));
     const toggle = value => pause.evaluate((button,{live,value})=>{
       // Exercise the live button where WebGL is supported. The fallback has no active button.
