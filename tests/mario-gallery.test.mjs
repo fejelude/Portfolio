@@ -22,10 +22,15 @@ test('third collection contains exactly 17 kingdoms and four narrative moments',
  for(const [klass,value] of [['game','Super Mario Odyssey'],['date','2017'],['name','Mark Dhansen']])
    assert.ok(section.includes('<span class="highlight-'+klass+'">'+value+'</span>'));
 });
-test('old collections are retained; all new entries are either references or authorized local photos',()=>{
+test('old collections are retained; photo cards use local paths and are inert until assets exist',()=>{
  const before=html.split('<!-- mario-odyssey:start -->')[0];
  assert.equal((before.match(/<img [^>]*class="gallery-img"/g)||[]).length,23);
- const photo=section.includes('class="gallery-img"');
+ const photo=!section.includes('<template id="mario-pending-images">');
+ assert.equal((section.match(/class="gallery-img"/g)||[]).length,21);
+ assert.ok(!section.includes('View screenshot reference'));
+ assert.ok(!section.includes('mario-image-note'));
+ assert.ok(!section.includes('<a class="gallery-item'));
+ for(const e of entries)assert.ok(section.includes('/assets/mario-odyssey-memories/'+e.file));
  if(photo){
    const credits=JSON.parse(readFileSync(new URL('credits.json',dir),'utf8'));
    assert.equal(credits.length,21);
@@ -36,8 +41,7 @@ test('old collections are retained; all new entries are either references or aut
    }
    assert.equal((section.match(/loading="lazy"/g)||[]).length,21);
  }else{
-   assert.ok(section.includes('while image reuse permissions are being confirmed'));
-   for(const e of entries)assert.ok(section.includes('href="'+e.reference.replaceAll('&','&amp;')+'"'));
-   assert.equal((section.match(/View screenshot reference/g)||[]).length,21);
+   assert.ok(section.includes('</template>'));
+   assert.equal((section.match(/loading="lazy"/g)||[]).length,21);
  }
 });

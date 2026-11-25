@@ -40,12 +40,18 @@ async function verify(browser,engine,mobile,url){
  },{dx,dy});
  try{
   await page.goto(url+'/Gallery.html',{waitUntil:'domcontentloaded'});
+  const pending=await page.locator('template#mario-pending-images').count()===1;
+  assert.equal(await page.locator('#gallery .gallery-grid').count(),pending?2:3);
+  assert.equal(await page.locator('#gallery a.gallery-item').count(),0);
+  if(pending){
+   assert.equal(await cards.count(),0);
+   console.log(label,'photo assets pending; Mario section intentionally not rendered');
+  }else{
   await grid.scrollIntoViewIfNeeded();
   assert.equal(await cards.count(),21);
-  assert.equal(await page.locator('#gallery .gallery-grid').count(),3);
   assert.equal(await page.locator('#gallery .gallery-grid').nth(0).locator('img').count(),13);
   assert.equal(await page.locator('#gallery .gallery-grid').nth(1).locator('img').count(),10);
-  const photo=await grid.locator('img').count()===21;
+  assert.equal(await grid.locator('img').count(),21);
   for(const [i,e] of manifest.entries.entries()){
    await go(i);
    const card=cards.nth(i);
@@ -53,20 +59,14 @@ async function verify(browser,engine,mobile,url){
    assert.ok((await card.innerText()).includes(e.caption));
    const box=await card.boundingBox();
    assert.ok(box&&box.width>0&&box.height>0);
-   if(photo){
-    await page.waitForFunction(id=>{const im=document.querySelector('[data-mario-memory="'+id+'"] img');return im.complete&&im.naturalWidth>=1280;},e.id);
-   }else{
-    assert.equal(await card.getAttribute('href'),e.reference);
-    assert.equal(await card.getAttribute('target'),'_blank');
-   }
+   await page.waitForFunction(id=>{const im=document.querySelector('[data-mario-memory="'+id+'"] img');return im.complete&&im.naturalWidth>=1280;},e.id);
   }
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
   await go(0);
   await page.screenshot({path:path.join(out,label+'-start.png'),scale:'css'});
   await go(20);
   await page.screenshot({path:path.join(out,label+'-finale.png'),scale:'css'});
-  if(photo){
-   for(let i=0;i<21;i++){await open(i);await page.keyboard.press('Escape');await lightbox.waitFor({state:'hidden'});}
+  for(let i=0;i<21;i++){await open(i);await page.keyboard.press('Escape');await lightbox.waitFor({state:'hidden'});}
    await open(0);
    await lightbox.locator('.lightbox-next').click();
    await page.waitForFunction(expected=>document.querySelector('.lightbox-caption').textContent.startsWith(expected),manifest.entries[1].caption);
@@ -87,7 +87,7 @@ async function verify(browser,engine,mobile,url){
   assert.equal(await caption(),'Subdued Ceremony');
   await page.keyboard.press('Escape');await lightbox.waitFor({state:'hidden'});
   assert.deepEqual(errors,[]);
-  console.log(label,photo?'21 photos and lightbox':'21 reference entries (photo testing pending)');
+  console.log(label,pending?'existing Zelda lightbox; Mario photo testing pending':'21 photos and lightbox');
  }finally{await context.close();}
 }
 (async()=>{

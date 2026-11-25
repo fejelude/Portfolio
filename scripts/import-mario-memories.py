@@ -33,10 +33,8 @@ def main():
     prefix, rest = original.split(START, 1)
     block, suffix = rest.split(END, 1)
     header, _ = block.split('        <div id="mario-odyssey-grid"', 1)
-    import re
-    header = re.sub(r'<p id="mario-image-note">.*?</p>', '<p id="mario-image-note">Gameplay screenshots credited below; externally sourced images are not my own captures.</p>', header, count=1)
-    if 'Gameplay screenshots credited below' not in header:
-        raise ValueError("Missing image-credit note")
+    # The pending template is inert: do not expose empty cards to visitors.
+    header = header.replace('        <template id="mario-pending-images">\n', '', 1)
     cards, credits, receipt, hashes = [], [], [], set()
     source_root = args.images.resolve()
     with tempfile.TemporaryDirectory(dir=ASSETS) as directory:
