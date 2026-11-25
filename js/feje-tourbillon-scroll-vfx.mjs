@@ -110,7 +110,7 @@ function makeStars(total) {
 function pixelStar(ctx, x, y, shape, color, unit, sx, sy) {
   x = Math.round(x * sx) / sx;
   y = Math.round(y * sy) / sy;
-  const dx = Math.round(unit * sx) / sx, dy = Math.round(unit * sy) / sy;
+  const dx = Math.max(1,Math.round(unit * sx)) / sx, dy = Math.max(1,Math.round(unit * sy)) / sy;
   ctx.fillStyle = color;
   ctx.fillRect(x, y, dx, dy);
   if (shape) {
@@ -327,7 +327,7 @@ export function mountDaedalusSky(section) {
   }
 
   function request() {
-    if (!frame && near && !doc.hidden && !suspended) frame = win.requestAnimationFrame(tick);
+    if (!frame && near && !doc.hidden && !suspended && !signal.aborted) frame = win.requestAnimationFrame(tick);
   }
   function invalidate() {
     dirty = true;
