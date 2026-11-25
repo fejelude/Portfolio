@@ -341,7 +341,7 @@ export function mountDaedalusSky(section) {
     const level = skyEnvelope(bounds.top,bounds.bottom,h);
     info = !level.wash ? null : {
       w,h,level, box:card.getBoundingClientRect(),
-      scroll:Math.max(-h * 1.55, Math.min(h * 1.55,bounds.top - h * .23))
+      scroll:motion.matches ? 0 : Math.max(-h * 1.55, Math.min(h * 1.55,bounds.top - h * .23))
     };
     if (info) needsLayout = true;
     dirty = false;

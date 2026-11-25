@@ -41,14 +41,15 @@ async function verify(browser, url, engine, mobile, capture) {
   await context.route('**/*', route => route.request().url().startsWith(url) ? route.continue() : route.abort());
   const surface = page.locator('.daedalus-scroll-sky');
   const sampleAlpha = () => surface.evaluate(sky=>Math.round(Number(sky.style.backgroundColor.split(',')[3]?.slice(0,-1)) * 255));
-  const digest = () => surface.evaluate(sky => {
+  const digest = (gutterOnly = false) => surface.evaluate((sky,gutterOnly) => {
     let hash = 0;
-    for (const c of sky.querySelectorAll('canvas:not([hidden])')) {
+    const panels = gutterOnly ? [sky.firstElementChild] : sky.querySelectorAll('canvas:not([hidden])');
+    for (const c of panels) {
       const data = c.getContext('2d').getImageData(0,0,c.width,c.height).data;
       for (let i = 0; i < data.length; i += 28) hash = Math.imul((hash ^ data[i]), 16777619);
     }
     return hash;
-  });
+  },gutterOnly);
   const position = (anchor, offset) => page.evaluate(({anchor,offset})=>{
     const bounds = document.querySelector('#tourbillon').getBoundingClientRect();
     const edge = anchor === 'top' ? bounds.top : bounds.bottom;
@@ -90,6 +91,13 @@ async function verify(browser, url, engine, mobile, capture) {
     const paused = await digest();
     await page.waitForTimeout(300);
     assert.equal(await digest(),paused,'reduced-motion frame must stay still');
+    const gutter = await digest(true);
+    const upper = await surface.evaluate(sky=>sky.children[2].height);
+    await position('top',.26);
+    await page.waitForFunction(upper=>document.querySelector('.daedalus-scroll-sky').children[2].height > upper,upper);
+    assert.equal(await digest(true),gutter,'reduced motion must disable gutter parallax');
+    await position('top',.115);
+    await page.waitForFunction(upper=>document.querySelector('.daedalus-scroll-sky').children[2].height === upper,upper);
 
     if (capture) {
       await page.locator('.ft-model:not([hidden])').waitFor({state:'visible',timeout:30000});
