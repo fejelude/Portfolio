@@ -4,11 +4,12 @@ import {MOVEMENT as m, TAU, SATELLITES, pitchRadius} from './feje-tourbillon-mec
 import {TIME_TRAIN,meshPhase,radialTrain,timingTooth} from './feje-tourbillon-transmission.mjs';
 import {buildStrap} from './feje-tourbillon-strap.mjs';
 import {coastlines} from './feje-tourbillon-coastlines.mjs';
+import {JEWEL_LAYOUT,ringSites,moonPositions,facetGeometry,gemstone,setBrilliants,setBaguettes,finishing} from './feje-tourbillon-joaillerie.mjs';
 const mat = (color,metalness,roughness,extra={}) =>
  new T.MeshStandardMaterial({color,metalness,roughness,...extra});
-const gold=mat(0xd8a083,.91,.25);
-const edge=mat(0xf5d0a7,.95,.15);
-const brush=mat(0xab725c,.87,.34);
+const gold=mat(0xd9a085,.94,.19);
+const edge=mat(0xf7d3af,.96,.105);
+const brush=finishing(mat(0xb77d68,.91,.29),'brushing');
 const striped=mat(0xc0a291,.86,.36);
 striped.onBeforeCompile=shader=>{
  shader.vertexShader='varying vec3 bridgePosition;\n'+shader.vertexShader;
@@ -21,14 +22,16 @@ striped.onBeforeCompile=shader=>{
   roughnessFactor = clamp(roughnessFactor + stripe * .074 * detail, .18, .6);
  `);
 };
-const steel=mat(0xb5cce4,.86,.21);
+const steel=finishing(mat(0xc7d3e0,.94,.20),'brushing');
 const dark=mat(0x253344,.72,.37);
-const blue=mat(0x0b315b,.49,.29);
+const blue=mat(0x0b315b,.48,.24);
+const enamel=finishing(new T.MeshPhysicalMaterial({color:0x092952,metalness:.40,roughness:.25,clearcoat:.87,clearcoatRoughness:.12}),'aventurine');
+const engineTurned=finishing(new T.MeshPhysicalMaterial({color:0x123f70,metalness:.56,roughness:.27,clearcoat:.75,clearcoatRoughness:.13}),'guilloche');
 const blued=mat(0x345979,.91,.19);
-const ruby=new T.MeshPhysicalMaterial({color:0x8e0f3b,metalness:.36,roughness:.19,clearcoat:1});
-const crystal=new T.MeshPhysicalMaterial({
- color:0xd4e5f1,metalness:.62,roughness:.095,flatShading:true,clearcoat:.9,ior:2.41
-});
+const ruby=gemstone(0xa50e3d,1.76);
+const crystal=gemstone(0xf2f8ff,2.41,{hero:true,thickness:.68});
+const diamond=gemstone(0xf1f7ff,2.41);
+const sapphires=[0x102c74,0x1f56a0,0x418dc2,0x79c9de].map(c=>gemstone(c,1.76));
 const dialInk=new T.MeshBasicMaterial({color:0xf9d3ab});
 const sapphire=new T.MeshPhysicalMaterial({
  color:0xa6d1e4,metalness:.19,roughness:.13,transparent:true,opacity:.28,depthWrite:false,clearcoat:1,ior:1.76,side:T.DoubleSide,forceSinglePass:true
@@ -162,6 +165,11 @@ function casework(root){
   [.102,2.56,.057,.052,gold],[.168,2.526,.05,.039,edge],[.62,2.50,.070,.042,gold],[.676,2.515,.074,.050,edge],
   [.713,2.484,.024,.018,steel]
  ])ring(shell,'Beveled case moulding',0,y,0,r,w,h,material,104);
+ // Fixed gemstone gallery outside the sapphire wall.
+ ring(shell,'Rose gold diamond gallery',0,.688,0,2.612,.129,.064,gold,128);
+ ring(shell,'Inner polished gallery lip',0,.722,0,2.505,.014,.013,edge,128);
+ ring(shell,'Outer polished gallery lip',0,.722,0,2.610,.016,.013,edge,128);
+ setBrilliants(shell,'Diamond coronet • 112 round brilliants',ringSites(JEWEL_LAYOUT.bezel,Math.PI/112),diamond,edge,{prongs:true});
  profile(shell,'Transparent sidewall',[[2.493,.18],[2.471,.62],[2.446,.70]],sapphire,0,0,104).renderOrder=6;
  const arc=Array.from({length:24},(_,i)=>[2.453*Math.cos(i*Math.PI/46),.705+1.89*Math.sin(i*Math.PI/46)]);
  profile(shell,'Curved sapphire dome',arc,sapphire,0,0,104).renderOrder=7;
@@ -174,7 +182,7 @@ function casework(root){
  buildStrap(shell,{gold,edge,steel,rod,cylinder});
  const back=group(shell,'Caseback medallion',0,-.39,0);
  back.rotation.x=Math.PI;
- cylinder(back,'Midnight display caseback',0,0,0,2.17,.065,blue,104);
+ cylinder(back,'Midnight display caseback',0,0,0,2.17,.065,engineTurned,104);
  for(const [r,w,material] of [[2.36,.16,brush],[2.20,.02,edge],[1.92,.017,steel],[1.32,.014,edge],[.77,.018,steel]]){
   ring(back,'Caseback engraved radial frame',0,.041,0,r,w,.036,material,96);
  }
@@ -198,11 +206,34 @@ function casework(root){
  return shell;
 }
 function plate(root){
- cylinder(root,'Royal blue enamel plate',0,-.026,0,2.405,.25,blue,104);
- for(const [radius,material] of [[1.40,dark],[1.85,steel],[1.91,dark],[2.07,gold],[2.21,steel],[2.36,steel]]){
+ cylinder(root,'Royal blue enamel plate',0,-.026,0,2.405,.25,enamel,104);
+ for(const [radius,material] of [[1.40,dark],[1.85,steel],[1.91,dark],[2.07,gold],[2.21,steel],[2.305,edge],[2.39,edge]]){
   ring(root,'Fine engraved track',0,.102,0,radius,.009,.006,material,96);
  }
- ticks(root,120,2.295,.113,1.45);
+ ticks(root,120,2.254,.113,1.03);
+ ring(root,'Recessed gold channel bed',0,.104,0,2.383,.075,.014,brush,104);
+ const chapter=ringSites(JEWEL_LAYOUT.chapter,Math.PI/48);
+ for(let shade=0;shade<sapphires.length;shade++){
+  const selected=chapter.filter((_,i)=>[0,1,2,3,2,1][i%6]===shade);
+  setBaguettes(root,'Graduated celestial sapphire channel '+shade,selected,sapphires[shade],edge);
+ }
+ const rays=[],stars=[];
+ for(let quadrant=0;quadrant<4;quadrant++){
+  const start=quadrant*TAU/4+.23;
+  const points=[[1.13,0],[1.55,.12],[1.72,.38],[1.49,.58],[1.78,.80]].map(([r,a])=>{
+   const x=r*Math.cos(start+a),z=r*Math.sin(start+a);return {x,y:.112,z,r:.020,a:start+a};
+  });
+  for(let i=1;i<points.length;i++)rays.push(points[i-1].x,.106,points[i-1].z,points[i].x,.106,points[i].z);
+  stars.push(points[1],points[4]);
+ }
+ const lines=new T.BufferGeometry();lines.setAttribute('position',new T.Float32BufferAttribute(rays,3));
+ const engraving=new T.LineSegments(lines,new T.LineBasicMaterial({color:0xc4a47d,transparent:true,opacity:.72}));
+ engraving.name='Original celestial line engraving';root.add(engraving);
+ setBrilliants(root,'Eight bezel-set stellar diamonds',stars,diamond,edge);
+ const zodiac=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'];
+ zodiac.forEach((symbol,i)=>{
+  const a=(i+.5)*TAU/12;label(root,symbol,[2.12*Math.sin(a),.114,-2.12*Math.cos(a)],.17,.10);
+ });
  const burnish=new T.InstancedMesh(new T.RingGeometry(.065,.073,18),mat(0x3a6083,.75,.46),190);
  burnish.name='Overlapping perlage on the enamel border';
  const stamp=new T.Object3D();stamp.rotation.x=-Math.PI/2;
@@ -221,8 +252,8 @@ function plate(root){
   dummy.scale.setScalar(.38+random()*.86);dummy.updateMatrix();flecks.setMatrixAt(i,dummy.matrix);
  }
  root.add(flecks);
- label(root,'D A E D A L U S',[0,.114,1.87],1.32,.24);
- label(root,'F E J E L U D E  /  0 0 1',[0,.114,2.06],1.11,.15);
+ label(root,'D A E D A L U S',[0,.114,1.64],1.32,.20);
+ label(root,'F E J E L U D E  /  0 0 1',[0,.114,1.81],1.11,.13);
  for(const a of [Math.PI/4,3*Math.PI/4,5*Math.PI/4,7*Math.PI/4]){
   const x=Math.cos(a)*1.64,z=Math.sin(a)*1.64;
   for(let i=0;i<4;i++){
@@ -238,6 +269,15 @@ function bridge(parent,name,a,b){
  shape.lineTo(-.078,length*.74);shape.quadraticCurveTo(-.13,length*.96,-.073,length);
  shape.lineTo(.073,length);shape.quadraticCurveTo(.13,length*.96,.078,length*.74);
  shape.lineTo(.097,length*.28);shape.quadraticCurveTo(.16,length*.12,.118,0);shape.closePath();
+ // Pierce only the long satellite arms; retain the outer shape and end seats.
+ if(length>1.0){
+  const aperture=new T.Path();aperture.moveTo(0,length*.22);
+  aperture.quadraticCurveTo(.043,length*.36,.032,length*.58);
+  aperture.quadraticCurveTo(.023,length*.70,0,length*.78);
+  aperture.quadraticCurveTo(-.023,length*.70,-.032,length*.58);
+  aperture.quadraticCurveTo(-.043,length*.36,0,length*.22);aperture.closePath();
+  shape.holes.push(aperture);
+ }
  const geom=new T.ExtrudeGeometry(shape,{depth:.057,bevelEnabled:true,bevelSize:.016,bevelThickness:.018,bevelSegments:2,curveSegments:4});
  geom.rotateX(Math.PI/2);
  const pivot=mesh(parent,name,geom,[striped,edge],...a);
@@ -365,12 +405,14 @@ function earthMap(){
  const canvas=document.createElement('canvas'),w=1536,h=768;
  canvas.width=w;canvas.height=h;
  const ctx=canvas.getContext('2d'),ocean=ctx.createLinearGradient(0,0,0,h);
- ocean.addColorStop(0,'#103761');ocean.addColorStop(.49,'#075185');ocean.addColorStop(1,'#10315c');
+ ocean.addColorStop(0,'#11224f');ocean.addColorStop(.49,'#063e83');ocean.addColorStop(1,'#111e45');
  ctx.fillStyle=ocean;ctx.fillRect(0,0,w,h);
  ctx.strokeStyle='#8dd4df4a';ctx.lineWidth=1;
  for(let x=0;x<w;x+=w/24){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
  for(let y=h/12;y<h;y+=h/12){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
- ctx.fillStyle='#dab779';ctx.strokeStyle='#f8d8a1';ctx.lineWidth=1.4;
+ const gilt=ctx.createLinearGradient(0,0,w,h);
+ gilt.addColorStop(0,'#b98549');gilt.addColorStop(.30,'#f5d89c');gilt.addColorStop(.59,'#d3a45b');gilt.addColorStop(.83,'#ffe2ad');gilt.addColorStop(1,'#b98549');
+ ctx.fillStyle=gilt;ctx.strokeStyle='#ffe6b5';ctx.lineWidth=2.0;
  for(const polygon of coastlines){
   ctx.beginPath();
   for(const coast of polygon){
@@ -381,26 +423,6 @@ function earthMap(){
  }
  const map=new T.CanvasTexture(canvas);map.colorSpace=T.SRGBColorSpace;map.anisotropy=6;
  return map;
-}
-function cutMoon(radius){
- const values=[],circles=[
-  [.39,.41,.5],[.69,.61,0],[.91,.32,.5],[1,0,0],[.91,-.32,.5],[.69,-.61,0],[.39,-.41,.5]
- ];
- // Distinct table, crown and pavilion bands. Staggering the rings alternates
- // bright and dark triangular faces without a tone painted on the material.
- circles[0][1]=.92;circles[1][1]=.70;circles[5][1]=-.70;circles[6][1]=-.92;
- const at=(i,k)=>{
-  const [r,y,phase]=circles[i],a=(k+phase)*TAU/12;
-  return [r*radius*Math.cos(a),y*radius,radius*r*Math.sin(a)];
- };
- for(let i=0;i<circles.length-1;i++)for(let k=0;k<12;k++){
-  const a=at(i,k),b=at(i,k+1),c=at(i+1,k),d=at(i+1,k+1);
-  values.push(...a,...b,...c,...b,...d,...c);
- }
- for(let k=1;k<11;k++){values.push(...at(0,0),...at(0,k+1),...at(0,k),...at(6,0),...at(6,k),...at(6,k+1));}
- const geometry=new T.BufferGeometry();
- geometry.setAttribute('position',new T.Float32BufferAttribute(values,3));
- geometry.computeVertexNormals();return geometry;
 }
 function astronomy(carrier){
  const elements=[];
@@ -414,10 +436,11 @@ function astronomy(carrier){
   for(const sign of [-1,1]){
    rod(gimbal,'Polished polar spindle',[0,sign*.35,0],[0,sign*.51,0],.027,steel);
    cylinder(gimbal,'Polar pivot bezel',0,sign*.493,0,.062,.052,edge,20);
+   ring(gimbal,'Polished polar chaton',0,sign*.462,0,.052,.014,.018,gold,24);
   }
-  const material=key==='earth'?new T.MeshPhysicalMaterial({map:earthMap(),metalness:.48,roughness:.22,clearcoat:.89,clearcoatRoughness:.11}):crystal;
+  const material=key==='earth'?new T.MeshPhysicalMaterial({map:earthMap(),metalness:.57,roughness:.19,clearcoat:1,clearcoatRoughness:.075}):crystal;
   const output=mesh(gimbal,key==='earth'?'Enamel Earth and gilt coastlines':'Brilliant-cut faceted moon',
-   key==='earth'?new T.SphereGeometry(.403,64,42):cutMoon(.405),material);
+   key==='earth'?new T.SphereGeometry(.403,80,48):facetGeometry(moonPositions(.405)),material);
   elements.push({key,gimbal,output});
  }
  return {update(state){
@@ -560,10 +583,10 @@ function timeDial(root,drive){
   rod(swivel,'Polished yoke shoulder',[neck.x,-.153,neck.z],[across.x*.15*side,-.037,across.z*.15*side],.025,steel);
  }
  ring(swivel,'Polished dial yoke bearing',0,-.09,0,.109,.031,.039,edge,38);
- for(const [y,r,w,h,material] of [[0,.743,.11,.103,brush],[.049,.742,.058,.048,edge],[.076,.696,.020,.025,steel],[.085,.674,.111,.038,blue],[.10,.566,.018,.021,edge]]){
+ for(const [y,r,w,h,material] of [[0,.743,.11,.103,brush],[.049,.742,.058,.048,edge],[.076,.696,.020,.025,steel],[.085,.674,.111,.038,engineTurned],[.10,.566,.018,.021,edge]]){
   ring(face,'Machined dial moulding',0,y,0,r,w,h,material,72);
  }
- cylinder(face,'Sunken blue guilloché dial',0,.047,0,.577,.055,blue,72);
+ cylinder(face,'Sunken blue guilloché dial',0,.047,0,.577,.055,engineTurned,72);
  for(let i=0;i<13;i++)ring(face,'Guilloché hairline',0,.077,0,.149+i*.030,.004,.004,i%3?dark:steel,48);
  ticks(face,60,.642,.115,.69);
  const numerals=['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
@@ -571,6 +594,8 @@ function timeDial(root,drive){
   const a=i*TAU/12;
   label(face,n,[.604*Math.sin(a),.122,-.604*Math.cos(a)],.17,.086);
  });
+ setBrilliants(face,'Twelve balanced dial diamond accents',ringSites(JEWEL_LAYOUT.dial,Math.PI/12),diamond,edge);
+ label(face,'D A E D A L U S',[0,.081,-.265],.45,.09);
  const hands={};
  for(const [name,length,width,y,material] of [
   ['hour',.385,.039,.150,edge],['minute',.526,.027,.173,edge],['second',.578,.009,.195,steel]

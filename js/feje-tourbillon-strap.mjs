@@ -77,8 +77,8 @@ function latchProfile(parent,vertices,thickness,material,{x=0,y=0,z=0,angle=0}={
 const lugShape=[[0,.00],[.19,.04],[.235,.20],[.215,.46],[.145,.68],[.011,.725],[-.083,.62],[-.095,.34],[-.127,.10]];
 const latchShape=[[.38,.03],[.57,.09],[.63,.20],[.60,.48],[.49,.55],[.36,.48],[.43,.34],[.42,.20],[.35,.13]];
 export function buildStrap(shell,{gold,edge,steel,rod,cylinder}){
- const leather=new T.MeshStandardMaterial({color:0x142d51,roughness:.55,metalness:.03,bumpMap:stampedLeather(),bumpScale:.035,side:T.DoubleSide});
- const thread=new T.MeshStandardMaterial({color:0x91a7ae,roughness:.79});
+ const leather=new T.MeshStandardMaterial({color:0x101e39,roughness:.50,metalness:.03,bumpMap:stampedLeather(),bumpScale:.028,side:T.DoubleSide});
+ const thread=new T.MeshStandardMaterial({color:0x9eabbc,roughness:.79});
  const selvedge=new T.MeshStandardMaterial({color:0x12243c,roughness:.44});
  const ink=new T.MeshStandardMaterial({color:0x050a13,roughness:.73});
  const seamMaterial=new T.CapsuleGeometry(.009,.053,2,5);

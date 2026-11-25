@@ -32,7 +32,9 @@ function roomEnvironment(renderer){
   [[4,2,2],[1.5,4.6],0xd6e8ff,2.7],
   [[-1,5,-4],[4.8,3.0],0xdce7ff,3.2],
   [[0,.4,7],[4.1,2],0xffe7c9,1.7],
-  [[-6,1,-.5],[.8,3.9],0xf1fff9,2.0]
+  [[-6,1,-.5],[.8,3.9],0xf1fff9,2.0],
+  [[2,5,6],[.38,5.5],0xffffff,4.3],
+  [[-4,2,-4],[.42,4.7],0xd6deff,3.6]
  ];
  for(const [position,size,color,power] of sources){
   const m=new T.MeshBasicMaterial({color:new T.Color(color).multiplyScalar(power)});
@@ -40,7 +42,7 @@ function roomEnvironment(renderer){
   o.position.set(...position);o.scale.set(...size,1);o.lookAt(0,0,0);room.add(o);
  }
  const pmrem=new T.PMREMGenerator(renderer);
- const texture=pmrem.fromScene(room,.11,.1,25);
+ const texture=pmrem.fromScene(room,.045,.1,25);
  pmrem.dispose();panel.dispose();
  for(const o of room.children)o.material.dispose();
  return texture;
