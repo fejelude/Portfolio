@@ -138,7 +138,7 @@ jobs:
           path: verification/automotive-fidelity-results/
 
   astral-review:
-    if: github.head_ref == 'feat/daedalus-astral-grande-complication'
+    if: github.head_ref == 'feat/daedalus-astral-grande-complication' || github.head_ref == 'feat/daedalus-haute-joaillerie'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

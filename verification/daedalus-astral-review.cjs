@@ -95,15 +95,29 @@ async function capture(browser,url,revision,device){
    probe.zoom(14.3/reference.distance);
    draw(0,0);
    const fixedPose=canvas.toDataURL('image/png').split(',')[1];
+   const inspections=[];
+   for(const [name,view,seconds,dx,dy,zoom] of [
+    ['top','carrier',0,0,.23,1],['rear','back',0,0,0,1],['side','case',0,0,-.16,1],
+    ['gears','gears',8.3,0,0,1],['dial','dial',8.3,0,0,1],['earth-moon','orbit',73.2,0,0,1],
+    ['tourbillon','tourbillon',8.3,0,0,1],['escapement','escapement',8.3,0,0,.70],
+    ['oblique','overview',308.3,.38,-.18,1],['case-lugs','case',0,.35,.15,1]
+   ]){
+    probe.focus(view);probe.orbit(dx,dy);probe.zoom(zoom);draw(seconds,0);
+    inspections.push({name,error:gl.getError(),stats:{...probe.stats},png:canvas.toDataURL('image/png').split(',')[1]});
+   }
    probe.dispose();
-   return {result,fixedPose};
+   return {result,fixedPose,inspections};
   },mobile);
   assert.equal(timing.result.error,0,JSON.stringify(timing.result));
   assert.ok(timing.result.rgba.some((x,i)=>i<3&&x>0),'rendered pixel is empty');
   assert.ok(timing.fixedPose.length>2000,'matched orbit image is empty');
   await writeFile(path.join(output,revision+'-'+device+'-matched-camera.png'),Buffer.from(timing.fixedPose,'base64'));
+  for(const {name,error,png} of timing.inspections){
+   assert.equal(error,0,name);assert.ok(png.length>2000,name);
+   await writeFile(path.join(output,revision+'-'+device+'-'+name+'.png'),Buffer.from(png,'base64'));
+  }
   assert.deepEqual(errors,[]);
-  return {sample,timing:timing.result};
+  return {sample,timing:timing.result,inspections:timing.inspections.map(({png,...item})=>item)};
  }finally{await context.close();}
 }
 

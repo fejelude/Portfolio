@@ -9,6 +9,7 @@ import {watchPixelRatio} from '../js/feje-tourbillon-quality.mjs';
 import * as T from '../js/vendor/three-r160.1.mjs';
 import {overviewFraming} from '../js/feje-tourbillon-renderer.mjs';
 import {buildWatch} from '../js/feje-tourbillon-model.mjs';
+import {JEWEL_LAYOUT,ringSites,moonPositions,brilliantPositions,baguettePositions,facetGeometry} from '../js/feje-tourbillon-joaillerie.mjs';
 import {TIME_TRAIN,meshPhase,radialTrain,timingTooth} from '../js/feje-tourbillon-transmission.mjs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const close=(actual,expected)=>assert.ok(Math.abs(actual-expected)<1e-9,`${actual} != ${expected}`);
@@ -358,4 +359,37 @@ test('graphics presets and persisted selection have been removed from the watch'
  assert.match(render,/watchPixelRatio\(params\(\)\)\*scale/);
  assert.match(sky,/economy:\{value:0\}/);
  assert.match(render,/observatory\.setPixelRatio/);
+});
+
+test('jewelry cuts have outward finite facets and the moon retains its radius',()=>{
+ for(const positions of [moonPositions(),brilliantPositions(),baguettePositions()]){
+  assert.equal(positions.length%9,0);
+  const a=new T.Vector3(),b=new T.Vector3(),c=new T.Vector3(),n=new T.Vector3();
+  for(let i=0;i<positions.length;i+=9){
+   a.fromArray(positions,i);b.fromArray(positions,i+3);c.fromArray(positions,i+6);
+   n.crossVectors(b.clone().sub(a),c.clone().sub(a));
+   assert.ok(n.lengthSq()>1e-12,'nondegenerate facet');
+   assert.ok(n.dot(a.clone().add(b).add(c))>0,'outward winding');
+  }
+  const g=facetGeometry(positions);
+  assert.ok(g.attributes.normal.array.every(Number.isFinite));g.dispose();
+ }
+ const moon=moonPositions();
+ assert.equal(moon.length/9,284);
+ for(let i=0;i<moon.length;i+=3)assert.ok(Math.hypot(...moon.slice(i,i+3))<=.405+1e-12);
+});
+test('gemstone layouts respect glazing and fixed ring bounds',()=>{
+ const {bezel,chapter,dial}=JEWEL_LAYOUT;
+ assert.ok(bezel.radius-1.12*bezel.stone>2.493);
+ assert.ok(bezel.radius+1.12*bezel.stone<2.62);
+ assert.ok(chapter.radius+1.10*chapter.stone<2.405);
+ assert.ok(chapter.radius-1.10*chapter.stone>2.305);
+ assert.ok(dial.radius+1.12*dial.stone<.674);
+ for(const config of [bezel,chapter,dial]){
+  const sites=ringSites(config);
+  for(let i=0;i<sites.length;i++){
+   const a=sites[i],b=sites[(i+1)%sites.length];
+   assert.ok(Math.hypot(a.x-b.x,a.z-b.z)>2.65*config.stone);
+  }
+ }
 });
