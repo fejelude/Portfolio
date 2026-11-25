@@ -42,7 +42,7 @@ export function facetGeometry(positions){
 export const JEWEL_LAYOUT=Object.freeze({
  bezel:Object.freeze({count:112,radius:2.55,girdle:.738,stone:.049}),
  chapter:Object.freeze({count:48,radius:2.344,girdle:.118,stone:.033}),
- dial:Object.freeze({count:12,radius:.603,girdle:.121,stone:.016})
+ dial:Object.freeze({count:12,radius:.603,girdle:.114,stone:.016})
 });
 export const ringSites=({count,radius,girdle,stone},phase=0)=>Array.from({length:count},(_,i)=>{
  const a=TAU*i/count+phase;
@@ -72,8 +72,11 @@ export function setBrilliants(parent,name,sites,material,setting,{prongs=false}=
  instances(parent,name,facetGeometry(brilliantPositions()),material,sites,(p,s,i)=>{
   p.position.set(s.x,s.y,s.z);p.rotation.y=s.a+i*Math.PI/16;p.scale.setScalar(s.r);
  });
- instances(parent,name+' • polished collets',new T.TorusGeometry(.91,.11,6,20).rotateX(-Math.PI/2),setting,sites,(p,s)=>{
-  p.position.set(s.x,s.y-.15*s.r,s.z);p.scale.setScalar(s.r);
+ // An open tapered basket runs from the mounting surface to the girdle.
+ // Its central hole leaves the pavilion visible instead of filling it with metal.
+ const basket=new T.LatheGeometry([[.52,-.70],[.76,-.70],[.96,-.23],[1.02,-.12],[.89,-.06],[.78,-.26],[.52,-.70]].map(v=>new T.Vector2(...v)),20);
+ instances(parent,name+' • open polished collets',basket,setting,sites,(p,s)=>{
+  p.position.set(s.x,s.y,s.z);p.scale.setScalar(s.r);
  });
  if(prongs){
   const claws=sites.flatMap(s=>Array.from({length:4},(_,i)=>{

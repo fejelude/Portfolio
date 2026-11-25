@@ -211,6 +211,7 @@ function plate(root){
   ring(root,'Fine engraved track',0,.102,0,radius,.009,.006,material,96);
  }
  ticks(root,120,2.254,.113,1.03);
+ ring(root,'Recessed gold channel bed',0,.104,0,2.383,.075,.014,brush,104);
  const chapter=ringSites(JEWEL_LAYOUT.chapter,Math.PI/48);
  for(let shade=0;shade<sapphires.length;shade++){
   const selected=chapter.filter((_,i)=>[0,1,2,3,2,1][i%6]===shade);
@@ -220,7 +221,7 @@ function plate(root){
  for(let quadrant=0;quadrant<4;quadrant++){
   const start=quadrant*TAU/4+.23;
   const points=[[1.13,0],[1.55,.12],[1.72,.38],[1.49,.58],[1.78,.80]].map(([r,a])=>{
-   const x=r*Math.cos(start+a),z=r*Math.sin(start+a);return {x,y:.116,z,r:.020,a:start+a};
+   const x=r*Math.cos(start+a),z=r*Math.sin(start+a);return {x,y:.112,z,r:.020,a:start+a};
   });
   for(let i=1;i<points.length;i++)rays.push(points[i-1].x,.106,points[i-1].z,points[i].x,.106,points[i].z);
   stars.push(points[1],points[4]);
