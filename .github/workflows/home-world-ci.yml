@@ -19,6 +19,10 @@ on:
       - js/hero-pixels.mjs
       - verification/hero-pixels-smoke.cjs
       - css/sofra-feature.css
+      - css/sofra-sakura-vfx.css
+      - js/sofra-sakura-vfx.mjs
+      - tests/sofra-sakura-vfx.test.mjs
+      - verification/sofra-sakura-vfx-smoke.cjs
       - css/feje-tourbillon.css
       - css/feje-tourbillon-scroll-vfx.css
       - js/feje-tourbillon*.mjs
@@ -161,3 +165,22 @@ jobs:
         with:
           name: daedalus-astral-comparison
           path: verification/daedalus-astral-results/
+
+  sofra-sakura:
+    if: github.head_ref == 'feat/sofra-sakura-ambient-vfx'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check js/sofra-sakura-vfx.mjs && node --test tests/sofra-sakura-vfx.test.mjs
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: node verification/sofra-sakura-vfx-smoke.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sofra-sakura-desktop-mobile
+          path: verification/sofra-sakura-results/
