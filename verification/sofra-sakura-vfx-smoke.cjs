@@ -65,6 +65,7 @@ async function verify(browser,url,engine,mobile){
   assert.ok(cadence.frames>0);assert.ok(cadence.fps<=(mobile?28:34));
   await shot('garden-animated');
   await position('#tourbillon','top',.20);await sky.waitFor({state:'hidden'});await shot('daedalus');
+  await position('#sofra-project','top',.52);await waitStrength(.01,.85);await shot('handoff');
   await position('#sofra-project','top',.20);await waitStrength(.85,1);await shot('return');
   await position('#sofra-project','bottom',-.10);await waitStrength(.05,.85);const leaving=await strength();await shot('leaving');
   await position('#sofra-project','bottom',-.7);await sky.waitFor({state:'hidden'});

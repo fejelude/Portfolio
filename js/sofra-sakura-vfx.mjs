@@ -21,8 +21,11 @@ export const SPRITES=Object.freeze({
 });
 export function sakuraEnvelope(top,bottom,h,celestialWash=0){
  const gap=Math.max(top-.72*h,.22*h-bottom,0)/Math.max(1,h);
- // Yield to the existing Daedalus wash without touching its DOM or renderer.
- const room=(1-clamp(celestialWash))**2;
+ // At the shared boundary, first yield to the celestial wash; when Sofra
+ // enters the reading band, let the pink foreground wash take ownership.
+ // Daedalus remains entirely unchanged underneath this layer.
+ const ownership=1-smooth(.25,.70,top/Math.max(1,h));
+ const room=(1-clamp(celestialWash)*(1-ownership))**2;
  return {wash:(1-smooth(0,.58,gap))*room,petals:(1-smooth(.015,.44,gap))*room,
   ornaments:(1-smooth(.035,.31,gap))*room,hearts:(1-smooth(0,.18,gap))*room};
 }
@@ -97,6 +100,19 @@ function paint(ctx,panel,frame,art,particles,time){
    sprite(ctx,art,'bow',x+dir*15*unit,y+34*unit,unit*1.6,level.ornaments*.56,frame,panel);
   }
  }
+ // In open horizontal bands, offset small flower clusters from the card's
+ // corners. On phones these read as a tiny garland above/below the exhibit.
+ for(const [i,y] of [box.top-27,box.bottom+27].entries()){
+  if(y<10||y>h-10)continue;
+  for(const side of [0,1]){
+   const dir=side?-1:1,x=side?Math.min(w-24,box.right-26):Math.max(24,box.left+26);
+   for(const [j,[dx,dy,size]] of [[0,0,1.6],[18,-6,1.1],[32,3,.8]].entries()){
+    sprite(ctx,art,'blossom',x+dir*dx,y+dy+scroll*.018,size,level.ornaments*(j===0?.85:.62),frame,panel);
+   }
+   sprite(ctx,art,side===i?'cat':'bow',x+dir*55,y+2+Math.sin(time*.6+i)*2,1.45,level.ornaments*.70,frame,panel);
+   sprite(ctx,art,'glint',x+dir*73,y-6,1,level.ornaments*.65,frame,panel);
+  }
+ }
  const limit=narrow?70:particles.length;
  for(let i=0;i<limit;i++){
   const p=particles[i],pose=particlePose(p,time,scroll,w,h,box);
@@ -148,7 +164,7 @@ export function mountSofraGarden(section){
  let artwork,near=!win.IntersectionObserver,suspended=false,dirty=true,frame=0,last=null,next=0,time=0,info,observer,resizer;
  function stop(release=false){
   if(frame)win.cancelAnimationFrame(frame);frame=0;last=null;next=0;sky.hidden=true;
-  if(release)for(const {canvas} of panels)canvas.width=canvas.height=1;
+  if(release)for(const {canvas} of panels)if(canvas.width!==1||canvas.height!==1)canvas.width=canvas.height=1;
  }
  function request(){
   if(!frame&&near&&!doc.hidden&&!suspended&&!signal.aborted)frame=win.requestAnimationFrame(tick);

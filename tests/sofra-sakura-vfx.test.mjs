@@ -8,8 +8,15 @@ test('scroll envelope is symmetric and reaches a full garden',()=>{
  assert.ok(sakuraEnvelope(1.1*h,2000,h).wash>0);
  assert.equal(sakuraEnvelope(2*h,3000,h).wash,0);
  assert.deepEqual(sakuraEnvelope(200,1000,h),{wash:1,petals:1,ornaments:1,hearts:1});
- for(let x=0;x<=1;x+=.01)assert.ok(sakuraEnvelope(200,1000,h,x).wash<=(1-x)**2+1e-12);
- assert.equal(sakuraEnvelope(200,1000,h,celestialPresence(0,1000,h)).wash,0);
+ for(let x=0;x<=1;x+=.01)assert.ok(sakuraEnvelope(.72*h,2000,h,x).wash<=(1-x)**2+1e-12);
+ assert.equal(sakuraEnvelope(.72*h,2000,h,celestialPresence(0,1000,h)).wash,0);
+ assert.equal(sakuraEnvelope(.20*h,2000,h,1).wash,1);
+ let previous=0;
+ for(let i=0;i<=100;i++){
+  const top=(.72-i*.0047)*h;
+  const wash=sakuraEnvelope(top,2000,h,celestialPresence(-2000,top,h)).wash;
+  assert.ok(wash>=previous-1e-12);previous=wash;
+ }
 });
 test('four disjoint canvas bands never draw over the card and fit the pixel budget',()=>{
  for(const [w,h] of [[320,720],[390,844],[1536,960]]){
