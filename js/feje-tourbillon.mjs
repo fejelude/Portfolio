@@ -8,9 +8,9 @@ export function manilaParts(date){
  const pieces={};for(const part of fmt.formatToParts(date))if(['hour','minute','second'].includes(part.type))pieces[part.type]=Number(part.value);
  return {...pieces,millisecond:date.getUTCMilliseconds()};
 }
-export function handAngles(t){
- const s=t.second+t.millisecond/1000;
- return {hour:(t.hour%12+t.minute/60+s/3600)*30,minute:(t.minute+s/60)*6,second:s*6};
+// Every modeled shaft returns to its starting orientation after this span.
+export function movementSeconds({hour,minute,second,millisecond=0}){
+ return (hour%12)*3600+minute*60+second+millisecond/1000;
 }
 
 export function mountTourbillon(root){
@@ -30,15 +30,16 @@ export function mountTourbillon(root){
  const details={
   tourbillon:'The inner cage makes one turn per minute. Its transverse yoke turns every five minutes.',
   escapement:'Each beat unlocks one ruby pallet, advances the escape wheel half a tooth, and locks on the other pallet.',
-  gears:'A 48-tooth barrel drives a 16-tooth pinion. Its 36-tooth wheel drives the 12-tooth carriage pinion.',
+  gears:'Follow the silver wheels from the cage shaft to the dial. A bevel pair turns the drive into the slanted face, and the motion works reduce minute speed to hour speed by 12:1.',
+  dial:'Behind the dial, the seconds staff runs inside the minute tube and hour pipe. The gold motion wheel drives the hour hand once per 12 hours.',
   orbit:'Earth and moon each turn on two axes once per minute.',
-  carrier:'Four arms orbit the centre every 20 minutes. The dial turns against the carrier to stay upright.',
+  carrier:'Four arms orbit the centre every 20 minutes. A fixed sun wheel and an idler keep the dial upright.',
   case:'Rose-gold lugs hold steel spring bars under the domed sapphire.',
   back:'Turn the case over to see the engraved plate, inset winding bows and folding clasp.'
  };
  const defaultNote='Drag to orbit. Pinch or use + and − to zoom.';
  let visible=alwaysVisible,onStage=alwaysVisible,suspended=false,paused=false,contextLost=false;
- let observer,resizer,load,model,selected='',clock=0,frame=0,clockParts,elapsed=0,skySeconds=0,last=0,lastPaint=-Infinity,dirty=true;
+ let observer,resizer,load,model,selected='',clock=0,frame=0,clockParts,skySeconds=0,last=0,lastPaint=-Infinity,dirty=true;
  const pointers=new Map();
  const live=()=>visible&&!document.hidden&&!suspended;
  const inView=()=>live()&&onStage&&!contextLost;
@@ -106,7 +107,7 @@ export function mountTourbillon(root){
   if(!inView()||!model)return;
   if(last&&moving()){
    const activeSeconds=(now-last)/1000;
-   elapsed+=activeSeconds;skySeconds=(skySeconds+activeSeconds)%SKY_PERIOD;
+   skySeconds=(skySeconds+activeSeconds)%SKY_PERIOD;
   }
   const delta=last?Math.min(.09,(now-last)/1000):0;
   last=now;
@@ -115,8 +116,10 @@ export function mountTourbillon(root){
    // Skip this submission while the GPU still has the previous frame queued.
    // Camera input, the movement clock and the time display stay current.
    if(!model.canDraw()){frame=requestAnimationFrame(tick);return;}
-   const ms=animate?new Date().getUTCMilliseconds():0;
-   dirty=model.draw(elapsed,handAngles({...clockParts,millisecond:ms}),delta,reduced.matches,skySeconds,
+   // While paused, redraw the entire transmission on the Manila second.
+   // Every shaft and hand stays mechanically indexed to the same snapshot.
+   const seconds=movementSeconds(animate?manilaParts(new Date()):{...clockParts,millisecond:0});
+   dirty=model.draw(seconds,delta,reduced.matches,skySeconds,
     Number.isFinite(lastPaint)?(now-lastPaint)/1000:0);
    astrolabe(clockParts,skySeconds);
    lastPaint=now;

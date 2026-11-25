@@ -26,6 +26,7 @@ on:
       - verification/tourbillon-live-smoke.cjs
       - verification/daedalus-scroll-vfx-smoke.cjs
       - verification/daedalus-astral-review.cjs
+      - verification/daedalus-transmission-smoke.cjs
       - assets/tourbillon/**
       - tests/feje-tourbillon.test.mjs
       - tests/feje-tourbillon-scroll-vfx.test.mjs
@@ -91,6 +92,25 @@ jobs:
         with:
           name: tourbillon-browser-previews
           path: verification/home-world-results/
+
+  daedalus-transmission:
+    if: github.head_ref == 'feat/daedalus-timekeeping-transmission'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install chromium
+      - name: Verify the Daedalus timing train and capture inspection views
+        run: node verification/daedalus-transmission-smoke.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: daedalus-transmission-inspection
+          path: verification/daedalus-transmission-results/
 
   fidelity:
     if: startsWith(github.head_ref, 'feat/automotive-ultra-fidelity')
