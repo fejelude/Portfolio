@@ -71,14 +71,20 @@ async function inspect(browser,url,mobile){
   assert.equal(await gear.getAttribute('aria-pressed'),'false');
   const clock=watch.locator('#ft-time');
   const pause=watch.locator('[data-ft-pause]');
-  await pause.click();
+  // The standard smoke test covers pointer activation. Here exercise the same
+  // DOM control without scroll/compositor hit-testing on software WebGL.
+  const toggleMovement=()=>pause.evaluate(button=>{
+   if(button.disabled)throw Error('Pause control is unavailable');
+   button.click();
+  });
+  await toggleMovement();
   assert.equal(await pause.getAttribute('aria-pressed'),'true');
   const first=await clock.getAttribute('datetime');
   await page.waitForFunction(first=>document.querySelector('#ft-time').dateTime!==first,first);
   const [value,expected]=await clock.evaluate(el=>[el.textContent,
    new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Manila',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).format(new Date(el.dateTime))]);
   assert.equal(value,expected);
-  await pause.click();
+  await toggleMovement();
   assert.equal(await pause.getAttribute('aria-pressed'),'false');
   assert.deepEqual(errors,[]);
   console.log(JSON.stringify({mobile,images:images.map(({png,...shot})=>shot)}));
