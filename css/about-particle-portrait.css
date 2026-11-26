@@ -1,0 +1,38 @@
+/* A small pixel frame belongs to the existing violet / rose About palette.
+   Only the portrait is styled; the surrounding text and effects are untouched. */
+.feje-world-home #about .about-particle-portrait{
+ --portrait-cut:10px;
+ position:relative;isolation:isolate;box-sizing:border-box;
+ width:min(100%,700px);margin:clamp(22px,4vw,36px) auto 0;padding:7px;
+ background:#221928;
+ clip-path:polygon(0 10px,4px 10px,4px 4px,10px 4px,10px 0,calc(100% - 10px) 0,calc(100% - 10px) 4px,calc(100% - 4px) 4px,calc(100% - 4px) 10px,100% 10px,100% calc(100% - 10px),calc(100% - 4px) calc(100% - 10px),calc(100% - 4px) calc(100% - 4px),calc(100% - 10px) calc(100% - 4px),calc(100% - 10px) 100%,10px 100%,10px calc(100% - 4px),4px calc(100% - 4px),4px calc(100% - 10px),0 calc(100% - 10px));
+}
+.feje-world-home #about .about-particle-portrait::before,
+.feje-world-home #about .about-particle-portrait::after{
+ content:"";position:absolute;pointer-events:none;z-index:2;
+}
+.feje-world-home #about .about-particle-portrait::before{
+ inset:0;border:2px solid #9279b0;
+ box-shadow:inset 0 0 0 2px #35283f,inset 0 0 0 3px #c1a3c0;
+ background:
+ linear-gradient(#e3c4db,#e3c4db) 10px 2px/22px 2px no-repeat,
+ linear-gradient(#e3c4db,#e3c4db) 2px 10px/2px 15px no-repeat,
+ linear-gradient(#d2b4c5,#d2b4c5) calc(100% - 10px) calc(100% - 4px)/22px 2px no-repeat,
+ linear-gradient(#d2b4c5,#d2b4c5) calc(100% - 4px) calc(100% - 10px)/2px 15px no-repeat;
+}
+.feje-world-home #about .about-particle-portrait::after{
+ inset:5px;border:1px solid #695772;
+ background:
+ linear-gradient(#ad91c3,#ad91c3) 0 0/9px 2px no-repeat,
+ linear-gradient(#ad91c3,#ad91c3) 0 0/2px 9px no-repeat,
+ linear-gradient(#ad91c3,#ad91c3) 100% 100%/9px 2px no-repeat,
+ linear-gradient(#ad91c3,#ad91c3) 100% 100%/2px 9px no-repeat;
+}
+.feje-world-home #about .about-particle-canvas{
+ display:block;width:100%;height:auto;aspect-ratio:16/9;
+ background:#17111e;touch-action:pan-y pinch-zoom;
+ image-rendering:auto;user-select:none;-webkit-user-select:none;
+}
+@media(max-width:480px){
+ .feje-world-home #about .about-particle-portrait{padding:6px}
+}

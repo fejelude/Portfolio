@@ -1,0 +1,31 @@
+name: About particle portrait CI
+on:
+  pull_request:
+    paths:
+      - index.html
+      - css/about-particle-portrait.css
+      - js/about-particle-portrait.mjs
+      - assets/about/**
+      - tests/about-particle-portrait.test.mjs
+      - verification/about-particle-portrait-smoke.cjs
+      - .github/workflows/about-particle-portrait-ci.yml
+permissions:
+  contents: read
+jobs:
+  portrait:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check js/about-particle-portrait.mjs && node --test tests/about-particle-portrait.test.mjs
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: node verification/about-particle-portrait-smoke.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: about-portrait-browser-previews
+          path: verification/about-portrait-results/
