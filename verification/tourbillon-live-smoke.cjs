@@ -1,6 +1,6 @@
 const {chromium,firefox,webkit}=require('playwright');
 const {createServer}=require('node:http');
-const {readFile,mkdir}=require('node:fs/promises');
+const {readFile,mkdir,access}=require('node:fs/promises');
 const path=require('node:path');
 const assert=require('node:assert/strict');
 
@@ -12,7 +12,7 @@ const section=readFile(path.join(root,'index.html'),'utf8').then(html=>{
  return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
  <title>Daedalus · Live WebGL review</title><link rel="stylesheet" href="/css/feje-tourbillon.css">
  <style>*{box-sizing:border-box}body{margin:0;background:#0e121b}.ft-section{padding-inline:16px}.container{margin:auto}</style>
- <body class="feje-world-home">${watch}<script type="module" src="/js/feje-tourbillon.mjs"></script></body></html>`;
+ <body class="feje-world-home">${watch}<div aria-hidden="true" style="height:120vh"></div><script type="module" src="/js/feje-tourbillon.mjs"></script></body></html>`;
 });
 const server=createServer(async(req,res)=>{
  try{
@@ -39,6 +39,32 @@ async function enter(page){
  await stage.locator('.ft-model').waitFor({timeout:45000});
  await page.waitForFunction(()=>document.querySelector('[data-ft-stage]').hasAttribute('data-ft-live'));
 }
+async function verifyPreviewMedia(page){
+ const stage=page.locator('[data-ft-stage]'),video=page.locator('[data-ft-video]');
+ await stage.scrollIntoViewIfNeeded();
+ const bounds=await stage.boundingBox();assert.ok(Math.abs(bounds.width/bounds.height-16/9)<.02);
+ assert.equal(await video.evaluate(v=>v.controls),false);
+ assert.equal(await page.locator('[data-ft-pause]').count(),0);
+ const exists=await access(path.join(root,'assets/tourbillon/daedalus-preview.mp4')).then(()=>true,()=>false);
+ if(!exists){
+  console.warn('Missing source MP4: cinematic playback and loop verification blocked');
+  return;
+ }
+ await page.waitForFunction(()=>{const v=document.querySelector('[data-ft-video]');return !v.paused&&v.currentTime>0});
+ const media=await video.evaluate(v=>({duration:v.duration,muted:v.muted,loop:v.loop,inline:v.playsInline,width:v.videoWidth,height:v.videoHeight}));
+ assert.ok(Math.abs(media.duration-8)<.2&&media.muted&&media.loop&&media.inline&&Math.abs(media.width/media.height-16/9)<.02);
+ await video.evaluate(v=>v.currentTime=v.duration-.3);
+ await page.waitForFunction(()=>document.querySelector('[data-ft-video]').currentTime<2);
+ await page.evaluate(()=>window.scrollTo(0,document.body.scrollHeight));
+ await page.waitForFunction(()=>document.querySelector('[data-ft-video]').paused);
+ await stage.scrollIntoViewIfNeeded();
+ await page.waitForFunction(()=>!document.querySelector('[data-ft-video]').paused);
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.waitForFunction(()=>document.querySelector('[data-ft-video]').paused);
+ await page.emulateMedia({reducedMotion:'no-preference'});
+ await page.waitForFunction(()=>!document.querySelector('[data-ft-video]').paused);
+ console.log('Daedalus cinematic media',JSON.stringify(media));
+}
 async function recordSky(browser,url){
  const viewport={width:920,height:900};
  const context=await browser.newContext({viewport,deviceScaleFactor:.8,timezoneId:'America/Los_Angeles',
@@ -50,6 +76,7 @@ async function recordSky(browser,url){
   const stage=page.locator('[data-ft-stage]'),canvas=page.locator('.ft-model');
   const astro=page.locator('.ft-astrolabe');
   await stage.scrollIntoViewIfNeeded();
+  await verifyPreviewMedia(page);
   await stage.screenshot({path:path.join(out,'daedalus-preview-desktop.png')});
   await enter(page);
   const time=await page.locator('#ft-time').evaluate(el=>Number(el.textContent.slice(0,2)));
