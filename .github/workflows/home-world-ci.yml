@@ -63,6 +63,12 @@ jobs:
       - run: npm install --no-save --package-lock=false playwright@1.62.1
       - run: npx playwright install chromium
       - run: npx playwright install --with-deps firefox webkit
+      - run: node verification/tourbillon-live-smoke.cjs --preview-loading
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: daedalus-preview-loading-browser-previews
+          path: verification/home-world-results/daedalus-cold-*.png
       - run: node verification/daedalus-scroll-vfx-smoke.cjs --cross-engine
       - uses: actions/upload-artifact@v4
         if: always()

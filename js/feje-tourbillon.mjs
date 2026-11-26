@@ -41,6 +41,7 @@ export function mountTourbillon(root){
  let visible=alwaysVisible,onStage=alwaysVisible,suspended=false,mode='preview';
  let observer,resizer,model,canvasEvents,selected='',clock=0,astroTimer=0,frame=0,clockParts,skySeconds=0,last=0,lastPaint=-Infinity,dirty=true;
  let epoch=0,painted=false,videoRequested=false,videoFailed=false,videoWanted=false,ratio='landscape',astroStart=performance.now();
+ let videoFrame=null,videoAttempt=0;
  const pointers=new Map();
  const live=()=>visible&&!document.hidden&&!suspended;
  const inView=()=>live()&&onStage&&mode!=='preview';
@@ -91,26 +92,62 @@ export function mountTourbillon(root){
   astrolabe(clockParts,skySeconds);
   astroTimer=setTimeout(animateAstro,125);
  }
+ function cancelVideoFrame(){
+  if(!videoFrame)return;
+  if(videoFrame.kind==='video')video.cancelVideoFrameCallback?.(videoFrame.id);
+  else cancelAnimationFrame(videoFrame.id);
+  videoFrame=null;
+ }
+ function queueVideoFrame(){
+  // Metadata alone is not a decoded picture. Keep the matching landscape
+  // poster underneath until the browser submits a video frame for display.
+  if(signal.aborted||!previewVisible()||!videoWanted||video.paused||
+   video.readyState<2||!video.videoWidth||!video.videoHeight||
+   stage.hasAttribute('data-ft-video-playing')||videoFrame)return;
+  const present=()=>{
+   videoFrame=null;
+   if(!signal.aborted&&previewVisible()&&videoWanted&&!video.paused&&
+    video.readyState>=2&&video.videoWidth&&video.videoHeight){
+    stage.setAttribute('data-ft-video-playing','');
+   }
+  };
+  if(typeof video.requestVideoFrameCallback==='function'){
+   videoFrame={kind:'video',id:video.requestVideoFrameCallback(present)};
+  }else{
+   // Older engines: wait for decoded current data and a rendering opportunity.
+   // No timer, metadata-only reveal or artificial loading delay.
+   videoFrame={kind:'animation',id:requestAnimationFrame(present)};
+  }
+ }
  function syncVideo(){
   const wanted=previewVisible();
   stage.toggleAttribute('data-ft-preview-motion',wanted);
   if(!wanted){
-   videoWanted=false;video.pause();
+   videoWanted=false;++videoAttempt;cancelVideoFrame();video.pause();
    if(reduced.matches)stage.removeAttribute('data-ft-video-playing');
    return;
   }
-  if(videoFailed||(videoWanted&&!video.paused))return;
+  if(videoFailed)return;
+  if(videoWanted){queueVideoFrame();return;}
   videoWanted=true;
+  const attempt=++videoAttempt;
   video.muted=true;video.defaultMuted=true;video.loop=true;video.playsInline=true;
   if(!videoRequested){video.src=video.dataset.src;videoRequested=true;}
   const result=video.play();
-  result?.catch(()=>{if(videoWanted){stage.removeAttribute('data-ft-video-playing');}});
+  result?.then(()=>{if(attempt===videoAttempt)queueVideoFrame();}).catch(()=>{
+   if(attempt===videoAttempt&&videoWanted){
+    videoWanted=false;cancelVideoFrame();stage.removeAttribute('data-ft-video-playing');
+   }
+  });
  }
  on(video,'playing',()=>{
-  if(!previewVisible()){video.pause();return;}
-  stage.setAttribute('data-ft-video-playing','');
+  if(!previewVisible()||!videoWanted){video.pause();return;}
+  queueVideoFrame();
  });
- on(video,'error',()=>{videoFailed=true;stage.removeAttribute('data-ft-video-playing');});
+ on(video,'loadeddata',queueVideoFrame);
+ on(video,'timeupdate',queueVideoFrame);
+ on(video,'emptied',()=>{cancelVideoFrame();stage.removeAttribute('data-ft-video-playing');});
+ on(video,'error',()=>{videoFailed=true;videoWanted=false;++videoAttempt;cancelVideoFrame();stage.removeAttribute('data-ft-video-playing');});
  on(window,'online',()=>{if(videoFailed){videoFailed=false;videoWanted=false;videoRequested=false;syncVideo();}});
  function release(){
   ++epoch;cancelAnimationFrame(frame);frame=0;
@@ -245,7 +282,7 @@ export function mountTourbillon(root){
  on(reduced,'change',sync);
  on(window,'pageshow',()=>{suspended=false;sync()});
  on(window,'pagehide',event=>{suspended=true;sync();if(!event.persisted)dispose()});
- function dispose(){controller.abort();observer?.disconnect();clearTimeout(clock);clearTimeout(astroTimer);video.pause();release();}
+ function dispose(){controller.abort();observer?.disconnect();clearTimeout(clock);clearTimeout(astroTimer);cancelVideoFrame();video.pause();release();}
  setReady(false);sync();
  return dispose;
 }

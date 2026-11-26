@@ -248,7 +248,7 @@ test('the original home placement and four ratios are preserved',()=>{
 
 test('the watch uses live WebGL geometry and keeps a static compatibility poster',()=>{
  const html=read('index.html'),app=read('js/feje-tourbillon.mjs'),renderer=read('js/feje-tourbillon-renderer.mjs');
- assert.match(html,/<img class="ft-watch-poster"[^>]*observatory.webp/);
+ assert.match(html,/<img class="ft-watch-poster"[^>]*daedalus-cinematic-poster\.webp/);
  assert.match(html,/<canvas class="ft-model"[^>]*hidden/);
  assert.match(app,/import\('\.\/feje-tourbillon-renderer\.mjs'\)/);
  assert.match(app,/webglcontextlost/);assert.match(app,/webglcontextrestored/);
@@ -418,4 +418,24 @@ test('Daedalus mode controls share a compact pixel bezel without changing the mo
  assert.doesNotMatch(html,/class="ft-celestial-seal"/);
  assert.match(css,/stroke-dasharray:9 91/);assert.match(css,/stroke-dashoffset:-100/);
  assert.match(css,/min-height:44px/);assert.match(css,/prefers-reduced-motion:reduce/);
+});
+
+test('cinematic first paint and Exit placement stay independent of video metadata and the WebGL scene',()=>{
+ const html=read('index.html'),css=read('css/feje-tourbillon.css'),app=read('js/feje-tourbillon.mjs');
+ const poster=html.match(/<img class="ft-watch-poster"[^>]*>/)?.[0];
+ const video=html.match(/<video class="ft-preview-video"[^>]*>/)?.[0];
+ assert.ok(poster&&video);
+ assert.match(poster,/width="960" height="540" loading="eager"/);
+ assert.match(video,/poster="\/assets\/tourbillon\/daedalus-cinematic-poster\.webp"/);
+ assert.match(video,/width="1280" height="720"/);
+ assert.match(html,/data-ft-stage data-aspect="landscape" data-ft-mode="preview"/);
+ const viewport=html.slice(html.indexOf('<div class="ft-stage"'),html.indexOf('<div class="ft-footer"'));
+ assert.doesNotMatch(viewport,/data-ft-exit/);
+ const footer=html.slice(html.indexOf('<div class="ft-footer"'),html.indexOf('<p data-ft-fallback'));
+ assert.match(footer,/<div class="ft-view-controls"[\s\S]*?<div class="ft-mode-actions">[\s\S]*?data-ft-exit[\s\S]*?<p id="ft-detail"/);
+ assert.match(css,/\.ft-watch-poster\{object-fit:cover;object-position:center/);
+ assert.match(css,/\.ft-preview-video\{[^}]*object-fit:cover;object-position:center/);
+ assert.match(css,/\.ft-pixel-exit\{position:relative/);
+ assert.match(app,/video\.requestVideoFrameCallback\(present\)/);
+ assert.match(app,/video\.readyState>=2/);
 });
