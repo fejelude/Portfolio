@@ -184,3 +184,11 @@ jobs:
         with:
           name: sofra-sakura-desktop-mobile
           path: verification/sofra-sakura-results/
+
+  daedalus-preview-media:
+    if: github.head_ref == 'feat/daedalus-celestial-preview'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require supplied cinematic media before merge
+        run: test -s assets/tourbillon/daedalus-preview.mp4

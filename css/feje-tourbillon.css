@@ -111,7 +111,7 @@
  .feje-world-home :is(.ft-inspect,.ft-view-controls){width:100%}
  .feje-world-home .ft-inspect{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
  .feje-world-home .ft-view-controls{display:grid;grid-template-columns:44px 44px minmax(0,1fr)}
- .feje-world-home .ft-view-controls [data-ft-pause]{grid-column:1/-1}
+
  .feje-world-home .ft-view-controls button{padding-inline:4px}
 }
 
@@ -318,3 +318,42 @@
  .feje-world-home #tourbillon .ft-astrolabe{margin-inline:0;justify-self:end}
  .feje-world-home #tourbillon .ft-inspect{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+/* Cinematic aperture — only Daedalus. All ornament is vector/CSS, not WebGL. */
+.feje-world-home #tourbillon [hidden]{display:none!important}
+.feje-world-home #tourbillon .ft-cinematic{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:1;visibility:visible;transition:opacity .34s ease,visibility .34s}
+.feje-world-home #tourbillon [data-ft-live] .ft-cinematic{opacity:0;visibility:hidden}
+.feje-world-home #tourbillon .ft-preview-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .22s ease;pointer-events:none}
+.feje-world-home #tourbillon [data-ft-video-playing] .ft-preview-video{opacity:1}
+.feje-world-home #tourbillon .ft-preview-video::-webkit-media-controls{display:none!important}
+.feje-world-home #tourbillon .ft-preview-constellations{position:absolute;inset:0;width:100%;height:100%}
+.feje-world-home #tourbillon .ft-model{touch-action:none}
+.feje-world-home #tourbillon .ft-celestial-seal{position:absolute;z-index:3;right:2%;bottom:3%;width:clamp(86px,18cqw,154px);aspect-ratio:1;appearance:none;border:0;padding:0;background:none;border-radius:50%;color:#ffe6bc;cursor:pointer;filter:drop-shadow(0 3px 7px #020b14bb);transition:filter .2s,opacity .25s,transform .25s}
+.feje-world-home #tourbillon .ft-celestial-seal svg{width:100%;height:100%;display:block;overflow:visible}
+.feje-world-home #tourbillon .ft-seal-zodiac,.feje-world-home #tourbillon .ft-seal-orbits{transform-origin:80px 80px}
+.feje-world-home #tourbillon .ft-seal-zodiac{animation:ft-preview-orbit 100s linear infinite paused}
+.feje-world-home #tourbillon .ft-seal-orbits{animation:ft-preview-orbit 26s linear infinite reverse paused}
+.feje-world-home #tourbillon .ft-preview-spark{animation:ft-preview-twinkle 4s ease-in-out infinite paused}
+.feje-world-home #tourbillon .ft-preview-comet{opacity:0;animation:ft-preview-comet 14s ease-in-out infinite paused}
+.feje-world-home #tourbillon [data-ft-preview-motion] :is(.ft-seal-zodiac,.ft-seal-orbits,.ft-preview-spark,.ft-preview-comet){animation-play-state:running}
+.feje-world-home #tourbillon .ft-celestial-seal:hover{filter:drop-shadow(0 0 9px #8ce8db88);transform:scale(1.035)}
+.feje-world-home #tourbillon .ft-celestial-seal:focus-visible,.feje-world-home #tourbillon .ft-exit-3d:focus-visible{outline:2px solid #adfff1;outline-offset:3px}
+.feje-world-home #tourbillon [data-ft-mode=loading] .ft-celestial-seal{cursor:wait;filter:drop-shadow(0 0 10px #98fff1aa)}
+.feje-world-home #tourbillon [data-ft-mode=loading] .ft-seal-orbits{animation-duration:2s}
+.feje-world-home #tourbillon [data-ft-mode=loading] .ft-celestial-seal::after{content:"";position:absolute;inset:6%;border-radius:50%;border:1px solid #b3fff0;pointer-events:none;animation:ft-preview-pulse 1.6s ease-out infinite}
+.feje-world-home #tourbillon .ft-exit-3d{position:absolute;z-index:4;top:10px;right:10px;min-height:44px;padding:8px 14px;border:1px solid #b8a078;border-radius:22px;background:#0a2030ed;color:#f8e6c2;font:600 .78rem/1 Cinzel,Georgia,serif;cursor:pointer}
+.feje-world-home #tourbillon .ft-exit-3d span{color:#a1eee4;margin-right:4px}
+.feje-world-home #tourbillon .ft-mode-status{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.feje-world-home #tourbillon [data-ft-fallback]{margin-top:8px;color:#f0d3a4;font-size:.82rem}
+@keyframes ft-preview-orbit{to{transform:rotate(360deg)}}
+@keyframes ft-preview-twinkle{0%,100%{opacity:.28}50%{opacity:.9}}
+@keyframes ft-preview-comet{0%,80%,100%{opacity:0;transform:translate(0,0)}84%{opacity:.65}92%{opacity:0;transform:translate(48px,26px)}}
+@keyframes ft-preview-pulse{from{opacity:.8;transform:scale(.92)}to{opacity:0;transform:scale(1.25)}}
+@media(prefers-reduced-motion:reduce){.feje-world-home #tourbillon :is(.ft-cinematic,.ft-preview-video,.ft-celestial-seal){transition:none!important}.feje-world-home #tourbillon :is(.ft-seal-zodiac,.ft-seal-orbits,.ft-preview-spark,.ft-preview-comet,.ft-celestial-seal::after){animation:none!important}}
+
+.feje-world-home #tourbillon .ft-cinematic{background:#081725;transition:none}
+.feje-world-home #tourbillon [data-ft-live] .ft-cinematic{transition:opacity .34s ease,visibility .34s}
+.feje-world-home #tourbillon [data-ft-live] .ft-cinematic .ft-watch-poster{visibility:visible}
+.feje-world-home #tourbillon [data-ft-mode=preview] .ft-cinematic{animation:ft-preview-return .28s ease-out}
+@keyframes ft-preview-return{from{filter:brightness(1.14)}to{filter:brightness(1)}}
+@media(prefers-reduced-motion:reduce){.feje-world-home #tourbillon [data-ft-mode=preview] .ft-cinematic,.feje-world-home #tourbillon [data-ft-mode=loading] .ft-celestial-seal::after{animation:none!important}.feje-world-home #tourbillon [data-ft-live] .ft-cinematic{transition:none}}

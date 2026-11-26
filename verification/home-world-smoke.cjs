@@ -40,6 +40,8 @@ const server=createServer(async(req,res)=>{
           await page.waitForFunction(()=>document.querySelector('.ft-watch-poster').naturalWidth===820);
           const canvas=watch.locator('.ft-model');
           const supports3D=mode!=='no-webgl'&&await page.evaluate(()=>!!document.createElement('canvas').getContext('webgl2'));
+          assert.equal(await canvas.isHidden(),true);
+          await watch.getByRole('button',{name:'Explore in 3D'}).click();
           if(supports3D){
             await canvas.waitFor({timeout:30000});
             if(mode==='desktop'||mode==='mobile'){
@@ -53,7 +55,7 @@ const server=createServer(async(req,res)=>{
           const local=await page.evaluate(()=>new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Manila',hourCycle:'h23',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date()));
           const secs=t=>t.split(':').map(Number).reduce((s,n,i)=>s+n*[3600,60,1][i],0);
           assert.ok(Math.min(Math.abs(secs(live)-secs(local)),86400-Math.abs(secs(live)-secs(local)))<=2,'clock does not match Manila');
-          for(const [aspect,ratio] of [['landscape',16/9],['portrait',3/4],['square',1],['normal',4/3]]){
+          if(supports3D)for(const [aspect,ratio] of [['landscape',16/9],['portrait',3/4],['square',1],['normal',4/3]]){
             await watch.locator('[data-ft-ratio="'+aspect+'"]').click();
             const box=await tourbStage.boundingBox();
             assert.ok(Math.abs(box.width/box.height-ratio)<.02,'bad ratio: '+aspect);
@@ -73,17 +75,14 @@ const server=createServer(async(req,res)=>{
           if(supports3D){
             await watch.locator('[data-ft-inspect="tourbillon"]').click();
             assert.match(await watch.locator('#ft-detail').textContent(),/one turn per minute/);
-            if(mode==='reduced'){
-              assert.equal(await tourbStage.getAttribute('data-running'),null);
-              assert.equal(await watch.locator('[data-ft-pause]').isDisabled(),true);
-            }else if(mode==='desktop'||mode==='mobile'){
-              await watch.locator('[data-ft-pause]').click();
-              await tourbStage.scrollIntoViewIfNeeded();
-              assert.equal(await tourbStage.getAttribute('data-running'),null);
-              const previous=await watch.locator('#ft-time').textContent();
-              await page.waitForFunction(last=>document.querySelector('#ft-time').textContent!==last,previous,{timeout:5000});
-              await watch.locator('[data-ft-pause]').click();
-            }
+            if(mode==='reduced')assert.equal(await tourbStage.getAttribute('data-running'),null);
+            assert.equal(await watch.locator('[data-ft-pause]').count(),0);
+            await watch.getByRole('button',{name:'Exit 3D'}).click();
+            await tourbStage.scrollIntoViewIfNeeded();
+            assert.equal(await canvas.isHidden(),true);
+            assert.equal(await tourbStage.getAttribute('data-aspect'),'landscape');
+            const previous=await watch.locator('#ft-time').textContent();
+            await page.waitForFunction(last=>document.querySelector('#ft-time').textContent!==last,previous,{timeout:5000});
           }
         }else{
           assert.equal(await watch.locator('.ft-watch-poster').count(),1);

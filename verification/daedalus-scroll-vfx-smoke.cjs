@@ -100,7 +100,7 @@ async function verify(browser, url, engine, mobile, capture) {
     await page.waitForFunction(upper=>document.querySelector('.daedalus-scroll-sky').children[2].height === upper,upper);
 
     if (capture) {
-      await page.locator('.ft-model:not([hidden])').waitFor({state:'visible',timeout:30000});
+      assert.equal(await page.locator('.ft-model').isHidden(),true);
       const type = mobile ? 'phone' : 'desktop';
       const shots = phase => page.screenshot({path:path.join(output,type+'-'+phase+'.png'),scale:'css'});
       await shots('celestial');
@@ -128,23 +128,14 @@ async function verify(browser, url, engine, mobile, capture) {
     assert.ok(cadence.frames > 0);
     if (cadence.frames > 1) assert.ok(cadence.paintsPerSecond <= (mobile ? 26 : 33));
 
-    const pause = page.locator('[data-ft-pause]');
-    await page.waitForFunction(()=>!document.querySelector('[data-ft-stage]').hasAttribute('data-ft-live') ||
-      !document.querySelector('[data-ft-pause]').disabled);
-    const liveWatch = await page.locator('[data-ft-stage]').evaluate(stage=>stage.hasAttribute('data-ft-live'));
-    const toggle = value => pause.evaluate((button,{live,value})=>{
-      // Exercise the live button where WebGL is supported. The fallback has no active button.
-      if (live) button.click();
-      else button.setAttribute('aria-pressed',value);
-    },{live:liveWatch,value});
-    await toggle('true');
-    await page.waitForFunction(()=>document.querySelector('[data-ft-pause]').getAttribute('aria-pressed') === 'true');
+    // Ambient motion is now managed by visibility and accessibility, not a manual watch pause.
+    assert.equal(await page.locator('[data-ft-pause]').count(),0);
+    await page.emulateMedia({reducedMotion:'reduce'});
     await page.waitForTimeout(150);
     const stopped = await digest();
     await page.waitForTimeout(300);
     assert.equal(await digest(),stopped);
-    await toggle('false');
-    assert.equal(await pause.getAttribute('aria-pressed'),'false');
+    await page.emulateMedia({reducedMotion:'no-preference'});
 
     await page.evaluate(()=>dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true})));
     await surface.waitFor({state:'hidden'});
