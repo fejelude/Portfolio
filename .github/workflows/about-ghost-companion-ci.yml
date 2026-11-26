@@ -1,0 +1,30 @@
+name: About ghost companion CI
+on:
+  pull_request:
+    paths:
+      - index.html
+      - css/about-ghost-companion.css
+      - js/about-ghost-companion.mjs
+      - tests/about-ghost-companion.test.mjs
+      - verification/about-ghost-companion-smoke.cjs
+      - .github/workflows/about-ghost-companion-ci.yml
+permissions:
+  contents: read
+jobs:
+  ghost:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check js/about-ghost-companion.mjs && node --test tests/about-ghost-companion.test.mjs tests/about-particle-portrait.test.mjs
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: node verification/about-ghost-companion-smoke.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: about-ghost-browser-previews
+          path: verification/about-ghost-results/
