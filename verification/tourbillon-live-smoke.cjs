@@ -150,7 +150,7 @@ async function coldPreview(url,{onlyChromium=false}={}){
     console.warn('Daedalus cold preview',name,'H.264 unavailable in this engine; landscape fallback verified');
    }
    await page.emulateMedia({reducedMotion:'reduce'});
-   await page.waitForFunction(()=>!document.querySelector('[data-ft-stage]').hasAttribute('data-ft-video-playing'));
+   await page.waitForFunction(()=>matchMedia('(prefers-reduced-motion: reduce)').matches&&document.querySelector('[data-ft-video]').paused&&!document.querySelector('[data-ft-stage]').hasAttribute('data-ft-video-playing'),null,{polling:100});
    assert.deepEqual((await geometry()).stage,initial.stage);
    assert.deepEqual(errors,[]);
    await context.close();
