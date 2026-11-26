@@ -37,7 +37,7 @@ const server=createServer(async(req,res)=>{
         if(mode!=='no-js'){
           await page.waitForFunction(()=>/^\d{2}:\d{2}:\d{2}$/.test(document.querySelector('#ft-time')?.textContent||''));
           await tourbStage.scrollIntoViewIfNeeded();
-          await page.waitForFunction(()=>document.querySelector('.ft-watch-poster').naturalWidth===820);
+          await page.waitForFunction(()=>document.querySelector('.ft-watch-poster').naturalWidth===960);
           const canvas=watch.locator('.ft-model');
           const supports3D=mode!=='no-webgl'&&await page.evaluate(()=>!!document.createElement('canvas').getContext('webgl2'));
           assert.equal(await canvas.isHidden(),true);
@@ -87,7 +87,7 @@ const server=createServer(async(req,res)=>{
         }else{
           assert.equal(await watch.locator('.ft-watch-poster').count(),1);
           await watch.locator('.ft-watch-poster').scrollIntoViewIfNeeded();
-          assert.equal(await watch.locator('.ft-watch-poster').evaluate(img=>img.complete&&img.naturalWidth===820),true);
+          assert.equal(await watch.locator('.ft-watch-poster').evaluate(img=>img.complete&&img.naturalWidth===960),true);
           assert.equal(await watch.locator('#ft-time').textContent(),'--:--:--');
         }
 

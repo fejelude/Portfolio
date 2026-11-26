@@ -1,4 +1,4 @@
-const {chromium,firefox,webkit}=require('playwright');
+const {chromium,firefox,webkit,devices}=require('playwright');
 const {createServer}=require('node:http');
 const {readFile,mkdir,access}=require('node:fs/promises');
 const path=require('node:path');
@@ -37,7 +37,13 @@ async function verifyPixelControl(page,mode,device){
  await stage.scrollIntoViewIfNeeded();await button.waitFor({state:'visible'});
  const b=await button.boundingBox(),s=await stage.boundingBox();
  assert.ok(b.width>b.height*2&&b.height>=44,'horizontal accessible control');
- assert.ok(b.x>=s.x&&b.x+b.width<=s.x+s.width+1&&b.y>=s.y&&b.y+b.height<=s.y+s.height+1,'button stays within watch viewport');
+ if(mode==='explore'){
+  assert.ok(b.x>=s.x&&b.x+b.width<=s.x+s.width+1&&b.y>=s.y&&b.y+b.height<=s.y+s.height+1,'Explore stays within watch viewport');
+ }else{
+  const controls=await page.locator('.ft-view-controls').boundingBox(),description=await page.locator('#ft-detail').boundingBox();
+  assert.ok(b.y>=s.y+s.height&&b.y>=controls.y+controls.height-1&&b.y+b.height<=description.y+1,'Exit belongs below camera controls and above the description');
+  assert.equal(await stage.locator('[data-ft-exit]').count(),0,'Exit must not overlay the model');
+ }
  const visual=await button.evaluate(el=>{
   const trace=el.querySelector('.ft-pixel-trace'),label=el.querySelector('.ft-pixel-label');
   return {color:getComputedStyle(el).color,animation:getComputedStyle(trace).animationName,dash:getComputedStyle(trace).strokeDasharray,pixel:label.getAttribute('shape-rendering'),labelWidth:label.getBoundingClientRect().width};
@@ -85,6 +91,71 @@ async function verifyPreviewMedia(page){
  await page.emulateMedia({reducedMotion:'no-preference'});
  await page.waitForFunction(()=>!document.querySelector('[data-ft-video]').paused);
  console.log('Daedalus cinematic media',JSON.stringify(media));
+}
+// Cold-cache browser contexts with a deliberately held MP4 response. This is
+// test-only network latency: production has no delay before the first frame.
+async function coldPreview(url,{onlyChromium=false}={}){
+ const profiles=[
+  ['desktop-chromium',chromium,{viewport:{width:1280,height:900}}],
+  ['android-chrome-emulated',chromium,{...devices['Pixel 7']}],
+  ...(!onlyChromium?[
+   ['desktop-firefox',firefox,{viewport:{width:1280,height:900}}],
+   ['desktop-webkit',webkit,{viewport:{width:1280,height:900}}],
+   ['iphone-safari-emulated',webkit,{...devices['iPhone 13']}]
+  ]:[])
+ ];
+ for(const [name,engine,profile] of profiles){
+  const browser=await engine.launch({headless:true});
+  let unblock,requested=false;
+  const blocked=new Promise(resolve=>unblock=resolve);
+  try{
+   const context=await browser.newContext({...profile});
+   const page=await context.newPage();const errors=[];
+   page.on('pageerror',e=>errors.push(e.message));
+   await page.route('**/assets/tourbillon/daedalus-preview.mp4',async route=>{
+    requested=true;await blocked;await route.continue().catch(()=>{});
+   });
+   await page.goto(url,{waitUntil:'domcontentloaded'});
+   const stage=page.locator('[data-ft-stage]'),poster=page.locator('.ft-watch-poster');
+   await stage.scrollIntoViewIfNeeded();
+   await page.waitForFunction(()=>{const p=document.querySelector('.ft-watch-poster');return p.complete&&p.naturalWidth===960&&p.naturalHeight===540;});
+   await page.waitForFunction(()=>!document.querySelector('[data-ft-explore]').hidden);
+   const geometry=()=>stage.evaluate(s=>{
+    const rect=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height}};
+    const p=s.querySelector('.ft-watch-poster'),v=s.querySelector('video'),b=s.querySelector('[data-ft-explore]');
+    return {stage:rect(s),poster:rect(p),video:rect(v),button:rect(b),posterFit:getComputedStyle(p).objectFit,videoFit:getComputedStyle(v).objectFit,revealed:s.hasAttribute('data-ft-video-playing'),ready:v.readyState,intrinsic:[v.videoWidth,v.videoHeight]};
+   });
+   const initial=await geometry();
+   assert.ok(Math.abs(initial.stage.w/initial.stage.h-16/9)<.02);
+   assert.deepEqual(initial.poster,initial.video);
+   assert.equal(initial.posterFit,'cover');assert.equal(initial.videoFit,'cover');
+   assert.equal(initial.revealed,false);assert.ok(initial.ready<2);
+   await stage.screenshot({path:path.join(out,'daedalus-cold-'+name+'-poster.png')});
+   // Give the request time to reach the test gate; hold at least 750ms.
+   await page.waitForTimeout(750);
+   const held=await geometry();assert.equal(held.revealed,false);
+   assert.deepEqual(held.stage,initial.stage);assert.deepEqual(held.button,initial.button);
+   const codec=await page.locator('video').evaluate(v=>v.canPlayType('video/mp4; codecs="avc1.42E01E"'));
+   unblock();
+   if(codec){
+    await page.waitForFunction(()=>document.querySelector('[data-ft-stage]').hasAttribute('data-ft-video-playing'),{},{timeout:45000});
+    const ready=await geometry();
+    assert.ok(ready.ready>=2&&ready.intrinsic[0]>0&&ready.intrinsic[1]>0);
+    assert.ok(Math.abs(ready.intrinsic[0]/ready.intrinsic[1]-16/9)<.01);
+    assert.deepEqual(ready.stage,initial.stage);assert.deepEqual(ready.poster,ready.video);assert.deepEqual(ready.button,initial.button);
+    await stage.screenshot({path:path.join(out,'daedalus-cold-'+name+'-video.png')});
+    console.log('Daedalus cold preview',name,JSON.stringify({requested,stage:ready.stage,intrinsic:ready.intrinsic,button:ready.button}));
+   }else{
+    assert.equal((await geometry()).revealed,false);
+    console.warn('Daedalus cold preview',name,'H.264 unavailable in this engine; landscape fallback verified');
+   }
+   await page.emulateMedia({reducedMotion:'reduce'});
+   await page.waitForFunction(()=>matchMedia('(prefers-reduced-motion: reduce)').matches&&document.querySelector('[data-ft-video]').paused&&!document.querySelector('[data-ft-stage]').hasAttribute('data-ft-video-playing'),null,{polling:100});
+   assert.deepEqual((await geometry()).stage,initial.stage);
+   assert.deepEqual(errors,[]);
+   await context.close();
+  }finally{unblock();await browser.close();}
+ }
 }
 async function recordSky(browser,url){
  const viewport={width:920,height:900};
@@ -304,7 +375,7 @@ async function crossEngine(url){
      if(live)assert.ok(await canvas.evaluate(c=>!!c.getContext('webgl2')));
      else{
       assert.equal(await canvas.isHidden(),true);
-      await page.waitForFunction(()=>document.querySelector('.ft-watch-poster').naturalWidth===820);
+      await page.waitForFunction(()=>document.querySelector('.ft-watch-poster').naturalWidth===960);
      }
      if(live)for(const [id,ratio] of [['normal',4/3],['portrait',3/4],['square',1],['landscape',16/9]]){
       await page.locator('[data-ft-ratio="'+id+'"]').click();
@@ -334,6 +405,7 @@ async function crossEngine(url){
  await mkdir(out,{recursive:true});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const url='http://127.0.0.1:'+server.address().port;
+ if(process.argv.includes('--preview-loading')){await coldPreview(url,{onlyChromium:process.argv.includes('--chromium-only')});return;}
  if(process.argv.includes('--cross-engine')){await crossEngine(url);return;}
  const browser=await chromium.launch({headless:true,args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  try{await recordSky(browser,url);await desktop(browser,url);await mobile(browser,url)}
