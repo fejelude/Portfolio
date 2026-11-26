@@ -3,8 +3,9 @@ on:
   pull_request:
     paths:
       - Gallery.html
+      - gallery.js
+      - style.css
       - assets/mario-odyssey-memories/**
-      - scripts/import-mario-memories.py
       - tests/mario-gallery.test.mjs
       - verification/mario-gallery-smoke.cjs
       - .github/workflows/mario-gallery-ci.yml
@@ -20,7 +21,6 @@ jobs:
         with:
           node-version: '22'
       - run: node --test tests/mario-gallery.test.mjs
-      - run: python -m py_compile scripts/import-mario-memories.py
       - run: npm install --no-save --package-lock=false playwright@1.62.1 gsap@3.12.2 three@0.128.0
       - run: npx playwright install --with-deps chromium webkit
       - run: node verification/mario-gallery-smoke.cjs

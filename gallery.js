@@ -185,7 +185,8 @@ window.initGallery = function() {
     // Add fade out/in effect for smoother transition
     gsap.to(lightboxImg, { opacity: 0.5, duration: 0.1, onComplete: () => {
       const img = galleryItems[currentIndex];
-      if (!img.naturalWidth) {
+      // The lightbox can load local Mario photos before their lazy thumbnails enter view.
+      if (!img.naturalWidth && !img.closest('[data-mario-memory]')) {
         gsap.to(lightboxImg, { opacity: 1, duration: 0.2 });
         return;
       }
