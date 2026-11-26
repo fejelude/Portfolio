@@ -350,3 +350,10 @@
 @keyframes ft-preview-comet{0%,80%,100%{opacity:0;transform:translate(0,0)}84%{opacity:.65}92%{opacity:0;transform:translate(48px,26px)}}
 @keyframes ft-preview-pulse{from{opacity:.8;transform:scale(.92)}to{opacity:0;transform:scale(1.25)}}
 @media(prefers-reduced-motion:reduce){.feje-world-home #tourbillon :is(.ft-cinematic,.ft-preview-video,.ft-celestial-seal){transition:none!important}.feje-world-home #tourbillon :is(.ft-seal-zodiac,.ft-seal-orbits,.ft-preview-spark,.ft-preview-comet,.ft-celestial-seal::after){animation:none!important}}
+
+.feje-world-home #tourbillon .ft-cinematic{background:#081725;transition:none}
+.feje-world-home #tourbillon [data-ft-live] .ft-cinematic{transition:opacity .34s ease,visibility .34s}
+.feje-world-home #tourbillon [data-ft-live] .ft-cinematic .ft-watch-poster{visibility:visible}
+.feje-world-home #tourbillon [data-ft-mode=preview] .ft-cinematic{animation:ft-preview-return .28s ease-out}
+@keyframes ft-preview-return{from{filter:brightness(1.14)}to{filter:brightness(1)}}
+@media(prefers-reduced-motion:reduce){.feje-world-home #tourbillon [data-ft-mode=preview] .ft-cinematic,.feje-world-home #tourbillon [data-ft-mode=loading] .ft-celestial-seal::after{animation:none!important}.feje-world-home #tourbillon [data-ft-live] .ft-cinematic{transition:none}}

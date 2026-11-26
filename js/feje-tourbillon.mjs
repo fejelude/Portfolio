@@ -39,7 +39,7 @@ export function mountTourbillon(root){
  };
  const defaultNote='Drag to orbit. Pinch or use + and − to zoom.';
  let visible=alwaysVisible,onStage=alwaysVisible,suspended=false,mode='preview';
- let observer,resizer,model,canvasEvents,selected='',clock=0,frame=0,clockParts,skySeconds=0,last=0,lastPaint=-Infinity,dirty=true;
+ let observer,resizer,model,canvasEvents,selected='',clock=0,astroTimer=0,frame=0,clockParts,skySeconds=0,last=0,lastPaint=-Infinity,dirty=true;
  let epoch=0,painted=false,videoRequested=false,videoFailed=false,videoWanted=false,ratio='landscape',astroStart=performance.now();
  const pointers=new Map();
  const live=()=>visible&&!document.hidden&&!suspended;
@@ -53,7 +53,7 @@ export function mountTourbillon(root){
   exit.hidden=!ready;
   explore.hidden=ready;
   explore.disabled=mode==='loading';
-  if(!ready)canvas.hidden=true;
+  canvas.hidden=!ready;
  }
  function setRatio(value){
   if(!Object.hasOwn(ASPECTS,value))return;
@@ -85,6 +85,12 @@ export function mountTourbillon(root){
   astrolabe(clockParts,skySeconds);invalidate();
   clock=setTimeout(updateTime,1000-date.getUTCMilliseconds());
  }
+ function animateAstro(){
+  if(!live()||reduced.matches||mode==='live')return;
+  skySeconds=((performance.now()-astroStart)/1000)%SKY_PERIOD;
+  astrolabe(clockParts,skySeconds);
+  astroTimer=setTimeout(animateAstro,125);
+ }
  function syncVideo(){
   const wanted=previewVisible();
   stage.toggleAttribute('data-ft-preview-motion',wanted);
@@ -93,7 +99,7 @@ export function mountTourbillon(root){
    if(reduced.matches)stage.removeAttribute('data-ft-video-playing');
    return;
   }
-  if(videoWanted||videoFailed)return;
+  if(videoFailed||(videoWanted&&!video.paused))return;
   videoWanted=true;
   video.muted=true;video.defaultMuted=true;video.loop=true;video.playsInline=true;
   if(!videoRequested){video.src=video.dataset.src;videoRequested=true;}
@@ -108,9 +114,9 @@ export function mountTourbillon(root){
  on(window,'online',()=>{if(videoFailed){videoFailed=false;videoWanted=false;videoRequested=false;syncVideo();}});
  function release(){
   ++epoch;cancelAnimationFrame(frame);frame=0;
-  resizer?.disconnect();resizer=null;canvasEvents?.abort();canvasEvents=null;
+  resizer?.disconnect();resizer=null;const attempted=!!canvasEvents;canvasEvents?.abort();canvasEvents=null;
   pointers.clear();
-  try{model?.dispose()}catch(error){console.warn('Tourbillon disposal failed',error)}
+  try{if(model)model.dispose();else if(attempted)canvas.getContext('webgl2')?.getExtension('WEBGL_lose_context')?.loseContext()}catch(error){console.warn('Tourbillon disposal failed',error)}
   model=null;painted=false;last=0;lastPaint=-Infinity;dirty=true;
   // New canvas per session: a deliberately lost WebGL context is never reused.
   const replacement=canvas.cloneNode(false);replacement.hidden=true;
@@ -135,7 +141,7 @@ export function mountTourbillon(root){
    canvasEvents=new AbortController();installCanvasEvents();
    model=createWatchRenderer(canvas,{mobile});
    if(!model)throw Error('WebGL2 unavailable');
-   canvas.hidden=false;resize();
+   resize();
    if('ResizeObserver' in window){resizer=new ResizeObserver(resize);resizer.observe(stage)}
    invalidate();
   }catch(error){
@@ -156,7 +162,7 @@ export function mountTourbillon(root){
     mode='live';stage.dataset.ftMode=mode;
     // First submitted frame has completed. The preview may now fade away.
     setReady(true);explore.removeAttribute('aria-busy');fallback.hidden=true;
-    status.textContent='Interactive mechanical watch ready';syncVideo();
+    status.textContent='Interactive mechanical watch ready';clearTimeout(astroTimer);syncVideo();
     if(ratio!=='landscape')setRatio(ratio);else setRatio('landscape');
     exit.focus({preventScroll:true});
    }
@@ -178,8 +184,8 @@ export function mountTourbillon(root){
  function resize(){model?.resize(stage.clientWidth,stage.clientHeight);invalidate();}
  function sync(){
   root.toggleAttribute('data-ft-card-motion',live()&&!reduced.matches);
-  clearTimeout(clock);
-  if(live())updateTime();
+  clearTimeout(clock);clearTimeout(astroTimer);
+  if(live()){updateTime();animateAstro();}
   stage.toggleAttribute('data-running',moving());
   if(!inView()){cancelAnimationFrame(frame);frame=0;}
   last=0;lastPaint=-Infinity;syncVideo();invalidate();
@@ -239,7 +245,7 @@ export function mountTourbillon(root){
  on(reduced,'change',sync);
  on(window,'pageshow',()=>{suspended=false;sync()});
  on(window,'pagehide',event=>{suspended=true;sync();if(!event.persisted)dispose()});
- function dispose(){controller.abort();observer?.disconnect();clearTimeout(clock);video.pause();release();}
+ function dispose(){controller.abort();observer?.disconnect();clearTimeout(clock);clearTimeout(astroTimer);video.pause();release();}
  setReady(false);sync();
  return dispose;
 }
