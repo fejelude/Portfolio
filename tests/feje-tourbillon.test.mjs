@@ -406,3 +406,16 @@ test('cinematic preview has no video or movement controls and gates WebGL behind
  assert.match(app,/canvas\.replaceWith\(replacement\)/);
  assert.match(renderer,/renderer\.forceContextLoss\(\)/);
 });
+
+test('Daedalus mode controls share a compact pixel bezel without changing the mode hooks',()=>{
+ const html=read('index.html'),css=read('css/feje-tourbillon.css');
+ for(const [mode,name] of [['explore','Explore in 3D'],['exit','Exit 3D']]){
+  const button=html.match(new RegExp('<button[^>]*data-ft-'+mode+'[^>]*>[\\s\\S]*?<\\/button>'))?.[0];
+  assert.ok(button);assert.ok(button.includes('aria-label="'+name+'"'));
+  for(const cls of ['ft-pixel-control','ft-pixel-frame','ft-pixel-icon','ft-pixel-label','ft-pixel-trace'])assert.ok(button.includes(cls),cls);
+  assert.match(button,/pathLength="100"/);assert.match(button,/shape-rendering="crispEdges"/);
+ }
+ assert.doesNotMatch(html,/class="ft-celestial-seal"/);
+ assert.match(css,/stroke-dasharray:9 91/);assert.match(css,/stroke-dashoffset:-100/);
+ assert.match(css,/min-height:44px/);assert.match(css,/prefers-reduced-motion:reduce/);
+});
