@@ -197,7 +197,7 @@ export function createWatchRenderer(canvas,{mobile=false}={}){
   },
   dispose(){
    if(pendingFrame)context.deleteSync(pendingFrame);
-   observatory.dispose();reflection?.dispose();disposeScene(scene);renderer.dispose();
+   observatory.dispose();reflection?.dispose();disposeScene(scene);renderer.dispose();renderer.forceContextLoss();
   }
  };
 }

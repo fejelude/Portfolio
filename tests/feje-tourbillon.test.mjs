@@ -336,7 +336,7 @@ test('premium Daedalus card stays local, accessible and pauses its ambient anima
  assert.match(css,/@keyframes ft-atelier-streak/);
  assert.match(css,/prefers-reduced-motion:reduce/);
  assert.match(css,/#tourbillon\[data-ft-card-motion\]/);
- assert.match(app,/root\.toggleAttribute\('data-ft-card-motion',live\(\)&&!paused&&!reduced\.matches\)/);
+ assert.match(app,/root\.toggleAttribute\('data-ft-card-motion',live\(\)&&!reduced\.matches\)/);
  assert.match(app,/timeZone:'Asia\/Manila'/);
 });
 
@@ -392,4 +392,17 @@ test('gemstone layouts respect glazing and fixed ring bounds',()=>{
    assert.ok(Math.hypot(a.x-b.x,a.z-b.z)>2.65*config.stone);
   }
  }
+});
+
+test('cinematic preview has no video or movement controls and gates WebGL behind Explore',()=>{
+ const html=read('index.html'),app=read('js/feje-tourbillon.mjs'),renderer=read('js/feje-tourbillon-renderer.mjs');
+ const video=html.match(/<video class="ft-preview-video"[^>]*>/)?.[0];
+ assert.ok(video);for(const attr of ['muted','loop','playsinline','preload="none"'])assert.ok(video.includes(attr));
+ assert.doesNotMatch(video,/\scontrols(?:\s|=|>)/);
+ assert.doesNotMatch(html,/data-ft-pause/);
+ assert.match(app,/on\(explore,'click',start\)/);
+ assert.match(app,/if\(mode!=='preview'\|\|signal\.aborted\)return/);
+ assert.match(app,/mode==='loading'&&painted/);
+ assert.match(app,/canvas\.replaceWith\(replacement\)/);
+ assert.match(renderer,/renderer\.forceContextLoss\(\)/);
 });
