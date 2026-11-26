@@ -18,7 +18,7 @@ const server=createServer(async(req,res)=>{
 async function verify(browser,engine,mobile,url){
  const context=await browser.newContext({viewport:mobile?{width:390,height:844}:{width:1440,height:900},deviceScaleFactor:mobile?3:1,hasTouch:mobile,isMobile:mobile});
  const page=await context.newPage(),errors=[];
- page.on('pageerror',e=>errors.push(e.message));
+ page.on('pageerror',e=>errors.push(e.stack||e.message));
  // Use the same pinned GSAP/CDN versions via installed files. Do not substitute
  // generated imagery for any missing real gallery image.
  for(const [name,file] of [['gsap.min.js','gsap/dist/gsap.min.js'],['ScrollTrigger.min.js','gsap/dist/ScrollTrigger.min.js'],['three.min.js','three/build/three.min.js']]){
@@ -32,62 +32,110 @@ async function verify(browser,engine,mobile,url){
   const el=document.querySelector('[data-mario-memory="'+id+'"]');
   return Number(getComputedStyle(el).opacity)>.98;
  },manifest.entries[i].id);};
- const open=async(i)=>{await go(i);await cards.nth(i).click();await lightbox.waitFor({state:'visible'});assert.ok((await caption()).startsWith(manifest.entries[i].caption));};
+ const expectPhoto=async entry=>page.waitForFunction(({caption,file,width,height})=>{
+  const lightbox=document.querySelector('#lightbox');
+  const img=lightbox.querySelector('.lightbox-content');
+  return lightbox.querySelector('.lightbox-caption').textContent===caption
+   &&new URL(img.src).pathname.endsWith('/'+file)
+   &&img.complete&&img.naturalWidth===width&&img.naturalHeight===height;
+ },entry,{timeout:8000});
+ const open=async i=>{
+  await go(i);
+  await cards.nth(i).locator('img').evaluate(img=>img.decode());
+  await cards.nth(i).click();
+  await lightbox.waitFor({state:'visible'});
+  await expectPhoto(manifest.entries[i]);
+ };
+ const close=async()=>{
+  await page.keyboard.press('Escape');
+  await lightbox.waitFor({state:'hidden'});
+ };
  const swipe=async(dx,dy)=>lightbox.evaluate((el,{dx,dy})=>{
-  // Test existing touch handlers in both engines without altering application code.
-  const event=(type,x,y)=>{const e=new Event(type,{bubbles:true});Object.defineProperty(e,'changedTouches',{value:[{screenX:x,screenY:y}]});el.dispatchEvent(e);};
-  event('touchstart',180,180);event('touchend',180+dx,180+dy);
+  const dispatch=(type,x,y)=>{
+   const event=new Event(type,{bubbles:true});
+   const touch={screenX:x,screenY:y,clientX:x,clientY:y};
+   Object.defineProperties(event,{
+    touches:{value:type==='touchend'?[]:[touch]},
+    changedTouches:{value:[touch]}
+   });
+   el.dispatchEvent(event);
+  };
+  dispatch('touchstart',180,180);
+  dispatch('touchend',180+dx,180+dy);
  },{dx,dy});
  try{
   await page.goto(url+'/Gallery.html',{waitUntil:'domcontentloaded'});
-  await grid.scrollIntoViewIfNeeded();
-  assert.equal(await cards.count(),21);
   assert.equal(await page.locator('#gallery .gallery-grid').count(),3);
+  assert.equal(await page.locator('#gallery a.gallery-item, #gallery template').count(),0);
+  assert.equal(await cards.count(),21);
   assert.equal(await page.locator('#gallery .gallery-grid').nth(0).locator('img').count(),13);
   assert.equal(await page.locator('#gallery .gallery-grid').nth(1).locator('img').count(),10);
-  const photo=await grid.locator('img').count()===21;
-  for(const [i,e] of manifest.entries.entries()){
+  assert.equal(await grid.locator('img').count(),21);
+  assert.equal(await cards.first().evaluate(el=>Number(getComputedStyle(el).opacity)),0);
+  await go(0);
+  if(!mobile){
+   await cards.first().hover();
+   await page.waitForFunction(()=>{
+    const card=document.querySelector('#mario-odyssey-grid .gallery-item');
+    return Number(getComputedStyle(card.querySelector('.gallery-caption')).opacity)===1
+     &&getComputedStyle(card.querySelector('.gallery-img')).transform!=='none';
+   });
+  }
+  await page.screenshot({path:path.join(out,label+'-start.png'),scale:'css'});
+  if(mobile){
+   // Traverse the collection before scrolling past its lazy-loaded thumbnails.
+   await open(0);
+   for(const entry of manifest.entries.slice(1)){
+    await swipe(-100,0);
+    await expectPhoto(entry);
+   }
+   await swipe(0,100);
+   await lightbox.waitFor({state:'hidden'});
+  }
+  for(const [i,entry] of manifest.entries.entries()){
    await go(i);
    const card=cards.nth(i);
-   assert.equal(await card.getAttribute('data-mario-memory'),e.id);
-   assert.ok((await card.innerText()).includes(e.caption));
-   const box=await card.boundingBox();
-   assert.ok(box&&box.width>0&&box.height>0);
-   if(photo){
-    await page.waitForFunction(id=>{const im=document.querySelector('[data-mario-memory="'+id+'"] img');return im.complete&&im.naturalWidth>=1280;},e.id);
-   }else{
-    assert.equal(await card.getAttribute('href'),e.reference);
-    assert.equal(await card.getAttribute('target'),'_blank');
-   }
+   assert.equal(await card.getAttribute('data-mario-memory'),entry.id);
+   assert.equal(await card.locator('.gallery-caption').textContent(),entry.caption);
+   await page.waitForFunction(({id,width,height})=>{
+    const img=document.querySelector('[data-mario-memory="'+id+'"] img');
+    return img.complete&&img.naturalWidth===width&&img.naturalHeight===height;
+   },entry);
+   await open(i);
+   await close();
   }
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
-  await go(0);
-  await page.screenshot({path:path.join(out,label+'-start.png'),scale:'css'});
-  await go(20);
   await page.screenshot({path:path.join(out,label+'-finale.png'),scale:'css'});
-  if(photo){
-   for(let i=0;i<21;i++){await open(i);await page.keyboard.press('Escape');await lightbox.waitFor({state:'hidden'});}
-   await open(0);
-   await lightbox.locator('.lightbox-next').click();
-   await page.waitForFunction(expected=>document.querySelector('.lightbox-caption').textContent.startsWith(expected),manifest.entries[1].caption);
-   await page.keyboard.press('ArrowRight');
-   await page.waitForFunction(expected=>document.querySelector('.lightbox-caption').textContent.startsWith(expected),manifest.entries[2].caption);
-   await swipe(100,0);
-   await page.waitForFunction(expected=>document.querySelector('.lightbox-caption').textContent.startsWith(expected),manifest.entries[1].caption);
-   await swipe(0,100);await lightbox.waitFor({state:'hidden'});
-   await open(20);
-   await page.screenshot({path:path.join(out,label+'-peach-lightbox.png'),scale:'css'});
-   await page.keyboard.press('Escape');
+  await open(0);
+  await lightbox.locator('.lightbox-next').click();
+  await expectPhoto(manifest.entries[1]);
+  await lightbox.locator('.lightbox-prev').click();
+  await expectPhoto(manifest.entries[0]);
+  await page.keyboard.press('ArrowRight');
+  await expectPhoto(manifest.entries[1]);
+  await page.keyboard.press('ArrowLeft');
+  await expectPhoto(manifest.entries[0]);
+  await close();
+  await open(20);
+  await page.screenshot({path:path.join(out,label+'-peach-lightbox.png'),scale:'css'});
+  await close();
+  for(const [index,expected] of ['Subdued Ceremony','SkyWars'].entries()){
+   const card=page.locator('#gallery .gallery-grid').nth(index).locator('.gallery-item').first();
+   await card.scrollIntoViewIfNeeded();
+   const img=await card.locator('img').elementHandle();
+   await page.waitForFunction(img=>img.complete&&img.naturalWidth>0,img);
+   const source=await img.evaluate(img=>img.src);
+   await card.click();
+   await lightbox.waitFor({state:'visible'});
+   assert.equal(await caption(),expected);
+   await page.waitForFunction(source=>{
+    const img=document.querySelector('#lightbox .lightbox-content');
+    return img.src===source&&img.complete&&img.naturalWidth>0;
+   },source);
+   await close();
   }
-  // A real local Zelda image must still enter and exit its existing lightbox.
-  const zelda=page.locator('.gallery-grid').first().locator('.gallery-item').first();
-  await zelda.scrollIntoViewIfNeeded();
-  await page.waitForFunction(()=>{const img=document.querySelector('.gallery-grid img');return img.naturalWidth>0&&Number(getComputedStyle(img.parentElement).opacity)>.98;});
-  await zelda.click();await lightbox.waitFor({state:'visible'});
-  assert.equal(await caption(),'Subdued Ceremony');
-  await page.keyboard.press('Escape');await lightbox.waitFor({state:'hidden'});
   assert.deepEqual(errors,[]);
-  console.log(label,photo?'21 photos and lightbox':'21 reference entries (photo testing pending)');
+  console.log(label,'21 Mario photos and lightboxes, navigation, and Zelda and Minecraft lightboxes');
  }finally{await context.close();}
 }
 (async()=>{

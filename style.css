@@ -985,6 +985,10 @@ button.method-card {
   transition: transform 0.7s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
+#mario-odyssey-grid .gallery-img {
+  object-fit: contain;
+}
+
 .gallery-item:hover .gallery-img {
   transform: scale(1.08);
 }

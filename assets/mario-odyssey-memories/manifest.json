@@ -1,216 +1,216 @@
 {
   "game": "Super Mario Odyssey",
-  "status": "reference-only",
+  "status": "owner-supplied-local-images",
   "entries": [
     {
       "id": "cap-kingdom-bonneton",
       "kind": "kingdom",
       "caption": "Cap Kingdom — Bonneton",
       "file": "cap-kingdom-bonneton.webp",
-      "locationSource": "https://www.mariowiki.com/Cap_Kingdom",
-      "reference": "https://www.mariowiki.com/File%3ASMO_Cap_Kingdom_Central_Plaza.jpg",
-      "shot": "Foggy hat-shaped buildings and Top-Hat Tower",
-      "permission": "not verified — reference only"
+      "width": 1249,
+      "height": 692,
+      "source": "Owner-supplied gameplay screenshot",
+      "sha256": "fb3b5c489d24198c6a79e25711e9676078888d58ac746199d098d3f0f069ecf9"
     },
     {
       "id": "cascade-kingdom-fossil-falls",
       "kind": "kingdom",
       "caption": "Cascade Kingdom — Fossil Falls",
       "file": "cascade-kingdom-fossil-falls.webp",
-      "locationSource": "https://www.mariowiki.com/Cascade_Kingdom",
-      "reference": "https://www.mariowiki.com/File%3ASMO_Fossil_Falls_Heights.jpg",
-      "shot": "Waterfalls, green cliffs and fossil arch",
-      "permission": "not verified — reference only"
+      "width": 1280,
+      "height": 720,
+      "source": "Owner-supplied gameplay screenshot",
+      "sha256": "a76bdc32516a16e4b31aa33e1498ec3eb150407aa8b881288129121921620242"
     },
     {
       "id": "sand-kingdom-tostarena",
       "kind": "kingdom",
       "caption": "Sand Kingdom — Tostarena",
       "file": "sand-kingdom-tostarena.webp",
-      "locationSource": "https://www.mariowiki.com/Sand_Kingdom",
-      "reference": "https://www.mariowiki.com/File%3ATostarenaTown.jpg",
-      "shot": "Desert town and colorful buildings",
-      "permission": "not verified — reference only"
+      "width": 1200,
+      "height": 675,
+      "source": "Owner-supplied gameplay screenshot",
+      "sha256": "3b978b7904d99052553bedb55b1b83054cf00705b294989c07f7d6b7f8df1a43"
     },
     {
       "id": "lake-kingdom-lake-lamode",
       "kind": "kingdom",
       "caption": "Lake Kingdom — Lake Lamode",
       "file": "lake-kingdom-lake-lamode.webp",
-      "locationSource": "https://www.mariowiki.com/Lake_Kingdom",
-      "reference": "https://www.mariowiki.com/File%3ASMO_Shot_-_Lake_Kingdom.jpg",
-      "shot": "Turquoise water and layered stone terraces",
-      "permission": "not verified — reference only"
+      "width": 1200,
+      "height": 675,
+      "source": "Owner-supplied gameplay screenshot",
+      "sha256": "4e3ef188f48bde7364fa2ba5de3dc2c3b322c89ff762908a85dac678e48a8419"
     },
     {
       "id": "wooded-kingdom-steam-gardens",
       "kind": "kingdom",
       "caption": "Wooded Kingdom — Steam Gardens",
       "file": "wooded-kingdom-steam-gardens.webp",
-      "locationSource": "https://www.mariowiki.com/Wooded_Kingdom",
-      "reference": "https://www.mariowiki.com/File%3ASMO_Observation_Deck.jpg",
-      "shot": "Red metal structures and lush greenery",
-      "permission": "not verified — reference only"
+      "width": 1280,
+      "height": 720,
+      "source": "Owner-supplied gameplay screenshot",
+      "sha256": "6604d34d1af8848e740db7f9644a50c2022a688e660b7573e6ca36f0459f1535"
     },
     {
       "id": "cloud-kingdom-nimbus-arena",
       "kind": "kingdom",
       "caption": "Cloud Kingdom — Nimbus Arena",
       "file": "cloud-kingdom-nimbus-arena.webp",
-      "locationSource": "https://www.mariowiki.com/Cloud_Kingdom",
-      "reference": "https://www.mariowiki.com/File%3ACloud_Kingdom.png",
-      "shot": "Cloud-filled circular arena",
-      "permission": "not verified — reference only"
+      "width": 1536,
+      "height": 864,
+      "source": "Owner-supplied gameplay screenshot",
+      "sha256": "1e955ee79a52a55d537a487f2b75d9a4977b5e036ad3bb7d33b7a0af8362ae25"
     },
     {
       "id": "lost-kingdom-forgotten-isle",
       "kind": "kingdom",
       "caption": "Lost Kingdom — Forgotten Isle",
       "file": "lost-kingdom-forgotten-isle.webp",
-      "locationSource": "https://www.mariowiki.com/Lost_Kingdom",
-      "reference": "https://www.mariowiki.com/File%3ASMO_Shot_-_Lost_Kingdom.jpg",
-      "shot": "Tropical cliffs and purple poison sea",
-      "permission": "not verified — reference only"
+      "width": 1280,
+      "height": 720,
+      "source": "Owner-supplied gameplay screenshot",
+      "sha256": "42ef88d66cc8466f487122aed66eeb4d66a1c21c8e6327793858a5a66227b9fb"
     },
     {
       "id": "metro-kingdom-new-donk-city",
       "kind": "kingdom",
       "caption": "Metro Kingdom — New Donk City",
       "file": "metro-kingdom-new-donk-city.webp",
-      "locationSource": "https://www.mariowiki.com/Metro_Kingdom",
-      "reference": "https://www.mariowiki.com/File%3ASMO-scrn-Odyssey-01.jpg",
-      "shot": "City skyline and Odyssey airship",
-      "permission": "not verified — reference only"
+      "width": 1200,
+      "height": 675,
+      "source": "Owner-supplied gameplay screenshot",
+      "sha256": "c4e37dcc9681a099e43c3a2d7a8afec091a77002b25c430558c9b2f2c6851ec4"
     },
     {
       "id": "snow-kingdom-shiveria",
       "kind": "kingdom",
       "caption": "Snow Kingdom — Shiveria",
       "file": "snow-kingdom-shiveria.webp",
-      "locationSource": "https://www.mariowiki.com/Snow_Kingdom",
-      "reference": "https://www.mariowiki.com/Snow_Kingdom#Gallery",
-      "shot": "Snowy landscape or Shiverian village",
-      "permission": "not verified — reference only"
+      "width": 1536,
+      "height": 1085,
+      "source": "Owner-supplied gameplay screenshot",
+      "sha256": "33c3ba68824bf9d09f5f94728f1fbc32209e5faf49cadeb97dd09949ffa7c4a1"
     },
     {
       "id": "seaside-kingdom-bubblaine",
       "kind": "kingdom",
       "caption": "Seaside Kingdom — Bubblaine",
       "file": "seaside-kingdom-bubblaine.webp",
-      "locationSource": "https://www.mariowiki.com/Seaside_Kingdom",
-      "reference": "https://www.mariowiki.com/File%3ASMO_Seaside_Kingdom.jpg",
-      "shot": "Sunny coast and sparkling ocean",
-      "permission": "not verified — reference only"
+      "width": 1536,
+      "height": 864,
+      "source": "Owner-supplied gameplay screenshot",
+      "sha256": "396208c0f535be7ada71762e6783d21e67191fc71dd3e6aa86fd97eca41e039e"
     },
     {
       "id": "luncheon-kingdom-mount-volbono",
       "kind": "kingdom",
       "caption": "Luncheon Kingdom — Mount Volbono",
       "file": "luncheon-kingdom-mount-volbono.webp",
-      "locationSource": "https://www.mariowiki.com/Luncheon_Kingdom",
-      "reference": "https://www.mariowiki.com/Luncheon_Kingdom#Gallery",
-      "shot": "Colorful food-shaped landscape and volcano",
-      "permission": "not verified — reference only"
+      "width": 1536,
+      "height": 1076,
+      "source": "Owner-supplied gameplay screenshot",
+      "sha256": "3b71b32ffa2efad32053f62d510b85b3a5ffe187b2e2d06c61f4a2317fff0cad"
     },
     {
       "id": "ruined-kingdom-crumbleden",
       "kind": "kingdom",
       "caption": "Ruined Kingdom — Crumbleden",
       "file": "ruined-kingdom-crumbleden.webp",
-      "locationSource": "https://www.mariowiki.com/Ruined_Kingdom",
-      "reference": "https://www.mariowiki.com/File%3ASMO_Ruined_Kingdom_Screenshot.png",
-      "shot": "Stormy ruins and stone towers",
-      "permission": "not verified — reference only"
+      "width": 1536,
+      "height": 864,
+      "source": "Owner-supplied gameplay screenshot",
+      "sha256": "54cc454e459cca6178b911b175a4e849b93f46279121b32febe0b4caef0d9a41"
     },
     {
       "id": "bowsers-kingdom-bowsers-castle",
       "kind": "kingdom",
       "caption": "Bowser’s Kingdom — Bowser’s Castle",
       "file": "bowsers-kingdom-bowsers-castle.webp",
-      "locationSource": "https://www.mariowiki.com/Bowser%27s_Kingdom",
-      "reference": "https://www.mariowiki.com/File%3ASMO_Bowser_Kingdom.png",
-      "shot": "Japanese-inspired castle above clouds",
-      "permission": "not verified — reference only"
+      "width": 1536,
+      "height": 864,
+      "source": "Owner-supplied gameplay screenshot",
+      "sha256": "20afe460668c62993ed0ab24c5e993857d1a4caf302cda18a47fed2d0b947d21"
     },
     {
       "id": "moon-kingdom-honeylune-ridge",
       "kind": "kingdom",
       "caption": "Moon Kingdom — Honeylune Ridge",
       "file": "moon-kingdom-honeylune-ridge.webp",
-      "locationSource": "https://www.mariowiki.com/Moon_Kingdom",
-      "reference": "https://www.mariowiki.com/Moon_Kingdom#Gallery",
-      "shot": "Lunar landscape and distant wedding hall",
-      "permission": "not verified — reference only"
+      "width": 560,
+      "height": 315,
+      "source": "Owner-supplied gameplay screenshot",
+      "sha256": "8c86957f7ec5081313b4d34142f8cfef22fd1d7f0ec813c5a92e88df00639085"
     },
     {
       "id": "mushroom-kingdom-peachs-castle",
       "kind": "kingdom",
       "caption": "Mushroom Kingdom — Peach’s Castle",
       "file": "mushroom-kingdom-peachs-castle.webp",
-      "locationSource": "https://www.mariowiki.com/Mushroom_Kingdom_(Super_Mario_Odyssey)",
-      "reference": "https://www.mariowiki.com/File%3ASuper_Mario_Odyssey_Mushroom_Kingdom.png",
-      "shot": "Green grounds and Peach’s Castle",
-      "permission": "not verified — reference only"
+      "width": 1536,
+      "height": 864,
+      "source": "Owner-supplied gameplay screenshot",
+      "sha256": "9ed7edfd8cc45b25e7267e48af996f6570940136f87274a34cae6502fa00ddd1"
     },
     {
       "id": "dark-side-rabbit-ridge",
       "kind": "kingdom",
       "caption": "Dark Side — Rabbit Ridge",
       "file": "dark-side-rabbit-ridge.webp",
-      "locationSource": "https://www.mariowiki.com/Dark_Side",
-      "reference": "https://www.mariowiki.com/File%3ADarkSide_SMO.png",
-      "shot": "Moon landscape and Rabbit Ridge",
-      "permission": "not verified — reference only"
+      "width": 1334,
+      "height": 751,
+      "source": "Owner-supplied gameplay screenshot",
+      "sha256": "848bb15aa43cb15c41e0700cdc618a220c0e1da368e0e90fe5ef909b4a5fe64f"
     },
     {
       "id": "darker-side-culmina-crater",
       "kind": "kingdom",
       "caption": "Darker Side — Culmina Crater",
       "file": "darker-side-culmina-crater.webp",
-      "locationSource": "https://www.mariowiki.com/Darker_Side",
-      "reference": "https://www.mariowiki.com/File%3ASMO_Shot_-_Darker_Side.jpg",
-      "shot": "Distant lunar city-hall structure",
-      "permission": "not verified — reference only"
+      "width": 1200,
+      "height": 675,
+      "source": "Owner-supplied gameplay screenshot",
+      "sha256": "c553d24552041fa93d7f6d7a74ea7bd0ce5b8af0ed7dc913de070032ca4b08d4"
     },
     {
       "id": "meeting-cappy",
       "kind": "story",
       "caption": "The Adventure Begins — Meeting Cappy",
       "file": "meeting-cappy.webp",
-      "locationSource": "https://www.mariowiki.com/Cappy",
-      "reference": "https://www.mariowiki.com/File%3ASMO_Mario_Meets_Cappy.jpg",
-      "shot": "Mario meeting Cappy in Bonneton",
-      "permission": "not verified — reference only"
+      "width": 1536,
+      "height": 864,
+      "source": "Owner-supplied gameplay screenshot",
+      "sha256": "6bffe314b124c08387b5ce0fab6134f13e7115a65708bb0215b879ef2b3ae18f"
     },
     {
       "id": "new-donk-city-festival",
       "kind": "story",
       "caption": "Jump Up, Super Star! — New Donk City Festival",
       "file": "new-donk-city-festival.webp",
-      "locationSource": "https://www.mariowiki.com/A_Traditional_Festival!",
-      "reference": "https://www.mariowiki.com/A_Traditional_Festival!",
-      "shot": "Pauline performing with Mario at the city festival",
-      "permission": "not verified — reference only"
+      "width": 500,
+      "height": 281,
+      "source": "Owner-supplied gameplay screenshot",
+      "sha256": "2ab9349bd0fd198ec5cc546f7cc446300fd652548f7b2caa162d2608437ecbd0"
     },
     {
       "id": "bowsers-wedding",
       "kind": "story",
       "caption": "Bowser’s Wedding",
       "file": "bowsers-wedding.webp",
-      "locationSource": "https://www.mariowiki.com/Wedding_Hall",
-      "reference": "https://www.mariowiki.com/File%3ASMO_Shot_-_A_Royal_Wedding.png",
-      "shot": "Peach and Bowser in wedding attire at the ceremony",
-      "permission": "not verified — reference only"
+      "width": 1280,
+      "height": 720,
+      "source": "Owner-supplied gameplay screenshot",
+      "sha256": "b98671be5cb42448d6c9d02bb26d47dd5b71a728ac91f91720f7607861f2cd21"
     },
     {
       "id": "rescuing-princess-peach",
       "kind": "story",
       "caption": "Rescuing Princess Peach — Escape from the Moon",
       "file": "rescuing-princess-peach.webp",
-      "locationSource": "https://www.mariowiki.com/Bowser%27s_Moon_Wedding",
-      "reference": "https://www.mariowiki.com/Moon_Kingdom#Gallery",
-      "shot": "Mario controlling Bowser during the escape, with Peach visible if possible; prefer the dramatic lunar escape over the later ending",
-      "permission": "not verified — reference only"
+      "width": 1248,
+      "height": 693,
+      "source": "Owner-supplied gameplay screenshot",
+      "sha256": "c61b37c40d03098b17ac2ab7fdfdd5dcf707ca265a9f1e071ee549105bded9bd"
     }
   ]
 }
