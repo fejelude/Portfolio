@@ -32,6 +32,27 @@ const server=createServer(async(req,res)=>{
  }catch{res.writeHead(404);res.end()}
 });
 
+async function verifyPixelControl(page,mode,device){
+ const stage=page.locator('[data-ft-stage]'),button=page.locator('[data-ft-'+mode+']');
+ await stage.scrollIntoViewIfNeeded();await button.waitFor({state:'visible'});
+ const b=await button.boundingBox(),s=await stage.boundingBox();
+ assert.ok(b.width>b.height*2&&b.height>=44,'horizontal accessible control');
+ assert.ok(b.x>=s.x&&b.x+b.width<=s.x+s.width+1&&b.y>=s.y&&b.y+b.height<=s.y+s.height+1,'button stays within watch viewport');
+ const visual=await button.evaluate(el=>{
+  const trace=el.querySelector('.ft-pixel-trace'),label=el.querySelector('.ft-pixel-label');
+  return {color:getComputedStyle(el).color,animation:getComputedStyle(trace).animationName,dash:getComputedStyle(trace).strokeDasharray,pixel:label.getAttribute('shape-rendering'),labelWidth:label.getBoundingClientRect().width};
+ });
+ assert.equal(visual.animation,'ft-pixel-border-travel');
+ assert.equal(visual.pixel,'crispEdges');assert.ok(visual.labelWidth>=60);
+ await button.screenshot({path:path.join(out,'daedalus-pixel-'+mode+'-'+device+'.png'),animations:'disabled'});
+ if(device==='desktop'){
+  await button.hover();await button.screenshot({path:path.join(out,'daedalus-pixel-'+mode+'-hover.png'),animations:'disabled'});
+  await page.mouse.move(0,0);
+ }
+ await page.emulateMedia({reducedMotion:'reduce'});
+ assert.equal(await button.locator('.ft-pixel-trace').evaluate(el=>getComputedStyle(el).animationName),'none');
+ await page.emulateMedia({reducedMotion:'no-preference'});
+}
 async function enter(page){
  const stage=page.locator('[data-ft-stage]');
  await stage.scrollIntoViewIfNeeded();
@@ -77,8 +98,10 @@ async function recordSky(browser,url){
   const astro=page.locator('.ft-astrolabe');
   await stage.scrollIntoViewIfNeeded();
   await verifyPreviewMedia(page);
+  await verifyPixelControl(page,'explore','desktop');
   await stage.screenshot({path:path.join(out,'daedalus-preview-desktop.png')});
   await enter(page);
+  await verifyPixelControl(page,'exit','desktop');
   const time=await page.locator('#ft-time').evaluate(el=>Number(el.textContent.slice(0,2)));
   assert.equal(await astro.locator('figcaption').textContent(),time>=6&&time<18?'Manila day':'Manila night');
   assert.equal(await astro.locator('canvas').evaluate(c=>getComputedStyle(c).imageRendering),'pixelated');
@@ -212,8 +235,10 @@ async function mobile(browser,url){
   await page.goto(url);
   const stage=page.locator('[data-ft-stage]'),canvas=page.locator('.ft-model');
   await stage.scrollIntoViewIfNeeded();
+  await verifyPixelControl(page,'explore','mobile');
   await stage.screenshot({path:path.join(out,'daedalus-preview-mobile.png')});
   await enter(page);
+  await verifyPixelControl(page,'exit','mobile');
   for(const [name,aspect] of [['normal',4/3],['landscape',16/9],['portrait',3/4],['square',1]]){
    await page.locator('[data-ft-ratio="'+name+'"]').tap();
    await stage.scrollIntoViewIfNeeded();
