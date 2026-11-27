@@ -3,6 +3,7 @@ const {chromium,firefox,webkit}=require('playwright');
 const {createServer}=require('node:http');
 const {readFile,mkdir}=require('node:fs/promises');
 const assert=require('node:assert/strict');
+const {SITE_LAST_UPDATED, SITE_LAST_UPDATED_LABEL}=require('../scripts/sync-site-updated.cjs');
 const path=require('node:path');
 const root=path.resolve(__dirname,'..');
 const out=path.join(__dirname,'home-world-results');
@@ -92,7 +93,9 @@ const server=createServer(async(req,res)=>{
         }
 
         assert.equal(await page.locator('.brand-mark svg path').count(),3);
-        assert.match(await page.locator('.footer-bottom .footer-links a').textContent(),/November 22, 2026/);
+        const updateDate=page.locator('.footer-bottom .footer-links [data-site-last-updated]');
+        assert.equal(await updateDate.textContent(),SITE_LAST_UPDATED_LABEL);
+        assert.equal(await updateDate.getAttribute('datetime'),SITE_LAST_UPDATED);
         assert.equal(await page.locator('#surprise-trigger').count(),1);
         assert.equal(await page.locator('a[href="/sofra"]').count()>=1,true);
         assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);

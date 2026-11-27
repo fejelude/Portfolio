@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - index.html
+      - Gallery.html
+      - scripts/sync-site-updated.cjs
       - interactives.html
       - css/interactives.css
       - js/interactives-entry.mjs
@@ -54,6 +56,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Verify synchronized website update dates
+        run: node scripts/sync-site-updated.cjs --check
       - run: node --check js/hero-pixels.mjs && node --check js/sofra-feature.mjs && node --check js/home-collectibles.mjs && node --check js/home-world.mjs && node --check js/home-world-renderer.mjs && node --test tests/home-world.test.mjs
       - run: node --check js/interactives-entry.mjs && node --test tests/interactives.test.cjs
       - run: node --check js/feje-tourbillon.mjs && node --check js/feje-tourbillon-renderer.mjs && node --test tests/feje-tourbillon.test.mjs
