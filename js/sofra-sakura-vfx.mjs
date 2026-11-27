@@ -35,7 +35,8 @@ export function celestialPresence(top,bottom,h){
 }
 export function gardenBands(w,h,box){
  const edge=(x,n)=>Math.max(0,Math.min(n,Math.round(x)));
- const l=edge(box.left-5,w),r=edge(box.right+5,w),t=edge(box.top-5,h),b=edge(box.bottom+5,h);
+ // Keep the four disjoint bands, but extend under the rounded card edge.
+ const l=edge(box.left+12,w),r=edge(box.right-12,w),t=edge(box.top+12,h),b=edge(box.bottom-12,h);
  return [{x:0,y:0,w:l,h},{x:r,y:0,w:w-r,h},{x:l,y:0,w:r-l,h:t},{x:l,y:b,w:r-l,h:h-b}];
 }
 export const gardenScale=(area,dpr)=>Math.min(dpr,3,Math.sqrt(1_150_000/Math.max(1,area)));
@@ -169,7 +170,7 @@ export function mountSofraGarden(section){
  function request(){
   if(!frame&&near&&!doc.hidden&&!suspended&&!signal.aborted)frame=win.requestAnimationFrame(tick);
  }
- function invalidate(){dirty=true;request();}
+ function invalidate(){dirty=true;if(!near&&!doc.hidden&&!suspended){const b=section.getBoundingClientRect(),h=win.innerHeight;near=b.top<h*1.65&&b.bottom>-h*.65;}request();}
  function sample(){
   const h=Math.max(1,win.innerHeight),w=Math.max(1,doc.documentElement.clientWidth);
   const bounds=section.getBoundingClientRect(),box=card.getBoundingClientRect(),other=daedalus?.getBoundingClientRect();

@@ -1,0 +1,20 @@
+/* A single document-space wash replaces the competing viewport/section fills.
+   Existing fixed sky canvases retain only their original transparent artwork. */
+body.feje-world-home[data-home-atmosphere]{
+ background-color:#0c0a12;
+ background-image:var(--home-atmosphere-gradient);
+ background-repeat:no-repeat;
+ background-size:100% 100%;
+ background-attachment:scroll;
+ transition:none;
+}
+/* Keep the separator's layout pixel without a full-width hard rendering edge. */
+body.feje-world-home[data-home-atmosphere] main>.section-padding{border-top-color:transparent}
+body.feje-world-home[data-home-atmosphere] .daedalus-scroll-sky{background-color:transparent!important}
+body.feje-world-home[data-home-atmosphere] .sofra-sakura-wash{background:none}
+body.feje-world-home[data-home-atmosphere] #roblox-creations,
+body.feje-world-home[data-home-atmosphere] #roblox-creations[data-rc-enhanced]{background-image:none}
+body.feje-world-home[data-home-atmosphere] #services .svc-aura{display:none}
+body.feje-world-home[data-home-atmosphere] #contact{background-image:none}
+/* Canvas defaults in style.css otherwise make descendants pointer-active. */
+.feje-world-home :is(.daedalus-scroll-sky,.sofra-sakura-sky) canvas{pointer-events:none}
