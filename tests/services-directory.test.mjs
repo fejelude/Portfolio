@@ -1,0 +1,35 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {mountServicesDirectory} from '../js/services-directory.mjs';
+const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+test('directory follows Roblox creations and uses the existing Contact route',()=>{
+ const html=read('index.html'),css=read('css/services-directory.css');
+ const section=html.match(/<section id="services"[\s\S]*?<\/section>/)?.[0];assert.ok(section);
+ assert.ok(html.indexOf('id="roblox-creations"')<html.indexOf(section));
+ assert.ok(html.indexOf(section)<html.indexOf('id="learning"'));
+ for(const title of ['Roblox Game Development','3D Modeling','Website Development'])assert.ok(section.includes(title));
+ assert.equal((section.match(/data-svc-row>/g)||[]).length,3);
+ assert.match(section,/<a class="svc-cta" href="#contact">/);
+ assert.match(html,/id="contact"/);assert.doesNotMatch(section,/href="\/services"/);
+ assert.match(css,/prefers-reduced-motion:no-preference/);
+ assert.match(css,/\.svc-row--model\{/);assert.match(css,/\.svc-row--web\{/);
+});
+test('only visible rows animate; visibility, reduced motion and cleanup gate work',()=>{
+ const make=()=>{const a=new Set();return {a,toggleAttribute:(k,v)=>v?a.add(k):a.delete(k),removeAttribute:k=>a.delete(k)}};
+ const root=make(),rows=[make(),make(),make()];root.querySelectorAll=()=>rows;
+ const win=new EventTarget(),doc=new EventTarget(),media=new EventTarget();
+ win.document=doc;win.matchMedia=()=>media;doc.hidden=false;media.matches=false;
+ let cb,disconnected=false;
+ win.IntersectionObserver=class{constructor(fn){cb=fn}observe(){}disconnect(){disconnected=true}};
+ const dispose=mountServicesDirectory(root,win);
+ cb([{target:root,isIntersecting:true},{target:rows[0],isIntersecting:true}]);
+ assert.ok(root.a.has('data-svc-active'));assert.ok(rows[0].a.has('data-svc-row-active'));assert.ok(!rows[1].a.size);
+ cb([{target:rows[0],isIntersecting:false},{target:rows[1],isIntersecting:true}]);
+ assert.ok(!rows[0].a.size);assert.ok(rows[1].a.size);
+ doc.hidden=true;doc.dispatchEvent(new Event('visibilitychange'));assert.ok(!rows[1].a.size);
+ doc.hidden=false;doc.dispatchEvent(new Event('visibilitychange'));assert.ok(rows[1].a.size);
+ media.matches=true;media.dispatchEvent(new Event('change'));assert.ok(!rows[1].a.size);
+ media.matches=false;media.dispatchEvent(new Event('change'));assert.ok(rows[1].a.size);
+ dispose();assert.ok(disconnected);assert.ok(!root.a.size);assert.ok(rows.every(r=>!r.a.size));
+});
