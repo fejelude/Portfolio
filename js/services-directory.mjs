@@ -9,7 +9,7 @@ export function servicesAmbient(bounds,height){
 export function mountServicesDirectory(root,win=window){
  if(!root)return ()=>{};
  const doc=win.document,media=win.matchMedia('(prefers-reduced-motion: reduce)');
- const rows=[...root.querySelectorAll('[data-svc-row]')],targets=[root,...rows];
+ const rows=[...root.querySelectorAll('[data-svc-row]')],wizard=root.querySelector?.('[data-svc-wizard]'),targets=[root,...rows,...(wizard?[wizard]:[])];
  const section=root.closest?.('#services'),visible=new Set(),controller=new AbortController(),{signal}=controller;
  let observer,suspended=false,frame=0;
  const active=()=>!doc.hidden&&!suspended&&!media.matches&&visible.has(section||root);
@@ -25,6 +25,7 @@ export function mountServicesDirectory(root,win=window){
   if(signal.aborted)return;
   const running=!doc.hidden&&!suspended&&!media.matches;
   root.toggleAttribute('data-svc-active',running&&visible.has(root));
+  wizard?.toggleAttribute('data-svc-wizard-active',running&&visible.has(wizard));
   for(const row of rows)row.toggleAttribute('data-svc-row-active',running&&visible.has(row));
   if(section){
    section.toggleAttribute('data-svc-ambient-active',active());
@@ -49,6 +50,7 @@ export function mountServicesDirectory(root,win=window){
  function dispose(){
   controller.abort();observer?.disconnect();visible.clear();stop();
   root.removeAttribute('data-svc-active');
+  wizard?.removeAttribute('data-svc-wizard-active');
   for(const row of rows)row.removeAttribute('data-svc-row-active');
   if(section){section.removeAttribute('data-svc-ambient-active');section.style.removeProperty('--svc-wash');section.style.removeProperty('--svc-parallax');}
  }

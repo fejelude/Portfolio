@@ -557,12 +557,73 @@
                 <h2 id="services-title">Let's create <span>something.</span></h2>
                 <p class="svc-intro">I enjoy making a lot of different things, hehe. If you have something in mind that you want to make, I can help you with it.</p>
               </div>
-              <div class="svc-header-art" aria-hidden="true">
-                <svg viewBox="0 0 96 64" shape-rendering="crispEdges" focusable="false">
-                  <path fill="#3a2b52" d="M9 12h78v2H9zM9 24h78v1H9zM9 36h78v1H9zM9 48h78v1H9zM20 4h1v56h-1zM36 4h1v56h-1zM52 4h1v56h-1zM68 4h1v56h-1zM84 4h1v56h-1z"/>
-                  <path fill="#614d7d" d="M7 46h18v-9h18V23h18v-9h24v2H63v9H45v14H27v9H7z"/>
-                  <path fill="#8f72b9" d="M24 34h5v5h-5zM42 20h5v5h-5zM60 11h5v5h-5z"/>
-                  <g class="svc-header-glint" fill="#f0d6ff"><path d="M82 6h2v5h5v2h-5v5h-2v-5h-5v-2h5zM14 22h2v3h3v2h-3v3h-2v-3h-3v-2h3zM73 41h2v2h-2z"/></g>
+              <div class="svc-header-art svc-creator-wizard" data-svc-wizard aria-hidden="true">
+                <svg viewBox="0 0 64 48" shape-rendering="crispEdges" focusable="false">
+                  <defs>
+                    <g id="svc-wizard-body">
+                      <path fill="#21172f" d="M25 2h5v3h-3v4h4v4h3v4h4v4h-5v7h4v4h-4v5h3v5h4v3H13v-3h4v-5h2v-6h-4v-4h4v-6h-6v-4h5v-5h3V7h2V4h2z"/>
+                      <path fill="#694699" d="M25 4h3v3h-4v4h5v4h3v3h-12v-3h3v-5h2z"/>
+                      <path fill="#c3a0ee" d="M25 4h3v2h-3zM23 9h2v5h-2zM20 15h9v2h-9z"/>
+                      <path fill="#8a60ba" d="M19 18h14v2h4v2H15v-2h4z"/>
+                      <path fill="#f4c690" d="M20 17h12v2H20zM27 16h4v4h-4z"/>
+                      <path fill="#fff1bb" d="M28 17h2v2h-2z"/>
+                      <path fill="#bc86d8" d="M20 22h12v6H20z"/>
+                      <path fill="#362348" d="M22 22h9v5h-9z"/>
+                      <path fill="#ffe5ae" d="M23 23h2v2h-2zM28 23h2v2h-2z"/>
+                      <path fill="#f0a4ce" d="M25 26h3v1h-3z"/>
+                      <path fill="#9a70c8" d="M20 28h12v3h3v3h-4v5h3v3h4v2H15v-2h4v-4h2v-7h-3z"/>
+                      <path fill="#d9b5f4" d="M21 28h5v3h-3v7h-2v4h-3v-2h2v-9h-2v-2h3z"/>
+                      <path fill="#694699" d="M29 31h3v8h3v3h3v2H27v-3h2z"/>
+                      <path fill="#edafd7" d="M25 30h3v3h-3zM23 39h2v3h-2z"/>
+                      <path fill="#e7bc82" d="M21 34h10v2H21z"/>
+                      <path fill="#fff0bc" d="M26 33h2v4h-2z"/>
+                      <path fill="#31213f" d="M19 44h7v2h-7zM29 44h7v2h-7z"/>
+                      <path fill="#c2a1ec" d="M15 43h7v1h-7zM30 43h7v1h-7z"/>
+                    </g>
+                    <g id="svc-wizard-wand">
+                      <path fill="#342339" d="M32 30h3v-3h4v-3h3v-3h3v-3h3v3h-3v3h-3v3h-3v3h-4v3h-3z"/>
+                      <path fill="#e4b67f" d="M34 30h2v-3h3v-3h3v-3h3v-2h2v2h-2v3h-3v3h-3v3h-3v2h-2z"/>
+                      <path fill="#d9b2f6" d="M33 28h4v4h-4z"/>
+                    </g>
+                    <g id="svc-wizard-star">
+                      <path fill="#f5d89b" d="M2 0h1v2h2v1H3v2H2V3H0V2h2z"/>
+                      <path fill="#fff3d0" d="M2 2h1v1H2z"/>
+                    </g>
+                    <g id="svc-wizard-cube">
+                      <path fill="#332c54" d="M0 4h4V2h4V0h4v2h4v2h4v11h-4v2h-4v2H8v-2H4v-2H0z"/>
+                      <path fill="#b7b1f5" d="M2 5h4V3h4V1h2v2h4v2h2v2h-4v2H8V7H4V5z"/>
+                      <path fill="#7c80ce" d="M2 8h4v2h4v7H8v-2H4v-2H2z"/>
+                      <path fill="#66c5cc" d="M12 10h4V8h2v5h-2v2h-4v2h-2v-7z"/>
+                      <path fill="#e6e1ff" d="M8 4h4v2H8z"/>
+                    </g>
+                  </defs>
+                  <path fill="#49355f" d="M14 46h25v1H14zM19 47h15v1H19z"/>
+                  <g class="svc-wizard-pose" data-svc-wizard-frame="0" style="--wizard-delay:0s">
+                    <use href="#svc-wizard-body"/><use href="#svc-wizard-wand"/>
+                    <use href="#svc-wizard-star" x="45" y="12"/>
+                    <path fill="#bfa2ef" d="M51 9h2v2h-2zM57 17h1v1h-1zM49 5h1v1h-1z"/>
+                    <path fill="#efacd4" d="M53 20h2v2h-2z"/>
+                  </g>
+                  <g class="svc-wizard-pose" data-svc-wizard-frame="1" style="--wizard-delay:-3.6s">
+                    <g transform="translate(0 -1)"><use href="#svc-wizard-body"/><use href="#svc-wizard-wand"/></g>
+                    <path fill="#cfb5f6" d="M49 6h4v3h-4zM57 9h4v4h-4zM47 15h4v4h-4z"/>
+                    <path fill="#74ccd0" d="M54 15h4v4h-4zM51 12h3v3h-3z"/>
+                    <use href="#svc-wizard-star" x="42" y="9"/>
+                    <path fill="#f4b4da" d="M60 5h2v2h-2zM48 23h2v2h-2z"/>
+                  </g>
+                  <g class="svc-wizard-pose" data-svc-wizard-frame="2" style="--wizard-delay:-2.4s">
+                    <g transform="translate(0 -2)"><use href="#svc-wizard-body"/><use href="#svc-wizard-wand"/></g>
+                    <use href="#svc-wizard-cube" x="43" y="3"/>
+                    <use href="#svc-wizard-star" x="40" y="1"/>
+                    <path fill="#efacd4" d="M59 25h2v2h-2zM47 25h2v2h-2z"/>
+                  </g>
+                  <g class="svc-wizard-pose" data-svc-wizard-frame="3" style="--wizard-delay:-1.2s">
+                    <g transform="translate(0 -1)"><use href="#svc-wizard-body"/><use href="#svc-wizard-wand"/></g>
+                    <path fill="#a7e2dc" d="M47 5h4v4h-4zM57 7h3v3h-3zM53 15h3v3h-3z"/>
+                    <use href="#svc-wizard-star" x="52" y="1"/>
+                    <use href="#svc-wizard-star" x="46" y="19"/>
+                    <path fill="#edadd7" d="M61 14h2v2h-2zM43 7h2v2h-2z"/>
+                  </g>
                 </svg>
               </div>
             </header>

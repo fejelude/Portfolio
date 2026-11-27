@@ -19,6 +19,28 @@ async function check(browser,profile,name,url){
  try{
   await page.goto(url);const frame=page.locator('[data-svc-motion]'),rows=frame.locator('[data-svc-row]'),cta=frame.locator('.svc-cta');
   assert.equal(await rows.count(),3);assert.equal(await frame.getAttribute('data-svc-active'),null);
+  const wizard=frame.locator('[data-svc-wizard]'),header=frame.locator('.svc-header');
+  await header.scrollIntoViewIfNeeded();
+  await page.waitForFunction(()=>document.querySelector('[data-svc-wizard]').hasAttribute('data-svc-wizard-active'));
+  const wizardBox=await wizard.boundingBox(),titleBox=await frame.locator('#services-title').boundingBox(),introBox=await frame.locator('.svc-intro').boundingBox();
+  assert.ok(wizardBox.width>=64&&wizardBox.width<=160);
+  const overlaps=(a,b)=>Math.min(a.x+a.width,b.x+b.width)>Math.max(a.x,b.x)+1&&Math.min(a.y+a.height,b.y+b.height)>Math.max(a.y,b.y)+1;
+  assert.ok(!overlaps(wizardBox,titleBox)&&!overlaps(wizardBox,introBox),'wizard must not cover title or intro');
+  assert.equal(await wizard.getAttribute('aria-hidden'),'true');
+  const poses=wizard.locator('[data-svc-wizard-frame]');
+  const poseState=()=>poses.evaluateAll(els=>els.map(el=>Number(getComputedStyle(el).opacity)));
+  const seen=new Set();
+  for(let i=0;i<4;i++){
+   const state=await poseState();assert.equal(state.filter(n=>n===1).length,1);seen.add(state.indexOf(1));
+   if(i<3)await page.waitForFunction(previous=>[...document.querySelectorAll('[data-svc-wizard-frame]')].findIndex(e=>Number(getComputedStyle(e).opacity)===1)!==previous,state.indexOf(1),{polling:50});
+  }
+  assert.equal(seen.size,4);
+  await header.screenshot({path:path.join(out,name+'-wizard.png'),animations:'disabled'});
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.waitForFunction(()=>!document.querySelector('[data-svc-wizard-active]'),null,{polling:100});
+  assert.deepEqual(await poseState(),[1,0,0,0]);
+  await page.emulateMedia({reducedMotion:'no-preference'});
+  await page.waitForFunction(()=>document.querySelector('[data-svc-wizard-active]'),null,{polling:100});
   await frame.scrollIntoViewIfNeeded();
   const palettes=await rows.evaluateAll(els=>els.map(el=>getComputedStyle(el).getPropertyValue('--svc-accent').trim()));
   assert.equal(new Set(palettes).size,3);
@@ -48,7 +70,11 @@ async function check(browser,profile,name,url){
   await page.evaluate(()=>{const el=document.querySelector('#services');scrollTo(0,scrollY+el.getBoundingClientRect().top+el.offsetHeight-80)});
   await page.waitForFunction(old=>document.querySelector('#services').style.getPropertyValue('--svc-parallax')!==old,start);
   await frame.screenshot({path:path.join(out,name+'-directory.png'),animations:'disabled'});
-  await cta.scrollIntoViewIfNeeded();const b=await cta.boundingBox();assert.ok(b.height>=44);
+  await cta.scrollIntoViewIfNeeded();
+  await page.evaluate(()=>{const e=document.querySelector('#services .svc-cta');window.scrollTo({top:scrollY+e.getBoundingClientRect().top-100,behavior:'instant'});});
+  await page.waitForFunction(()=>!document.querySelector('[data-svc-wizard-active]'),null,{polling:100});
+  assert.deepEqual(await poseState(),[1,0,0,0]);
+  const b=await cta.boundingBox();assert.ok(b.height>=44);
   await cta.focus();assert.equal(await cta.evaluate(e=>getComputedStyle(e).outlineStyle),'solid');
   await page.emulateMedia({reducedMotion:'reduce'});
   await page.waitForFunction(()=>!document.querySelector('[data-svc-row-active]'),null,{polling:100});
@@ -59,7 +85,7 @@ async function check(browser,profile,name,url){
   await page.emulateMedia({reducedMotion:'no-preference'});
   await page.waitForFunction(()=>!document.querySelector('[data-svc-row-active]'),null,{polling:100});
   assert.deepEqual(errors,[]);
-  console.log(name,JSON.stringify({palettes,overflow:false,threeIcons:true,reducedMotion:true,contactLink:true,offscreenPaused:true}));
+  console.log(name,JSON.stringify({palettes,overflow:false,threeIcons:true,wizardFourPoses:true,wizardNoOverlap:true,wizardOffscreen:true,reducedMotion:true,contactLink:true,offscreenPaused:true}));
  }finally{await page.close()}
 }
 (async()=>{await mkdir(out,{recursive:true});await new Promise(r=>server.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+server.address().port;

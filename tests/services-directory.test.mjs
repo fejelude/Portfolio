@@ -17,21 +17,24 @@ test('directory follows Roblox creations and uses the existing Contact route',()
 });
 test('only visible rows animate; visibility, reduced motion and cleanup gate work',()=>{
  const make=()=>{const a=new Set();return {a,toggleAttribute:(k,v)=>v?a.add(k):a.delete(k),removeAttribute:k=>a.delete(k)}};
- const root=make(),rows=[make(),make(),make()];root.querySelectorAll=()=>rows;
+ const root=make(),rows=[make(),make(),make()],wizard=make();root.querySelectorAll=()=>rows;root.querySelector=()=>wizard;
  const win=new EventTarget(),doc=new EventTarget(),media=new EventTarget();
  win.document=doc;win.matchMedia=()=>media;doc.hidden=false;media.matches=false;
  let cb,disconnected=false;
  win.IntersectionObserver=class{constructor(fn){cb=fn}observe(){}disconnect(){disconnected=true}};
  const dispose=mountServicesDirectory(root,win);
- cb([{target:root,isIntersecting:true},{target:rows[0],isIntersecting:true}]);
+ cb([{target:root,isIntersecting:true},{target:rows[0],isIntersecting:true},{target:wizard,isIntersecting:true}]);
+ assert.ok(wizard.a.has('data-svc-wizard-active'));
+ cb([{target:wizard,isIntersecting:false}]);assert.ok(!wizard.a.size);assert.ok(root.a.has('data-svc-active'));
+ cb([{target:wizard,isIntersecting:true}]);
  assert.ok(root.a.has('data-svc-active'));assert.ok(rows[0].a.has('data-svc-row-active'));assert.ok(!rows[1].a.size);
  cb([{target:rows[0],isIntersecting:false},{target:rows[1],isIntersecting:true}]);
  assert.ok(!rows[0].a.size);assert.ok(rows[1].a.size);
- doc.hidden=true;doc.dispatchEvent(new Event('visibilitychange'));assert.ok(!rows[1].a.size);
+ doc.hidden=true;doc.dispatchEvent(new Event('visibilitychange'));assert.ok(!rows[1].a.size);assert.ok(!wizard.a.size);
  doc.hidden=false;doc.dispatchEvent(new Event('visibilitychange'));assert.ok(rows[1].a.size);
- media.matches=true;media.dispatchEvent(new Event('change'));assert.ok(!rows[1].a.size);
+ media.matches=true;media.dispatchEvent(new Event('change'));assert.ok(!rows[1].a.size);assert.ok(!wizard.a.size);
  media.matches=false;media.dispatchEvent(new Event('change'));assert.ok(rows[1].a.size);
- dispose();assert.ok(disconnected);assert.ok(!root.a.size);assert.ok(rows.every(r=>!r.a.size));
+ dispose();assert.ok(disconnected);assert.ok(!root.a.size);assert.ok(rows.every(r=>!r.a.size));assert.ok(!wizard.a.size);
 });
 
 test('original pixel sequences are exactly 4 / 5 / 4 and scroll wash is bounded',()=>{
@@ -44,4 +47,15 @@ test('original pixel sequences are exactly 4 / 5 / 4 and scroll wash is bounded'
  assert.equal(servicesAmbient({top:100,bottom:600,height:500},800).wash,1);
  const edge=servicesAmbient({top:550,bottom:1050,height:500},800);
  assert.equal(edge.wash,.5);assert.ok(Math.abs(edge.shift)<=32);
+});
+
+test('creator wizard has four original decorative poses and a static fallback',()=>{
+ const html=read('index.html'),css=read('css/services-directory.css');
+ const header=html.match(/<header class="svc-header">[\s\S]*?<\/header>/)[0];
+ assert.match(header,/data-svc-wizard aria-hidden="true"/);
+ assert.deepEqual([...header.matchAll(/data-svc-wizard-frame="(\d)"/g)].map(m=>Number(m[1])),[0,1,2,3]);
+ assert.match(header,/shape-rendering="crispEdges"/);
+ assert.match(css,/\.svc-wizard-pose\[data-svc-wizard-frame="0"\]\{opacity:1\}/);
+ assert.match(css,/svc-wizard-cycle 4\.8s steps\(1,end\) infinite/);
+ assert.doesNotMatch(header,/tabindex|<button|<a\s/);
 });
