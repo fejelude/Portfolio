@@ -181,3 +181,28 @@
 @media(min-width:1380px){.feje-world-home .collection-slots{grid-template-columns:repeat(10,minmax(0,1fr))}}
 @media(max-width:350px){.feje-world-home .world-view-label{font-size:.53rem;inset-inline:10px}.feje-world-home .collection-header{gap:6px}}
 @media(prefers-reduced-motion:reduce){.feje-world-home .world-collection-transition,.feje-world-home .collection-arrow,.feje-world-home .collection-slots button{transition:none}}
+
+/* Desktop typesetting and contrast also apply with reduced motion. */
+@media (width > 900px) and (any-hover: hover) and (any-pointer: fine) {
+ .feje-world-home #home .hero-content {
+  align-self:start;
+  margin-block-start:clamp(40px, 14svh, 130px);
+ }
+ .feje-world-home #contact a.method-card {
+  color:#eee5fa;
+ }
+ .feje-world-home #contact a.method-card:focus-visible {
+  outline:2px solid #d9b7ff;
+  outline-offset:4px;
+ }
+ .feje-world-home #home .star-border-inner::after {
+  content:"";
+  flex:none;
+  width:7px;
+  height:7px;
+  margin-inline-end:3px;
+  border-top:1px solid;
+  border-right:1px solid;
+  background:linear-gradient(-45deg,transparent 45%,currentColor 46% 54%,transparent 55%);
+ }
+}

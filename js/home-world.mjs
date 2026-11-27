@@ -5,6 +5,7 @@ if(stage){
   const $=id=>document.getElementById(id);
   const host=$('world-canvas-host'), launch=$('world-launch'), controls=$('world-controls'), instructions=$('world-instructions');
   const motionQuery=matchMedia('(prefers-reduced-motion: reduce)'), coarse=matchMedia('(pointer: coarse)');
+  const desktopViewport=matchMedia('(width > 900px) and (any-hover: hover) and (any-pointer: fine)');
   const deferLoading=coarse.matches||innerWidth<=900||(navigator.deviceMemory&&navigator.deviceMemory<=4)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=4)||navigator.connection?.saveData;
   let sceneEvents=null,markerNodes=[],renderer=null,canvas=null,api=null,loading=false,visible=true,paused=motionQuery.matches,lights=true,frame=0,last=0,time=0,goal,current,drag,active='arrival',sizeObserver;
   const cleanup=new AbortController(),signal=cleanup.signal;
@@ -161,7 +162,20 @@ if(stage){
     const key=Object.keys(api.STATIONS).find(k=>api.STATIONS[k].link===href);if(key&&key!==active)select(key);
   });
   let observer;
-  if('IntersectionObserver' in window){observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(visible)request();else stop();});observer.observe(stage);}
+  if('IntersectionObserver' in window){
+    observer=new IntersectionObserver(([entry])=>{
+      visible=entry.isIntersecting;
+      if(visible)request();else stop();
+    });
+    // On desktop the directory and controls can remain visible well after the
+    // exhibit leaves the screen. Stop submitting frames at the exhibit edge.
+    const observeExhibit=()=>{
+      observer.disconnect();
+      observer.observe(desktopViewport.matches?host.parentElement:stage);
+    };
+    observeExhibit();
+    listen(desktopViewport,'change',observeExhibit);
+  }
   listen(window,'pagehide',e=>{stop();if(!e.persisted){endSwitch();observer?.disconnect();sizeObserver?.disconnect();sceneEvents?.abort();renderer?.dispose();cleanup.abort();}});
   listen(window,'pageshow',()=>request());
   showLaunch();
