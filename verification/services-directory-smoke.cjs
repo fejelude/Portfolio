@@ -1,0 +1,52 @@
+const {chromium,firefox,webkit,devices}=require('playwright');
+const {createServer}=require('node:http');
+const {readFile,mkdir}=require('node:fs/promises');
+const path=require('node:path'),assert=require('node:assert/strict');
+const root=path.resolve(__dirname,'..'),out=path.join(__dirname,'services-directory-results');
+const section=readFile(path.join(root,'index.html'),'utf8').then(s=>s.match(/<section id="services"[\s\S]*?<\/section>/)[0]);
+const server=createServer(async(req,res)=>{
+ try{
+  const pathname=new URL(req.url,'http://localhost').pathname;
+  if(pathname==='/'){
+   res.setHeader('Content-Type','text/html');res.end('<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/css/home-world.css"><link rel="stylesheet" href="/css/services-directory.css"><style>body{margin:0}.spacer{height:160vh}</style><body class="feje-world-home"><main><div class="spacer"></div>'+await section+'<div class="spacer"></div><section id="contact" style="min-height:100vh">Contact</section></main><script type="module" src="/js/services-directory.mjs"></script></body></html>');return;
+  }
+  const file=path.resolve(root,'.'+pathname);if(!file.startsWith(root+path.sep))throw Error('path');
+  res.setHeader('Content-Type',({'.css':'text/css','.mjs':'text/javascript'})[path.extname(file)]||'application/octet-stream');res.end(await readFile(file));
+ }catch{res.writeHead(404);res.end();}
+});
+async function check(browser,profile,name,url){
+ const page=await browser.newPage(profile),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ try{
+  await page.goto(url);const frame=page.locator('[data-svc-motion]'),rows=frame.locator('[data-svc-row]'),cta=frame.locator('.svc-cta');
+  assert.equal(await rows.count(),3);assert.equal(await frame.getAttribute('data-svc-active'),null);
+  await frame.scrollIntoViewIfNeeded();
+  const palettes=await rows.evaluateAll(els=>els.map(el=>getComputedStyle(el).getPropertyValue('--svc-accent').trim()));
+  assert.equal(new Set(palettes).size,3);
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+  for(let i=0;i<3;i++){
+   const row=rows.nth(i);await row.scrollIntoViewIfNeeded();await row.waitFor({state:'visible'});
+   await page.waitForFunction(i=>document.querySelectorAll('[data-svc-row]')[i].hasAttribute('data-svc-row-active'),i);
+   const b=await row.boundingBox(),icon=await row.locator('.svc-icon-well').boundingBox(),copy=await row.locator('.svc-row-copy').boundingBox();
+   assert.ok(icon.x+icon.width<=copy.x+1&&copy.x+copy.width<=b.x+b.width+1,'row icon and copy must not overlap');
+   assert.equal(await row.evaluate(e=>e.scrollWidth<=e.clientWidth+1),true);
+   const sprite=row.locator(['.svc-game-block','.svc-model-core','.svc-web-cursor'][i]);
+   assert.notEqual(await sprite.evaluate(e=>getComputedStyle(e).animationName),'none');
+  }
+  await frame.screenshot({path:path.join(out,name+'-directory.png'),animations:'disabled'});
+  await cta.scrollIntoViewIfNeeded();const b=await cta.boundingBox();assert.ok(b.height>=44);
+  await cta.focus();assert.equal(await cta.evaluate(e=>getComputedStyle(e).outlineStyle),'solid');
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.waitForFunction(()=>!document.querySelector('[data-svc-row-active]'),null,{polling:100});
+  assert.equal(await rows.first().locator('.svc-game-block').evaluate(e=>getComputedStyle(e).animationName),'none');
+  await cta.click();assert.equal(new URL(page.url()).hash,'#contact');
+  await page.emulateMedia({reducedMotion:'no-preference'});
+  await page.waitForFunction(()=>!document.querySelector('[data-svc-row-active]'),null,{polling:100});
+  assert.deepEqual(errors,[]);
+  console.log(name,JSON.stringify({palettes,overflow:false,threeIcons:true,reducedMotion:true,contactLink:true,offscreenPaused:true}));
+ }finally{await page.close()}
+}
+(async()=>{await mkdir(out,{recursive:true});await new Promise(r=>server.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+server.address().port;
+ const cases=[[chromium,{viewport:{width:1440,height:900}},'desktop-chromium'],[chromium,{viewport:{width:768,height:900}},'tablet-chromium'],[chromium,{...devices['Pixel 7']},'android-chromium'],[chromium,{viewport:{width:320,height:640},hasTouch:true,isMobile:true},'small-mobile-chromium']];
+ if(!process.argv.includes('--chromium-only'))cases.push([firefox,{viewport:{width:1280,height:900}},'desktop-firefox'],[webkit,{...devices['iPhone 13']},'iphone-webkit']);
+ for(const [engine,profile,name] of cases){const browser=await engine.launch();try{await check(browser,profile,name,url)}finally{await browser.close()}}
+})().catch(e=>{console.error(e);process.exitCode=1}).finally(()=>server.close());
