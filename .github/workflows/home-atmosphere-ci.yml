@@ -1,0 +1,40 @@
+name: Homepage atmospheric continuity CI
+on:
+  pull_request:
+    paths:
+      - index.html
+      - css/home-atmosphere.css
+      - js/home-atmosphere.mjs
+      - js/feje-tourbillon-scroll-vfx.mjs
+      - js/sofra-sakura-vfx.mjs
+      - js/services-directory.mjs
+      - tests/home-atmosphere.test.mjs
+      - verification/home-atmosphere-smoke.cjs
+      - .github/workflows/home-atmosphere-ci.yml
+permissions:
+  contents: read
+jobs:
+  continuity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/home-atmosphere.test.mjs tests/feje-tourbillon-scroll-vfx.test.mjs tests/sofra-sakura-vfx.test.mjs tests/services-directory.test.mjs
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - name: Capture matched scroll demonstrations
+        env:
+          BASE_REVISION: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/atmosphere-baseline" "$BASE_REVISION"
+          node verification/home-atmosphere-smoke.cjs "$RUNNER_TEMP/atmosphere-baseline"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: homepage-atmosphere-before-after
+          path: verification/home-atmosphere-results/
