@@ -32,12 +32,29 @@ async function check(browser,profile,name,url){
    const sprite=row.locator(['.svc-game-block','.svc-model-core','.svc-web-cursor'][i]);
    assert.notEqual(await sprite.evaluate(e=>getComputedStyle(e).animationName),'none');
   }
+  const samples=frame.locator('.svc-sample');
+  assert.deepEqual(await samples.evaluateAll(els=>els.map(el=>Number(el.dataset.svcFrames))),[4,5,4]);
+  for(let i=0;i<3;i++){
+   const row=rows.nth(i),sample=samples.nth(i);await row.scrollIntoViewIfNeeded();
+   await page.waitForFunction(i=>document.querySelectorAll('[data-svc-row]')[i].hasAttribute('data-svc-row-active'),i);
+   const steps=sample.locator('[data-frame]');
+   const state=()=>steps.evaluateAll(els=>els.map(el=>Number(getComputedStyle(el).opacity)));
+   const before=await state();assert.equal(before.filter(n=>n===1).length,1);
+   await page.waitForTimeout(1300);
+   const after=await state();assert.equal(after.filter(n=>n===1).length,1);assert.notDeepEqual(after,before);
+  }
+  await page.waitForFunction(()=>Number(document.querySelector('#services').style.getPropertyValue('--svc-wash'))>0);
+  const start=await page.evaluate(()=>document.querySelector('#services').style.getPropertyValue('--svc-parallax'));
+  await page.evaluate(()=>{const el=document.querySelector('#services');scrollTo(0,scrollY+el.getBoundingClientRect().top+el.offsetHeight-80)});
+  await page.waitForFunction(old=>document.querySelector('#services').style.getPropertyValue('--svc-parallax')!==old,start);
   await frame.screenshot({path:path.join(out,name+'-directory.png'),animations:'disabled'});
   await cta.scrollIntoViewIfNeeded();const b=await cta.boundingBox();assert.ok(b.height>=44);
   await cta.focus();assert.equal(await cta.evaluate(e=>getComputedStyle(e).outlineStyle),'solid');
   await page.emulateMedia({reducedMotion:'reduce'});
   await page.waitForFunction(()=>!document.querySelector('[data-svc-row-active]'),null,{polling:100});
   assert.equal(await rows.first().locator('.svc-game-block').evaluate(e=>getComputedStyle(e).animationName),'none');
+  assert.equal(await samples.first().locator('[data-frame="0"]').evaluate(e=>getComputedStyle(e).opacity),'1');
+  assert.equal(await page.locator('#services').getAttribute('data-svc-ambient-active'),null);
   await cta.click();assert.equal(new URL(page.url()).hash,'#contact');
   await page.emulateMedia({reducedMotion:'no-preference'});
   await page.waitForFunction(()=>!document.querySelector('[data-svc-row-active]'),null,{polling:100});

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {mountServicesDirectory} from '../js/services-directory.mjs';
+import {mountServicesDirectory,servicesAmbient} from '../js/services-directory.mjs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 test('directory follows Roblox creations and uses the existing Contact route',()=>{
  const html=read('index.html'),css=read('css/services-directory.css');
@@ -32,4 +32,16 @@ test('only visible rows animate; visibility, reduced motion and cleanup gate wor
  media.matches=true;media.dispatchEvent(new Event('change'));assert.ok(!rows[1].a.size);
  media.matches=false;media.dispatchEvent(new Event('change'));assert.ok(rows[1].a.size);
  dispose();assert.ok(disconnected);assert.ok(!root.a.size);assert.ok(rows.every(r=>!r.a.size));
+});
+
+test('original pixel sequences are exactly 4 / 5 / 4 and scroll wash is bounded',()=>{
+ const html=read('index.html'),section=html.match(/<section id="services"[\s\S]*?<\/section>/)[0];
+ assert.match(section,/class="svc-maker-emblem"/);assert.doesNotMatch(section,/svc-pixel-star/);
+ const scenes=[...section.matchAll(/data-svc-frames="(\d)"[\s\S]*?<\/svg>/g)];
+ assert.deepEqual(scenes.map(m=>Number(m[1])),[4,5,4]);
+ for(const m of scenes)assert.equal((m[0].match(/data-frame=/g)||[]).length,Number(m[1]));
+ assert.equal(servicesAmbient({top:1000,bottom:1500,height:500},800).wash,0);
+ assert.equal(servicesAmbient({top:100,bottom:600,height:500},800).wash,1);
+ const edge=servicesAmbient({top:550,bottom:1050,height:500},800);
+ assert.equal(edge.wash,.5);assert.ok(Math.abs(edge.shift)<=32);
 });
