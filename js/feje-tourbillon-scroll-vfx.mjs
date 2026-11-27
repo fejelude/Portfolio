@@ -36,8 +36,9 @@ export function skyScale(area, dpr) {
 // avoids redrawing a viewport-sized bitmap underneath the WebGL exhibit.
 export function skyBands(w, h, box) {
   const edge = (value, limit) => Math.max(0, Math.min(limit, Math.round(value)));
-  const left = edge(box.left - 8,w), right = edge(box.right + 8,w);
-  const top = edge(box.top - 8,h), bottom = edge(box.bottom + 8,h);
+  // Overlap the opaque card by 12px, eliminating the rectangular halo at its rounded corners.
+  const left = edge(box.left + 12,w), right = edge(box.right - 12,w);
+  const top = edge(box.top + 12,h), bottom = edge(box.bottom - 12,h);
   return [
     {x:0,y:0,width:left,height:h},
     {x:right,y:0,width:w - right,height:h},
@@ -331,6 +332,10 @@ export function mountDaedalusSky(section) {
   }
   function invalidate() {
     dirty = true;
+    if (!near && !doc.hidden && !suspended) {
+      const b = section.getBoundingClientRect(), h = win.innerHeight;
+      near = b.top < h * 1.65 && b.bottom > -h * .65;
+    }
     request();
   }
 
@@ -427,6 +432,7 @@ export function mountDaedalusSky(section) {
   }
   win.addEventListener('scroll',invalidate,{passive:true,signal});
   win.addEventListener('resize',invalidate,{passive:true,signal});
+  win.visualViewport?.addEventListener('resize',invalidate,{passive:true,signal});
   win.addEventListener('pagehide',event=>{
     if (!event.persisted) dispose();
     else {

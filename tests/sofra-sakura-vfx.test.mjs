@@ -18,7 +18,7 @@ test('scroll envelope is symmetric and reaches a full garden',()=>{
   assert.ok(wash>=previous-1e-12);previous=wash;
  }
 });
-test('four disjoint canvas bands never draw over the card and fit the pixel budget',()=>{
+test('four disjoint canvas bands overlap only the card edge and fit the pixel budget',()=>{
  for(const [w,h] of [[320,720],[390,844],[1536,960]]){
   for(const box of [{left:15,right:w-15,top:100,bottom:h-100},{left:15,right:w-15,top:-500,bottom:h+200}]){
    const bands=gardenBands(w,h,box);

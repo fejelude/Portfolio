@@ -35,10 +35,10 @@ test('the backing buffer uses available DPI up to the bounded pixel budget', () 
   }
 });
 
-test('render bands surround the article without overlapping or painting inside it', () => {
+test('render bands are disjoint and overlap the card edge only', () => {
   assert.deepEqual(skyBands(390,844,{left:24,right:366,top:160,bottom:1050}),[
-    {x:0,y:0,width:16,height:844}, {x:374,y:0,width:16,height:844},
-    {x:16,y:0,width:358,height:152}, {x:16,y:844,width:358,height:0}
+    {x:0,y:0,width:36,height:844}, {x:354,y:0,width:36,height:844},
+    {x:36,y:0,width:318,height:172}, {x:36,y:844,width:318,height:0}
   ]);
   const away = skyBands(390,844,{left:24,right:366,top:1000,bottom:1800});
   assert.equal(away.reduce((area,band)=>area + band.width * band.height,0),390 * 844);
