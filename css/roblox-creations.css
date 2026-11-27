@@ -175,3 +175,9 @@ body.feje-world-home .premium-nav{background-color:var(--rc-nav);border-bottom-c
  .feje-world-home #roblox-creations .rc-note .rc-particles{inset-inline:0 -8px}
  .feje-world-home #roblox-creations .rc-header h2{gap:7px}
 }
+
+/* Reserve each native screenshot's shape while the desktop lazy image loads. */
+@media (width > 900px) and (any-hover: hover) and (any-pointer: fine) {
+ .feje-world-home #roblox-creations .rc-garage .rc-image-frame img { aspect-ratio:auto 360 / 351; }
+ .feje-world-home #roblox-creations .rc-build .rc-image-frame img { aspect-ratio:auto 360 / 341; }
+}

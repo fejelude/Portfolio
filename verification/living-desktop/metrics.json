@@ -1,0 +1,1186 @@
+{
+  "profile": "Local Chromium 158.0.8127.0, 1440 \u00d7 900 CSS px, graphics disabled, third-party requests blocked",
+  "main": "15ed9847f19caeee3a20418e109db121e6d3aed1",
+  "desktop": {
+    "main": [
+      {
+        "browser": "158.0.8127.0",
+        "throttle": 1,
+        "boot": {
+          "world": "fallback",
+          "desktop": true,
+          "nav": 301.5999999998603
+        },
+        "rows": {
+          "hero": {
+            "samples": 19,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 1,
+            "taskMs": 38.7,
+            "scriptMs": 0.54,
+            "layout": 21,
+            "style": 21
+          },
+          "collectibles": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 37.63,
+            "scriptMs": 1.38,
+            "layout": 31,
+            "style": 31
+          },
+          "directory": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 108.91,
+            "scriptMs": 6.96,
+            "layout": 23,
+            "style": 24
+          },
+          "watch": {
+            "samples": 17,
+            "median": 16.7,
+            "p95": 33.4,
+            "over25ms": 5,
+            "taskMs": 69.38,
+            "scriptMs": 6.54,
+            "layout": 18,
+            "style": 18
+          },
+          "sofra": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 160.05,
+            "scriptMs": 13.7,
+            "layout": 24,
+            "style": 24
+          },
+          "about": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 46.68,
+            "scriptMs": 4.49,
+            "layout": 0,
+            "style": 23
+          },
+          "roblox": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 55.22,
+            "scriptMs": 0.23,
+            "layout": 3,
+            "style": 24
+          },
+          "services": {
+            "samples": 15,
+            "median": 16.7,
+            "p95": 33.4,
+            "over25ms": 7,
+            "taskMs": 52.89,
+            "scriptMs": 0.33,
+            "layout": 2,
+            "style": 16
+          },
+          "learning": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 25.76,
+            "scriptMs": 0.3,
+            "layout": 1,
+            "style": 25
+          },
+          "roadmap": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 7.77,
+            "scriptMs": 0.12,
+            "layout": 0,
+            "style": 0
+          },
+          "contact": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 9.67,
+            "scriptMs": 0.15,
+            "layout": 0,
+            "style": 0
+          }
+        },
+        "vitals": {
+          "lcpMs": 264,
+          "cls": 0.6485915123456789,
+          "maxObservedInteractionMs": 0,
+          "longTasks": 2,
+          "longestTaskMs": 113
+        },
+        "usedHeapMiB": 5.06,
+        "nodes": 6702,
+        "errors": []
+      },
+      {
+        "browser": "158.0.8127.0",
+        "throttle": 1,
+        "boot": {
+          "world": "fallback",
+          "desktop": true,
+          "nav": 199.10000000009313
+        },
+        "rows": {
+          "hero": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.8,
+            "over25ms": 0,
+            "taskMs": 30.01,
+            "scriptMs": 0.37,
+            "layout": 23,
+            "style": 23
+          },
+          "collectibles": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 34.88,
+            "scriptMs": 1.09,
+            "layout": 29,
+            "style": 29
+          },
+          "directory": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 120.06,
+            "scriptMs": 7.89,
+            "layout": 23,
+            "style": 24
+          },
+          "watch": {
+            "samples": 16,
+            "median": 16.7,
+            "p95": 33.4,
+            "over25ms": 5,
+            "taskMs": 74.87,
+            "scriptMs": 6.92,
+            "layout": 18,
+            "style": 18
+          },
+          "sofra": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 136.39,
+            "scriptMs": 10.82,
+            "layout": 23,
+            "style": 23
+          },
+          "about": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 41.65,
+            "scriptMs": 4.06,
+            "layout": 0,
+            "style": 23
+          },
+          "roblox": {
+            "samples": 20,
+            "median": 16.7,
+            "p95": 33.3,
+            "over25ms": 2,
+            "taskMs": 48.74,
+            "scriptMs": 0.21,
+            "layout": 3,
+            "style": 21
+          },
+          "services": {
+            "samples": 15,
+            "median": 16.7,
+            "p95": 33.3,
+            "over25ms": 6,
+            "taskMs": 53.16,
+            "scriptMs": 0.27,
+            "layout": 2,
+            "style": 17
+          },
+          "learning": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 14.64,
+            "scriptMs": 0.14,
+            "layout": 1,
+            "style": 25
+          },
+          "roadmap": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 8.32,
+            "scriptMs": 0.13,
+            "layout": 0,
+            "style": 0
+          },
+          "contact": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 8.85,
+            "scriptMs": 0.14,
+            "layout": 0,
+            "style": 0
+          }
+        },
+        "vitals": {
+          "lcpMs": 184,
+          "cls": 0.6485915123456789,
+          "maxObservedInteractionMs": 0,
+          "longTasks": 1,
+          "longestTaskMs": 69
+        },
+        "usedHeapMiB": 5.45,
+        "nodes": 6654,
+        "errors": []
+      },
+      {
+        "browser": "158.0.8127.0",
+        "throttle": 1,
+        "boot": {
+          "world": "fallback",
+          "desktop": true,
+          "nav": 185.9000000001397
+        },
+        "rows": {
+          "hero": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 35.82,
+            "scriptMs": 0.34,
+            "layout": 23,
+            "style": 23
+          },
+          "collectibles": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 42.22,
+            "scriptMs": 1.1,
+            "layout": 29,
+            "style": 29
+          },
+          "directory": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 115.91,
+            "scriptMs": 7.7,
+            "layout": 24,
+            "style": 25
+          },
+          "watch": {
+            "samples": 17,
+            "median": 16.7,
+            "p95": 33.3,
+            "over25ms": 5,
+            "taskMs": 93.41,
+            "scriptMs": 10.73,
+            "layout": 18,
+            "style": 18
+          },
+          "sofra": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 136.24,
+            "scriptMs": 11.24,
+            "layout": 24,
+            "style": 24
+          },
+          "about": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 51.72,
+            "scriptMs": 6.84,
+            "layout": 0,
+            "style": 23
+          },
+          "roblox": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 48.54,
+            "scriptMs": 0.21,
+            "layout": 3,
+            "style": 23
+          },
+          "services": {
+            "samples": 16,
+            "median": 16.7,
+            "p95": 33.4,
+            "over25ms": 7,
+            "taskMs": 70.3,
+            "scriptMs": 0.27,
+            "layout": 2,
+            "style": 18
+          },
+          "learning": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 27.25,
+            "scriptMs": 0.34,
+            "layout": 1,
+            "style": 25
+          },
+          "roadmap": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 15.83,
+            "scriptMs": 0.34,
+            "layout": 0,
+            "style": 0
+          },
+          "contact": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 18.94,
+            "scriptMs": 0.26,
+            "layout": 0,
+            "style": 0
+          }
+        },
+        "vitals": {
+          "lcpMs": 160,
+          "cls": 0.6485915123456789,
+          "maxObservedInteractionMs": 0,
+          "longTasks": 1,
+          "longestTaskMs": 65
+        },
+        "usedHeapMiB": 6.17,
+        "nodes": 6656,
+        "errors": []
+      },
+      {
+        "browser": "158.0.8127.0",
+        "throttle": 4,
+        "boot": {
+          "world": "fallback",
+          "desktop": true,
+          "nav": 1043.1999999999534
+        },
+        "rows": {
+          "hero": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 207.81,
+            "scriptMs": 3.37,
+            "layout": 24,
+            "style": 24
+          },
+          "collectibles": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 186.11,
+            "scriptMs": 1.58,
+            "layout": 27,
+            "style": 30
+          },
+          "directory": {
+            "samples": 9,
+            "median": 33.3,
+            "p95": 50.1,
+            "over25ms": 9,
+            "taskMs": 649.86,
+            "scriptMs": 47.18,
+            "layout": 17,
+            "style": 18
+          },
+          "watch": {
+            "samples": 14,
+            "median": 33.2,
+            "p95": 50.1,
+            "over25ms": 8,
+            "taskMs": 434.04,
+            "scriptMs": 45.93,
+            "layout": 19,
+            "style": 19
+          },
+          "sofra": {
+            "samples": 8,
+            "median": 50,
+            "p95": 50.1,
+            "over25ms": 8,
+            "taskMs": 808.16,
+            "scriptMs": 81.88,
+            "layout": 17,
+            "style": 17
+          },
+          "about": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 291.53,
+            "scriptMs": 40.84,
+            "layout": 0,
+            "style": 28
+          },
+          "roblox": {
+            "samples": 21,
+            "median": 16.7,
+            "p95": 16.8,
+            "over25ms": 1,
+            "taskMs": 250.66,
+            "scriptMs": 1.46,
+            "layout": 4,
+            "style": 27
+          },
+          "services": {
+            "samples": 14,
+            "median": 16.8,
+            "p95": 33.4,
+            "over25ms": 7,
+            "taskMs": 294.03,
+            "scriptMs": 2.02,
+            "layout": 2,
+            "style": 22
+          },
+          "learning": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 65.85,
+            "scriptMs": 1.84,
+            "layout": 0,
+            "style": 24
+          },
+          "roadmap": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 33.34,
+            "scriptMs": 0.13,
+            "layout": 0,
+            "style": 0
+          },
+          "contact": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 42.83,
+            "scriptMs": 0.57,
+            "layout": 0,
+            "style": 0
+          }
+        },
+        "vitals": {
+          "lcpMs": 360,
+          "cls": 0.37399691358024684,
+          "maxObservedInteractionMs": 0,
+          "longTasks": 24,
+          "longestTaskMs": 259
+        },
+        "usedHeapMiB": 5.2,
+        "nodes": 6656,
+        "errors": []
+      }
+    ],
+    "feature": [
+      {
+        "browser": "158.0.8127.0",
+        "throttle": 1,
+        "boot": {
+          "world": "fallback",
+          "desktop": true,
+          "nav": 385.60000000009313
+        },
+        "rows": {
+          "hero": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 66.22,
+            "scriptMs": 2.65,
+            "layout": 26,
+            "style": 26
+          },
+          "collectibles": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 67.85,
+            "scriptMs": 2.65,
+            "layout": 33,
+            "style": 34
+          },
+          "directory": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 184.07,
+            "scriptMs": 13.87,
+            "layout": 26,
+            "style": 37
+          },
+          "watch": {
+            "samples": 15,
+            "median": 16.8,
+            "p95": 33.4,
+            "over25ms": 7,
+            "taskMs": 92.75,
+            "scriptMs": 9.38,
+            "layout": 18,
+            "style": 27
+          },
+          "sofra": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 201.37,
+            "scriptMs": 17.81,
+            "layout": 27,
+            "style": 39
+          },
+          "about": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 63.96,
+            "scriptMs": 6.43,
+            "layout": 2,
+            "style": 24
+          },
+          "roblox": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 67.97,
+            "scriptMs": 1.62,
+            "layout": 4,
+            "style": 25
+          },
+          "services": {
+            "samples": 15,
+            "median": 16.7,
+            "p95": 33.4,
+            "over25ms": 7,
+            "taskMs": 58.78,
+            "scriptMs": 1.6,
+            "layout": 2,
+            "style": 18
+          },
+          "learning": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 30.07,
+            "scriptMs": 1.11,
+            "layout": 2,
+            "style": 26
+          },
+          "roadmap": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 21.71,
+            "scriptMs": 1.4,
+            "layout": 1,
+            "style": 24
+          },
+          "contact": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 24.37,
+            "scriptMs": 1.14,
+            "layout": 2,
+            "style": 25
+          }
+        },
+        "vitals": {
+          "lcpMs": 252,
+          "cls": 0.010968147384580762,
+          "maxObservedInteractionMs": 0,
+          "longTasks": 2,
+          "longestTaskMs": 129
+        },
+        "usedHeapMiB": 5.24,
+        "nodes": 6821,
+        "errors": []
+      },
+      {
+        "browser": "158.0.8127.0",
+        "throttle": 1,
+        "boot": {
+          "world": "fallback",
+          "desktop": true,
+          "nav": 211.4000000001397
+        },
+        "rows": {
+          "hero": {
+            "samples": 20,
+            "median": 16.7,
+            "p95": 16.8,
+            "over25ms": 1,
+            "taskMs": 54.43,
+            "scriptMs": 3.46,
+            "layout": 24,
+            "style": 24
+          },
+          "collectibles": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 64.99,
+            "scriptMs": 2.37,
+            "layout": 31,
+            "style": 32
+          },
+          "directory": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 151.84,
+            "scriptMs": 9.51,
+            "layout": 26,
+            "style": 26
+          },
+          "watch": {
+            "samples": 14,
+            "median": 16.7,
+            "p95": 50,
+            "over25ms": 7,
+            "taskMs": 91.09,
+            "scriptMs": 9.11,
+            "layout": 18,
+            "style": 26
+          },
+          "sofra": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 164.6,
+            "scriptMs": 14.31,
+            "layout": 25,
+            "style": 25
+          },
+          "about": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.8,
+            "over25ms": 0,
+            "taskMs": 65.38,
+            "scriptMs": 9.14,
+            "layout": 2,
+            "style": 24
+          },
+          "roblox": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 87.31,
+            "scriptMs": 1.5,
+            "layout": 4,
+            "style": 25
+          },
+          "services": {
+            "samples": 15,
+            "median": 16.7,
+            "p95": 49.9,
+            "over25ms": 5,
+            "taskMs": 64.49,
+            "scriptMs": 1.53,
+            "layout": 2,
+            "style": 20
+          },
+          "learning": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 34.52,
+            "scriptMs": 1.47,
+            "layout": 2,
+            "style": 25
+          },
+          "roadmap": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 21.35,
+            "scriptMs": 1.26,
+            "layout": 1,
+            "style": 24
+          },
+          "contact": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 20.96,
+            "scriptMs": 1.3,
+            "layout": 2,
+            "style": 24
+          }
+        },
+        "vitals": {
+          "lcpMs": 184,
+          "cls": 0.010968147384580762,
+          "maxObservedInteractionMs": 0,
+          "longTasks": 1,
+          "longestTaskMs": 54
+        },
+        "usedHeapMiB": 5.61,
+        "nodes": 6835,
+        "errors": []
+      },
+      {
+        "browser": "158.0.8127.0",
+        "throttle": 1,
+        "boot": {
+          "world": "fallback",
+          "desktop": true,
+          "nav": 195.39999999990687
+        },
+        "rows": {
+          "hero": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 60.15,
+            "scriptMs": 2.46,
+            "layout": 28,
+            "style": 28
+          },
+          "collectibles": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 49.44,
+            "scriptMs": 2.65,
+            "layout": 32,
+            "style": 33
+          },
+          "directory": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 146.55,
+            "scriptMs": 10.18,
+            "layout": 26,
+            "style": 37
+          },
+          "watch": {
+            "samples": 11,
+            "median": 33.3,
+            "p95": 66.7,
+            "over25ms": 6,
+            "taskMs": 117.57,
+            "scriptMs": 14.9,
+            "layout": 18,
+            "style": 26
+          },
+          "sofra": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 166.28,
+            "scriptMs": 16.25,
+            "layout": 25,
+            "style": 33
+          },
+          "about": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 64.17,
+            "scriptMs": 6.38,
+            "layout": 2,
+            "style": 24
+          },
+          "roblox": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 69.93,
+            "scriptMs": 2.23,
+            "layout": 4,
+            "style": 24
+          },
+          "services": {
+            "samples": 15,
+            "median": 16.7,
+            "p95": 33.4,
+            "over25ms": 7,
+            "taskMs": 54.61,
+            "scriptMs": 1.46,
+            "layout": 2,
+            "style": 18
+          },
+          "learning": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 28.69,
+            "scriptMs": 2.35,
+            "layout": 2,
+            "style": 26
+          },
+          "roadmap": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 23.57,
+            "scriptMs": 1.24,
+            "layout": 1,
+            "style": 25
+          },
+          "contact": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.8,
+            "over25ms": 0,
+            "taskMs": 41.01,
+            "scriptMs": 1.43,
+            "layout": 2,
+            "style": 24
+          }
+        },
+        "vitals": {
+          "lcpMs": 168,
+          "cls": 0.010968147384580762,
+          "maxObservedInteractionMs": 0,
+          "longTasks": 0,
+          "longestTaskMs": 0
+        },
+        "usedHeapMiB": 4.49,
+        "nodes": 6547,
+        "errors": []
+      },
+      {
+        "browser": "158.0.8127.0",
+        "throttle": 4,
+        "boot": {
+          "world": "fallback",
+          "desktop": true,
+          "nav": 888.5
+        },
+        "rows": {
+          "hero": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 224.8,
+            "scriptMs": 9.31,
+            "layout": 30,
+            "style": 31
+          },
+          "collectibles": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 237.25,
+            "scriptMs": 8.67,
+            "layout": 33,
+            "style": 35
+          },
+          "directory": {
+            "samples": 8,
+            "median": 50,
+            "p95": 50,
+            "over25ms": 8,
+            "taskMs": 700.14,
+            "scriptMs": 61.5,
+            "layout": 20,
+            "style": 35
+          },
+          "watch": {
+            "samples": 11,
+            "median": 33.3,
+            "p95": 50,
+            "over25ms": 8,
+            "taskMs": 394.77,
+            "scriptMs": 42.01,
+            "layout": 19,
+            "style": 30
+          },
+          "sofra": {
+            "samples": 7,
+            "median": 50,
+            "p95": 50.1,
+            "over25ms": 7,
+            "taskMs": 909.12,
+            "scriptMs": 105.1,
+            "layout": 18,
+            "style": 33
+          },
+          "about": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 294.32,
+            "scriptMs": 41.38,
+            "layout": 1,
+            "style": 30
+          },
+          "roblox": {
+            "samples": 21,
+            "median": 16.7,
+            "p95": 16.8,
+            "over25ms": 1,
+            "taskMs": 244.27,
+            "scriptMs": 8.36,
+            "layout": 4,
+            "style": 24
+          },
+          "services": {
+            "samples": 14,
+            "median": 16.8,
+            "p95": 33.4,
+            "over25ms": 7,
+            "taskMs": 269.31,
+            "scriptMs": 8.32,
+            "layout": 2,
+            "style": 19
+          },
+          "learning": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 117.38,
+            "scriptMs": 5.16,
+            "layout": 2,
+            "style": 26
+          },
+          "roadmap": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 107.38,
+            "scriptMs": 7.05,
+            "layout": 1,
+            "style": 24
+          },
+          "contact": {
+            "samples": 22,
+            "median": 16.7,
+            "p95": 16.7,
+            "over25ms": 0,
+            "taskMs": 112.47,
+            "scriptMs": 7.1,
+            "layout": 2,
+            "style": 24
+          }
+        },
+        "vitals": {
+          "lcpMs": 420,
+          "cls": 0.010968147384580762,
+          "maxObservedInteractionMs": 0,
+          "longTasks": 26,
+          "longestTaskMs": 173
+        },
+        "usedHeapMiB": 6.6,
+        "nodes": 6788,
+        "errors": []
+      }
+    ]
+  },
+  "softwareWebGL": [
+    {
+      "base": "main",
+      "inView": 67,
+      "offscreen": 175,
+      "windowMs": 6283.1,
+      "rafSamples": 26,
+      "intervalMedian": 16.699999999999818,
+      "rendererTaskMs": 87.21399999999946,
+      "watchDraws": 721
+    },
+    {
+      "base": "feature",
+      "inView": 132,
+      "offscreen": 0,
+      "windowMs": 1216.6000000000004,
+      "rafSamples": 73,
+      "intervalMedian": 16.699999999999818,
+      "rendererTaskMs": 132.25100000000012,
+      "watchDraws": 721
+    }
+  ],
+  "mobile": {
+    "android": {
+      "sameGeometry": true,
+      "featureRequests": [
+        "/js/living-desktop-entry.mjs"
+      ],
+      "captures": {
+        "about": {
+          "equal": true,
+          "maxChannelDifference": 0
+        },
+        "collectibles": {
+          "equal": true,
+          "maxChannelDifference": 0
+        },
+        "contact": {
+          "equal": true,
+          "maxChannelDifference": 0
+        },
+        "directory": {
+          "equal": true,
+          "maxChannelDifference": 0
+        },
+        "hero": {
+          "equal": true,
+          "maxChannelDifference": 0
+        },
+        "learning": {
+          "equal": true,
+          "maxChannelDifference": 0
+        },
+        "roadmap": {
+          "equal": true,
+          "maxChannelDifference": 0
+        },
+        "roblox": {
+          "equal": true,
+          "maxChannelDifference": 0
+        },
+        "services": {
+          "equal": true,
+          "maxChannelDifference": 0
+        },
+        "sofra": {
+          "equal": true,
+          "maxChannelDifference": 0
+        },
+        "watch": {
+          "equal": true,
+          "maxChannelDifference": 0
+        }
+      }
+    },
+    "iphone": {
+      "sameGeometry": true,
+      "featureRequests": [
+        "/js/living-desktop-entry.mjs"
+      ],
+      "captures": {
+        "about": {
+          "equal": true,
+          "maxChannelDifference": 0
+        },
+        "collectibles": {
+          "equal": true,
+          "maxChannelDifference": 0
+        },
+        "contact": {
+          "equal": true,
+          "maxChannelDifference": 0
+        },
+        "directory": {
+          "equal": true,
+          "maxChannelDifference": 0
+        },
+        "hero": {
+          "equal": true,
+          "maxChannelDifference": 0
+        },
+        "learning": {
+          "equal": true,
+          "maxChannelDifference": 0
+        },
+        "roadmap": {
+          "equal": true,
+          "maxChannelDifference": 0
+        },
+        "roblox": {
+          "equal": false,
+          "maxChannelDifference": 3
+        },
+        "services": {
+          "equal": true,
+          "maxChannelDifference": 0
+        },
+        "sofra": {
+          "equal": true,
+          "maxChannelDifference": 0
+        },
+        "watch": {
+          "equal": true,
+          "maxChannelDifference": 0
+        }
+      }
+    }
+  }
+}
