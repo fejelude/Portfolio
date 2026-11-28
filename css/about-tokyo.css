@@ -248,3 +248,37 @@
 .feje-world-home #about .living-decoration[data-living-effect="motto"] {
   --light: #d4d2cc;
 }
+
+/* A single distant flight shares the existing chapter visibility gate. */
+.about-tokyo-airspace {
+  position: absolute;
+  inset: 18% 0 auto;
+  height: 17%;
+  overflow: clip;
+}
+
+.about-tokyo-aircraft {
+  position: absolute;
+  top: 20%;
+  left: 0;
+  width: clamp(27px, 3.05vw, 49px);
+  height: auto;
+  opacity: 0;
+}
+
+@keyframes about-tokyo-flight {
+  0% { transform: translate(-110%, 9px); opacity: 0; }
+  12%, 82% { opacity: .54; }
+  100% { transform: translate(var(--tokyo-flight-reach), -9px); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .about-tokyo[data-train-visible] .about-tokyo-aircraft {
+    --tokyo-flight-reach: min(100vw, 1900px);
+    animation: about-tokyo-flight 16s 7.3s linear 1 both;
+  }
+}
+
+@media (max-width: 640px) and (orientation: portrait) {
+  .about-tokyo-airspace { top: 23%; }
+}

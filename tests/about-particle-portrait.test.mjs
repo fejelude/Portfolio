@@ -53,3 +53,18 @@ test('only the optimized WebP derivative ships, with no photographic metadata', 
   }
   assert.deepEqual(types,['VP8 ']);
 });
+
+test('movement softens above the knee and fits the overscan for any pulse overlap', async () => {
+  const { portraitSurface, limitedTravel } = await import('../js/about-particle-portrait.mjs');
+  for (const [width, height, dpr] of [[320,180,1.55], [394,221,2], [700,393,2]]) {
+    const size = portraitSurface(width, height, dpr);
+    const knee = size.radius * .34;
+    assert.equal(limitedTravel(knee, size.radius), knee);
+    assert.ok(limitedTravel(knee + 1, size.radius) > knee);
+    assert.ok(limitedTravel(100000, size.radius) < size.limit);
+    assert.ok(size.bleed - size.limit >= 5);
+    assert.equal(size.outputWidth, width + 2 * size.bleed);
+    assert.equal(size.outputHeight, height + 2 * size.bleed);
+    assert.ok(size.width * size.height <= 960000);
+  }
+});
