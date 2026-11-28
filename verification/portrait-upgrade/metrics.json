@@ -1,0 +1,135 @@
+{
+  "base": "12f6d24ff7b2286fb17c73982a50156bcd6a03be",
+  "browser": "Headless Chromium 158.0.8127.0; local full homepage, WebGL and external requests disabled",
+  "measurement": "One matched pointer sweep and settle per profile. Restored pixel counts measure resting cache blits and exclude separately drawn moving tiles.",
+  "before": [
+    {
+      "name": "desktop",
+      "mode": "before",
+      "rate": 1,
+      "particles": 36864,
+      "renderSize": [
+        686,
+        386
+      ],
+      "idleCanvasBlits": 0,
+      "offscreenCanvasBlits": 0,
+      "activeCanvasBlits": 107,
+      "averageRestoredPixels": 264796,
+      "p95": 16.700000000000273,
+      "frames": 66,
+      "gapsOver25": 1,
+      "taskMs": 702.2729999999999,
+      "scriptMs": 275.88599999999997,
+      "heapMiB": 5.0083465576171875,
+      "errors": []
+    },
+    {
+      "name": "mobile",
+      "mode": "before",
+      "rate": 1,
+      "particles": 9975,
+      "renderSize": [
+        666,
+        375
+      ],
+      "idleCanvasBlits": 0,
+      "offscreenCanvasBlits": 0,
+      "activeCanvasBlits": 133,
+      "averageRestoredPixels": 249750,
+      "p95": 16.799999999999727,
+      "frames": 67,
+      "gapsOver25": 0,
+      "taskMs": 489.0249999999999,
+      "scriptMs": 133.383,
+      "heapMiB": 3.9944381713867188,
+      "errors": []
+    },
+    {
+      "name": "mobile-4x",
+      "mode": "before",
+      "rate": 4,
+      "particles": 9975,
+      "renderSize": [
+        666,
+        375
+      ],
+      "idleCanvasBlits": 0,
+      "offscreenCanvasBlits": 0,
+      "activeCanvasBlits": 126,
+      "averageRestoredPixels": 249750,
+      "p95": 16.799999999999727,
+      "frames": 65,
+      "gapsOver25": 1,
+      "taskMs": 1592.268,
+      "scriptMs": 457.10699999999997,
+      "heapMiB": 3.9760894775390625,
+      "errors": []
+    }
+  ],
+  "after": [
+    {
+      "name": "desktop",
+      "mode": "after",
+      "rate": 1,
+      "particles": 69696,
+      "renderSize": [
+        700,
+        394
+      ],
+      "idleCanvasBlits": 0,
+      "offscreenCanvasBlits": 0,
+      "activeCanvasBlits": 88,
+      "averageRestoredPixels": 25996,
+      "p95": 16.799999999999727,
+      "frames": 67,
+      "gapsOver25": 0,
+      "taskMs": 969.177,
+      "scriptMs": 333.067,
+      "heapMiB": 4.098606109619141,
+      "errors": []
+    },
+    {
+      "name": "mobile",
+      "mode": "after",
+      "rate": 1,
+      "particles": 20330,
+      "renderSize": [
+        690,
+        388
+      ],
+      "idleCanvasBlits": 0,
+      "offscreenCanvasBlits": 0,
+      "activeCanvasBlits": 89,
+      "averageRestoredPixels": 21985,
+      "p95": 16.700000000000273,
+      "frames": 67,
+      "gapsOver25": 0,
+      "taskMs": 408.535,
+      "scriptMs": 81.34500000000001,
+      "heapMiB": 4.518405914306641,
+      "errors": []
+    },
+    {
+      "name": "mobile-4x",
+      "mode": "after",
+      "rate": 4,
+      "particles": 20330,
+      "renderSize": [
+        690,
+        388
+      ],
+      "idleCanvasBlits": 0,
+      "offscreenCanvasBlits": 0,
+      "activeCanvasBlits": 84,
+      "averageRestoredPixels": 21579,
+      "p95": 16.799999999999727,
+      "frames": 63,
+      "gapsOver25": 2,
+      "taskMs": 1437.727,
+      "scriptMs": 323.834,
+      "heapMiB": 4.93231201171875,
+      "errors": []
+    }
+  ]
+}
