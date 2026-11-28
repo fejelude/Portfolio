@@ -207,7 +207,7 @@ export function mountMemoryStory(doc,win){
   let elapsed=0, lastKind='', transition=null, reaction=0, look=0, reduced=false, down=null;
   const life=new win.AbortController(), {signal}=life;
   function draw(dt,staticMode=false){
-    if(staticMode){if(elapsed<INTRO)elapsed=INTRO;reduced=true;art(c,'sakura',0);host.dataset.memoryScene='sakura';return null;}
+    if(staticMode){if(elapsed<INTRO)elapsed=INTRO;reduced=true;lastKind='';transition=null;art(c,'sakura',0);host.dataset.memoryScene='sakura';return null;}
     reduced=false;elapsed+=dt;reaction=Math.max(0,reaction-dt*.85);
     const beat=memoryBeat(elapsed),changed=beat.kind!==lastKind;
     if(changed){lastKind=beat.kind;host.dataset.memoryScene=beat.kind;transition=null;}
