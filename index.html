@@ -27,6 +27,7 @@
   <link rel="stylesheet" href="css/roblox-creations.css">
   <link rel="stylesheet" href="css/services-directory.css">
   <link rel="stylesheet" href="css/home-atmosphere.css">
+  <link rel="stylesheet" href="css/about-tokyo.css">
 </head>
 <body class="feje-world-home">
   <a class="skip-link" href="#main-content">Skip to content</a>
@@ -372,6 +373,20 @@
     </section>
 
     <section id="about" class="section-padding scroll-reveal">
+      <div class="about-tokyo" data-about-tokyo aria-hidden="true">
+        <div class="about-tokyo-window">
+          <div class="about-tokyo-scene">
+            <picture>
+              <source media="(max-width: 640px) and (orientation: portrait)" srcset="/assets/about/tokyo-station-tall.svg">
+              <img class="about-tokyo-city" src="/assets/about/tokyo-station-wide.svg" alt="" loading="lazy" decoding="async">
+            </picture>
+            <div class="about-tokyo-track">
+              <span class="about-tokyo-train"></span>
+            </div>
+            <span class="about-tokyo-sign" lang="ja">ソフィア、愛してる。</span>
+          </div>
+        </div>
+      </div>
       <div class="container narrow">
         <div class="glass-panel profile-panel reveal spotlight-card">
           <div class="profile-header">
@@ -837,6 +852,7 @@
   <script src="js/surprise.js"></script>
   
   <script type="module" src="js/home-atmosphere.mjs"></script>
+  <script type="module" src="js/about-tokyo.mjs"></script>
   <script type="module" src="js/home-world.mjs"></script>
   <script type="module" src="js/hero-pixels.mjs"></script>
   <script type="module" src="js/about-particle-portrait.mjs"></script>

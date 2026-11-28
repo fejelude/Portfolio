@@ -21,3 +21,12 @@ test('palette anchors cover all major chapters including Interactives and Roblox
  const css=readFileSync(new URL('../css/home-atmosphere.css',import.meta.url),'utf8');
  assert.match(css,/background-attachment:scroll/);assert.match(css,/border-top-color:transparent/);
 });
+test('About stays near-neutral from its title through the lower chapter',()=>{
+ const about=CHAPTERS.filter(([key])=>key==='#about');
+ assert.equal(about.length,3);
+ assert.ok(about[0][1]<=.1&&about.at(-1)[1]>=.9);
+ for(const [,,tone] of about){
+  const values=tone.match(/[\da-f]{2}/g).map(value=>parseInt(value,16));
+  assert.ok(Math.max(...values)-Math.min(...values)<=2);
+ }
+});

@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {sakuraEnvelope,celestialPresence,gardenBands,gardenScale,makeGarden,particlePose,SPRITES,PALETTE} from '../js/sofra-sakura-vfx.mjs';
+import {gardenHandoff,sakuraEnvelope,celestialPresence,gardenBands,gardenScale,makeGarden,particlePose,SPRITES,PALETTE} from '../js/sofra-sakura-vfx.mjs';
 
 test('scroll envelope is symmetric and reaches a full garden',()=>{
  const h=900;
@@ -41,4 +41,13 @@ test('original sprite palette and deterministic particle population',()=>{
   const pose=particlePose(x,t,100,390,844,{left:18,right:372});
   assert.ok(Object.values(pose).every(Number.isFinite));assert.ok(pose.alpha>=0&&pose.alpha<=1);
  }
+});
+
+test('About takes over the garden only between the two reading bands', () => {
+ const h=840;
+ assert.equal(gardenHandoff(.78*h,h),1);
+ assert.equal(gardenHandoff(.30*h,h),0);
+ assert.ok(Math.abs(gardenHandoff(.54*h,h)-.5)<1e-12);
+ const samples=[.30,.35,.43,.51,.65,.73,.78].map(y=>gardenHandoff(y*h,h));
+ assert.ok(samples.every((v,i)=>i===0||v>samples[i-1]));
 });
