@@ -25,7 +25,7 @@ async function serve(dir){
 function options(name,viewport,touch,extra={}){
  return {viewport,hasTouch:touch,reducedMotion:'no-preference',...(name==='firefox'?{}:{isMobile:touch}),...extra};
 }
-const stage=(page,phase)=>page.waitForFunction(phase=>document.querySelector('.emblem')?.dataset.memoryPhase===phase,phase,{timeout:35000});
+const stage=(page,phase)=>page.waitForFunction(phase=>document.querySelector('.emblem')?.dataset.memoryPhase===phase,phase,{timeout:35000,polling:50});
 async function bounds(page){
  const d=await page.evaluate(()=>{
   const emblem=document.querySelector('.emblem').getBoundingClientRect(),h=document.querySelector('h1').getBoundingClientRect(),copy=document.querySelector('.copy').getBoundingClientRect();
@@ -77,7 +77,9 @@ async function journey(browser,name,base,profile){
   if(hidden)assert.ok(await page.locator('html').getAttribute('data-garden-paused')!==null);
   await page.bringToFront();await tab.close();
   console.log(prefix,'hidden-tab visibility exposed by browser:',hidden);
-  await page.emulateMedia({reducedMotion:'reduce'});await stage(page,'sakura');
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.waitForFunction(()=>matchMedia('(prefers-reduced-motion: reduce)').matches&&document.querySelector('#garden-motion').disabled&&document.documentElement.hasAttribute('data-garden-paused'),null,{polling:50,timeout:10000});
+  await stage(page,'sakura');
   assert.equal(await toggle.isDisabled(),true);assert.equal(await toggle.getAttribute('aria-pressed'),'true');
   const staticFrame=await page.locator('#blossom').evaluate(c=>c.toDataURL());
   await page.waitForTimeout(700);
@@ -88,13 +90,23 @@ async function journey(browser,name,base,profile){
  }finally{await ctx.close();if(video){await video.saveAs(path.join(out,prefix+'-full-sequence.webm'));await video.delete();}}
 }
 async function shortProfile(browser,name,base,profile){
- const [label,viewport,touch]=profile,ctx=await browser.newContext(options(name,viewport,touch));
- const page=await ctx.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
- try{
-  await page.goto(base);await page.evaluate(()=>document.fonts.ready);await stage(page,'holding');
-  await photograph(page,name+'-'+label+'-layout');await page.emulateMedia({reducedMotion:'reduce'});
-  await stage(page,'sakura');await photograph(page,name+'-'+label+'-static');assert.deepEqual(errors,[]);
- }finally{await ctx.close();}
+ const [label,viewport,touch]=profile;
+ for(const reducedMotion of ['no-preference','reduce']){
+  const ctx=await browser.newContext(options(name,viewport,touch,{reducedMotion}));
+  const page=await ctx.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+  try{
+   await page.goto(base);await page.evaluate(()=>document.fonts.ready);
+   await stage(page,reducedMotion==='reduce'?'sakura':'holding');
+   await page.waitForTimeout(750);
+   if(reducedMotion==='reduce'){
+    assert.equal(await page.locator('#garden-motion').isDisabled(),true);
+    assert.ok(await page.locator('html').getAttribute('data-garden-paused')!==null);
+    assert.equal(await page.locator('.garden-fleck').first().evaluate(e=>getComputedStyle(e).display),'none');
+   }
+   await photograph(page,name+'-'+label+'-'+(reducedMotion==='reduce'?'static':'layout'));
+   assert.deepEqual(errors,[]);console.log(name,label,reducedMotion,'PASS');
+  }finally{await ctx.close();}
+ }
 }
 async function measure(browser,name,base,profile,version){
  const [label,viewport,touch]=profile,ctx=await browser.newContext(options(name,viewport,touch));
@@ -125,23 +137,26 @@ async function measure(browser,name,base,profile,version){
 (async()=>{
  fs.mkdirSync(out,{recursive:true});
  const current=await serve(root),baseline=process.env.MEMORY_BASELINE_ROOT?await serve(path.resolve(process.env.MEMORY_BASELINE_ROOT)):null;
- const results=[];
+ const results=[];const failures=[];
  try{
   for(const name of (process.env.MEMORY_ENGINES||'chromium').split(',')){
    const engine={chromium,firefox,webkit}[name];
    const browser=await engine.launch(name==='chromium'?{args:['--no-sandbox','--autoplay-policy=user-gesture-required'],...(process.env.CHROMIUM_EXECUTABLE?{executablePath:process.env.CHROMIUM_EXECUTABLE}:{})}:{});
    try{
     for(const profile of profiles.slice(0,2)){
-     await journey(browser,name,current.url,profile);
      if(name==='chromium')for(let n=0;n<2;n++){
       if(baseline)results.push(await measure(browser,name,baseline.url,profile,'before'));
       results.push(await measure(browser,name,current.url,profile,'after'));
+      fs.writeFileSync(path.join(out,'eternal-spring-performance.json'),JSON.stringify(results,null,2));
+      console.log('PERFORMANCE',JSON.stringify(results.slice(-2)));
      }
+     try{await journey(browser,name,current.url,profile);}catch(error){failures.push(name+' '+profile[0]+': '+error.stack);console.error(failures.at(-1));}
     }
-    for(const profile of profiles.slice(2))await shortProfile(browser,name,current.url,profile);
+    for(const profile of profiles.slice(2))try{await shortProfile(browser,name,current.url,profile);}catch(error){failures.push(name+' '+profile[0]+': '+error.stack);console.error(failures.at(-1));}
    }finally{await browser.close();}
   }
   fs.writeFileSync(path.join(out,'eternal-spring-performance.json'),JSON.stringify(results,null,2));
   console.log(JSON.stringify(results,null,2));
+  if(failures.length){fs.writeFileSync(path.join(out,'eternal-spring-failures.txt'),failures.join('\n\n'));throw Error(failures.length+' browser profile checks failed');}
  }finally{current.server.close();baseline?.server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
