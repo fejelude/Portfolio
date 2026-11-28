@@ -1,19 +1,6 @@
+import { mountMemoryGarden } from './memory-garden.mjs';
+
 const $ = id => document.getElementById(id);
-// Integer-coordinate sprites on low-resolution canvases; no personal artwork.
-const flower = [
- '......oo....oo......','.....oppo..oppo.....','....oppppooppppo....','....ophhpoopphho....','....oppppppppppo....','.....oppppppppo.....','..ooooppppppppoooo..','.oppppppppppppppppo.','opphhppppyypppphhppo','opppppppyyyypppppppo','.oppppppyYyyppppppo.','..ooooppyYypppoooo..','.....oppppppppo.....','....oppppooppppo....','....opphpoopphpo....','.....oppo..oppo.....','......oo....oo......'];
-const palette={o:'#c47396',p:'#f0b0c9',h:'#ffeaf4',y:'#f1d591',Y:'#fff8da'};
-function sprite(ctx,x,y,pattern,colors,scale=1){pattern.forEach((row,j)=>[...row].forEach((ch,i)=>{if(colors[ch]){ctx.fillStyle=colors[ch];ctx.fillRect(x+i*scale,y+j*scale,scale,scale);}}));}
-function drawEmblem(){const c=$('blossom').getContext('2d');sprite(c,6,7,flower,palette);c.fillStyle='#b18ac4';c.fillRect(3,5,1,3);c.fillRect(2,6,3,1);c.fillRect(28,24,1,5);c.fillRect(26,26,5,1);}
-function drawGarden(){const c=$('garden').getContext('2d'); const xs=[14,31,52,78,104,124,144];xs.forEach((x,i)=>{let y=6+(i*7)%8;c.fillStyle='#85a98b';c.fillRect(x, y+5,1,23-y);c.fillRect(x-3,19,4,2);c.fillRect(x+1,16,4,2);sprite(c,x-3,y,['.o.o.','opppo','opypo','opppo','.ooo.'],i%3===1?{o:'#b18ac4',p:'#ded0ec',y:'#fff5db'}:palette);});c.fillStyle='#e1becd';c.fillRect(0,23,160,1);}
-function random(i){const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x);}
-function drawGrove(){const canvas=$('grove'), w=Math.ceil(innerWidth/4),h=Math.ceil(innerHeight/4);canvas.width=w;canvas.height=h;const c=canvas.getContext('2d');function rect(x,y,ww,hh,col){c.fillStyle=col;c.fillRect(Math.round(x),Math.round(y),ww,hh);}
- // Two quiet, non-personal cherry trees framing the central window.
- for(const side of [0,1]){const x=side?w-14:14, dir=side?-1:1;const base=h-14, reach=Math.min(49,Math.floor(w*.21));for(let j=0;j<Math.min(100,h*.66);j++){rect(x+dir*Math.floor(j/14),base-j,5,1,'#ad8296');rect(x+dir*Math.floor(j/14)+1,base-j,2,1,'#c59aaa');}for(let b=0;b<5;b++){const start=base-22-b*13;for(let j=0;j<reach;j++){rect(x+dir*j,start-Math.floor(j*.65),3,2,'#bd93a7');}for(let k=0;k<32;k++){const xx=x+dir*(reach*.45+random(k+b*39+side*700)*reach*.77),yy=start-reach*.52+(random(k+311+b*39)-.5)*24;rect(xx,yy,3+Math.floor(random(k+80)*4),2+Math.floor(random(k+11)*3),['#e6a9c5','#f3c0d6','#fbe0e9','#d9b6dc'][k%4]);}}}
- for(let i=0;i<32;i++){let x=random(i+200)*w,y=random(i+400)*h;rect(x,y,1,3,'#fffaf0');rect(x-1,y+1,3,1,'#fffaf0');}
-}
-function initPetals(){const f=document.createDocumentFragment();for(let i=0;i<18;i++){const p=document.createElement('i');p.className='petal';p.style.left=`${random(i+100)*100}%`;p.style.setProperty('--duration',`${14+random(i+40)*13}s`);p.style.setProperty('--delay',`${-random(i+90)*25}s`);p.style.setProperty('--drift',`${Math.round((random(i+50)-.5)*120)}px`);f.append(p);} $('petals').append(f);}
-drawEmblem();drawGarden();drawGrove();initPetals();let frame=0;addEventListener('resize',()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(drawGrove);},{passive:true});
 // Same decoded-buffer looping strategy as the existing album. The MP4
 // is remuxed without edits; Web Audio repeats the complete original track.
 const audio=$('music'), play=$('play'), mute=$('mute'), status=$('audio-status');
@@ -42,3 +29,5 @@ audio.addEventListener('error',()=>{if(mode==='native')markFailed();});
 // No visibility, orientation or resize handler seeks or recreates the source.
 // An OS interruption can suspend playback; the next eligible gesture resumes it.
 sync();attempt();
+
+mountMemoryGarden();
