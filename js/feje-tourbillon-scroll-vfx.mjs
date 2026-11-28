@@ -307,6 +307,7 @@ export function mountDaedalusSky(section) {
   doc.body.prepend(sky);
 
   const motion = win.matchMedia('(prefers-reduced-motion: reduce)');
+  const touch = win.matchMedia('(any-pointer: coarse)');
   const desktop = win.matchMedia('(width > 900px) and (any-hover: hover) and (any-pointer: fine)');
   const pause = section.querySelector('[data-ft-pause]');
   const lifecycle = new win.AbortController(), {signal} = lifecycle;
@@ -357,7 +358,7 @@ export function mountDaedalusSky(section) {
     sky.style.backgroundColor = 'rgba(9, 24, 49, ' + (level.wash * .8).toFixed(4) + ')';
     const bands = skyBands(w,h,box);
     const scale = skyScale(w * h,win.devicePixelRatio || 1);
-    const translate = desktop.matches;
+    const translate = desktop.matches || touch.matches;
     for (const [i, panel] of panels.entries()) {
       const {x,y,width,height} = panel.bounds = bands[i];
       const {canvas} = panel;
@@ -367,7 +368,7 @@ export function mountDaedalusSky(section) {
       if (canvas.width !== bw) canvas.width = bw;
       if (canvas.height !== bh) canvas.height = bh;
       // The position of a decorative band follows the card during scroll.
-      // Move it visually on desktop so it does not introduce layout shifts.
+      // Translate it visually so slow touch scrolling does not register layout shifts.
       canvas.style.left = translate ? '0px' : x + 'px';
       canvas.style.top = translate ? '0px' : y + 'px';
       canvas.style.transform = translate ? `translate(${x}px, ${y}px)` : '';
@@ -452,6 +453,7 @@ export function mountDaedalusSky(section) {
   doc.addEventListener('visibilitychange',visibility,{signal});
   motion.addEventListener('change',invalidate,{signal});
   desktop.addEventListener('change',invalidate,{signal});
+  touch.addEventListener('change',invalidate,{signal});
   request();
   return dispose;
 }

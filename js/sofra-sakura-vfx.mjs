@@ -160,6 +160,7 @@ export function mountSofraGarden(section){
  // Appending behind the foreground stack but above the prepended celestial layer.
  doc.body.append(sky);
  const motion=win.matchMedia('(prefers-reduced-motion: reduce)');
+ const touch=win.matchMedia('(any-pointer: coarse)');
  const desktop=win.matchMedia('(width > 900px) and (any-hover: hover) and (any-pointer: fine)');
  const lifecycle=new win.AbortController(),{signal}=lifecycle;
  const particles=makeGarden(),daedalus=doc.querySelector('#tourbillon');
@@ -181,13 +182,13 @@ export function mountSofraGarden(section){
   if(!info)return;
   sky.style.setProperty('--sakura-strength',level.wash.toFixed(4));
   const bands=gardenBands(w,h,box),scale=gardenScale(w*h,win.devicePixelRatio||1);
-  const translate=desktop.matches;
+  const translate=desktop.matches||touch.matches;
   for(const [i,p] of panels.entries()){
    const b=p.bounds=bands[i],c=p.canvas;
    c.hidden=!b.w||!b.h;
    const bw=c.hidden?1:Math.max(1,Math.floor(b.w*scale)),bh=c.hidden?1:Math.max(1,Math.floor(b.h*scale));
    if(c.width!==bw)c.width=bw;if(c.height!==bh)c.height=bh;
-   // Keep desktop scroll positioning out of layout, as in the celestial sky.
+   // Keep scroll positioning out of layout, as in the celestial sky.
    Object.assign(c.style,{
     left:translate?'0px':b.x+'px',top:translate?'0px':b.y+'px',
     transform:translate?`translate(${b.x}px, ${b.y}px)`:'',width:b.w+'px',height:b.h+'px'
@@ -224,6 +225,7 @@ export function mountSofraGarden(section){
  doc.addEventListener('visibilitychange',visibility,{signal});
  motion.addEventListener('change',invalidate,{signal});
  desktop.addEventListener('change',invalidate,{signal});
+ touch.addEventListener('change',invalidate,{signal});
  win.addEventListener('pagehide',event=>{if(event.persisted){suspended=true;visibility();}else dispose();},{signal});
  win.addEventListener('pageshow',()=>{suspended=false;visibility();},{signal});
  request();return dispose;
