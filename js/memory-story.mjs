@@ -211,9 +211,11 @@ export function mountMemoryStory(doc,win){
   let elapsed=0, lastKind='', transition=null, reaction=0, look=0, reduced=false, down=null;
   const life=new win.AbortController(), {signal}=life;
   function draw(dt,staticMode=false){
-    if(staticMode){if(elapsed<INTRO)elapsed=INTRO;reduced=true;lastKind='';transition=null;reaction=0;delete host.dataset.memoryReacting;art(c,'sakura',0);host.dataset.memoryScene='sakura';return null;}
+    if(staticMode){if(elapsed<INTRO)elapsed=INTRO;reduced=true;lastKind='';transition=null;reaction=0;delete host.dataset.memoryReacting;art(c,'sakura',0);host.dataset.memoryScene='sakura';host.dataset.memoryPhase='sakura';return null;}
     reduced=false;elapsed+=dt;reaction=Math.max(0,reaction-dt*.85);if(!reaction)delete host.dataset.memoryReacting;
     const beat=memoryBeat(elapsed),changed=beat.kind!==lastKind;
+    const phase=beat.kind==='intro'?(beat.local<4?'holding':beat.local<8?'release':beat.local<12?'farewell':'departure'):beat.kind;
+    if(host.dataset.memoryPhase!==phase)host.dataset.memoryPhase=phase;
     if(changed){lastKind=beat.kind;host.dataset.memoryScene=beat.kind;transition=null;}
     if(beat.blend>0){
       if(!transition){art(a,beat.kind,beat.local);art(b,beat.next,0);transition=[pixels(a),pixels(b)];}
