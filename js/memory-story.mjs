@@ -44,9 +44,11 @@ function butterfly(c,x,y,t,scale=1){
     wing([[7,-7],[10,-9],[12,-9],[10,-6]],P.pinkPale);
     if(width>.55){wing([[7,5],[9,7],[8,8],[6,6]],P.white);wing([[12,-4],[14,-6],[14,-4],[12,-2]],P.white);}
   }
-  box(c,-1,-5,2,12*scale,P.ink);box(c,-1,-7,2,2,P.pinkDark);
-  line(c,-1,-6,-4,-10,P.ink);line(c,0,-6,3,-10,P.ink);
-  box(c,-4,-11,1,1,P.lav);box(c,3,-11,1,1,P.lav);c.restore();
+  const bw=Math.max(1,Math.round(2*scale));
+  box(c,-Math.floor(bw/2),-5*scale,bw,Math.max(3,Math.round(12*scale)),P.ink);
+  box(c,-Math.floor(bw/2),-7*scale,bw,Math.max(1,Math.round(2*scale)),P.pinkDark);
+  line(c,-scale,-6*scale,-4*scale,-10*scale,P.ink);line(c,0,-6*scale,3*scale,-10*scale,P.ink);
+  box(c,-4*scale,-11*scale,1,1,P.lav);box(c,3*scale,-11*scale,1,1,P.lav);c.restore();
 }
 function arm(c,points,hand=true){
   const [a,b,d]=points;
@@ -67,7 +69,6 @@ function boy(c,t){
   box(c,-10,47,3,12,P.pantsLight);box(c,4,47,3,8,P.pantsLight);
   box(c,-14,64,7,1,P.shoe);box(c,2,64,7,1,P.shoe);box(c,-14,65,7,1,P.white);box(c,2,65,7,1,P.white);
   // Far sleeve, sweater silhouette, hem and collar.
-  arm(c,[[-9,30],[-14,38],[-10+Math.round(release*-4),43-Math.round(release*4)]]);
   polygon(c,[[-5,25],[6,25],[12,28],[14,36],[11,46],[-10,46],[-13,35],[-11,28]],P.ink);
   polygon(c,[[-5,26],[6,26],[11,29],[12,35],[10,44],[-9,44],[-11,35],[-9,29]],P.shirt);
   polygon(c,[[-9,29],[-5,27],[-3,36],[-5,42],[-9,42]],P.shirtLight);
@@ -88,9 +89,12 @@ function boy(c,t){
   box(c,-7,19,3,1,P.blush);box(c,8,19,2,1,P.blush);box(c,2,19,1,1,P.skinShade);
   if(smile>.65){box(c,0,21,4,1,P.ink);box(c,-1,20,1,1,P.ink);box(c,4,20,1,1,P.ink);}else box(c,1,21,3,1,P.ink);
   // Near arm moves from cupped hands to open palm, then a small wave.
-  const dx=mix(14,19,release),dy=mix(39,35,release);
+  const settle=ease((t-11.7)/1.4);
+  const far=ease((t-4.8)/2.4);
+  arm(c,[[-9,31],[-10,40], [Math.round(mix(9,-11,far)),Math.round(mix(42,47,far))]]);
+  const dx=mix(mix(14,19,release),11,settle),dy=mix(mix(39,35,release),47,settle);
   const wrist=[Math.round(mix(dx,17+sin(t*6)*2,wave)),Math.round(mix(dy,12+sin(t*6+.5),wave))];
-  const elbow=[Math.round(mix(13,18,wave)),Math.round(mix(38,28,wave))];
+  const elbow=[Math.round(mix(mix(13,12,settle),18,wave)),Math.round(mix(mix(38,39,settle),28,wave))];
   arm(c,[[9,30],elbow,wrist]);
   if(wave>.65){box(c,wrist[0]-2,wrist[1]-5,1,4,P.skin);box(c,wrist[0],wrist[1]-6,1,5,P.skin);box(c,wrist[0]+2,wrist[1]-4,1,4,P.skin);}
   else if(release<.8){box(c,11,39,5,2,P.skinShade);box(c,12,38,4,1,P.skinLight);}
@@ -167,8 +171,8 @@ function art(c,kind,t,react=0,look=0){
   if(kind==='intro'){
     boy(c,t);
     const release=ease((t-4)/3), flight=ease((t-7)/7);
-    const x=49+release*11+flight*23+sin(t*2)*release*2;
-    const y=38-release*16-flight*13+sin(t*2.1)*release*3;
+    const x=46+release*14+flight*23+sin(t*2)*release*2;
+    const y=34-release*12-flight*13+sin(t*2.1)*release*3;
     butterfly(c,x,y,t,.42);
     ambient(c,t,'intro');
     if(release>.1)for(let i=0;i<3;i++)spark(c,x-5-i*5,y+i*3,P.pinkMid);
@@ -207,8 +211,8 @@ export function mountMemoryStory(doc,win){
   let elapsed=0, lastKind='', transition=null, reaction=0, look=0, reduced=false, down=null;
   const life=new win.AbortController(), {signal}=life;
   function draw(dt,staticMode=false){
-    if(staticMode){if(elapsed<INTRO)elapsed=INTRO;reduced=true;lastKind='';transition=null;art(c,'sakura',0);host.dataset.memoryScene='sakura';return null;}
-    reduced=false;elapsed+=dt;reaction=Math.max(0,reaction-dt*.85);
+    if(staticMode){if(elapsed<INTRO)elapsed=INTRO;reduced=true;lastKind='';transition=null;reaction=0;delete host.dataset.memoryReacting;art(c,'sakura',0);host.dataset.memoryScene='sakura';return null;}
+    reduced=false;elapsed+=dt;reaction=Math.max(0,reaction-dt*.85);if(!reaction)delete host.dataset.memoryReacting;
     const beat=memoryBeat(elapsed),changed=beat.kind!==lastKind;
     if(changed){lastKind=beat.kind;host.dataset.memoryScene=beat.kind;transition=null;}
     if(beat.blend>0){
@@ -219,7 +223,7 @@ export function mountMemoryStory(doc,win){
   }
   const react=e=>{
     if(reduced||elapsed<INTRO||memoryBeat(elapsed).blend>0)return;
-    const r=host.getBoundingClientRect();look=clamp((e.clientX-r.left)/r.width*2-1,-1,1);reaction=1;
+    const r=host.getBoundingClientRect();look=clamp((e.clientX-r.left)/r.width*2-1,-1,1);reaction=1;host.dataset.memoryReacting='true';
   };
   host.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse')react(e);},{passive:true,signal});
   host.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'&&reaction>0){const r=host.getBoundingClientRect();look=clamp((e.clientX-r.left)/r.width*2-1,-1,1);}},{passive:true,signal});
