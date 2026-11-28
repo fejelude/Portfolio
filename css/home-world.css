@@ -206,3 +206,8 @@
   background:linear-gradient(-45deg,transparent 45%,currentColor 46% 54%,transparent 55%);
  }
 }
+
+/* Match the other contact controls on touch layouts, including reduced motion. */
+.feje-world-home[data-mobile-touch] #contact a.method-card {
+  color: #eee5fa;
+}

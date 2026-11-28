@@ -1,0 +1,626 @@
+{
+  "baseline": "3d7b9db9ca8fa36039a45c08986dd0fd0b3808b5",
+  "profile": "Local Chromium touch emulation, fixed 393 \u00d7 780 CSS-pixel viewport at DPR 2, graphics fallback, third-party assets blocked for timing",
+  "mobile": {
+    "before": [
+      {
+        "name": "before",
+        "rate": 1,
+        "browser": "158.0.8127.0",
+        "viewport": {
+          "width": 393,
+          "height": 780
+        },
+        "dpr": 2,
+        "lcp": 280,
+        "cls": 0,
+        "p50Gap": 16.699999999999818,
+        "p95Gap": 16.799999999999272,
+        "frames": 312,
+        "gapsOver25": 0,
+        "longTasks": 1,
+        "longestTask": 118,
+        "maxEventTiming": 112,
+        "taskMs": 1870.255,
+        "scriptMs": 151.46300000000002,
+        "layout": 252,
+        "heapMiB": 3.345355987548828,
+        "errors": [],
+        "taps": [
+          "terminal",
+          "creator",
+          "garage",
+          "interactives",
+          "watch",
+          "sofra",
+          "motto",
+          "roblox",
+          "wizard",
+          "commissions",
+          "learning",
+          "roadmap",
+          "contact",
+          "footer"
+        ],
+        "timings": [
+          {
+            "selector": ".world-viewport",
+            "direction": "down",
+            "count": 39,
+            "p95": 16.799999999999955
+          },
+          {
+            "selector": ".ix-cta",
+            "direction": "down",
+            "count": 39,
+            "p95": 16.799999999999955
+          },
+          {
+            "selector": ".ft-stage",
+            "direction": "down",
+            "count": 39,
+            "p95": 16.700000000000273
+          },
+          {
+            "selector": ".sofra-feature-mascot",
+            "direction": "up",
+            "count": 39,
+            "p95": 16.700000000000273
+          },
+          {
+            "selector": ".profile-header",
+            "direction": "down",
+            "count": 39,
+            "p95": 16.700000000000728
+          },
+          {
+            "selector": ".rc-garage",
+            "direction": "up",
+            "count": 39,
+            "p95": 16.800000000000182
+          },
+          {
+            "selector": ".svc-frame",
+            "direction": "down",
+            "count": 39,
+            "p95": 16.799999999999272
+          },
+          {
+            "selector": "#contact",
+            "direction": "up",
+            "count": 39,
+            "p95": 16.700000000000728
+          }
+        ],
+        "shifts": []
+      },
+      {
+        "name": "before",
+        "rate": 1,
+        "browser": "158.0.8127.0",
+        "viewport": {
+          "width": 393,
+          "height": 780
+        },
+        "dpr": 2,
+        "lcp": 112,
+        "cls": 0,
+        "p50Gap": 16.699999999999818,
+        "p95Gap": 16.799999999999272,
+        "frames": 312,
+        "gapsOver25": 0,
+        "longTasks": 0,
+        "longestTask": 0,
+        "maxEventTiming": 96,
+        "taskMs": 2309.4860000000003,
+        "scriptMs": 158.804,
+        "layout": 251,
+        "heapMiB": 3.533863067626953,
+        "errors": [],
+        "taps": [
+          "terminal",
+          "creator",
+          "garage",
+          "interactives",
+          "watch",
+          "sofra",
+          "motto",
+          "roblox",
+          "wizard",
+          "commissions",
+          "learning",
+          "roadmap",
+          "contact",
+          "footer"
+        ],
+        "timings": [
+          {
+            "selector": ".world-viewport",
+            "direction": "down",
+            "count": 39,
+            "p95": 16.700000000000045
+          },
+          {
+            "selector": ".ix-cta",
+            "direction": "down",
+            "count": 39,
+            "p95": 16.700000000000273
+          },
+          {
+            "selector": ".ft-stage",
+            "direction": "down",
+            "count": 39,
+            "p95": 16.700000000000273
+          },
+          {
+            "selector": ".sofra-feature-mascot",
+            "direction": "up",
+            "count": 39,
+            "p95": 16.700000000000273
+          },
+          {
+            "selector": ".profile-header",
+            "direction": "down",
+            "count": 39,
+            "p95": 16.800000000000182
+          },
+          {
+            "selector": ".rc-garage",
+            "direction": "up",
+            "count": 39,
+            "p95": 16.700000000000728
+          },
+          {
+            "selector": ".svc-frame",
+            "direction": "down",
+            "count": 39,
+            "p95": 16.700000000000728
+          },
+          {
+            "selector": "#contact",
+            "direction": "up",
+            "count": 39,
+            "p95": 16.799999999999272
+          }
+        ],
+        "shifts": []
+      },
+      {
+        "name": "before",
+        "rate": 4,
+        "browser": "158.0.8127.0",
+        "viewport": {
+          "width": 393,
+          "height": 780
+        },
+        "dpr": 2,
+        "lcp": 504,
+        "cls": 0.5016919613954258,
+        "p50Gap": 16.699999999999818,
+        "p95Gap": 50,
+        "frames": 234,
+        "gapsOver25": 42,
+        "longTasks": 61,
+        "longestTask": 199,
+        "maxEventTiming": 224,
+        "taskMs": 9836.927000000001,
+        "scriptMs": 900.9049999999999,
+        "layout": 226,
+        "heapMiB": 3.429981231689453,
+        "errors": [],
+        "taps": [
+          "terminal",
+          "creator",
+          "garage",
+          "interactives",
+          "watch",
+          "sofra",
+          "motto",
+          "roblox",
+          "wizard",
+          "commissions",
+          "learning",
+          "roadmap",
+          "contact",
+          "footer"
+        ],
+        "timings": [
+          {
+            "selector": ".world-viewport",
+            "direction": "down",
+            "count": 37,
+            "p95": 16.700000000000273
+          },
+          {
+            "selector": ".ix-cta",
+            "direction": "down",
+            "count": 14,
+            "p95": 50.100000000000364
+          },
+          {
+            "selector": ".ft-stage",
+            "direction": "down",
+            "count": 17,
+            "p95": 66.60000000000036
+          },
+          {
+            "selector": ".sofra-feature-mascot",
+            "direction": "up",
+            "count": 12,
+            "p95": 66.70000000000073
+          },
+          {
+            "selector": ".profile-header",
+            "direction": "down",
+            "count": 38,
+            "p95": 16.800000000000182
+          },
+          {
+            "selector": ".rc-garage",
+            "direction": "up",
+            "count": 38,
+            "p95": 16.700000000000728
+          },
+          {
+            "selector": ".svc-frame",
+            "direction": "down",
+            "count": 39,
+            "p95": 16.700000000000728
+          },
+          {
+            "selector": "#contact",
+            "direction": "up",
+            "count": 39,
+            "p95": 16.700000000000728
+          }
+        ],
+        "shifts": [
+          [
+            6190.799999999814,
+            0.5016919613954258,
+            [
+              "sofra-sakura-sky"
+            ]
+          ]
+        ]
+      }
+    ],
+    "after": [
+      {
+        "name": "after",
+        "rate": 1,
+        "browser": "158.0.8127.0",
+        "viewport": {
+          "width": 393,
+          "height": 780
+        },
+        "dpr": 2,
+        "lcp": 264,
+        "cls": 0,
+        "p50Gap": 16.699999999999818,
+        "p95Gap": 16.700000000000728,
+        "frames": 310,
+        "gapsOver25": 2,
+        "longTasks": 2,
+        "longestTask": 112,
+        "maxEventTiming": 104,
+        "taskMs": 2161.083,
+        "scriptMs": 192.553,
+        "layout": 274,
+        "heapMiB": 3.5079727172851562,
+        "errors": [],
+        "taps": [
+          "terminal",
+          "creator",
+          "garage",
+          "interactives",
+          "watch",
+          "sofra",
+          "motto",
+          "roblox",
+          "wizard",
+          "commissions",
+          "learning",
+          "roadmap",
+          "contact",
+          "footer"
+        ],
+        "timings": [
+          {
+            "selector": ".world-viewport",
+            "direction": "down",
+            "count": 39,
+            "p95": 16.700000000000045
+          },
+          {
+            "selector": ".ix-cta",
+            "direction": "down",
+            "count": 38,
+            "p95": 16.799999999999727
+          },
+          {
+            "selector": ".ft-stage",
+            "direction": "down",
+            "count": 39,
+            "p95": 16.700000000000273
+          },
+          {
+            "selector": ".sofra-feature-mascot",
+            "direction": "up",
+            "count": 39,
+            "p95": 16.700000000000273
+          },
+          {
+            "selector": ".profile-header",
+            "direction": "down",
+            "count": 38,
+            "p95": 16.700000000000728
+          },
+          {
+            "selector": ".rc-garage",
+            "direction": "up",
+            "count": 39,
+            "p95": 16.700000000000728
+          },
+          {
+            "selector": ".svc-frame",
+            "direction": "down",
+            "count": 39,
+            "p95": 16.700000000000728
+          },
+          {
+            "selector": "#contact",
+            "direction": "up",
+            "count": 39,
+            "p95": 16.699999999999818
+          }
+        ],
+        "shifts": []
+      },
+      {
+        "name": "after",
+        "rate": 1,
+        "browser": "158.0.8127.0",
+        "viewport": {
+          "width": 393,
+          "height": 780
+        },
+        "dpr": 2,
+        "lcp": 144,
+        "cls": 0,
+        "p50Gap": 16.699999999999818,
+        "p95Gap": 16.700000000000728,
+        "frames": 312,
+        "gapsOver25": 0,
+        "longTasks": 1,
+        "longestTask": 53,
+        "maxEventTiming": 104,
+        "taskMs": 1952.813,
+        "scriptMs": 152.76600000000002,
+        "layout": 275,
+        "heapMiB": 4.344226837158203,
+        "errors": [],
+        "taps": [
+          "terminal",
+          "creator",
+          "garage",
+          "interactives",
+          "watch",
+          "sofra",
+          "motto",
+          "roblox",
+          "wizard",
+          "commissions",
+          "learning",
+          "roadmap",
+          "contact",
+          "footer"
+        ],
+        "timings": [
+          {
+            "selector": ".world-viewport",
+            "direction": "down",
+            "count": 39,
+            "p95": 16.700000000000045
+          },
+          {
+            "selector": ".ix-cta",
+            "direction": "down",
+            "count": 39,
+            "p95": 16.700000000000273
+          },
+          {
+            "selector": ".ft-stage",
+            "direction": "down",
+            "count": 39,
+            "p95": 16.700000000000273
+          },
+          {
+            "selector": ".sofra-feature-mascot",
+            "direction": "up",
+            "count": 39,
+            "p95": 16.700000000000273
+          },
+          {
+            "selector": ".profile-header",
+            "direction": "down",
+            "count": 39,
+            "p95": 16.700000000000728
+          },
+          {
+            "selector": ".rc-garage",
+            "direction": "up",
+            "count": 39,
+            "p95": 16.700000000000728
+          },
+          {
+            "selector": ".svc-frame",
+            "direction": "down",
+            "count": 39,
+            "p95": 16.799999999999272
+          },
+          {
+            "selector": "#contact",
+            "direction": "up",
+            "count": 39,
+            "p95": 16.699999999999818
+          }
+        ],
+        "shifts": []
+      },
+      {
+        "name": "after",
+        "rate": 4,
+        "browser": "158.0.8127.0",
+        "viewport": {
+          "width": 393,
+          "height": 780
+        },
+        "dpr": 2,
+        "lcp": 364,
+        "cls": 0,
+        "p50Gap": 16.699999999999818,
+        "p95Gap": 50,
+        "frames": 235,
+        "gapsOver25": 44,
+        "longTasks": 51,
+        "longestTask": 175,
+        "maxEventTiming": 248,
+        "taskMs": 9600.789,
+        "scriptMs": 832.433,
+        "layout": 240,
+        "heapMiB": 4.182254791259766,
+        "errors": [],
+        "taps": [
+          "terminal",
+          "creator",
+          "garage",
+          "interactives",
+          "watch",
+          "sofra",
+          "motto",
+          "roblox",
+          "wizard",
+          "commissions",
+          "learning",
+          "roadmap",
+          "contact",
+          "footer"
+        ],
+        "timings": [
+          {
+            "selector": ".world-viewport",
+            "direction": "down",
+            "count": 39,
+            "p95": 16.700000000000045
+          },
+          {
+            "selector": ".ix-cta",
+            "direction": "down",
+            "count": 14,
+            "p95": 66.69999999999982
+          },
+          {
+            "selector": ".ft-stage",
+            "direction": "down",
+            "count": 16,
+            "p95": 50
+          },
+          {
+            "selector": ".sofra-feature-mascot",
+            "direction": "up",
+            "count": 13,
+            "p95": 66.69999999999982
+          },
+          {
+            "selector": ".profile-header",
+            "direction": "down",
+            "count": 36,
+            "p95": 16.700000000000728
+          },
+          {
+            "selector": ".rc-garage",
+            "direction": "up",
+            "count": 39,
+            "p95": 16.700000000000728
+          },
+          {
+            "selector": ".svc-frame",
+            "direction": "down",
+            "count": 39,
+            "p95": 16.700000000000728
+          },
+          {
+            "selector": "#contact",
+            "direction": "up",
+            "count": 39,
+            "p95": 16.700000000000728
+          }
+        ],
+        "shifts": []
+      }
+    ]
+  },
+  "softwareWebGL": [
+    {
+      "revision": "main",
+      "carDrawsDuringInitialTouchDrag": 162,
+      "carDrawsDuringOneSecondOffscreen": 45,
+      "watchDraws": 1056,
+      "carDrag": true,
+      "watchPinch": true,
+      "watchFramesAndInspect": true
+    },
+    {
+      "revision": "feature",
+      "carDrawsDuringInitialTouchDrag": 148,
+      "carDrawsDuringOneSecondOffscreen": 0,
+      "watchDraws": 1056,
+      "carDrag": true,
+      "watchPinch": true,
+      "watchFramesAndInspect": true
+    }
+  ],
+  "desktopRegression": {
+    "home": {
+      "pixelIdentical": true,
+      "maxRGBChannelDifference": 0
+    },
+    "interactives": {
+      "pixelIdentical": true,
+      "maxRGBChannelDifference": 0
+    },
+    "tourbillon": {
+      "pixelIdentical": true,
+      "maxRGBChannelDifference": 0
+    },
+    "sofra": {
+      "pixelIdentical": true,
+      "maxRGBChannelDifference": 0
+    },
+    "about": {
+      "pixelIdentical": true,
+      "maxRGBChannelDifference": 0
+    },
+    "roblox": {
+      "pixelIdentical": true,
+      "maxRGBChannelDifference": 0
+    },
+    "services": {
+      "pixelIdentical": true,
+      "maxRGBChannelDifference": 0
+    },
+    "learning": {
+      "pixelIdentical": true,
+      "maxRGBChannelDifference": 0
+    },
+    "goals": {
+      "pixelIdentical": true,
+      "maxRGBChannelDifference": 0
+    },
+    "contact": {
+      "pixelIdentical": true,
+      "maxRGBChannelDifference": 0
+    }
+  }
+}
