@@ -8,7 +8,6 @@ const targets = [
   ['.ix-cta, .ix-details summary, .iw-progress, .iw-intro-copy', 'stars'],
   ['.ft-astrolabe, .ft-stage[data-ft-mode="preview"]', 'dial'],
   ['.sofra-feature-mascot, .sofra-feature-primary', 'petals'],
-  ['[data-about-ghost], .about-motto-row', 'hearts'],
   ['.rc-garage .rc-image-frame', 'film', '--rc-accent'],
   ['.rc-build .rc-image-frame', 'blocks', '--rc-accent'],
   ['[data-svc-wizard]', 'spell'],
@@ -34,7 +33,6 @@ const effects = {
   stars: [440, [[-18, -18], [21, -16], [13, 15]]],
   dial: [410, [[-16, -16], [19, -14], [21, 7]]],
   petals: [480, [[-22, -18], [11, -23], [22, -3]]],
-  hearts: [510, [[-20, -20], [2, -24], [22, -16]]],
   film: [340, [[-25, -8], [24, 7], [22, -13]]],
   blocks: [370, [[-15, -14], [16, -17], [22, 8]]],
   spell: [510, [[-17, -22], [19, -21], [25, -5]]],
@@ -46,12 +44,10 @@ const runeMotion = {
   garage: ['scaleX(.42)', 'scaleX(1.04)', 'scaleX(1.22)'],
   dial: ['rotate(-26deg)', 'rotate(0deg)', 'rotate(18deg)'],
   petals: ['translateY(4px) scale(.72)', 'translateY(-2px) scale(1)', 'translateY(-8px) scale(.86)'],
-  hearts: ['translateY(3px)', 'translateY(-1px)', 'translateY(-9px)'],
   spell: ['scale(.38) rotate(-12deg)', 'scale(1.16)', 'scale(.86) rotate(8deg)'],
 };
 const poses = {
   signal: ['.feje-pixel-art', -4],
-  hearts: ['.about-ghost-sprite', -5],
   spell: ['svg', -6],
 };
 const clamp = (n, min, max) => Math.max(min, Math.min(n, max));

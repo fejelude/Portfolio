@@ -1,0 +1,33 @@
+.feje-world-home #about .about-motto-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* The size is reserved before the atlas loads. */
+.about-passengers {
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+  width: 80px;
+  height: 96px;
+  margin-inline-end: clamp(0px, 1.6vw, 18px);
+  user-select: none;
+  touch-action: pan-y pinch-zoom;
+}
+
+.about-passengers[data-passenger-ready] {
+  background-image: url("/assets/about/tokyo-passengers.png");
+  background-size: 900% 300%;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+@media (max-width: 640px) {
+  .about-passengers {
+    width: 60px;
+    height: 72px;
+    margin-inline-end: 6px;
+  }
+}

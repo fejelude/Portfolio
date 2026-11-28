@@ -86,17 +86,6 @@
 .mobile-echo[data-mobile-effect="petals"] .mobile-pixel { background: #f799c7; clip-path: var(--echo-heart); }
 .mobile-echo[data-mobile-effect="petals"] .mobile-pixel:nth-child(3) { background: #f5c8f1; }
 
-.mobile-echo[data-mobile-effect="hearts"] { --echo-color: #f2adce; }
-.mobile-echo[data-mobile-effect="hearts"] .mobile-rune,
-.mobile-echo[data-mobile-effect="hearts"] .mobile-pixel {
-  background: var(--echo-tint);
-  clip-path: var(--echo-heart);
-}
-.mobile-echo[data-mobile-effect="hearts"] .mobile-rune { inset: 21px auto auto 25px; width: 14px; height: 14px; }
-.mobile-echo[data-mobile-effect="hearts"] .mobile-pixel { width: 8px; height: 8px; }
-.mobile-echo[data-mobile-effect="hearts"] .mobile-pixel:nth-child(3) { background: #302235; box-shadow: inset 0 0 0 1px #c389ad; }
-.mobile-echo[data-mobile-effect="hearts"] .mobile-pixel:nth-child(4) { background: #f47e9d; }
-
 .mobile-echo[data-mobile-effect="film"] .mobile-rune {
   width: 26px;
   inset-inline-start: 19px;
@@ -140,8 +129,7 @@
     linear-gradient(#bce8e1,#bce8e1) 18px 8px / 3px 3px no-repeat;
 }
 
-[data-living-mobile] #services [data-svc-wizard],
-[data-living-mobile] #about [data-about-ghost] { pointer-events: auto; }
+[data-living-mobile] #services [data-svc-wizard] { pointer-events: auto; }
 
 [data-living-mobile] .iw-card:active {
   border-color: var(--iw-accent);
