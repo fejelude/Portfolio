@@ -340,7 +340,7 @@ export function mountMemoryGarden(doc=document,win=window) {
     story?.destroy();story=null;
     const canvas=doc.getElementById('blossom'),host=canvas.parentElement;
     canvas.width=32;canvas.height=32;host.classList.remove('is-story');
-    delete host.dataset.memoryScene;delete host.dataset.memoryReacting;
+    delete host.dataset.memoryScene;delete host.dataset.memoryPhase;delete host.dataset.memoryReacting;
     paintDetails(doc);
   }
   paintDetails(doc);
