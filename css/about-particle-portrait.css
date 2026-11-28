@@ -1,40 +1,30 @@
-/* The portrait matte leaves the section's atmosphere visible through the art. */
-.feje-world-home #about .about-particle-portrait{
- position:relative;isolation:isolate;box-sizing:border-box;
- width:min(100%,700px);margin:clamp(22px,4vw,36px) auto 0;padding:0;
+.feje-world-home #about .about-particle-portrait {
+  --portrait-bleed: 9px;
+  position: relative;
+  width: min(100%, 700px);
+  margin: clamp(22px, 4vw, 36px) auto 0;
+  touch-action: pan-y pinch-zoom;
 }
-.feje-world-home #about .about-particle-portrait::before,
-.feje-world-home #about .about-particle-portrait::after{
- content:"";position:absolute;pointer-events:none;z-index:-1;
+
+.feje-world-home #about .about-particle-source {
+  display: block;
+  width: 100%;
+  height: auto;
 }
-.feje-world-home #about .about-particle-portrait::before{
- inset:-5% 0 -9%;
- background:
-  radial-gradient(ellipse at 56% 65%,#ec9dbe24,transparent 65%),
-  radial-gradient(ellipse at 35% 43%,#b89af02c,transparent 65%);
- opacity:.72;
+
+.feje-world-home #about .about-particle-canvas {
+  position: absolute;
+  inset: calc(-1 * var(--portrait-bleed));
+  width: calc(100% + 2 * var(--portrait-bleed));
+  height: calc(100% + 2 * var(--portrait-bleed));
+  pointer-events: none;
+  visibility: hidden;
 }
-.feje-world-home #about .about-particle-portrait::after{
- inset:0 5% 0 5%;
- background:
-  linear-gradient(#e4c5f1aa,#e4c5f1aa) 11% 56%/2px 2px no-repeat,
-  linear-gradient(#f4b8d1c4,#f4b8d1c4) 22% 27%/2px 2px no-repeat,
-  linear-gradient(#ceb4ef9e,#ceb4ef9e) 29% 83%/2px 2px no-repeat,
-  linear-gradient(#f4bcda94,#f4bcda94) 83% 22%/2px 2px no-repeat,
-  linear-gradient(#dcb9f0ac,#dcb9f0ac) 92% 70%/2px 2px no-repeat;
- opacity:.43;
+
+.feje-world-home #about .about-particle-portrait[data-portrait-renderer] .about-particle-source {
+  visibility: hidden;
 }
-.feje-world-home #about .about-particle-canvas{
- position:relative;display:block;width:100%;height:auto;aspect-ratio:16/9;
- touch-action:pan-y pinch-zoom;user-select:none;-webkit-user-select:none;
+
+.feje-world-home #about .about-particle-portrait[data-portrait-renderer] .about-particle-canvas {
+  visibility: visible;
 }
-@media(prefers-reduced-motion:no-preference){
- .feje-world-home #about .about-particle-portrait[data-portrait-visible]::before{
-  animation:portrait-breath 8s ease-in-out infinite alternate;
- }
- .feje-world-home #about .about-particle-portrait[data-portrait-visible]::after{
-  animation:portrait-dust 6s ease-in-out infinite alternate;
- }
-}
-@keyframes portrait-breath{from{opacity:.59;transform:scale(.97)}to{opacity:.88;transform:scale(1.025)}}
-@keyframes portrait-dust{from{opacity:.24;transform:translateY(2px)}to{opacity:.70;transform:translateY(-4px)}}

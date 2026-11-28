@@ -1,429 +1,477 @@
-// The original sample stays intact. This matte follows the subject in its
-// 256 × 144 composition, so the room can fade without bleaching the face.
-const outline = [
-  [99,-7],[130,-9],[151,4],[161,23],[165,43],[162,58],[158,70],[169,77],
-  [184,81],[201,90],[218,99],[237,105],[263,116],[267,142],[239,146],
-  [181,141],[167,137],[153,144],[56,147],[53,121],[57,102],[68,91],
-  [84,83],[95,79],[91,72],[88,61],[83,54],[82,43],[86,28],[92,15],
-];
-const STEP = 1 / 120;
-const SPRING = 78;
-const DAMPING = 14;
-const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-const smooth = (a, b, v) => {
-  const t = clamp((v - a) / (b - a), 0, 1);
-  return t * t * (3 - 2 * t);
-};
+const PULSE_COUNT = 6;
+const LIFETIME = .66;
+const ENTRANCE = .46;
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
-export function particleGrid(cssWidth, sourceWidth = 256, sourceHeight = 144, economy = false) {
-  const cols = clamp(Math.round(cssWidth / (economy ? 2.2 : 1.82)), 1, economy ? 208 : 352);
-  return { cols, rows: Math.max(1, Math.round(cols * sourceHeight / sourceWidth)) };
+export function particleGrid(width, sourceWidth, sourceHeight, economy, canvasFallback) {
+  const pitch = canvasFallback ? (economy ? 3 : 2.7) : (economy ? 1.92 : 1.62);
+  const limit = canvasFallback ? 250 : 420;
+  const cols = clamp(Math.round(width / pitch), 1, Math.min(limit, sourceWidth));
+  return { cols, rows: Math.min(sourceHeight, Math.max(1, Math.round(cols * sourceHeight / sourceWidth))) };
 }
 
-export function portraitMatte(x, y) {
-  const u = x * 256, v = y * 144;
-  let inside = false, distance = Infinity;
-  for (let i = 0, j = outline.length - 1; i < outline.length; j = i++) {
-    const [a,b] = outline[j], [c,d] = outline[i];
-    const dx = c - a, dy = d - b;
-    if ((b > v) !== (d > v) && u < a + dx * (v - b) / dy) inside = !inside;
-    const t = clamp(((u - a) * dx + (v - b) * dy) / (dx * dx + dy * dy), 0, 1);
-    const px = u - a - t * dx, py = v - b - t * dy;
-    distance = Math.min(distance, px * px + py * py);
-  }
-  const subject = smooth(-12, 9, Math.sqrt(distance) * (inside ? 1 : -1));
-  const frame = smooth(0, .14, x) * (1 - smooth(.82, 1, x)) *
-    smooth(0, .16, y) * (1 - smooth(.72, .985, y));
-  const room = Math.max(0, 1 - ((x - .51) / .65) ** 2 - ((y - .48) / .71) ** 2);
-  return frame * (subject * .94 + room * .072);
+export function pulseFalloff(distanceSquared, age) {
+  if (distanceSquared >= 1 || age <= 0 || age >= LIFETIME) return 0;
+  const life = age / LIFETIME;
+  return (1 - distanceSquared) ** 2 * 12 * life * (1 - life) ** 3;
 }
 
-export class PortraitPhysics {
-  constructor(cols, rows, depth) {
-    this.cols = cols;
-    this.rows = rows;
-    this.count = cols * rows;
-    this.depth = depth;
-    this.dx = new Float32Array(this.count);
-    this.dy = new Float32Array(this.count);
-    this.vx = new Float32Array(this.count);
-    this.vy = new Float32Array(this.count);
-    this.active = new Set();
-  }
-
-  reset() {
-    for (const i of this.active) this.dx[i] = this.dy[i] = this.vx[i] = this.vy[i] = 0;
-    this.active.clear();
-  }
-
-  step(dt, brush) {
-    if (!(dt > 0)) return;
-    dt = Math.min(dt, .064);
-    const { cols, rows, active } = this;
-    if (brush?.strength > 0) {
-      const { x, y, radius } = brush;
-      for (let row = Math.max(0, Math.floor(y-radius)); row <= Math.min(rows-1, Math.floor(y+radius)); row++) {
-        for (let col = Math.max(0, Math.floor(x-radius)); col <= Math.min(cols-1, Math.floor(x+radius)); col++) {
-          const i = row * cols + col;
-          if ((!this.depth || this.depth[i] > 8) && (col+.5-x)**2 + (row+.5-y)**2 < radius*radius) active.add(i);
-        }
-      }
-    }
-    const steps = Math.ceil(dt / STEP), h = dt / steps, drag = Math.exp(-DAMPING * h);
-    const cap = Math.max(4, cols * .037);
-    for (const i of active) {
-      const ox = i % cols + .5, oy = Math.floor(i / cols) + .5;
-      const depth = this.depth ? this.depth[i] / 255 : .65;
-      let x = this.dx[i], y = this.dy[i], vx = this.vx[i], vy = this.vy[i];
-      for (let s = 0; s < steps; s++) {
-        let ax = -SPRING * x, ay = -SPRING * y;
-        if (brush?.strength > 0) {
-          const rx = ox + x - brush.x, ry = oy + y - brush.y;
-          const d = Math.sqrt(rx*rx + ry*ry) / brush.radius;
-          if (d < 1) {
-            // A smooth falloff and a small tangential current give the wake
-            // a direction, while translucent edge particles travel farther.
-            const push = d * (1-d) * (1-d) * brush.strength * (193 - 80*depth);
-            ax += push * (rx - .24*ry + (brush.flowX || 0)*1.6);
-            ay += push * (ry + .24*rx + (brush.flowY || 0)*1.6);
-          }
-        }
-        vx = (vx + ax*h)*drag; vy = (vy + ay*h)*drag;
-        x += vx*h; y += vy*h;
-        const r2 = x*x + y*y;
-        if (r2 > cap*cap) {
-          const scale = cap / Math.sqrt(r2);
-          x *= scale; y *= scale;
-          const outward = (vx*x + vy*y) / (cap*cap);
-          if (outward > 0) { vx -= outward*x; vy -= outward*y; }
-        }
-      }
-      if (!brush && x*x+y*y < .035**2 && vx*vx+vy*vy < .15**2) {
-        this.dx[i] = this.dy[i] = this.vx[i] = this.vy[i] = 0;
-        active.delete(i);
-      } else {
-        this.dx[i] = x; this.dy[i] = y; this.vx[i] = vx; this.vy[i] = vy;
-      }
-    }
-  }
+function noise(index, seed) {
+  const n = Math.imul(index ^ (index >>> 7) ^ seed, 1597334677);
+  return ((n ^ (n >>> 13)) >>> 0) / 4294967295;
 }
 
-// The matte changes slowly compared with the source image. Sample its
-// authored contour once and interpolate the soft edge at display density.
-const matteWidth = 96, matteHeight = 54;
-function sampleMatte() {
-  return Float32Array.from({ length: matteWidth*matteHeight }, (_, i) =>
-    portraitMatte(i % matteWidth / (matteWidth-1), Math.floor(i / matteWidth) / (matteHeight-1)));
-}
-function matteAt(matte, x, y) {
-  const sx = x*(matteWidth-1), sy = y*(matteHeight-1);
-  const col = Math.floor(sx), row = Math.floor(sy), dx = sx-col, dy = sy-row;
-  const i = row*matteWidth+col;
-  return (matte[i]*(1-dx)+matte[i+1]*dx)*(1-dy) +
-    (matte[i+matteWidth]*(1-dx)+matte[i+matteWidth+1]*dx)*dy;
-}
+function makeField(source, width, height, inset, economy, fallback) {
+  const { cols, rows } = particleGrid(width, source.naturalWidth, source.naturalHeight, economy, fallback);
+  const sampler = source.ownerDocument.createElement('canvas');
+  sampler.width = cols;
+  sampler.height = rows;
+  const ctx = sampler.getContext('2d', { willReadFrequently: true });
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(source, 0, 0, cols, rows);
+  const samples = ctx.getImageData(0, 0, cols, rows).data;
+  sampler.width = sampler.height = 1;
 
-function makeField(sample, cache, source, cols, rows, matteGrid) {
-  const { width, height } = cache.canvas;
-  sample.canvas.width = cols;
-  sample.canvas.height = rows;
-  sample.imageSmoothingQuality = 'high';
-  sample.drawImage(source, 0, 0, cols, rows);
-  const input = sample.getImageData(0, 0, cols, rows).data;
-  sample.canvas.width = sample.canvas.height = 1;
-  const raster = cache.createImageData(width, height), pixels = raster.data;
-  const depth = new Uint8Array(cols*rows), palette = [], colorIndex = new Uint16Array(depth.length);
-  const x0 = new Uint16Array(depth.length), y0 = new Uint16Array(depth.length);
-  const widths = new Uint8Array(depth.length), heights = new Uint8Array(depth.length);
+  // Jitter in both axes without changing the sampled photographic tones.
   const sx = width / cols, sy = height / rows;
-  for (let col = 0; col < cols; col++) {
-    const left = Math.round(col*sx), right = Math.round((col+1)*sx);
-    for (let row = 0; row < rows; row++) {
-      const i = row*cols+col, p = i*4;
-      const matte = matteAt(matteGrid, (col+.5)/cols, (row+.5)/rows);
-      const seed = Math.imul(i ^ (i >>> 7) ^ 10331, 1597334677);
-      const noise = ((seed ^ (seed >>> 13)) >>> 24) / 255;
-      const opacity = Math.round(255 * Math.min(1, matte * (.83 + noise*.28)));
-      if (opacity < 4) continue;
-      const top = Math.round(row*sy), bottom = Math.round((row+1)*sy);
-      const grains = matte < .68 && noise > .52;
-      const w = Math.max(1, right-left-(grains && right-left>1 ? 1 : 0));
-      const h = Math.max(1, bottom-top-(grains && bottom-top>1 ? 1 : 0));
-      const x = left + (noise>.8 ? right-left-w : 0);
-      const y = top + (noise>.74 ? bottom-top-h : 0);
-      const edge = 1 - Math.min(1, matte);
-      const r = Math.min(255, input[p] + Math.round(edge*19));
-      const g = Math.min(255, input[p+1] + Math.round(edge*5));
-      const b = Math.min(255, input[p+2] + Math.round(edge*25));
-      depth[i] = opacity;
-      x0[i] = x; y0[i] = y; widths[i] = w; heights[i] = h;
-      const key = (r>>3)<<10 | (g>>3)<<5 | b>>3;
-      colorIndex[i] = key;
-      palette[key] ??= `rgb(${r},${g},${b})`;
-      for (let yy = y; yy < y+h; yy++) {
-        for (let xx = x; xx < x+w; xx++) {
-          const k = (yy*width+xx)*4;
-          pixels[k] = r; pixels[k+1] = g; pixels[k+2] = b; pixels[k+3] = opacity;
-        }
-      }
-    }
+  const data = new Float32Array(cols * rows * 6);
+  for (let i = 0; i < cols * rows; i++) {
+    const x = i % cols, y = Math.floor(i / cols);
+    const p = i * 6;
+    data[p] = inset + (x + .5 + (noise(i, 6397) - .5) * .36) * sx;
+    data[p + 1] = inset + (y + .5 + (noise(i, 13177) - .5) * .36) * sy;
+    data[p + 2] = .25 + noise(i, 10331) * .75;
+    data[p + 3] = samples[i * 4] / 255;
+    data[p + 4] = samples[i * 4 + 1] / 255;
+    data[p + 5] = samples[i * 4 + 2] / 255;
   }
-  cache.putImageData(raster, 0, 0);
-  return { depth, palette, colorIndex, x0, y0, widths, heights, sx, sy };
+  return { data, cols, rows, sx, sy, inset };
 }
 
-// On touch and economy profiles a few neighboring grains travel together.
-// They still carry their full cached texture, with fewer moving draw calls.
-function motionTiles(field, cols, rows, width, height) {
-  const columns = Math.ceil(cols/2), lines = Math.ceil(rows/2), count = columns*lines;
-  const depth = new Uint8Array(count), x0 = new Uint16Array(count), y0 = new Uint16Array(count);
-  const widths = new Uint8Array(count), heights = new Uint8Array(count);
-  for (let y = 0; y < lines; y++) {
-    for (let x = 0; x < columns; x++) {
-      const i = y*columns+x, col = 2*x, row = 2*y;
-      const right = Math.min(col+2,cols), bottom = Math.min(row+2,rows);
-      x0[i] = Math.round(col*width/cols); y0[i] = Math.round(row*height/rows);
-      widths[i] = Math.round(right*width/cols)-x0[i];
-      heights[i] = Math.round(bottom*height/rows)-y0[i];
-      for (let yy = row; yy < bottom; yy++) {
-        for (let xx = col; xx < right; xx++) depth[i] = Math.max(depth[i],field.depth[yy*cols+xx]);
+function makeGpuRenderer(gl) {
+  const program = gl.createProgram();
+  const vertex = `
+    attribute vec3 grain;
+    attribute vec3 tone;
+    uniform vec2 extent;
+    uniform float radius, inverseRadiusSquared, pitch, dpr, assembly;
+    uniform vec4 wake;
+    uniform vec4 pulses[${PULSE_COUNT}];
+    uniform vec2 directions[${PULSE_COUNT}];
+    varying vec3 color;
+
+    void main() {
+      vec2 point = grain.xy;
+      vec2 displacement = vec2(0.0);
+      if (assembly > 0.0) {
+        vec2 separation = vec2(grain.z - .625, .5 - fract(grain.z * 19.3));
+        displacement = separation * 9.0 * assembly;
+      }
+      if (all(greaterThanEqual(point, wake.xy)) && all(lessThanEqual(point, wake.zw))) {
+        for (int i = 0; i < ${PULSE_COUNT}; i++) {
+          vec4 pulse = pulses[i];
+          if (pulse.z <= 0.0) continue;
+          vec2 r = point - pulse.xy;
+          float t = 1.0 - dot(r,r) * inverseRadiusSquared;
+          if (t <= 0.0) continue;
+          vec2 curl = vec2(-r.y, r.x);
+          displacement += (r * .47 + curl * .62 + directions[i] * radius * .18)
+            * (t * t * pulse.z * mix(.52, 1.25, grain.z));
+        }
+      }
+      gl_Position = vec4((point + displacement) / extent * vec2(2.,-2.) + vec2(-1.,1.), 0., 1.);
+      gl_PointSize = pitch * (1.53 + .28 * grain.z) * dpr;
+      color = tone;
+    }`;
+  const fragment = `
+    precision mediump float;
+    varying vec3 color;
+    void main() {
+      vec2 offset = gl_PointCoord - .5;
+      float coverage = 1.0 - smoothstep(.133225, .25, dot(offset, offset));
+      gl_FragColor = vec4(color, coverage);
+    }`;
+  const shaders = [];
+  const buffer = gl.createBuffer();
+  try {
+    for (const [type, source] of [[gl.VERTEX_SHADER, vertex], [gl.FRAGMENT_SHADER, fragment]]) {
+      const shader = gl.createShader(type);
+      shaders.push(shader);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      gl.attachShader(program, shader);
+    }
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error('Portrait shader unavailable');
+  } catch (error) {
+    gl.deleteProgram(program);
+    gl.deleteBuffer(buffer);
+    throw error;
+  } finally {
+    for (const shader of shaders) gl.deleteShader(shader);
+  }
+
+  gl.useProgram(program);
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  for (const [name, offset] of [['grain', 0], ['tone', 12]]) {
+    const location = gl.getAttribLocation(program, name);
+    gl.enableVertexAttribArray(location);
+    gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 24, offset);
+  }
+  const uniforms = Object.fromEntries(['extent', 'radius', 'inverseRadiusSquared', 'pitch', 'dpr', 'assembly', 'wake', 'pulses[0]', 'directions[0]']
+    .map(name => [name, gl.getUniformLocation(program, name)]));
+  gl.enable(gl.BLEND);
+  gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  gl.clearColor(0, 0, 0, 0);
+  const timedPulses = new Float32Array(PULSE_COUNT * 4);
+  let count = 0, radius;
+  return {
+    rebuild(field, width, height, dpr, reach) {
+      radius = reach;
+      gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+      gl.uniform2f(uniforms.extent, width, height);
+      gl.uniform1f(uniforms.dpr, dpr);
+      gl.uniform1f(uniforms.radius, radius);
+      gl.uniform1f(uniforms.inverseRadiusSquared, 1 / (radius*radius));
+      gl.uniform1f(uniforms.pitch, field.sx);
+      gl.bufferData(gl.ARRAY_BUFFER, field.data, gl.STATIC_DRAW);
+      count = field.data.length / 6;
+    },
+    draw(now, assembly, pulses, directions) {
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      // Age and bounds are uniform across the cloud. Resolve them once per
+      // frame so undisturbed vertices can bypass the entire wake calculation.
+      let left = 1, top = 1, right = 0, bottom = 0;
+      timedPulses.set(pulses);
+      for (let i = 0; i < pulses.length; i += 4) {
+        const gain = pulseFalloff(0, now - pulses[i+2]) * pulses[i+3];
+        timedPulses[i+2] = gain;
+        if (!gain) continue;
+        const x = pulses[i], y = pulses[i+1];
+        if (left > right) { left = x; top = y; right = x; bottom = y; }
+        left = Math.min(left, x-radius);
+        top = Math.min(top, y-radius);
+        right = Math.max(right, x+radius);
+        bottom = Math.max(bottom, y+radius);
+      }
+      gl.uniform1f(uniforms.assembly, assembly);
+      gl.uniform4f(uniforms.wake, left, top, right, bottom);
+      gl.uniform4fv(uniforms['pulses[0]'], timedPulses);
+      gl.uniform2fv(uniforms['directions[0]'], directions);
+      gl.drawArrays(gl.POINTS, 0, count);
+    },
+    dispose() {
+      gl.deleteBuffer(buffer);
+      gl.deleteProgram(program);
+    },
+  };
+}
+
+function makeCanvasRenderer(canvas, ctx) {
+  const cache = canvas.ownerDocument.createElement('canvas');
+  const cached = cache.getContext('2d');
+  let field, scale, radius, dirty, colors;
+
+  function paint(target, left, top, right, bottom, active) {
+    const { cols, rows, data, sx, sy, inset } = field;
+    const fromX = Math.max(0, Math.floor((left-inset)/sx)-2);
+    const toX = Math.min(cols, Math.ceil((right-inset)/sx)+2);
+    const fromY = Math.max(0, Math.floor((top-inset)/sy)-2);
+    const toY = Math.min(rows, Math.ceil((bottom-inset)/sy)+2);
+    for (let row = fromY; row < toY; row++) {
+      for (let col = fromX; col < toX; col++) {
+        const i = (row*cols+col)*6;
+        let x = data[i], y = data[i+1];
+        const depth = data[i+2];
+        for (const pulse of active) {
+          const rx = data[i] - pulse.x, ry = data[i+1] - pulse.y;
+          const distance = (rx*rx + ry*ry)/(radius*radius);
+          if (distance >= 1) continue;
+          const f = (1-distance)**2 * pulse.gain * (.52 + .73*depth);
+          x += (.47*rx - .62*ry + pulse.dx*radius*.18) * f;
+          y += (.47*ry + .62*rx + pulse.dy*radius*.18) * f;
+        }
+        target.fillStyle = colors[i/6];
+        target.beginPath();
+        target.arc(x, y, sx*(.70 + .14*depth), 0, 2*Math.PI);
+        target.fill();
       }
     }
   }
-  return { columns, lines, depth, x0, y0, widths, heights, sx: 2*width/cols, sy: 2*height/rows, tiled: true };
+  return {
+    rebuild(next, width, height, dpr, reach) {
+      field = next;
+      const { data } = field;
+      const palette = new Map();
+      colors = Array.from({ length: data.length/6 }, (_, index) => {
+        const i = index*6;
+        const r = Math.round(data[i+3]*255), g = Math.round(data[i+4]*255), b = Math.round(data[i+5]*255);
+        const key = (r << 16) | (g << 8) | b;
+        if (!palette.has(key)) palette.set(key, `rgb(${r},${g},${b})`);
+        return palette.get(key);
+      });
+      scale = dpr;
+      radius = reach;
+      dirty = undefined;
+      cache.width = canvas.width;
+      cache.height = canvas.height;
+      cached.setTransform(dpr, 0, 0, dpr, 0, 0);
+      paint(cached, 0, 0, width, height, []);
+      ctx.drawImage(cache, 0, 0);
+    },
+    draw(now, assembly, pulses, directions) {
+      if (dirty) {
+        const [x, y, w, h] = dirty;
+        ctx.clearRect(x, y, w, h);
+        ctx.drawImage(cache, x, y, w, h, x, y, w, h);
+        dirty = undefined;
+      }
+      const active = [];
+      let left = canvas.width, top = canvas.height, right = 0, bottom = 0;
+      for (let i = 0; i < PULSE_COUNT; i++) {
+        const gain = pulseFalloff(0, now - pulses[i*4+2]) * pulses[i*4+3];
+        if (!gain) continue;
+        const x = pulses[i*4], y = pulses[i*4+1];
+        active.push({ x, y, gain, dx: directions[i*2], dy: directions[i*2+1] });
+        left = Math.min(left, x - radius);
+        top = Math.min(top, y - radius);
+        right = Math.max(right, x + radius);
+        bottom = Math.max(bottom, y + radius);
+      }
+      if (!active.length) return;
+      const apron = field.sx * 3;
+      const x = Math.max(0, Math.floor((left-apron)*scale));
+      const y = Math.max(0, Math.floor((top-apron)*scale));
+      const w = Math.min(canvas.width, Math.ceil((right+apron)*scale)) - x;
+      const h = Math.min(canvas.height, Math.ceil((bottom+apron)*scale)) - y;
+      dirty = [x,y,w,h];
+      ctx.clearRect(x,y,w,h);
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(x,y,w,h);
+      ctx.clip();
+      ctx.scale(scale,scale);
+      paint(ctx, x/scale, y/scale, (x+w)/scale, (y+h)/scale, active);
+      ctx.restore();
+    },
+    dispose() { cache.width = cache.height = 1; },
+  };
 }
 
 export function mountParticlePortrait(root) {
   if (!root) return () => {};
-  const doc = root.ownerDocument, win = doc.defaultView, canvas = root.querySelector('canvas');
-  const ctx = canvas?.getContext('2d');
-  if (!ctx) return () => {};
+  const doc = root.ownerDocument;
+  const win = doc.defaultView;
+  const source = root.querySelector('img');
+  let canvas = root.querySelector('canvas');
   const reduced = win.matchMedia('(prefers-reduced-motion: reduce)');
   const coarse = win.matchMedia('(pointer: coarse)');
-  const controller = new win.AbortController(), { signal } = controller;
-  const listen = (node, event, fn) => node.addEventListener(event, fn, { passive: true, signal });
+  const controller = new win.AbortController();
+  const listen = (node, event, fn) => node.addEventListener(event, fn, { passive: true, signal: controller.signal });
   const economy = win.navigator.connection?.saveData || (win.navigator.hardwareConcurrency || 4) <= 4;
-  const cache = doc.createElement('canvas'), cached = cache.getContext('2d');
-  const sample = doc.createElement('canvas').getContext('2d', { willReadFrequently: true });
-  let image, source, matte, field, motionField, physics, dirty, box, pointer, touch;
-  let frame = 0, last = 0, slow = 0, suspended = false, needsSize = true;
+  const pulses = new Float32Array(PULSE_COUNT * 4);
+  const directions = new Float32Array(PULSE_COUNT * 2);
+  const start = win.performance.now();
+  const seconds = (time = win.performance.now()) => (time - start) / 1000;
+
+  let renderer, backend, rect, touch, previous, lastSize;
+  let frame = 0, lastDraw = 0, nextPulse = 0, end = 0, entrance = 0;
   let visible = !win.IntersectionObserver;
-  let nearObserver, observer, resizeObserver;
+  let suspended = false, initialized = false, forceCanvas = false;
+  let observer, resizeObserver;
 
+  const canRender = () => visible && !doc.hidden && !suspended && !controller.signal.aborted;
+  const canAnimate = () => canRender() && !reduced.matches;
   const state = value => { if (root.dataset.portraitState !== value) root.dataset.portraitState = value; };
-  const allowed = () => visible && !doc.hidden && !suspended && !reduced.matches && !signal.aborted;
-  function restore(area) {
-    const { x, y, w, h } = area;
-    ctx.clearRect(x, y, w, h);
-    if (w && h) ctx.drawImage(cache, x, y, w, h, x, y, w, h);
-  }
-  function rebuild() {
-    if (!source || !needsSize || signal.aborted) return;
-    const rect = canvas.getBoundingClientRect();
-    if (rect.width < 2 || rect.height < 2) return;
-    const dpr = Math.min(win.devicePixelRatio || 1, economy ? 1.5 : 2, Math.sqrt(760000/(rect.width*rect.height)));
-    const width = Math.round(rect.width*dpr), height = Math.round(rect.height*dpr);
-    // Give every cell at least one addressable backing pixel.
-    const { cols, rows } = particleGrid(Math.min(rect.width, width), source.naturalWidth, source.naturalHeight, economy);
-    needsSize = false;
-    const tiled = economy || coarse.matches;
-    if (field && width === canvas.width && height === canvas.height && cols === field.cols &&
-      tiled === Boolean(motionField.tiled)) return;
-    canvas.width = cache.width = width;
-    canvas.height = cache.height = height;
-    field = makeField(sample, cached, source, cols, rows, matte ??= sampleMatte());
-    field.cols = cols;
-    motionField = tiled ? motionTiles(field, cols, rows, width, height) : field;
-    physics = new PortraitPhysics(tiled ? motionField.columns : cols, tiled ? motionField.lines : rows, motionField.depth);
-    dirty = undefined;
-    restore({ x: 0, y: 0, w: width, h: height });
-    root.dataset.portraitParticles = String(cols*rows);
-    state('idle');
+
+  function request() {
+    if (!frame && canAnimate()) frame = win.requestAnimationFrame(tick);
   }
 
-  function drawMotion() {
-    const { depth, palette, colorIndex, x0, y0, widths, heights, sx, sy, tiled } = motionField;
-    const { active, dx, dy } = physics;
-    let left = canvas.width, top = canvas.height, right = 0, bottom = 0;
-    for (const i of active) {
-      if (dx[i]**2 + dy[i]**2 < .014) continue;
-      const x = Math.round(x0[i] + dx[i]*sx), y = Math.round(y0[i] + dy[i]*sy);
-      left = Math.min(left, x0[i], x); top = Math.min(top, y0[i], y);
-      right = Math.max(right, Math.max(x0[i], x) + widths[i]);
-      bottom = Math.max(bottom, Math.max(y0[i], y) + heights[i]);
-    }
-    const x = Math.max(0,left), y = Math.max(0,top);
-    const area = right > left && bottom > top ? {
-      x, y, w: Math.min(canvas.width,right)-x, h: Math.min(canvas.height,bottom)-y,
-    } : undefined;
-    if (dirty && area) {
-      // Restore the old and new wake, then retain only the new footprint.
-      const x = Math.min(dirty.x,area.x), y = Math.min(dirty.y,area.y);
-      restore({ x, y, w: Math.max(dirty.x+dirty.w,area.x+area.w)-x, h: Math.max(dirty.y+dirty.h,area.y+area.h)-y });
-    } else if (dirty || area) restore(dirty || area);
-    dirty = area;
-    if (!area) return;
-
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.fillStyle = '#000';
-    for (const i of active) {
-      const movement = dx[i]**2 + dy[i]**2;
-      if (movement < .014) continue;
-      ctx.globalAlpha = Math.min(.98, movement*.71);
-      ctx.fillRect(x0[i], y0[i], widths[i], heights[i]);
-    }
-    ctx.globalCompositeOperation = 'source-over';
-    let glints = 0;
-    for (const i of active) {
-      const movement = dx[i]**2 + dy[i]**2;
-      if (movement < .014) continue;
-      const x = Math.round(x0[i]+dx[i]*sx), y = Math.round(y0[i]+dy[i]*sy);
-      if (tiled) {
-        ctx.globalAlpha = Math.min(1, movement*.71);
-        ctx.drawImage(cache, x0[i], y0[i], widths[i], heights[i], x, y, widths[i], heights[i]);
-        continue;
-      }
-      ctx.globalAlpha = depth[i]/255 * Math.min(1, movement*.71);
-      ctx.fillStyle = palette[colorIndex[i]];
-      if (movement > 4 && (i % 37) === 0 && glints < 18) {
-        ctx.fillStyle = i & 1 ? '#d9b8eb' : '#f4b8cf';
-        ctx.globalAlpha *= .7;
-        glints++;
-      }
-      ctx.fillRect(x, y, widths[i], heights[i]);
-    }
-    ctx.globalAlpha = 1;
+  function tick(time) {
+    frame = 0;
+    const now = seconds(time);
+    if (!canAnimate()) return stop();
+    if (now >= end) return stop();
+    if (backend === 'canvas' && time - lastDraw < 29) return request();
+    lastDraw = time;
+    const remaining = entrance ? clamp((entrance - now) / ENTRANCE, 0, 1) : 0;
+    renderer.draw(now, remaining * remaining, pulses, directions);
+    request();
   }
 
   function stop() {
     if (frame) win.cancelAnimationFrame(frame);
-    frame = last = 0;
-    pointer = touch = box = undefined;
-    if (dirty) { restore(dirty); dirty = undefined; }
-    if (physics) { physics.reset(); state('idle'); }
-  }
-  function request() {
-    if (allowed() && physics && !frame) frame = win.requestAnimationFrame(tick);
-  }
-  function tick(now) {
-    frame = 0;
-    if (!allowed()) return stop();
-    if (last && (economy || slow >= 4) && now-last < 32) return request();
-    const started = win.performance.now(), dt = last ? (now-last)/1000 : 1/60;
-    last = now;
-    const age = pointer ? now-pointer.time : Infinity;
-    if (age > 360) pointer = undefined;
-    const brush = pointer && { ...pointer, strength: pointer.strength * (1-smooth(120,360,age)) };
-    physics.step(dt, brush);
-    drawMotion();
-    slow = clamp(slow + (win.performance.now()-started > 9 ? 1 : -1), 0, 8);
-    if (pointer || physics.active.size) { state('active'); request(); }
-    else { last = 0; state('idle'); }
+    frame = nextPulse = lastDraw = 0;
+    rect = touch = previous = undefined;
+    if (end && renderer) {
+      pulses.fill(0);
+      renderer.draw(seconds(), 0, pulses, directions);
+      state('idle');
+    }
+    end = entrance = 0;
   }
 
-  function release() {
-    pointer = touch = box = undefined;
-    if (physics?.active.size) request();
+  function useCanvas() {
+    const fresh = canvas.cloneNode(false);
+    canvas.replaceWith(fresh);
+    canvas = fresh;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    backend = 'canvas';
+    return makeCanvasRenderer(canvas, ctx);
   }
+
+  function initialize() {
+    // Reduced motion gets the same still reconstruction without a new GPU context.
+    const gl = forceCanvas || reduced.matches ? null : canvas.getContext('webgl', {
+      alpha: true, antialias: false, depth: false, stencil: false, powerPreference: 'low-power',
+    });
+    if (gl) {
+      try {
+        const gpu = makeGpuRenderer(gl);
+        backend = 'webgl';
+        listen(canvas, 'webglcontextlost', () => {
+          if (backend !== 'webgl') return;
+          renderer = undefined;
+          stop();
+          forceCanvas = true;
+          lastSize = undefined;
+          delete root.dataset.portraitRenderer;
+          rebuild();
+        });
+        return gpu;
+      } catch {
+        gl.getExtension('WEBGL_lose_context')?.loseContext();
+      }
+    }
+    return useCanvas();
+  }
+
+  function rebuild() {
+    rect = undefined;
+    if (!canRender() || !source.complete || !source.naturalWidth) return;
+    const bounds = root.getBoundingClientRect();
+    const output = canvas.getBoundingClientRect();
+    if (bounds.width < 2 || bounds.height < 2) return;
+    const basic = economy || coarse.matches;
+    const dpr = Math.min(win.devicePixelRatio || 1, basic ? 1.55 : 2,
+      Math.sqrt(960000 / (output.width * output.height)));
+    const signature = [bounds.width, bounds.height, output.width, output.height, dpr, basic].join(':');
+    if (signature === lastSize && renderer) return;
+    stop();
+    renderer ??= initialize();
+    if (!renderer) return;
+    lastSize = signature;
+    canvas.width = Math.round(output.width * dpr);
+    canvas.height = Math.round(output.height * dpr);
+    const inset = (output.width - bounds.width) / 2;
+    const field = makeField(source, bounds.width, bounds.height, inset, basic, backend === 'canvas');
+    renderer.rebuild(field, output.width, output.height, dpr, clamp(bounds.height * .22, 27, 86));
+
+    const now = seconds();
+    const enter = !initialized && backend === 'webgl' && canAnimate();
+    initialized = true;
+    if (enter) entrance = end = now + ENTRANCE;
+    renderer.draw(now, enter ? 1 : 0, pulses, directions);
+    root.dataset.portraitRenderer = backend;
+    root.dataset.portraitParticles = String(field.cols * field.rows);
+    state(enter ? 'entrance' : 'idle');
+    if (enter) request();
+  }
+
   function disturb(event, strength) {
-    if (!allowed() || !physics) return;
-    box ??= canvas.getBoundingClientRect();
-    const x = (event.clientX-box.left)*physics.cols/box.width;
-    const y = (event.clientY-box.top)*physics.rows/box.height;
-    if (x < 0 || y < 0 || x >= physics.cols || y >= physics.rows) return;
-    const r = clamp(box.height * (coarse.matches ? .21 : .18), 25, 71) * physics.cols/box.width;
-    pointer = {
-      x, y, radius: r, strength, time: win.performance.now(),
-      flowX: pointer ? clamp((x-pointer.x)*1.2, -r*.55, r*.55) : 0,
-      flowY: pointer ? clamp((y-pointer.y)*1.2, -r*.55, r*.55) : 0,
-    };
+    if (!canAnimate() || !renderer) return;
+    rect ??= canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left, y = event.clientY - rect.top;
+    const now = seconds();
+    const elapsed = previous ? now - previous.time : Infinity;
+    const dx = previous ? x - previous.x : 0, dy = previous ? y - previous.y : 0;
+    const travel = Math.hypot(dx, dy);
+    if (x < 0 || y < 0 || x > rect.width || y > rect.height || elapsed < .070) return;
+    const speed = elapsed < .18 ? Math.min(1, travel / (600 * elapsed)) : 0;
+    if (previous && travel < 2 && elapsed < .17) return;
+    previous = { x, y, time: now };
+    const slot = nextPulse++ % PULSE_COUNT;
+    pulses.set([x, y, now, strength * (.66 + .34 * speed)], slot * 4);
+    directions.set(travel ? [dx / travel * speed, dy / travel * speed] : [0, 0], slot * 2);
+    end = now + LIFETIME;
+    state('active');
     request();
   }
 
-  listen(canvas, 'pointerdown', e => {
-    if (!allowed() || e.button !== 0) return;
-    if (!e.isPrimary) return release();
-    if (e.pointerType !== 'touch') return disturb(e, .8);
+  const release = () => { rect = touch = previous = undefined; };
+  listen(root, 'pointerenter', e => {
+    if (e.pointerType !== 'touch') disturb(e, .56);
+  });
+  listen(root, 'pointerdown', e => {
+    if (!e.isPrimary || e.button !== 0 || !canAnimate()) return;
+    if (e.pointerType !== 'touch') return disturb(e, 1);
     if ((win.visualViewport?.scale || 1) > 1.05) return;
     touch = { id: e.pointerId, x: e.clientX, y: e.clientY, time: e.timeStamp, drag: false };
   });
-  listen(canvas, 'pointermove', e => {
+  listen(root, 'pointermove', e => {
     if (!e.isPrimary) return;
-    if (e.pointerType !== 'touch') return disturb(e, 1);
+    if (e.pointerType !== 'touch') return disturb(e, .86);
     if (touch?.id !== e.pointerId) return;
     const dx = Math.abs(e.clientX-touch.x), dy = Math.abs(e.clientY-touch.y);
-    if (!touch.drag && dy > 10 && dy >= dx*.72) return release();
-    if (dx > 10) touch.drag = true;
-    if (touch.drag) disturb(e, .9);
+    if (!touch.drag && dy >= 10 && dy >= dx*.8) return release();
+    if (dx >= 12 && dx >= dy*1.5) touch.drag = true;
+    if (touch.drag) disturb(e, .88);
   });
-  listen(canvas, 'pointerup', e => {
+  listen(root, 'pointerup', e => {
     if (touch?.id !== e.pointerId) return;
-    const tap = !touch.drag && e.timeStamp-touch.time < 440;
-    touch = undefined;
-    if (tap) disturb(e, .95);
-    else release();
+    if (!touch.drag && e.timeStamp - touch.time < 440 && Math.hypot(e.clientX-touch.x, e.clientY-touch.y) < 10) {
+      disturb(e, 1.2);
+    }
+    release();
   });
-  listen(canvas, 'pointerleave', e => { if (e.pointerType !== 'touch') release(); });
-  listen(canvas, 'pointercancel', release);
-  listen(doc, 'pointerdown', e => { if (e.pointerType === 'touch' && !e.isPrimary && touch) release(); });
+  listen(root, 'pointerleave', e => { if (e.pointerType !== 'touch') release(); });
+  listen(root, 'pointercancel', release);
+  listen(doc, 'pointerdown', e => { if (e.pointerType === 'touch' && !e.isPrimary) release(); });
   listen(win, 'scroll', release);
   listen(win, 'blur', release);
+  listen(source, 'load', rebuild);
+  listen(source, 'error', () => state('unavailable'));
+  listen(win, 'resize', rebuild);
+  listen(coarse, 'change', rebuild);
 
-  function load() {
-    if (image || signal.aborted) return;
-    state('loading');
-    image = new win.Image();
-    image.decoding = 'async';
-    image.onload = () => {
-      if (signal.aborted) return;
-      source = image;
-      if (visible && !doc.hidden && !suspended) rebuild();
-    };
-    image.onerror = () => state('unavailable');
-    image.src = root.dataset.source;
-  }
   function sync() {
-    root.toggleAttribute('data-portrait-visible', allowed());
-    if (!visible || doc.hidden || suspended) return stop();
-    load();
-    rebuild();
-    if (reduced.matches) stop();
+    if (canRender()) rebuild();
+    if (!canAnimate()) stop();
   }
-  function resize() {
-    stop();
-    needsSize = true;
-    if (visible && !doc.hidden && !suspended) rebuild();
-  }
+  listen(reduced, 'change', sync);
+  listen(doc, 'visibilitychange', sync);
+  listen(win, 'pagehide', e => {
+    suspended = true;
+    if (e.persisted) sync();
+    else dispose();
+  });
+  listen(win, 'pageshow', () => { suspended = false; sync(); });
   if (win.IntersectionObserver) {
-    nearObserver = new win.IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) { load(); nearObserver.disconnect(); }
-    }, { rootMargin: '220px 0px' });
     observer = new win.IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
       sync();
     });
-    nearObserver.observe(root);
     observer.observe(root);
-  } else sync();
-  if (win.ResizeObserver) {
-    resizeObserver = new win.ResizeObserver(resize);
-    resizeObserver.observe(canvas);
   }
-  listen(win, 'resize', resize);
-  listen(doc, 'visibilitychange', sync);
-  listen(reduced, 'change', sync);
-  listen(coarse, 'change', resize);
-  listen(win, 'pagehide', e => { suspended = true; sync(); if (!e.persisted) dispose(); });
-  listen(win, 'pageshow', () => { suspended = false; sync(); });
+  if (win.ResizeObserver) {
+    resizeObserver = new win.ResizeObserver(rebuild);
+    resizeObserver.observe(root);
+  }
+  sync();
+
   function dispose() {
     stop();
     controller.abort();
-    nearObserver?.disconnect(); observer?.disconnect(); resizeObserver?.disconnect();
-    if (image) image.onload = image.onerror = null;
-    root.removeAttribute('data-portrait-visible');
-    cache.width = cache.height = 1;
-    field = motionField = physics = source = image = matte = undefined;
+    observer?.disconnect();
+    resizeObserver?.disconnect();
+    renderer?.dispose();
+    renderer = undefined;
+    delete root.dataset.portraitRenderer;
+    canvas.width = canvas.height = 1;
   }
   return dispose;
 }
+
 if (typeof document !== 'undefined') mountParticlePortrait(document.querySelector('[data-particle-portrait]'));
