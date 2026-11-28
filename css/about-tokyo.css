@@ -168,3 +168,83 @@
     animation-name: about-tokyo-pass-phone, about-tokyo-carriage;
   }
 }
+
+/* A silver reading column with the small vermilion accent of a print seal. */
+.feje-world-home #about {
+  --about-paper: #f5f2ed;
+  --about-silver: #d4d2cc;
+  --about-seal: #dda39b;
+}
+
+.feje-world-home #about .about-title {
+  color: var(--about-paper);
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.feje-world-home #about .about-motto {
+  margin-block-start: 1.15rem;
+}
+
+.about-motto-quote {
+  color: var(--about-paper);
+  font: 400 clamp(1.17rem, 2.05vw, 1.7rem)/1.45 Georgia, "Times New Roman", serif;
+}
+
+.about-motto-label {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: .65rem;
+  row-gap: .3rem;
+  color: var(--about-seal);
+  font: 650 .73rem/1.35 "Space Grotesk", system-ui, sans-serif;
+  letter-spacing: .145em;
+}
+
+.about-motto-ja {
+  color: var(--about-silver);
+  border-inline-start: 1px solid #c8c5bd67;
+  padding-inline-start: .55rem;
+  font-family: "Tokyo Sign", "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-weight: 400;
+  letter-spacing: .055em;
+  white-space: nowrap;
+}
+
+.feje-world-home #about .profile-body {
+  margin-block-start: 40px;
+  color: var(--about-silver);
+  text-align: start;
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+
+.feje-world-home #about .profile-body > p {
+  margin-block-end: 24px;
+}
+
+.feje-world-home #about .profile-body strong {
+  color: var(--about-paper);
+}
+
+.about-philosophy {
+  margin: 32px 0;
+  padding: 15px 20px;
+  border-inline-start: 2px solid var(--about-seal);
+  background: linear-gradient(to right, #252424df, #25242472 72%, transparent);
+}
+
+.about-philosophy p {
+  margin: 0;
+  color: var(--about-paper);
+  font: italic 1.14em/1.65 Georgia, "Times New Roman", serif;
+}
+
+.feje-world-home #about .stat span {
+  color: var(--about-silver);
+}
+
+.feje-world-home #about .living-decoration[data-living-effect="motto"] {
+  --light: #d4d2cc;
+}
