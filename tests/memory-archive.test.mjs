@@ -49,7 +49,8 @@ function fixture(){
   const ctx={canvas:x,fillRect(){},clearRect(){},translate(){},save(){},restore(){},drawImage(){},getImageData:()=>({data:new Uint8ClampedArray(x.width*x.height*4)})};
   return x;
  };
- const elements={grove:canvas(),blossom:canvas(32,32),garden:canvas(160,24),petals:{append(){},style:{}}};
+ const control=Object.assign(target(),{attrs:{},hidden:true,disabled:false,setAttribute(k,v){this.attrs[k]=v;}});
+ const elements={grove:canvas(),blossom:canvas(32,32),garden:canvas(160,24),petals:{append(){},style:{}},'garden-motion':control,'motion-ornament':{hidden:false}};
  const doc=Object.assign(target(),{hidden:false,getElementById:id=>elements[id],createDocumentFragment:()=>({append(){}}),createElement:tag=>tag==='canvas'?canvas():{classList:{add(){}},style:{setProperty(){}}},documentElement:{toggleAttribute(name,value){this[name]=value;}}});
  const media=Object.assign(target(),{matches:false});
  let nextId=0;
@@ -103,4 +104,20 @@ test('garden clock pauses in hidden tabs and reduced motion, and resumes without
  win.emit('pagehide',{persisted:true});assert.equal(listeners.size,0);
  win.emit('pageshow');assert.equal(listeners.size,1);
  win.emit('pagehide',{persisted:false});assert.equal(listeners.size,0);
+});
+
+test('manual decorative pause freezes and resumes the current beat',async()=>{
+ const {host,win,doc,elements,listeners,frame,media}=fixture();
+ mountMemoryGarden(doc,win);await new Promise(resolve=>setImmediate(resolve));
+ const control=elements['garden-motion'],event={stopPropagation(){}};
+ assert.equal(control.hidden,false);assert.equal(elements['motion-ornament'].hidden,true);
+ let now=100;for(let i=0;i<20;i++){frame(now);now+=250;}
+ assert.equal(host.dataset.memoryPhase,'release');control.emit('click',event);
+ assert.equal(control.attrs['aria-pressed'],'true');assert.equal(listeners.size,0);
+ frame(now+10000);assert.equal(host.dataset.memoryPhase,'release');
+ control.emit('click',event);assert.equal(control.attrs['aria-pressed'],'false');
+ frame(now+10000);assert.equal(host.dataset.memoryPhase,'release');assert.equal(listeners.size,1);
+ media.matches=true;media.emit('change');assert.equal(control.disabled,true);assert.equal(control.attrs['aria-pressed'],'true');
+ assert.equal(host.dataset.memoryPhase,'sakura');assert.equal(listeners.size,0);
+ media.matches=false;media.emit('change');assert.equal(control.disabled,false);assert.equal(listeners.size,1);
 });

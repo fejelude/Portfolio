@@ -208,7 +208,7 @@ export function mountMemoryStory(doc,win){
   if(!canvas||!host)return null;
   const c=canvas.getContext('2d'),a=raster(doc),b=raster(doc);if(!c||!a||!b)return null;
   canvas.width=W;canvas.height=H;c.imageSmoothingEnabled=false;host.classList.add('is-story');
-  let elapsed=0, lastKind='', transition=null, reaction=0, look=0, reduced=false, down=null;
+  let elapsed=0, lastKind='', transition=null, reaction=0, look=0, reduced=false, paused=false, down=null;
   const life=new win.AbortController(), {signal}=life;
   function draw(dt,staticMode=false){
     if(staticMode){if(elapsed<INTRO)elapsed=INTRO;reduced=true;lastKind='';transition=null;reaction=0;delete host.dataset.memoryReacting;art(c,'sakura',0);host.dataset.memoryScene='sakura';host.dataset.memoryPhase='sakura';return null;}
@@ -224,13 +224,13 @@ export function mountMemoryStory(doc,win){
     return changed?beat.kind:null;
   }
   const react=e=>{
-    if(reduced||elapsed<INTRO||memoryBeat(elapsed).blend>0)return;
+    if(paused||reduced||elapsed<INTRO||memoryBeat(elapsed).blend>0)return;
     const r=host.getBoundingClientRect();look=clamp((e.clientX-r.left)/r.width*2-1,-1,1);reaction=1;host.dataset.memoryReacting='true';
   };
   host.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse')react(e);},{passive:true,signal});
-  host.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'&&reaction>0){const r=host.getBoundingClientRect();look=clamp((e.clientX-r.left)/r.width*2-1,-1,1);}},{passive:true,signal});
+  host.addEventListener('pointermove',e=>{if(!paused&&e.pointerType==='mouse'&&reaction>0){const r=host.getBoundingClientRect();look=clamp((e.clientX-r.left)/r.width*2-1,-1,1);}},{passive:true,signal});
   host.addEventListener('pointerdown',e=>{down=[e.pointerId,e.clientX,e.clientY];},{passive:true,signal});
   host.addEventListener('pointercancel',()=>{down=null;},{passive:true,signal});
   host.addEventListener('pointerup',e=>{if(down&&down[0]===e.pointerId&&Math.hypot(e.clientX-down[1],e.clientY-down[2])<12)react(e);down=null;},{passive:true,signal});
-  return {draw,elapsed:()=>elapsed,reaction:()=>reaction,destroy:()=>life.abort()};
+  return {draw,elapsed:()=>elapsed,reaction:()=>reaction,setPaused:value=>{paused=value;down=null;},destroy:()=>life.abort()};
 }

@@ -223,7 +223,8 @@ export function mountMemoryGarden(doc=document,win=window) {
   const random=seeded(271);
   let frame=0,lastWidth=0,lastHeight=0,suspended=false,cache=null;
   let previous=0,t=0,acc=0,gust=0,beat='',released=false,waved=false,interacting=false,dirty=true;
-  let story=null,bursts=[];
+  let story=null,bursts=[],manualPaused=false;
+  const motionButton=doc.getElementById('garden-motion'),motionOrnament=doc.getElementById('motion-ornament');
   const make=(w,h)=>{const a=doc.createElement('canvas');a.width=w;a.height=h;return a;};
   // Reusable pixel sprites. CSS moves the small tiles independently of the grove.
   const kinds=[petals[0],petals[1],heart,rose,sparkle];
@@ -305,7 +306,13 @@ export function mountMemoryGarden(doc=document,win=window) {
     }
     ctx.globalAlpha=1;bursts=bursts.filter(p=>p.age<p.life);
   }
-  function paused(){return doc.hidden||suspended||motion.matches;}
+  function paused(){return doc.hidden||suspended||motion.matches||manualPaused;}
+  function updateMotionButton(){
+    if(!motionButton)return;
+    motionButton.setAttribute('aria-pressed',String(manualPaused||motion.matches));
+    motionButton.disabled=motion.matches;
+    motionButton.title=motion.matches?'Decorative motion is reduced by your system preference':manualPaused?'Resume decorative motion':'Pause decorative motion';
+  }
   function tick(now){
     frame=0;if(paused())return;
     const delta=previous?Math.min(.25,(now-previous)/1000):0;previous=now;acc+=delta;
@@ -316,15 +323,19 @@ export function mountMemoryGarden(doc=document,win=window) {
   }
   function sync(){
     doc.documentElement.toggleAttribute('data-garden-paused',paused());
+    story?.setPaused(paused());updateMotionButton();
     if(paused()){
       if(frame)win.cancelAnimationFrame(frame);frame=0;previous=0;acc=0;
-      if(!doc.hidden&&!suspended){resize();render(0,true);}
+      if(!doc.hidden&&!suspended){
+        if(motion.matches){resize();render(0,true);}
+        else if(dirty&&resize())render(0,false);
+      }
     }else if(!frame){previous=0;frame=win.requestAnimationFrame(tick);}
   }
   function onResize(){
     dirty=true;
     if(doc.hidden||suspended)return;
-    if(motion.matches){if(resize())render(0,true);}
+    if(motion.matches||manualPaused){if(resize())render(0,motion.matches);}
     else sync();
   }
   doc.addEventListener('visibilitychange',sync,{signal});
@@ -343,6 +354,13 @@ export function mountMemoryGarden(doc=document,win=window) {
     delete host.dataset.memoryScene;delete host.dataset.memoryPhase;delete host.dataset.memoryReacting;
     paintDetails(doc);
   }
+  if(motionButton){
+    // Visual-only toggle must not trigger the document's audio-unlock gestures.
+    for(const type of ['pointerup','touchend','keydown'])motionButton.addEventListener(type,e=>e.stopPropagation(),{signal});
+    motionButton.addEventListener('click',e=>{e.stopPropagation();if(motion.matches)return;manualPaused=!manualPaused;sync();},{signal});
+    if(motionOrnament)motionOrnament.hidden=true;
+    motionButton.hidden=false;updateMotionButton();
+  }
   paintDetails(doc);
   resize();render(0,motion.matches);sync();
   // A failed story module must not prevent the original archive/audio module
@@ -351,6 +369,7 @@ export function mountMemoryGarden(doc=document,win=window) {
     if(signal.aborted)return;
     try{
       story=mountMemoryStory(doc,win);
+      story?.setPaused(paused());
       if(story&&!doc.hidden&&!suspended)render(0,motion.matches);
     }catch(error){console.warn('Memory emblem unavailable',error);restoreEmblem();}
   }).catch(error=>console.warn('Memory story module unavailable',error));

@@ -57,6 +57,16 @@ async function journey(browser,name,base,profile){
   }
   await stage(page,'sakura');assert.notEqual(await emblem.getAttribute('data-memory-scene'),'intro');
   await photograph(page,prefix+'-loop-restarted');
+  const toggle=page.locator('#garden-motion');
+  const audioState=()=>page.locator('#play').getAttribute('aria-label');
+  const beforeAudio=await audioState();
+  if(touch)await toggle.tap();else{await toggle.focus();await page.keyboard.press('Space');}
+  assert.equal(await toggle.getAttribute('aria-pressed'),'true');
+  const getFrozen=()=>page.evaluate(()=>({phase:document.querySelector('.emblem').dataset.memoryPhase,art:document.querySelector('#blossom').toDataURL(),grove:document.querySelector('#grove').toDataURL()}));
+  const frozen=await getFrozen();await page.waitForTimeout(900);assert.deepEqual(await getFrozen(),frozen);
+  assert.equal(await audioState(),beforeAudio);await photograph(page,prefix+'-paused');
+  if(touch)await toggle.tap();else await page.keyboard.press('Space');
+  assert.equal(await toggle.getAttribute('aria-pressed'),'false');assert.equal(await audioState(),beforeAudio);
   if(touch){
    await page.setViewportSize({width:844,height:390});await page.waitForTimeout(250);
    assert.notEqual(await emblem.getAttribute('data-memory-scene'),'intro');await photograph(page,prefix+'-rotated');
@@ -68,6 +78,7 @@ async function journey(browser,name,base,profile){
   await page.bringToFront();await tab.close();
   console.log(prefix,'hidden-tab visibility exposed by browser:',hidden);
   await page.emulateMedia({reducedMotion:'reduce'});await stage(page,'sakura');
+  assert.equal(await toggle.isDisabled(),true);assert.equal(await toggle.getAttribute('aria-pressed'),'true');
   const staticFrame=await page.locator('#blossom').evaluate(c=>c.toDataURL());
   await page.waitForTimeout(700);
   assert.equal(await page.locator('#blossom').evaluate(c=>c.toDataURL()),staticFrame);
