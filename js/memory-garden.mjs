@@ -1,5 +1,3 @@
-import { mountMemoryStory } from './memory-story.mjs';
-
 // The scenery and each blossom cluster are rasterized once per viewport size.
 // The authored branch contours are the anchors for the blossom clusters.
 const branches = [
@@ -108,6 +106,15 @@ function drawTree(ctx, origin, top, height, reach, side, seed, variant, cache) {
     const [xx,yy]=project(x+variant*y*.13,y+variant*x*.10);
     tree.highlights.push({x:xx,y:yy,phase:tree.phase+x*7+y*3});
   }
+  // Crop limb cache to the visible part of the tree; redraw only on a stepped
+  // branch pose change. Crown stamps never need to be rasterized again.
+  const points=limbs.flat(),pad=12;
+  const cropLeft=Math.max(0,Math.floor(Math.min(...points.map(p=>p[0]))-pad));
+  const cropTop=Math.max(0,Math.floor(Math.min(...points.map(p=>p[1]))-pad));
+  const cropRight=Math.min(cache.base.width,Math.ceil(Math.max(...points.map(p=>p[0]))+pad));
+  const cropBottom=Math.min(cache.base.height,Math.ceil(Math.max(...points.map(p=>p[1]))+pad));
+  tree.limbTile=cache.make(Math.max(1,cropRight-cropLeft),Math.max(1,cropBottom-cropTop));
+  tree.limbLeft=cropLeft;tree.limbTop=cropTop;tree.limbKey='';
   cache.trees.push(tree);
 
 }
@@ -153,14 +160,24 @@ function paintLivingGrove(ctx,cache,t,wind,still=false){
   ctx.drawImage(cache.base,0,0);
   for(const tree of cache.trees){
     const sway=(phase,flex)=>still?0:Math.round((sin(t*.8+phase)*.65+wind*.65)*flex);
-    const limbs=tree.limbs.map((limb,j)=>limb.map(([x,y,r],i)=>{
-      // Each limb retains its attachment point; the trunk base never moves.
-      const f=i/(limb.length-1),bend=j===0?f*f*.7:f*f;
-      return [x+sway(tree.phase+j*.77,2.1)*bend,y+(still?0:Math.round(sin(t*.62+tree.phase+j)*bend*.7)),r];
-    }));
-    limbs.forEach(limb=>silhouette(ctx,limb,'#89637f'));
-    limbs.forEach(limb=>silhouette(ctx,limb,'#ab7d93',tree.side*1.1,.64));
-    silhouette(ctx,limbs[0],'#ce9fa9',-tree.side*1.5,.24);
+    const offsets=tree.limbs.map((_,j)=>[sway(tree.phase+j*.77,2.1),still?0:Math.round(sin(t*.62+tree.phase+j)*.7)]);
+    const key=offsets.map(p=>p.join(',')).join(';');
+    if(tree.limbKey!==key){
+      tree.limbKey=key;
+      const lc=tree.limbTile.getContext('2d');
+      lc.clearRect(0,0,tree.limbTile.width,tree.limbTile.height);
+      lc.save();lc.translate(-tree.limbLeft,-tree.limbTop);
+      const limbs=tree.limbs.map((limb,j)=>limb.map(([x,y,r],i)=>{
+        // The first point stays anchored; most movement is at the thin tips.
+        const f=i/(limb.length-1),bend=j===0?f*f*.7:f*f;
+        return [x+offsets[j][0]*bend,y+offsets[j][1]*bend,r];
+      }));
+      limbs.forEach(limb=>silhouette(lc,limb,'#89637f'));
+      limbs.forEach(limb=>silhouette(lc,limb,'#ab7d93',tree.side*1.1,.64));
+      silhouette(lc,limbs[0],'#ce9fa9',-tree.side*1.5,.24);
+      lc.restore();
+    }
+    ctx.drawImage(tree.limbTile,tree.limbLeft,tree.limbTop);
     for(const b of tree.clusters){
       const dx=sway(b.phase,b.flex),dy=still?0:Math.round(sin(t*.7+b.phase)*.65);
       ctx.drawImage(b.tile,b.left+dx,b.top+dy);
@@ -182,6 +199,7 @@ function paintDetails(doc) {
     sprite(emblem,crest,8,8,{...inks,Y:'#fff8d2'});
     sprite(emblem,sparkle,2,7,{h:'#bb90c2'});
     sprite(emblem,sparkle,25,22,{h:'#cb9dbf'});
+    doc.getElementById('blossom').parentElement?.setAttribute('data-garden-painted','');
   }
   if(garden){
     rect(garden,0,23,160,1,'#e0bbcc');
@@ -204,7 +222,7 @@ export function mountMemoryGarden(doc=document,win=window) {
   const life=new win.AbortController(),{signal}=life;
   const random=seeded(271);
   let frame=0,lastWidth=0,lastHeight=0,suspended=false,cache=null;
-  let previous=0,t=0,acc=0,gust=0,beat='',released=false,waved=false;
+  let previous=0,t=0,acc=0,gust=0,beat='',released=false,waved=false,interacting=false,dirty=true;
   let story=null,bursts=[];
   const make=(w,h)=>{const a=doc.createElement('canvas');a.width=w;a.height=h;return a;};
   // Reusable pixel sprites. CSS moves the small tiles independently of the grove.
@@ -238,6 +256,7 @@ export function mountMemoryGarden(doc=document,win=window) {
 
 
   function resize(){
+    dirty=false;
     const width=Math.max(1,grove.clientWidth),height=Math.max(1,grove.clientHeight);
     if(!ctx||(width===lastWidth&&height===lastHeight))return false;
     lastWidth=width;lastHeight=height;
@@ -258,12 +277,17 @@ export function mountMemoryGarden(doc=document,win=window) {
   }
   function render(dt,still=false){
     if(story){
-      const next=story.draw(dt,still);
-      if(!still){
+      let next;
+      try{next=story.draw(dt,still);}
+      catch(error){console.warn('Memory emblem unavailable',error);restoreEmblem();}
+      if(story&&!still){
         if(next&&next!==beat){beat=next;if(next!=='intro')burst(next==='kitten'?2:next==='rose'?3:0,3);}
         const elapsed=story.elapsed();
         if(!released&&elapsed>=4.6&&elapsed<16){released=true;burst(0,5);}
         if(!waved&&elapsed>=8.8&&elapsed<16){waved=true;burst(0,4);}
+        const reacting=story.reaction()>0;
+        if(reacting&&!interacting)burst(beat==='kitten'?2:beat==='rose'?3:0,3);
+        interacting=reacting;
       }
     }
     if(!cache||!ctx)return;
@@ -285,7 +309,7 @@ export function mountMemoryGarden(doc=document,win=window) {
   function tick(now){
     frame=0;if(paused())return;
     const delta=previous?Math.min(.25,(now-previous)/1000):0;previous=now;acc+=delta;
-    const resized=resize();
+    const resized=dirty&&resize();
     // Cap expensive drawing at about 15 fps while maintaining elapsed time.
     if(acc>=1/15||resized){t+=acc;render(acc);acc=0;}
     frame=win.requestAnimationFrame(tick);
@@ -298,6 +322,7 @@ export function mountMemoryGarden(doc=document,win=window) {
     }else if(!frame){previous=0;frame=win.requestAnimationFrame(tick);}
   }
   function onResize(){
+    dirty=true;
     if(doc.hidden||suspended)return;
     if(motion.matches){if(resize())render(0,true);}
     else sync();
@@ -305,12 +330,28 @@ export function mountMemoryGarden(doc=document,win=window) {
   doc.addEventListener('visibilitychange',sync,{signal});
   motion.addEventListener('change',sync,{signal});
   win.addEventListener('resize',onResize,{passive:true,signal});
+  win.visualViewport?.addEventListener('resize',onResize,{passive:true,signal});
   win.addEventListener('pagehide',event=>{
     suspended=true;sync();
     if(!event.persisted){story?.destroy();life.abort();}
   },{signal});
   win.addEventListener('pageshow',()=>{suspended=false;sync();},{signal});
+  function restoreEmblem(){
+    story?.destroy();story=null;
+    const canvas=doc.getElementById('blossom'),host=canvas.parentElement;
+    canvas.width=32;canvas.height=32;host.classList.remove('is-story');
+    delete host.dataset.memoryScene;delete host.dataset.memoryReacting;
+    paintDetails(doc);
+  }
   paintDetails(doc);
-  try{story=mountMemoryStory(doc,win);}catch(error){console.warn('Memory emblem unavailable',error);paintDetails(doc);}
   resize();render(0,motion.matches);sync();
+  // A failed story module must not prevent the original archive/audio module
+  // from running. The original crest remains visible until the story is ready.
+  import('./memory-story.mjs').then(({mountMemoryStory})=>{
+    if(signal.aborted)return;
+    try{
+      story=mountMemoryStory(doc,win);
+      if(story&&!doc.hidden&&!suspended)render(0,motion.matches);
+    }catch(error){console.warn('Memory emblem unavailable',error);restoreEmblem();}
+  }).catch(error=>console.warn('Memory story module unavailable',error));
 }
