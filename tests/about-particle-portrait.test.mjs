@@ -1,48 +1,55 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {particleGrid,portraitMatte,PortraitPhysics} from '../js/about-particle-portrait.mjs';
-const read=p=>readFileSync(new URL('../'+p,import.meta.url));
-test('responsive source sampling preserves the complete landscape and adapts density',()=>{
- const desktop=particleGrid(680),mobile=particleGrid(320),low=particleGrid(320,256,144,true);
- assert.deepEqual(desktop,{cols:352,rows:198});
- assert.ok(mobile.cols*mobile.rows>8000&&low.cols<mobile.cols);
- assert.ok(Math.abs(mobile.cols/mobile.rows-16/9)<.03);
+import {particleGrid,pulseFalloff} from '../js/about-particle-portrait.mjs';
+
+const read = path => readFileSync(new URL('../'+path, import.meta.url));
+
+test('sampling covers the source aspect ratio and adapts without inventing samples', () => {
+  const desktop = particleGrid(700,1120,629);
+  const mobile = particleGrid(360,1120,629,true);
+  const fallback = particleGrid(360,1120,629,true,true);
+  assert.equal(desktop.cols,420);
+  assert.ok(mobile.cols < desktop.cols && fallback.cols < mobile.cols);
+  assert.ok(Math.abs(desktop.cols / desktop.rows - 1120/629) < .01);
+  assert.ok(Math.abs(mobile.cols / mobile.rows - 1120/629) < .02);
+  assert.deepEqual(particleGrid(700,32,18), {cols:32,rows:18});
 });
-test('the matte holds the face and dissolves the original frame edges',()=>{
- assert.ok(portraitMatte(.5,.47)>.9);
- assert.ok(portraitMatte(.08,.5)<.13);
- assert.equal(portraitMatte(.5,0),0);
- assert.equal(portraitMatte(.75,1),0);
- assert.ok(portraitMatte(.29,.63)>portraitMatte(.19,.63));
+
+test('the wake is local, starts smoothly and settles exactly at its finite lifetime', () => {
+  const peak = .66 / 4;
+  assert.equal(pulseFalloff(0,0),0);
+  assert.equal(pulseFalloff(0,.66),0);
+  assert.equal(pulseFalloff(1,peak),0);
+  assert.ok(pulseFalloff(.25,peak) > pulseFalloff(.64,peak));
+  assert.ok(pulseFalloff(0,.001) < .02);
+  assert.ok(pulseFalloff(0,.65) < .0001);
 });
-test('local repulsion moves away, is bounded and returns to exact source cells',()=>{
- const model=new PortraitPhysics(128,72),i=36*128+68,far=10;
- const brush={x:64,y:36.5,radius:15,strength:1};
- for(let f=0;f<18;f++)model.step(1/60,brush);
- assert.ok(model.dx[i]>0);assert.equal(model.dx[far],0);
- assert.ok(model.active.size<1000);
- assert.ok(Math.max(...model.dx)<7);
- for(let f=0;f<240&&model.active.size;f++)model.step(1/60,null);
- assert.equal(model.active.size,0);
- for(const values of [model.dx,model.dy,model.vx,model.vy])assert.ok(values.every(v=>v===0));
+
+test('portrait stays between motto and copy with an accessible image fallback', () => {
+  const html = read('index.html').toString();
+  const css = read('css/about-particle-portrait.css').toString();
+  const block = html.match(/<figure class="about-particle-portrait"[\s\S]*?<\/figure>/)?.[0];
+  assert.ok(block);
+  assert.ok(html.indexOf('IS MY MOTTO') < html.indexOf(block));
+  assert.ok(html.indexOf(block) < html.indexOf('I am a developer focused on love.'));
+  assert.match(block, /<figure[^>]*role="img"[^>]*aria-label/);
+  assert.match(block, /<img[^>]*width="1120" height="629" alt="" loading="lazy"/);
+  assert.match(block, /<canvas[^>]*aria-hidden="true"/);
+  assert.match(css, /touch-action: pan-y pinch-zoom/);
+  assert.doesNotMatch(css, /gradient|@keyframes/);
 });
-test('motion stays consistent across 30, 60 and 120 Hz',()=>{
- const values=[30,60,120].map(hz=>{
-  const p=new PortraitPhysics(128,72);
-  for(let i=0;i<hz*.5;i++)p.step(1/hz,{x:64,y:36.5,radius:15,strength:.8});
-  return p.dx[36*128+68];
- });
- assert.ok(Math.max(...values)-Math.min(...values)<.002,JSON.stringify(values));
-});
-test('portrait stays between motto and copy; only an accessible canvas is presented',()=>{
- const html=read('index.html').toString(),css=read('css/about-particle-portrait.css').toString();
- const block=html.match(/<figure class="about-particle-portrait"[\s\S]*?<\/figure>/)?.[0];
- assert.ok(block);assert.ok(html.indexOf('IS MY MOTTO')<html.indexOf(block));
- assert.ok(html.indexOf(block)<html.indexOf('I am a developer focused on love.'));
- assert.match(block,/<canvas[^>]*role="img"/);assert.doesNotMatch(block,/<(?:img|button|h[1-6]|figcaption)\b/);
- assert.match(css,/touch-action:pan-y pinch-zoom/);assert.match(css,/aspect-ratio:16\/9/);
- const asset=read('assets/about/portrait-samples.webp');
- assert.equal(asset.toString('ascii',0,4),'RIFF');assert.equal(asset.toString('ascii',8,12),'WEBP');
- for(const chunk of ['EXIF','XMP ','ICCP'])assert.equal(asset.includes(Buffer.from(chunk)),false);
+
+test('only the optimized WebP derivative ships, with no photographic metadata', () => {
+  const asset = read('assets/about/portrait-samples.webp');
+  assert.equal(asset.toString('ascii',0,4),'RIFF');
+  assert.equal(asset.toString('ascii',8,12),'WEBP');
+  assert.ok(asset.length < 45_000);
+  const types = [];
+  for (let offset = 12; offset < asset.length;) {
+    types.push(asset.toString('ascii',offset,offset+4));
+    const length = asset.readUInt32LE(offset+4);
+    offset += 8 + length + (length % 2);
+  }
+  assert.deepEqual(types,['VP8 ']);
 });
