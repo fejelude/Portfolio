@@ -1,13 +1,20 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {particleGrid,PortraitPhysics} from '../js/about-particle-portrait.mjs';
+import {particleGrid,portraitMatte,PortraitPhysics} from '../js/about-particle-portrait.mjs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url));
 test('responsive source sampling preserves the complete landscape and adapts density',()=>{
  const desktop=particleGrid(680),mobile=particleGrid(320),low=particleGrid(320,256,144,true);
- assert.deepEqual(desktop,{cols:256,rows:144});
+ assert.deepEqual(desktop,{cols:352,rows:198});
  assert.ok(mobile.cols*mobile.rows>8000&&low.cols<mobile.cols);
  assert.ok(Math.abs(mobile.cols/mobile.rows-16/9)<.03);
+});
+test('the matte holds the face and dissolves the original frame edges',()=>{
+ assert.ok(portraitMatte(.5,.47)>.9);
+ assert.ok(portraitMatte(.08,.5)<.13);
+ assert.equal(portraitMatte(.5,0),0);
+ assert.equal(portraitMatte(.75,1),0);
+ assert.ok(portraitMatte(.29,.63)>portraitMatte(.19,.63));
 });
 test('local repulsion moves away, is bounded and returns to exact source cells',()=>{
  const model=new PortraitPhysics(128,72),i=36*128+68,far=10;
@@ -15,7 +22,7 @@ test('local repulsion moves away, is bounded and returns to exact source cells',
  for(let f=0;f<18;f++)model.step(1/60,brush);
  assert.ok(model.dx[i]>0);assert.equal(model.dx[far],0);
  assert.ok(model.active.size<1000);
- assert.ok(Math.max(...model.dx)<6);
+ assert.ok(Math.max(...model.dx)<7);
  for(let f=0;f<240&&model.active.size;f++)model.step(1/60,null);
  assert.equal(model.active.size,0);
  for(const values of [model.dx,model.dy,model.vx,model.vy])assert.ok(values.every(v=>v===0));

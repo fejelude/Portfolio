@@ -3,7 +3,7 @@ const {createServer}=require('node:http');
 const {readFile,mkdir}=require('node:fs/promises');
 const assert=require('node:assert/strict');
 const path=require('node:path');
-const root=path.resolve(__dirname,'..'),out=path.join(__dirname,'about-portrait-results');
+const root=path.resolve(__dirname,'..'),out=path.resolve(process.env.QA_PORTRAIT_OUT||path.join(__dirname,'about-portrait-results'));
 const html=readFile(path.join(root,'index.html'),'utf8').then(s=>s.match(/<section id="about"[\s\S]*?<\/section>/)[0]);
 const server=createServer(async(req,res)=>{
  try{
@@ -36,9 +36,21 @@ async function check(browser,profile,name,url){
   assert.ok(Math.abs(rect.width/rect.height-16/9)<.02);
   const count=Number(await frame.getAttribute('data-portrait-particles'));assert.ok(count>5000);
   assert.equal(requests,1);
+  const tone=await canvas.evaluate(c=>{
+   const ctx=c.getContext('2d');
+   const alpha=(x,y)=>ctx.getImageData(Math.round(x*(c.width-1)),Math.round(y*(c.height-1)),1,1).data[3];
+   return {center:alpha(.5,.5),top:alpha(.5,0),outer:alpha(.03,.45)};
+  });
+  assert.ok(tone.center>180&&tone.top<10&&tone.outer<35,'recognizable core and transparent edges');
+  assert.equal(await frame.getAttribute('data-portrait-visible'),'');
+  if(profile.hasTouch){
+   await canvas.tap({position:{x:rect.width*.48,y:rect.height*.50}});
+   await page.waitForFunction(()=>document.querySelector('[data-particle-portrait]').dataset.portraitState==='active');
+   await page.waitForFunction(()=>document.querySelector('[data-particle-portrait]').dataset.portraitState==='idle',null,{timeout:5000});
+  }
   const digest=()=>canvas.evaluate(c=>c.toDataURL());
   const rest=await digest(),idleDraws=await page.evaluate(()=>window.portraitDraws);
-  await page.waitForTimeout(250);assert.equal(await page.evaluate(()=>window.portraitDraws),idleDraws,'no idle draws');
+  await page.waitForTimeout(250);assert.equal(await page.evaluate(()=>window.portraitDraws),idleDraws,'ambient breathing should require zero idle canvas draws');
   await frame.screenshot({path:path.join(out,name+'-rest.png')});
   const x=rect.x+rect.width*.5,y=rect.y+rect.height*.5;
   let cdp;
@@ -74,7 +86,9 @@ async function check(browser,profile,name,url){
   await canvas.dispatchEvent('pointermove',{pointerType:'mouse',isPrimary:true,clientX:b.x+b.width/2,clientY:b.y+b.height/2});
   await page.waitForTimeout(350);
   assert.equal(await frame.getAttribute('data-portrait-state'),'idle');assert.equal(await digest(),rest);
-  await page.evaluate(()=>scrollTo(0,0));await page.waitForTimeout(150);
+  await page.emulateMedia({reducedMotion:'no-preference'});
+  await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
+  await page.locator('[data-particle-portrait][data-portrait-visible]').waitFor({state:'detached'});
   const draws=await page.evaluate(()=>window.portraitDraws);await page.waitForTimeout(250);
   assert.equal(await page.evaluate(()=>window.portraitDraws),draws);
   assert.deepEqual(errors,[]);
@@ -84,9 +98,14 @@ async function check(browser,profile,name,url){
 (async()=>{
  await mkdir(out,{recursive:true});await new Promise(r=>server.listen(0,'127.0.0.1',r));
  const url='http://127.0.0.1:'+server.address().port;
- const cases=[[chromium,{viewport:{width:1200,height:900}},'desktop-chromium'],[chromium,{...devices['Pixel 7']},'android-chromium']];
+ const cases=[
+  [chromium,{viewport:{width:1200,height:900}},'desktop-chromium'],
+  [chromium,{...devices['Pixel 7']},'android-chromium'],
+  [chromium,{...devices['Pixel 7'],viewport:{width:320,height:568}},'compact-chromium'],
+  [chromium,{...devices['Pixel 7'],viewport:{width:740,height:390}},'landscape-chromium'],
+ ];
  if(!process.argv.includes('--chromium-only'))cases.push([firefox,{viewport:{width:1200,height:900}},'desktop-firefox'],[webkit,{...devices['iPhone 13']},'iphone-webkit']);
  for(const [engine,profile,name] of cases){
-  const browser=await engine.launch({headless:true});try{await check(browser,profile,name,url)}finally{await browser.close();}
+  const browser=await engine.launch({headless:true,...(engine===chromium&&process.env.QA_CHROMIUM?{executablePath:process.env.QA_CHROMIUM}:{} )});try{await check(browser,profile,name,url)}finally{await browser.close();}
  }
 })().catch(e=>{console.error(e);process.exitCode=1}).finally(()=>server.close());
