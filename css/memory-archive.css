@@ -66,3 +66,12 @@ h1{font:600 clamp(1.8rem,5.4vw,2.8rem)/1.14 var(--pixel);letter-spacing:-.035em;
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(max-width:480px){.viewport{padding-inline:16px;gap:12px}.scene{padding-top:20px}.emblem{height:92px}.emblem canvas{width:80px;height:80px}.copy p{margin-bottom:14px}.garden{max-width:240px;height:36px}.ornament{margin:12px auto 15px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.garden-fleck{display:none}}
+
+/* The miniature stage is independent of the archive copy and audio chrome. */
+.emblem.is-story{width:min(100%,196px);height:148px;margin-bottom:6px;touch-action:auto}
+.emblem.is-story canvas{width:192px;height:144px;max-width:100%;animation:none;image-rendering:pixelated}
+.emblem.is-story .spark{pointer-events:none}
+.emblem.is-story .spark-one{right:0;top:14px}
+.emblem.is-story .spark-two{left:0;bottom:19px}
+@media(max-width:480px){.emblem.is-story{height:130px;width:176px}.emblem.is-story canvas{width:168px;height:126px}}
+@media(max-height:480px) and (orientation:landscape){.emblem.is-story{height:130px}.emblem.is-story canvas{width:168px;height:126px}}
