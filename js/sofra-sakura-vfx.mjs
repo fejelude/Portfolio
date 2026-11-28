@@ -29,6 +29,11 @@ export function sakuraEnvelope(top,bottom,h,celestialWash=0){
  return {wash:(1-smooth(0,.58,gap))*room,petals:(1-smooth(.015,.44,gap))*room,
   ornaments:(1-smooth(.035,.31,gap))*room,hearts:(1-smooth(0,.18,gap))*room};
 }
+// Let the card's garden breathe while Sofra owns the viewport. The last
+// petals disappear as the About heading approaches the reading band.
+export function gardenHandoff(aboutTop,h){
+ return smooth(.30,.78,aboutTop/Math.max(1,h));
+}
 export function celestialPresence(top,bottom,h){
  const gap=Math.max(top-.72*h,.22*h-bottom,0)/Math.max(1,h);
  return 1-smooth(0,.58,gap);
@@ -163,7 +168,7 @@ export function mountSofraGarden(section){
  const touch=win.matchMedia('(any-pointer: coarse)');
  const desktop=win.matchMedia('(width > 900px) and (any-hover: hover) and (any-pointer: fine)');
  const lifecycle=new win.AbortController(),{signal}=lifecycle;
- const particles=makeGarden(),daedalus=doc.querySelector('#tourbillon');
+ const particles=makeGarden(),daedalus=doc.querySelector('#tourbillon'),about=doc.querySelector('#about');
  let artwork,near=!win.IntersectionObserver,suspended=false,dirty=true,frame=0,last=null,next=0,time=0,info,observer,resizer;
  function stop(release=false){
   if(frame)win.cancelAnimationFrame(frame);frame=0;last=null;next=0;sky.hidden=true;
@@ -177,6 +182,10 @@ export function mountSofraGarden(section){
   const h=Math.max(1,win.innerHeight),w=Math.max(1,doc.documentElement.clientWidth);
   const bounds=section.getBoundingClientRect(),box=card.getBoundingClientRect(),other=daedalus?.getBoundingClientRect();
   const level=sakuraEnvelope(bounds.top,bounds.bottom,h,other?celestialPresence(other.top,other.bottom,h):0);
+  if(about){
+   const garden=gardenHandoff(about.getBoundingClientRect().top,h);
+   for(const channel of Object.keys(level))level[channel]*=garden;
+  }
   info=level.wash>.003?{w,h,box,level,scroll:motion.matches?0:Math.max(-h,Math.min(h,bounds.top-h*.23))}:null;
   dirty=false;
   if(!info)return;
@@ -217,7 +226,7 @@ export function mountSofraGarden(section){
   observer.observe(section);
  }
  if(win.ResizeObserver){
-  resizer=new win.ResizeObserver(invalidate);resizer.observe(section);resizer.observe(card);if(daedalus)resizer.observe(daedalus);
+  resizer=new win.ResizeObserver(invalidate);resizer.observe(section);resizer.observe(card);if(daedalus)resizer.observe(daedalus);if(about)resizer.observe(about);
  }
  win.addEventListener('scroll',invalidate,{passive:true,signal});
  win.addEventListener('resize',invalidate,{passive:true,signal});

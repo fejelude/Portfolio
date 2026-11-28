@@ -1,0 +1,170 @@
+@font-face {
+  font-family: "Tokyo Sign";
+  src: url("/assets/about/tokyo-sign.woff") format("woff");
+  font-display: swap;
+}
+
+.feje-world-home #about {
+  position: relative;
+}
+
+.feje-world-home #about > .container {
+  position: relative;
+  z-index: 1;
+}
+
+/* The document wash remains visible through both ends of the scenery.
+   There is no viewport fill here, even while the illustration is sticky. */
+.about-tokyo {
+  position: absolute;
+  inset: clamp(-176px, -16svh, -64px) 0 0;
+  pointer-events: none;
+  mask-image: linear-gradient(to bottom, transparent, #000 255px,
+    #000 calc(100% - 205px), transparent);
+}
+
+.about-tokyo-window {
+  position: sticky;
+  top: var(--nav-height, 70px);
+  display: grid;
+  align-items: end;
+  height: min(740px, calc(100svh - var(--nav-height, 70px)));
+  overflow: clip;
+  --art-opacity: .77;
+  opacity: var(--art-opacity);
+}
+
+.about-tokyo-scene {
+  position: relative;
+  width: min(100%, 1900px);
+  margin-inline: auto;
+}
+
+.about-tokyo-city {
+  display: block;
+  width: 100%;
+  aspect-ratio: 36 / 17;
+}
+
+.about-tokyo-track {
+  position: absolute;
+  inset: 66.7% 0 auto;
+  height: 3.6%;
+  overflow: clip;
+}
+
+.about-tokyo-train {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 23%;
+  background: url("/assets/about/tokyo-train.svg") right bottom / auto 100% no-repeat;
+  opacity: 0;
+}
+
+.about-tokyo-sign {
+  position: absolute;
+  left: 5.5%;
+  top: 53%;
+  display: block;
+  width: max-content;
+  padding: .48em .29em;
+  border: 1px solid #9d9d97;
+  box-shadow: inset 0 0 0 2px #333434, 3px 4px 0 #222323;
+  background: #4e4f4d;
+  color: #efeee8;
+  font: 400 clamp(9px, .85vw, 14px)/1.22 "Tokyo Sign", "Hiragino Sans", "Yu Gothic", sans-serif;
+  letter-spacing: .085em;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+}
+
+@keyframes about-tokyo-pass {
+  from { transform: translateX(-105%); }
+  to { transform: translateX(440%); }
+}
+
+@keyframes about-tokyo-carriage {
+  0%, 11%, 89%, 100% { opacity: 0; }
+  22%, 74% { opacity: .86; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .about-tokyo[data-train-visible] .about-tokyo-train {
+    animation: about-tokyo-pass 6s 1.1s linear 1 both,
+      about-tokyo-carriage 6s 1.1s linear 1 both;
+  }
+
+  @supports (animation-timeline: view()) {
+    #about { view-timeline-name: --about-chapter; }
+    .about-tokyo { mask-image: none; }
+    .about-tokyo-window {
+      animation: about-tokyo-chapter linear both;
+      animation-timeline: --about-chapter;
+      animation-range: entry 0% exit 100%;
+    }
+    .about-tokyo-scene {
+      animation: about-tokyo-depth linear both;
+      animation-timeline: --about-chapter;
+      animation-range: entry 0% exit 100%;
+    }
+  }
+}
+
+@keyframes about-tokyo-chapter {
+  0%, 6%, 97%, 100% { opacity: 0; }
+  24%, 78% { opacity: var(--art-opacity); }
+}
+
+@keyframes about-tokyo-depth {
+  from { transform: translateY(8px); }
+  to { transform: translateY(-17px); }
+}
+
+@media (max-width: 640px) and (orientation: portrait) {
+  .about-tokyo {
+    mask-image: linear-gradient(to bottom, transparent, #000 205px,
+      #000 calc(100% - 175px), transparent);
+  }
+
+  .about-tokyo-window {
+    height: min(680px, calc(100svh - var(--nav-height, 62px)));
+    --art-opacity: .69;
+  }
+
+  .about-tokyo-city {
+    aspect-ratio: 39 / 59;
+  }
+
+  .about-tokyo-sign {
+    left: auto;
+    right: 2%;
+    top: 48%;
+    font-size: 9px;
+  }
+
+  .about-tokyo-track {
+    inset-block-start: 67.6%;
+    height: 2.7%;
+  }
+
+  .about-tokyo-train {
+    width: 46%;
+  }
+
+}
+
+@keyframes about-tokyo-pass-phone {
+  from { transform: translateX(-103%); }
+  to { transform: translateX(223%); }
+}
+
+@media (max-height: 470px) and (orientation: landscape) {
+  .about-tokyo-scene { width: min(100%, 1050px); }
+  .about-tokyo-window { --art-opacity: .61; }
+}
+
+@media (max-width: 640px) and (orientation: portrait) and (prefers-reduced-motion: no-preference) {
+  .about-tokyo[data-train-visible] .about-tokyo-train {
+    animation-name: about-tokyo-pass-phone, about-tokyo-carriage;
+  }
+}

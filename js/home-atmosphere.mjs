@@ -15,9 +15,9 @@ export const CHAPTERS=Object.freeze([
  ['#tourbillon .ft-card',.97,'#17243b'],
  ['#sofra-project .sofra-feature',.06,'#301e35'],
  ['#sofra-project .sofra-feature',.8,'#352139'],
- ['#about',.18,'#302039'],
- ['#about',.65,'#271c34'],
- ['#about',.94,'#21172e'],
+ ['#about',.10,'#252526'],
+ ['#about',.58,'#2a2a2b'],
+ ['#about',.94,'#222223'],
  ['#roblox-creations [data-rc-zone="intro"]',.48,'#261936'],
  ['#roblox-creations [data-rc-zone="garage"]',.48,'#301c2a'],
  ['#roblox-creations [data-rc-zone="build"]',.48,'#152b25'],
@@ -54,7 +54,7 @@ const glows=[
  ['#home',.56,12,'#6c459d26'],['#interactives-entry',.6,88,'#427bbf20'],
  ['#tourbillon .ft-card',.45,5,'#397a9b30'],['#tourbillon .ft-card',.8,95,'#b38b4620'],
  ['#sofra-project .sofra-feature',.18,5,'#e87ca744'],['#sofra-project .sofra-feature',.8,92,'#b86aa843'],
- ['#about',.35,82,'#b7a1e52b'],['#about',.68,10,'#b86aa820'],
+ ['#about',.34,88,'#b6b6b618'],['#about',.74,10,'#97979712'],
  ['#services .svc-row--game',.4,5,'#397acf40'],['#services .svc-row--model',.5,95,'#c18a4c35'],
  ['#services .svc-row--web',.6,8,'#4eb5ac35']
 ];
@@ -75,7 +75,7 @@ export function mountHomeAtmosphere(doc=document,win=doc.defaultView){
   for(const [selector,el] of elements){const r=el.getBoundingClientRect();if(r.height>0)boxes.set(selector,{y:r.top-origin,h:r.height});}
   const anchors=CHAPTERS.flatMap(([selector,fraction,color])=>{const b=boxes.get(selector);return b?[{y:b.y+b.h*fraction,color}]:[];});
   const lights=glows.flatMap(([selector,fraction,x,color])=>{const b=boxes.get(selector);if(!b)return [];
-   const y=Math.round(b.y+b.h*fraction),radius=Math.round(clamp(b.h*.65,260,850));
+   const y=Math.round(b.y+b.h*fraction),radius=Math.round(selector==='#about'?clamp(b.h*.34,180,490):clamp(b.h*.65,260,850));
    return ['radial-gradient(ellipse 72% '+radius+'px at '+x+'% '+y+'px,'+color+',transparent 100%)'];
   });
   const value=[...lights,'linear-gradient(to bottom,'+gradientStops(anchors,height).join(',')+')'].join(',');

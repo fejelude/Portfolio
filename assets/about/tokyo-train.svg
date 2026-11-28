@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 294 23">
+  <defs>
+    <g id="car">
+      <path fill="#696a6a" stroke="#b0b1b1" stroke-width=".65" d="M2 20V6l4-4h82l4 4v14z"/>
+      <path fill="#303131" d="M2 13h90v5H2z"/>
+      <path fill="#aaa" d="M10 6h10v6H10zm15 0h10v6H25zm15 0h10v6H40zm15 0h10v6H55zm15 0h10v6H70z"/>
+      <path fill="none" stroke="#4e4f4f" d="M22 5v14m31-14v14m30-14v14"/>
+      <path fill="#242525" d="M12 20h12v2H12zm57 0h12v2H69z"/>
+    </g>
+  </defs>
+  <path fill="#555656" d="M89 15h110v3H89z"/>
+  <use href="#car"/><use href="#car" x="99"/><use href="#car" x="198"/>
+  <path fill="#dbdcdc" d="M286 14h3v2h-3z"/>
+</svg>
