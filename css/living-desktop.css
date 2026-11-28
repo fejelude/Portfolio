@@ -269,3 +269,12 @@
 }
 
 [data-living-desktop] [data-rc-paused] .living-decoration { display: none; }
+
+/* The existing single pointer decoration is reused inside the shortcut bezel. */
+#home .pixel-shortcut .living-decoration[data-living-effect="shortcut"]{
+ --light:var(--shortcut-accent);--beam-width:30px;--beam-height:1px;z-index:2;
+}
+#home .pixel-shortcut .living-decoration[data-living-effect="shortcut"]::after{
+ content:"";width:2px;height:2px;background:var(--light);transform:translate(-9px,-7px);
+ box-shadow:13px 3px var(--light),5px 12px #f3e5ff;
+}

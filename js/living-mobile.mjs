@@ -1,6 +1,8 @@
 // Each tap uses one small, reusable piece of artwork. The motion runs on
 // transform and opacity and has no JavaScript render loop.
 const targets = [
+  ['#home .pixel-shortcut--profile', 'stars', '--shortcut-accent'],
+  ['#home .pixel-shortcut--vault', 'signal', '--shortcut-accent'],
   ['#hero-terminal, #feje-pixel-companion, .feje-title-row', 'signal'],
   ['.collection-arrow, [data-collectible-choice], .world-stage:not([data-state="live"]) .world-viewport', 'garage', '--collection-accent'],
   ['.ix-cta, .ix-details summary, .iw-progress, .iw-intro-copy', 'stars'],

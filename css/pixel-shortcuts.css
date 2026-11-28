@@ -1,0 +1,50 @@
+/* Local hero shortcut bezels. Native links and existing magnet/touch engines remain in charge. */
+.feje-world-home #home .profile-action-cluster .pixel-shortcut{
+ --shortcut-accent:#c5a6fa;--shortcut-edge:#755b9d;--shortcut-surface:#302541;--shortcut-base:#171322;
+ position:relative;isolation:isolate;display:inline-flex;align-items:center;justify-content:center;
+ flex:0 0 52px;width:52px;height:52px;box-sizing:border-box;padding:0;border:1px solid var(--shortcut-edge);border-radius:0;
+ color:var(--shortcut-accent);background:linear-gradient(145deg,var(--shortcut-surface),var(--shortcut-base) 76%);
+ box-shadow:inset 0 0 0 2px var(--shortcut-base),inset 0 0 0 3px var(--shortcut-edge),0 3px 0 #0e0c17;
+ overflow:hidden;touch-action:manipulation;transition:border-color .18s ease,box-shadow .18s ease,background-color .18s ease;
+}
+.feje-world-home #home .profile-action-cluster .pixel-shortcut--vault{
+ --shortcut-accent:#91e6f1;--shortcut-edge:#477e94;--shortcut-surface:#203b50;--shortcut-base:#141d30;
+}
+.feje-world-home #home .profile-action-cluster .pixel-shortcut::before{
+ content:"";position:absolute;inset:3px;pointer-events:none;border-radius:0;transform:none;opacity:1;
+ background:linear-gradient(var(--shortcut-accent),var(--shortcut-accent)) left top/9px 2px no-repeat,
+ linear-gradient(var(--shortcut-accent),var(--shortcut-accent)) left top/2px 9px no-repeat,
+ linear-gradient(var(--shortcut-edge),var(--shortcut-edge)) right bottom/9px 2px no-repeat,
+ linear-gradient(var(--shortcut-edge),var(--shortcut-edge)) right bottom/2px 9px no-repeat;
+ transition:opacity .2s ease;
+}
+.feje-world-home #home .profile-action-cluster .pixel-shortcut::after{
+ content:"";position:absolute;inset:0;pointer-events:none;opacity:.55;
+ background:linear-gradient(90deg,transparent,var(--shortcut-accent),transparent) top left/18px 1px no-repeat;
+}
+.feje-world-home #home .pixel-shortcut .pixel-shortcut-art{
+ width:36px;height:36px;display:block;position:relative;z-index:1;pointer-events:none;image-rendering:pixelated;
+ transition:translate .15s ease;
+}
+.feje-world-home #home .pixel-shortcut-frame{opacity:0}
+.feje-world-home #home .pixel-shortcut-frame[data-shortcut-frame="0"]{opacity:1}
+.feje-world-home #home .profile-action-cluster .pixel-shortcut:focus-visible{
+ outline:2px solid var(--shortcut-accent);outline-offset:4px;border-color:var(--shortcut-accent);
+}
+@media(hover:hover){
+ .feje-world-home #home .profile-action-cluster .pixel-shortcut:hover{
+  border-color:var(--shortcut-accent);box-shadow:inset 0 0 0 2px var(--shortcut-base),inset 0 0 0 3px var(--shortcut-edge),0 0 16px color-mix(in srgb,var(--shortcut-accent),transparent 74%);
+ }
+}
+.feje-world-home #home .profile-action-cluster .pixel-shortcut:active{border-color:var(--shortcut-accent);box-shadow:inset 0 3px 0 var(--shortcut-base),inset 0 0 0 2px var(--shortcut-edge)}
+.feje-world-home #home .pixel-shortcut:active .pixel-shortcut-art{translate:0 2px}
+@media(prefers-reduced-motion:no-preference){
+ .feje-world-home #home .pixel-shortcut[data-shortcut-active] .pixel-shortcut-frame{animation:shortcut-frame 4.4s steps(1,end) infinite;animation-delay:var(--frame-delay)}
+ .feje-world-home #home .pixel-shortcut[data-shortcut-active]::after{animation:shortcut-bezel 4.4s steps(4,end) infinite}
+}
+@keyframes shortcut-frame{0%{opacity:1}25%,100%{opacity:0}}
+@keyframes shortcut-bezel{0%,100%{background-position:0 0;opacity:.45}50%{background-position:100% 0;opacity:.85}}
+@media(prefers-reduced-motion:reduce){
+ .feje-world-home #home .profile-action-cluster .pixel-shortcut,.feje-world-home #home .pixel-shortcut .pixel-shortcut-art{transition:none}
+ .feje-world-home #home .pixel-shortcut:active .pixel-shortcut-art{translate:none}
+}
