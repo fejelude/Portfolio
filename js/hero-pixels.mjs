@@ -1,3 +1,4 @@
+import {mountPixelShortcuts} from './pixel-shortcuts.mjs';
 // One visually unframed mascot doubles as the accessible pause/resume control.
 const companion = document.getElementById('feje-pixel-companion');
 if (companion) {
@@ -30,3 +31,5 @@ if (companion) {
   window.addEventListener('pageshow', sync, { signal });
   sync();
 }
+
+mountPixelShortcuts();

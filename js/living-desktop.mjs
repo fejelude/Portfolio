@@ -2,6 +2,7 @@
 // position for the CSS fade-out. Artwork is allocated on first interaction.
 const surfaces = [
   ['.feje-title-row', 'terminal', 'bottom'],
+  ['#home .pixel-shortcut', 'shortcut', 'inside'],
   ['.desktop-nav-item', 'navigation', 'bottom'],
   ['.world-viewport', 'garage', 'top'],
   ['.ix-cta', 'constellation', 'inside'],

@@ -1,0 +1,41 @@
+name: Animated pixel shortcuts CI
+on:
+  pull_request:
+    paths:
+      - index.html
+      - css/pixel-shortcuts.css
+      - css/living-desktop.css
+      - js/pixel-shortcuts.mjs
+      - js/hero-pixels.mjs
+      - js/living-desktop.mjs
+      - js/living-mobile.mjs
+      - tests/pixel-shortcuts.test.mjs
+      - verification/pixel-shortcuts-smoke.cjs
+      - .github/workflows/pixel-shortcuts-ci.yml
+permissions:
+  contents: read
+jobs:
+  shortcuts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/pixel-shortcuts.test.mjs
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - name: Matched browser screenshots and animation recordings
+        env:
+          BASE_REVISION: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/shortcut-baseline" "$BASE_REVISION"
+          node verification/pixel-shortcuts-smoke.cjs "$RUNNER_TEMP/shortcut-baseline"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pixel-shortcuts-before-after
+          path: verification/pixel-shortcuts-results/
