@@ -27,3 +27,97 @@ test('original unedited archive track and licensed font available',()=>{
  assert.ok(existsSync(new URL('assets/memory/OFL.txt',root)));
  assert.ok(read('css/memory-archive.css').includes('prefers-reduced-motion'));
 });
+
+import {memoryBeat,mountMemoryStory} from '../js/memory-story.mjs';
+import {mountMemoryGarden} from '../js/memory-garden.mjs';
+test('Eternal Spring opening plays once, then four memories loop',()=>{
+ for(const [time,kind] of [[0,'intro'],[4,'intro'],[8,'intro'],[12,'intro'],[15.99,'intro'],[16,'sakura'],[22,'kitten'],[28,'rose'],[34,'butterfly'],[40,'sakura'],[46,'kitten'],[64,'sakura'],[160,'sakura']]){
+  assert.equal(memoryBeat(time).kind,kind,String(time));
+ }
+ for(const time of [15.5,21.5,27.5,33.5,39.5])assert.ok(memoryBeat(time).blend>0);
+ assert.equal(memoryBeat(16).blend,0);
+ assert.equal(memoryBeat(39.5).next,'sakura');
+ assert.equal(memoryBeat(15.5).next,'sakura');
+});
+
+function fixture(){
+ const listeners=new Map();
+ const target=()=>({addEventListener(type,fn){const list=this.events[type]||=[];list.push(fn);this.events[type]=list;},events:{},emit(type,e={}){for(const fn of this.events[type]||[])fn(e);}});
+ const host=Object.assign(target(),{dataset:{},classList:{add(){},remove(){}},setAttribute(){},getBoundingClientRect:()=>({left:0,width:192})});
+ const canvas=(w=96,h=72)=>{
+  const x={width:w,height:h,clientWidth:390,clientHeight:844,parentElement:host,toDataURL:()=>'',getContext:()=>ctx};
+  const ctx={canvas:x,fillRect(){},clearRect(){},translate(){},save(){},restore(){},drawImage(){},getImageData:()=>({data:new Uint8ClampedArray(x.width*x.height*4)})};
+  return x;
+ };
+ const control=Object.assign(target(),{attrs:{},hidden:true,disabled:false,setAttribute(k,v){this.attrs[k]=v;}});
+ const elements={grove:canvas(),blossom:canvas(32,32),garden:canvas(160,24),petals:{append(){},style:{}},'garden-motion':control,'motion-ornament':{hidden:false}};
+ const doc=Object.assign(target(),{hidden:false,getElementById:id=>elements[id],createDocumentFragment:()=>({append(){}}),createElement:tag=>tag==='canvas'?canvas():{classList:{add(){}},style:{setProperty(){}}},documentElement:{toggleAttribute(name,value){this[name]=value;}}});
+ const media=Object.assign(target(),{matches:false});
+ let nextId=0;
+ const win=Object.assign(target(),{AbortController,matchMedia:()=>media,requestAnimationFrame(fn){listeners.set(++nextId,fn);return nextId;},cancelAnimationFrame(id){listeners.delete(id);}});
+ const frame=now=>{const calls=[...listeners.values()];listeners.clear();calls.forEach(fn=>fn(now));};
+ return {host,doc,win,media,elements,listeners,frame};
+}
+test('story interactions never restart opening; reduced motion is static',()=>{
+ const {host,doc,win}=fixture();
+ const story=mountMemoryStory(doc,win);
+ assert.ok(story);story.draw(0);
+ host.emit('pointerenter',{pointerType:'mouse',clientX:100});
+ assert.equal(story.reaction(),0);
+ story.draw(15.5);assert.equal(host.dataset.memoryScene,'intro');
+ story.draw(.5);assert.equal(host.dataset.memoryScene,'sakura');
+ host.emit('pointerenter',{pointerType:'mouse',clientX:100});
+ assert.equal(story.reaction(),1);assert.equal(host.dataset.memoryReacting,'true');
+ story.draw(6);assert.equal(host.dataset.memoryScene,'kitten');
+ host.emit('pointerdown',{pointerId:1,clientX:20,clientY:20});
+ host.emit('pointerup',{pointerId:1,clientX:20,clientY:70});
+ assert.equal(story.reaction(),0);
+ host.emit('pointerdown',{pointerId:2,clientX:100,clientY:20});
+ host.emit('pointerup',{pointerId:2,clientX:100,clientY:20});
+ assert.equal(story.reaction(),1);
+ const at=story.elapsed();story.draw(0,true);
+ assert.equal(story.elapsed(),at);assert.equal(host.dataset.memoryScene,'sakura');
+ assert.equal(story.reaction(),0);story.draw(0);
+ assert.equal(host.dataset.memoryScene,'kitten');
+ story.draw(18);assert.equal(host.dataset.memoryScene,'sakura');
+ story.destroy();
+});
+test('garden clock pauses in hidden tabs and reduced motion, and resumes without restart',async()=>{
+ const {host,doc,win,media,elements,listeners,frame}=fixture();
+ mountMemoryGarden(doc,win);
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(host.dataset.memoryScene,'intro');
+ assert.equal(listeners.size,1);
+ let now=100;
+ for(let i=0;i<70;i++){frame(now);now+=250;}
+ assert.equal(host.dataset.memoryScene,'sakura');
+ doc.hidden=true;doc.emit('visibilitychange');assert.equal(listeners.size,0);
+ assert.equal(doc.documentElement['data-garden-paused'],true);
+ elements.grove.clientWidth=844;elements.grove.clientHeight=390;win.emit('resize');
+ assert.equal(listeners.size,0);
+ doc.hidden=false;doc.emit('visibilitychange');frame(now);now+=250;frame(now);
+ assert.equal(host.dataset.memoryScene,'sakura');
+ assert.equal(listeners.size,1);
+ media.matches=true;media.emit('change');assert.equal(listeners.size,0);
+ assert.equal(host.dataset.memoryScene,'sakura');
+ media.matches=false;media.emit('change');assert.equal(listeners.size,1);
+ win.emit('pagehide',{persisted:true});assert.equal(listeners.size,0);
+ win.emit('pageshow');assert.equal(listeners.size,1);
+ win.emit('pagehide',{persisted:false});assert.equal(listeners.size,0);
+});
+
+test('manual decorative pause freezes and resumes the current beat',async()=>{
+ const {host,win,doc,elements,listeners,frame,media}=fixture();
+ mountMemoryGarden(doc,win);await new Promise(resolve=>setImmediate(resolve));
+ const control=elements['garden-motion'],event={stopPropagation(){}};
+ assert.equal(control.hidden,false);assert.equal(elements['motion-ornament'].hidden,true);
+ let now=100;for(let i=0;i<20;i++){frame(now);now+=250;}
+ assert.equal(host.dataset.memoryPhase,'release');control.emit('click',event);
+ assert.equal(control.attrs['aria-pressed'],'true');assert.equal(listeners.size,0);
+ frame(now+10000);assert.equal(host.dataset.memoryPhase,'release');
+ control.emit('click',event);assert.equal(control.attrs['aria-pressed'],'false');
+ frame(now+10000);assert.equal(host.dataset.memoryPhase,'release');assert.equal(listeners.size,1);
+ media.matches=true;media.emit('change');assert.equal(control.disabled,true);assert.equal(control.attrs['aria-pressed'],'true');
+ assert.equal(host.dataset.memoryPhase,'sakura');assert.equal(listeners.size,0);
+ media.matches=false;media.emit('change');assert.equal(control.disabled,false);assert.equal(listeners.size,1);
+});

@@ -1,13 +1,20 @@
 name: Grade 11 archive CI
 on:
+  # Run archive verification on this feature branch before a PR is opened.
+  push:
+    branches:
+      - 'feat/eternal-spring-beautiful-goodbye'
   pull_request:
     paths:
       - 'sofhia-franchesca-16.html'
       - 'assets/memory/**'
       - 'css/memory-archive.css'
       - 'js/memory-archive.mjs'
+      - 'js/memory-garden.mjs'
+      - 'js/memory-story.mjs'
       - 'tests/memory-archive.test.mjs'
       - 'verification/memory-archive-smoke.cjs'
+      - 'verification/eternal-spring-browser.cjs'
       - 'vercel.json'
       - '.github/workflows/memory-archive-ci.yml'
 permissions:
@@ -18,11 +25,17 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
       - run: node --test tests/*.test.* api/sofra/*.test.js
       - run: npm install --no-save --package-lock=false playwright@1.56.1
+      - name: Install browser engines and Playwright video encoder
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Prepare unchanged baseline
+        run: git worktree add --detach "$RUNNER_TEMP/memory-baseline" "$(git merge-base HEAD origin/main)"
       - name: Verify AAC-capable Chrome
         run: |
           command -v google-chrome
@@ -38,7 +51,15 @@ jobs:
           pactl load-module module-null-sink sink_name=ci_audio
           pactl set-default-sink ci_audio
       - run: ffmpeg -nostdin -v error -xerror -i assets/memory/archive.mp4 -f null -
+      - name: Capture full Eternal Spring motion and performance
+        run: node verification/eternal-spring-browser.cjs
+        env:
+          CHROMIUM_EXECUTABLE: /usr/bin/google-chrome
+          MEMORY_ENGINES: chromium,firefox,webkit
+          MEMORY_BASELINE_ROOT: ${{ runner.temp }}/memory-baseline
+          MEMORY_SCREENSHOTS: ${{ runner.temp }}/memory-archive-results
       - run: node verification/memory-archive-smoke.cjs
+        if: ${{ !cancelled() }}
         env:
           CHROMIUM_EXECUTABLE: /usr/bin/google-chrome
           MEMORY_SCREENSHOTS: ${{ runner.temp }}/memory-archive-results
