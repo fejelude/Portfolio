@@ -1,4 +1,6 @@
-// The scenery is painted once per viewport size at a deliberate pixel scale.
+import { mountMemoryStory } from './memory-story.mjs';
+
+// The scenery and each blossom cluster are rasterized once per viewport size.
 // The authored branch contours are the anchors for the blossom clusters.
 const branches = [
   [[0,1,13],[.04,.88,11],[.015,.70,9],[.09,.56,7],[.18,.42,5],[.29,.34,3],[.37,.235,1]],
@@ -83,29 +85,34 @@ function blossomMass(ctx,x,y,rx,ry,random,distant=false) {
   }
 }
 
-function drawTree(ctx, origin, top, height, reach, side, seed, variant) {
+function drawTree(ctx, origin, top, height, reach, side, seed, variant, cache) {
   const random=seeded(seed);
   const widthScale=Math.max(0.6,Math.min(1.25,height/240));
   const project=(x,y)=>[origin+side*x*reach,top+y*height];
   const limbs=branches.map((branch,index)=>branch.map(([x,y,r])=>[
     ...project(x+(index?variant*y*.13:0),y+(index?variant*x*.11:0)),r*widthScale
   ]));
-  limbs.forEach(limb=>silhouette(ctx,limb,'#89637f'));
-  limbs.forEach(limb=>silhouette(ctx,limb,'#ab7d93',side*1.1,.64));
-  silhouette(ctx,limbs[0],'#ce9fa9',-side*1.5,.24);
+  const tree={limbs,side,clusters:[],highlights:[],phase:side===1?.4:2.7};
   for(const [x,y,rx,ry] of [...crowns].sort((a,b)=>b[1]-a[1])){
     const wobble=(random()-.5)*.08;
     const [cx,cy]=project(x+variant*y*.15+wobble,y+variant*x*.12);
-    blossomMass(ctx,cx,cy,reach*rx*(.9+random()*.23),height*ry,random);
+    const a=reach*rx*(.9+random()*.23),b=height*ry;
+    // Integer translation preserves the exact authored pixel clusters and RNG.
+    const left=Math.floor(cx-a*1.5)-3,top=Math.floor(cy-b*1.5)-3;
+    const tile=cache.make(Math.ceil(a*3)+8,Math.ceil(b*3)+8),tc=tile.getContext('2d');
+    tc.translate(-left,-top);
+    blossomMass(tc,cx,cy,a,b,random);
+    tree.clusters.push({tile,left,top,cx,cy,phase:tree.phase+x*7+y*3,flex:Math.min(2.2,.6+(1-y)*1.8)});
   }
-  // Five-petal highlights at selected bough tips, with gaps left for sky.
   for(const [x,y] of [[.57,.21],[.20,.198],[.70,.32],[.52,.47],[.33,.40]]){
     const [xx,yy]=project(x+variant*y*.13,y+variant*x*.10);
-    sprite(ctx,petals[0],xx,yy,{h:'#fff4ec',p:'#efb4ce',c:'#d995ad'});
+    tree.highlights.push({x:xx,y:yy,phase:tree.phase+x*7+y*3});
   }
+  cache.trees.push(tree);
+
 }
 
-function paintGrove(ctx,w,h,portrait) {
+function paintGrove(ctx,w,h,portrait,cache) {
   const random=seeded(609);
   const shore=h*(portrait?.87:.81);
   for(let i=0;i<11;i++){
@@ -132,14 +139,40 @@ function paintGrove(ctx,w,h,portrait) {
     if(i%4===0)rect(ctx,x+1,y+2,2,1,'#dbadc4');
   }
   if(portrait){
-    drawTree(ctx,3,-h*.10,h*.85,w*.63,1,770,-.55);
-    drawTree(ctx,w-2,-h*.21,h*.94,w*.55,-1,557,.64);
+    drawTree(ctx,3,-h*.10,h*.85,w*.63,1,770,-.55,cache);
+    drawTree(ctx,w-2,-h*.21,h*.94,w*.55,-1,557,.64,cache);
     return;
   }
   const reach=Math.min(w*.33,h*.51);
-  drawTree(ctx,w*.064,-h*.065,h*1.06,reach,1,770,-.55);
-  drawTree(ctx,w*.936,-h*.17,h*1.16,reach*.94,-1,557,.64);
+  drawTree(ctx,w*.064,-h*.065,h*1.06,reach,1,770,-.55,cache);
+  drawTree(ctx,w*.936,-h*.17,h*1.16,reach*.94,-1,557,.64,cache);
 }
+
+function paintLivingGrove(ctx,cache,t,wind,still=false){
+  ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+  ctx.drawImage(cache.base,0,0);
+  for(const tree of cache.trees){
+    const sway=(phase,flex)=>still?0:Math.round((sin(t*.8+phase)*.65+wind*.65)*flex);
+    const limbs=tree.limbs.map((limb,j)=>limb.map(([x,y,r],i)=>{
+      // Each limb retains its attachment point; the trunk base never moves.
+      const f=i/(limb.length-1),bend=j===0?f*f*.7:f*f;
+      return [x+sway(tree.phase+j*.77,2.1)*bend,y+(still?0:Math.round(sin(t*.62+tree.phase+j)*bend*.7)),r];
+    }));
+    limbs.forEach(limb=>silhouette(ctx,limb,'#89637f'));
+    limbs.forEach(limb=>silhouette(ctx,limb,'#ab7d93',tree.side*1.1,.64));
+    silhouette(ctx,limbs[0],'#ce9fa9',-tree.side*1.5,.24);
+    for(const b of tree.clusters){
+      const dx=sway(b.phase,b.flex),dy=still?0:Math.round(sin(t*.7+b.phase)*.65);
+      ctx.drawImage(b.tile,b.left+dx,b.top+dy);
+    }
+    for(const b of tree.highlights){
+      const dx=sway(b.phase,1.5);
+      sprite(ctx,petals[0],b.x+dx,b.y,{h:'#fff4ec',p:'#efb4ce',c:'#d995ad'});
+      if(!still&&sin(t*.95+b.phase)>.97)rect(ctx,b.x+dx+2,b.y+1,2,1,'#fff9f1');
+    }
+  }
+}
+const sin=Math.sin;
 
 function paintDetails(doc) {
   const emblem=doc.getElementById('blossom').getContext('2d');
@@ -164,16 +197,16 @@ function paintDetails(doc) {
   }
 }
 
-export function mountMemoryGarden(doc=document, win=window) {
-  const grove=doc.getElementById('grove');
-  const layer=doc.getElementById('petals');
-  const ctx=grove.getContext('2d');
-  const motion=win.matchMedia('(prefers-reduced-motion: reduce)');
-  const life=new win.AbortController();
-  const {signal}=life;
+export function mountMemoryGarden(doc=document,win=window) {
+  const grove=doc.getElementById('grove'),layer=doc.getElementById('petals');
+  if(!grove||!layer)return;
+  const ctx=grove.getContext('2d'),motion=win.matchMedia('(prefers-reduced-motion: reduce)');
+  const life=new win.AbortController(),{signal}=life;
   const random=seeded(271);
-  let frame=0,lastWidth=0,lastHeight=0,suspended=false;
-
+  let frame=0,lastWidth=0,lastHeight=0,suspended=false,cache=null;
+  let previous=0,t=0,acc=0,gust=0,beat='',released=false,waved=false;
+  let story=null,bursts=[];
+  const make=(w,h)=>{const a=doc.createElement('canvas');a.width=w;a.height=h;return a;};
   // Reusable pixel sprites. CSS moves the small tiles independently of the grove.
   const kinds=[petals[0],petals[1],heart,rose,sparkle];
   const images=kinds.map(pattern=>{
@@ -195,7 +228,7 @@ export function mountMemoryGarden(doc=document, win=window) {
     fleck.style.backgroundImage=images[kind]?`url(${images[kind]})`:'none';
     fleck.style.left=`${(i%2?54:5)+random()*41}%`;
     fleck.style.setProperty('--size',`${(kind===3?12:8)+Math.round(random()*6)}px`);
-    fleck.style.setProperty('--drift',`${18+random()*42}px`);
+    fleck.style.setProperty('--drift',`${(18+random()*42)*(i%3===0?-1:1)}px`);
     fleck.style.setProperty('--duration',`${(rising?25:17)+random()*17}s`);
     fleck.style.setProperty('--delay',`${-random()*35}s`);
     if(kind===4)fleck.style.top=`${12+random()*70}%`;
@@ -203,45 +236,81 @@ export function mountMemoryGarden(doc=document, win=window) {
   }
   layer.append(fragments);
 
-  function draw() {
-    frame=0;
-    const width=Math.max(1,grove.clientWidth);
-    const height=Math.max(1,grove.clientHeight);
-    if(!ctx||(width===lastWidth&&height===lastHeight))return;
-    lastWidth=width;
-    lastHeight=height;
+
+  function resize(){
+    const width=Math.max(1,grove.clientWidth),height=Math.max(1,grove.clientHeight);
+    if(!ctx||(width===lastWidth&&height===lastHeight))return false;
+    lastWidth=width;lastHeight=height;
     const cell=Math.max(2.5,Math.sqrt(width*height/165000));
-    grove.width=Math.ceil(width/cell);
-    grove.height=Math.ceil(height/cell);
-    paintGrove(ctx,grove.width,grove.height,width<=640&&height>width);
+    grove.width=Math.ceil(width/cell);grove.height=Math.ceil(height/cell);
+    const base=make(grove.width,grove.height);
+    cache={base,make,trees:[]};
+    paintGrove(base.getContext('2d'),grove.width,grove.height,width<=640&&height>width,cache);
+    bursts=[];return true;
   }
-
-  function onResize() {
-    if(!frame&&!doc.hidden&&!suspended)frame=win.requestAnimationFrame(draw);
+  function burst(kind,n=4){
+    if(!cache)return;
+    gust=Math.min(1.6,gust+.7);
+    for(let i=0;i<n&&bursts.length<12;i++){
+      const tree=cache.trees[i%2],b=tree.clusters[Math.floor(random()*tree.clusters.length)];
+      bursts.push({x:b.cx,y:b.cy,age:0,life:3+random()*3,dx:random()*7-3,dy:3+random()*5,phase:random()*6,kind});
+    }
   }
-
-  function sync() {
-    const paused=doc.hidden||suspended||motion.matches;
-    doc.documentElement.toggleAttribute('data-garden-paused',paused);
-    if(doc.hidden||suspended){
-      win.cancelAnimationFrame(frame);
-      frame=0;
-    }else onResize();
+  function render(dt,still=false){
+    if(story){
+      const next=story.draw(dt,still);
+      if(!still){
+        if(next&&next!==beat){beat=next;if(next!=='intro')burst(next==='kitten'?2:next==='rose'?3:0,3);}
+        const elapsed=story.elapsed();
+        if(!released&&elapsed>=4.6&&elapsed<16){released=true;burst(0,5);}
+        if(!waved&&elapsed>=8.8&&elapsed<16){waved=true;burst(0,4);}
+      }
+    }
+    if(!cache||!ctx)return;
+    gust=Math.max(0,gust-dt*.32);
+    const wind=still?0:sin(t*.26)*.65+sin(t*.73+.8)*.3+gust;
+    paintLivingGrove(ctx,cache,t,wind,still);
+    if(still){layer.style.transform='';return;}
+    layer.style.transform='translateX('+Math.round(wind*2)+'px)';
+    for(const p of bursts){
+      p.age+=dt;
+      p.x+=(p.dx+wind*2)*dt;p.y+=(p.kind===2?-p.dy:p.dy)*dt;
+      if(p.age>=p.life)continue;
+      ctx.globalAlpha=Math.min(.7,p.age*2,(p.life-p.age)*.45);
+      sprite(ctx,p.kind===2?heart:p.kind===3?rose:petals[1],p.x+sin(p.age*2+p.phase)*2,p.y,inks);
+    }
+    ctx.globalAlpha=1;bursts=bursts.filter(p=>p.age<p.life);
+  }
+  function paused(){return doc.hidden||suspended||motion.matches;}
+  function tick(now){
+    frame=0;if(paused())return;
+    const delta=previous?Math.min(.25,(now-previous)/1000):0;previous=now;acc+=delta;
+    const resized=resize();
+    // Cap expensive drawing at about 15 fps while maintaining elapsed time.
+    if(acc>=1/15||resized){t+=acc;render(acc);acc=0;}
+    frame=win.requestAnimationFrame(tick);
+  }
+  function sync(){
+    doc.documentElement.toggleAttribute('data-garden-paused',paused());
+    if(paused()){
+      if(frame)win.cancelAnimationFrame(frame);frame=0;previous=0;acc=0;
+      if(!doc.hidden&&!suspended){resize();render(0,true);}
+    }else if(!frame){previous=0;frame=win.requestAnimationFrame(tick);}
+  }
+  function onResize(){
+    if(doc.hidden||suspended)return;
+    if(motion.matches){if(resize())render(0,true);}
+    else sync();
   }
   doc.addEventListener('visibilitychange',sync,{signal});
   motion.addEventListener('change',sync,{signal});
   win.addEventListener('resize',onResize,{passive:true,signal});
   win.addEventListener('pagehide',event=>{
-    suspended=true;
-    sync();
-    if(!event.persisted)life.abort();
+    suspended=true;sync();
+    if(!event.persisted){story?.destroy();life.abort();}
   },{signal});
-  win.addEventListener('pageshow',()=>{
-    suspended=false;
-    sync();
-  },{signal});
-
+  win.addEventListener('pageshow',()=>{suspended=false;sync();},{signal});
   paintDetails(doc);
-  draw();
-  sync();
+  try{story=mountMemoryStory(doc,win);}catch(error){console.warn('Memory emblem unavailable',error);paintDetails(doc);}
+  resize();render(0,motion.matches);sync();
 }
