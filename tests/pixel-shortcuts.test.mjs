@@ -29,3 +29,11 @@ test('visibility, reduced motion, page lifecycle and disposal gate both sprites'
  win.dispatchEvent(new Event('pageshow'));assert.ok(links[1].a.size);
  dispose();assert.ok(disconnected&&links.every(l=>!l.a.size));
 });
+
+test('Roblox profile artwork is a tilted square with a transparent central cutout, not an avatar',()=>{
+ const html=read('index.html'),link=html.match(/<a\b[^>]*class="[^"]*pixel-shortcut--profile"[^>]*>[\s\S]*?<\/a>/)[0];
+ assert.match(link,/d="M7 7H29V29H7Z M14 14H22V22H14Z" fill-rule="evenodd"/);
+ assert.deepEqual([...link.matchAll(/rotate\((\d+) 18 18\)/g)].map(m=>Number(m[1])),[14,24,14,5]);
+ assert.equal((link.match(/href="#pixel-shortcut-profile"/g)||[]).length,4);
+ assert.match(link,/#dac2fa/);assert.match(link,/#d6adff/);
+});
