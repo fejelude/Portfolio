@@ -3,6 +3,32 @@ const LIFETIME = .66;
 const ENTRANCE = .46;
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
+// Both renderers share this movement limit. Allow a full point radius and
+// pixel rounding at the surface edge, even with every pulse overlapping.
+const TRAVEL_KNEE = .34;
+const TRAVEL_LIMIT = .52;
+
+export function portraitSurface(width, height, preferredDpr) {
+  const radius = clamp(height * .22, 27, 86);
+  const limit = radius * TRAVEL_LIMIT;
+  const bleed = Math.ceil(limit + 5);
+  const outputWidth = width + 2 * bleed;
+  const outputHeight = height + 2 * bleed;
+  const dpr = Math.min(preferredDpr, Math.sqrt(960000 / (outputWidth * outputHeight)));
+  return {
+    radius, limit, bleed, outputWidth, outputHeight,
+    width: Math.max(1, Math.floor(outputWidth * dpr)),
+    height: Math.max(1, Math.floor(outputHeight * dpr)),
+  };
+}
+
+export function limitedTravel(distance, radius) {
+  const knee = radius * TRAVEL_KNEE;
+  const room = radius * (TRAVEL_LIMIT - TRAVEL_KNEE);
+  const beyond = distance - knee;
+  return beyond <= 0 ? distance : knee + room * beyond / (room + beyond);
+}
+
 export function particleGrid(width, sourceWidth, sourceHeight, economy, canvasFallback) {
   const pitch = canvasFallback ? (economy ? 3 : 2.7) : (economy ? 1.92 : 1.62);
   const limit = canvasFallback ? 250 : 420;
@@ -78,6 +104,14 @@ function makeGpuRenderer(gl) {
           displacement += (r * .47 + curl * .62 + directions[i] * radius * .18)
             * (t * t * pulse.z * mix(.52, 1.25, grain.z));
         }
+      }
+      float knee = radius * ${TRAVEL_KNEE};
+      float room = radius * ${TRAVEL_LIMIT - TRAVEL_KNEE};
+      float distanceSquared = dot(displacement, displacement);
+      if (distanceSquared > knee * knee) {
+        float distance = sqrt(distanceSquared);
+        float beyond = distance - knee;
+        displacement *= (knee + room * beyond / (room + beyond)) / distance;
       }
       gl_Position = vec4((point + displacement) / extent * vec2(2.,-2.) + vec2(-1.,1.), 0., 1.);
       gl_PointSize = pitch * (1.53 + .28 * grain.z) * dpr;
@@ -170,7 +204,7 @@ function makeGpuRenderer(gl) {
 function makeCanvasRenderer(canvas, ctx) {
   const cache = canvas.ownerDocument.createElement('canvas');
   const cached = cache.getContext('2d');
-  let field, scale, radius, dirty, colors;
+  let field, scaleX, scaleY, radius, dirty, colors;
 
   function paint(target, left, top, right, bottom, active) {
     const { cols, rows, data, sx, sy, inset } = field;
@@ -191,6 +225,13 @@ function makeCanvasRenderer(canvas, ctx) {
           x += (.47*rx - .62*ry + pulse.dx*radius*.18) * f;
           y += (.47*ry + .62*rx + pulse.dy*radius*.18) * f;
         }
+        const dx = x - data[i], dy = y - data[i+1];
+        if (dx*dx + dy*dy > (radius*TRAVEL_KNEE)**2) {
+          const distance = Math.hypot(dx, dy);
+          const ratio = limitedTravel(distance, radius) / distance;
+          x = data[i] + dx*ratio;
+          y = data[i+1] + dy*ratio;
+        }
         target.fillStyle = colors[i/6];
         target.beginPath();
         target.arc(x, y, sx*(.70 + .14*depth), 0, 2*Math.PI);
@@ -210,12 +251,13 @@ function makeCanvasRenderer(canvas, ctx) {
         if (!palette.has(key)) palette.set(key, `rgb(${r},${g},${b})`);
         return palette.get(key);
       });
-      scale = dpr;
+      scaleX = canvas.width / width;
+      scaleY = canvas.height / height;
       radius = reach;
       dirty = undefined;
       cache.width = canvas.width;
       cache.height = canvas.height;
-      cached.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cached.setTransform(scaleX, 0, 0, scaleY, 0, 0);
       paint(cached, 0, 0, width, height, []);
       ctx.drawImage(cache, 0, 0);
     },
@@ -239,19 +281,21 @@ function makeCanvasRenderer(canvas, ctx) {
         bottom = Math.max(bottom, y + radius);
       }
       if (!active.length) return;
-      const apron = field.sx * 3;
-      const x = Math.max(0, Math.floor((left-apron)*scale));
-      const y = Math.max(0, Math.floor((top-apron)*scale));
-      const w = Math.min(canvas.width, Math.ceil((right+apron)*scale)) - x;
-      const h = Math.min(canvas.height, Math.ceil((bottom+apron)*scale)) - y;
+      // Wake bounds describe original positions. Clear and restore all
+      // pixels they can travel into, including the antialiased dot edge.
+      const apron = radius * TRAVEL_LIMIT + field.sx + 2;
+      const x = Math.max(0, Math.floor((left-apron)*scaleX));
+      const y = Math.max(0, Math.floor((top-apron)*scaleY));
+      const w = Math.min(canvas.width, Math.ceil((right+apron)*scaleX)) - x;
+      const h = Math.min(canvas.height, Math.ceil((bottom+apron)*scaleY)) - y;
       dirty = [x,y,w,h];
       ctx.clearRect(x,y,w,h);
       ctx.save();
       ctx.beginPath();
       ctx.rect(x,y,w,h);
       ctx.clip();
-      ctx.scale(scale,scale);
-      paint(ctx, x/scale, y/scale, (x+w)/scale, (y+h)/scale, active);
+      ctx.scale(scaleX,scaleY);
+      paint(ctx, x/scaleX, y/scaleY, (x+w)/scaleX, (y+h)/scaleY, active);
       ctx.restore();
     },
     dispose() { cache.width = cache.height = 1; },
@@ -275,6 +319,7 @@ export function mountParticlePortrait(root) {
   const seconds = (time = win.performance.now()) => (time - start) / 1000;
 
   let renderer, backend, rect, touch, previous, lastSize;
+  let bleed = 0;
   let frame = 0, lastDraw = 0, nextPulse = 0, end = 0, entrance = 0;
   let visible = !win.IntersectionObserver;
   let suspended = false, initialized = false, forceCanvas = false;
@@ -352,22 +397,23 @@ export function mountParticlePortrait(root) {
     rect = undefined;
     if (!canRender() || !source.complete || !source.naturalWidth) return;
     const bounds = root.getBoundingClientRect();
-    const output = canvas.getBoundingClientRect();
     if (bounds.width < 2 || bounds.height < 2) return;
     const basic = economy || coarse.matches;
-    const dpr = Math.min(win.devicePixelRatio || 1, basic ? 1.55 : 2,
-      Math.sqrt(960000 / (output.width * output.height)));
-    const signature = [bounds.width, bounds.height, output.width, output.height, dpr, basic].join(':');
+    const surface = portraitSurface(bounds.width, bounds.height,
+      Math.min(win.devicePixelRatio || 1, basic ? 1.55 : 2));
+    const signature = [bounds.width, bounds.height, surface.width, surface.height, basic].join(':');
     if (signature === lastSize && renderer) return;
     stop();
     renderer ??= initialize();
     if (!renderer) return;
     lastSize = signature;
-    canvas.width = Math.round(output.width * dpr);
-    canvas.height = Math.round(output.height * dpr);
-    const inset = (output.width - bounds.width) / 2;
-    const field = makeField(source, bounds.width, bounds.height, inset, basic, backend === 'canvas');
-    renderer.rebuild(field, output.width, output.height, dpr, clamp(bounds.height * .22, 27, 86));
+    bleed = surface.bleed;
+    root.style.setProperty('--portrait-bleed', bleed + 'px');
+    canvas.width = surface.width;
+    canvas.height = surface.height;
+    const dpr = Math.min(surface.width / surface.outputWidth, surface.height / surface.outputHeight);
+    const field = makeField(source, bounds.width, bounds.height, surface.bleed, basic, backend === 'canvas');
+    renderer.rebuild(field, surface.outputWidth, surface.outputHeight, dpr, surface.radius);
 
     const now = seconds();
     const enter = !initialized && backend === 'webgl' && canAnimate();
@@ -382,7 +428,7 @@ export function mountParticlePortrait(root) {
 
   function disturb(event, strength) {
     if (!canAnimate() || !renderer) return;
-    rect ??= canvas.getBoundingClientRect();
+    rect ??= root.getBoundingClientRect();
     const x = event.clientX - rect.left, y = event.clientY - rect.top;
     const now = seconds();
     const elapsed = previous ? now - previous.time : Infinity;
@@ -393,7 +439,7 @@ export function mountParticlePortrait(root) {
     if (previous && travel < 2 && elapsed < .17) return;
     previous = { x, y, time: now };
     const slot = nextPulse++ % PULSE_COUNT;
-    pulses.set([x, y, now, strength * (.66 + .34 * speed)], slot * 4);
+    pulses.set([x + bleed, y + bleed, now, strength * (.66 + .34 * speed)], slot * 4);
     directions.set(travel ? [dx / travel * speed, dy / travel * speed] : [0, 0], slot * 2);
     end = now + LIFETIME;
     state('active');
@@ -469,6 +515,7 @@ export function mountParticlePortrait(root) {
     renderer?.dispose();
     renderer = undefined;
     delete root.dataset.portraitRenderer;
+    root.style.removeProperty('--portrait-bleed');
     canvas.width = canvas.height = 1;
   }
   return dispose;

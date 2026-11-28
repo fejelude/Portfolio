@@ -1,5 +1,5 @@
 .feje-world-home #about .about-particle-portrait {
-  --portrait-bleed: 9px;
+  --portrait-bleed: 0px;
   position: relative;
   width: min(100%, 700px);
   margin: clamp(22px, 4vw, 36px) auto 0;
@@ -27,4 +27,41 @@
 
 .feje-world-home #about .about-particle-portrait[data-portrait-renderer] .about-particle-canvas {
   visibility: visible;
+}
+
+/* Two separated engraving marks sit behind the moving grains. */
+.about-print {
+  position: absolute;
+  color: #b5b5b1;
+  opacity: .74;
+  pointer-events: none;
+}
+
+.about-print svg { display: block; }
+.about-print--upper { inset: -7px auto auto -8px; }
+.about-print--lower { inset: auto -8px -7px auto; }
+
+.about-print-seal {
+  position: absolute;
+  bottom: -5px;
+  right: 10px;
+  width: 12px;
+  height: 12px;
+  border: 1px solid currentColor;
+  color: #d19b94;
+  background: #413333;
+  text-align: center;
+  font: 650 8px/10px Georgia, serif;
+}
+
+@media (max-width: 640px) {
+  .about-print svg { width: 38px; height: 22px; }
+  .about-print--upper { top: -5px; left: -5px; }
+  .about-print--lower { bottom: -5px; right: -5px; }
+}
+
+/* Narrow screens may have less side gutter than the guard band. Clip at
+   the chapter's viewport edge without creating a scrolling container. */
+.feje-world-home #about {
+  overflow-x: clip;
 }
